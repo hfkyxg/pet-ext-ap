@@ -5,14 +5,16 @@
 <br/>
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-red?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Version](https://img.shields.io/badge/version-2.0-ff4757?style=for-the-badge)](./manifest.json)
+[![Version](https://img.shields.io/badge/version-3.1-ff4757?style=for-the-badge)](./manifest.json)
 [![License](https://img.shields.io/badge/license-MIT-2ecc71?style=for-the-badge)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f1c40f?style=for-the-badge&logo=javascript&logoColor=black)](./src/)
 
 **Claw'd** é uma extensão Chrome que injeta um mascote pixel-art interativo em qualquer página da web.  
-Ele anda, reage, dorme, pisca, e responde às suas ações — tudo com animações CSS fluidas.
+Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus próprios sub-pets — com animações CSS e movimento sincronizado ao refresh rate do navegador.
 
-[Instalar](#-instalação) · [Funcionalidades](#-funcionalidades) · [Personalização](#-personalização) · [Contribuir](#-contribuição)
+[Instalar](#-instalação) · [Funcionalidades](#-funcionalidades) · [Personalização](#-personalização) · [Validação](#-validação) · [Contribuir](#-contribuição)
+
+📖 **Documentação:** [Documentação Técnica](./DOCUMENTACAO.md) · [Manual de Instruções](./MANUAL.md) · [Relatório de Validação](./VALIDACAO.md) · [Registro de Melhorias v3.1](./MELHORIAS.md)
 
 </div>
 
@@ -24,15 +26,18 @@ Ele anda, reage, dorme, pisca, e responde às suas ações — tudo com animaç�
 <img src="src/assets/pet-states.svg" width="100%" alt="Estados: Idle, Happy, Sleeping, Excited, Waving" />
 </div>
 
-O Claw'd tem **5 estados animados** que mudam automaticamente conforme você interage com a página:
+O Claw'd combina **estados de movimento, ações e emoções** que mudam conforme você interage com a página:
 
 | Estado | Trigger | Animação |
 |--------|---------|----------|
-| 🐾 **Idle** | Padrão | Caminhada com piscar de olhos |
-| ❤️ **Happy** | Clique no pet | Pulo + partículas coloridas |
-| 💤 **Sleeping** | 30s sem atividade | Olhos fechados + Zzz flutuante |
-| ⚡ **Excited** | Scroll na página | Tremida rápida |
-| 👋 **Waving** | Aleatório a cada ~25s | Acena com braço levantado |
+| 🐾 **Idle** | Padrão | Respiração, piscada e pernas imóveis |
+| 🚶 **Walking / Running** | Passeio, arraste ou corrida | Pernas alternadas somente enquanto há deslocamento |
+| ❤️ **Happy / Joyful** | Carinho e necessidades altas | Pulo, sorriso, balão de emoji e partículas |
+| 💤 **Sleeping / Yawning** | Inatividade | Olhos fechados, bocejo e Zzz flutuante |
+| ⚡ **Excited** | Scroll e descoberta de página | Tremida curta e expressão surpresa |
+| 👋 **Waving** | Ação manual ou espontânea | Aceno com balão contextual |
+| 🎣 **Fishing / Reeling** | Profissão Pescador | Vara, lago, fisgada e captura animada |
+| 😢 **Sad / Hungry** | Status baixos | Boca e balão de emoção correspondentes |
 
 ---
 
@@ -43,13 +48,14 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 <td width="50%">
 
 ### 🎨 Animações Fluidas
-- Pixel-art com **3 frames** de walk animation
-- **Piscar de olhos** no terceiro frame
+- Sprite padrão fiel ao modelo compacto vermelho de referência
+- **Pernas estáticas em repouso** e walk cycle só durante movimento
+- Piscada independente, expressões faciais e **balão de emojis**
 - Efeito **3D perspective** ao seguir o cursor
 - **Partículas** de ❤️ ✨ ⭐ ao receber carinho
 - **Pop-in** animado ao carregar a página
 - **Sombra no chão** sincronizada com o movimento
-- **Modo liso** — suaviza os pixels da arte
+- **Modo liso** — funde as bordas dos pixels sem alterar a silhueta
 - **Contorno** — borda escura ao redor do pet
 
 </td>
@@ -57,10 +63,12 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 
 ### 🧠 Comportamento Inteligente
 - **Andar automático** pela tela (configurável)
-- **Balão de fala** com mensagens aleatórias
+- **Balões de fala e emoção** com mensagens e emojis contextuais
 - **Dorme** após 30s de inatividade
 - **Acorda** ao clicar, scrollar ou arrastar
 - Reação instantânea ao **scroll** da página
+- Arraste com **inércia, deslizamento e colisão suave nas bordas**
+- Um único pet principal após reload, com limpeza de instâncias órfãs
 - Suporte completo a **touch** (mobile)
 
 </td>
@@ -69,19 +77,20 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 <td width="50%">
 
 ### 💼 Profissões & Roupas
-- **⚽ Jogador** — ganha boné + bola de futebol jogável; celebra em sites esportivos
-- **📚 Tutor** — veste óculos; monitora foco em redes sociais
-- **💻 Dev** — usa fones; reage a GitHub, docs e Stack Overflow
-- **Acessórios manuais**: 🧢 boné · 👓 óculos · 🎀 laço · 🎧 fones
+- **8 profissões**: Livre, Jogador, Tutor, Dev, Músico, Chef, Ninja e Pescador
+- Pescador monta um **lago interativo**, lança a vara, fisga e captura peixes
+- Jogador faz embaixadinhas; Tutor cria desafios; Dev digita; Músico toca riffs
+- **14 acessórios pixel-art** em dois slots, incluindo boné, cartola, óculos e óculos de sol
 
 </td>
 <td width="50%">
 
 ### 🎮 Gamificação
 - **Sistema de XP e níveis** — carinho dá +5 XP, gol dá +10 XP
-- **Level up** com festa de partículas 🎖️
+- **PixelCoins, loja, conquistas, streak e missão diária**
 - **Barra de progresso** animada no popup
 - **Bola jogável** — clique na bola e veja o Claw'd marcar um golaço ⚽🥅
+- **8 sub-pets** com apelido, cor, sono, despertar e interação por espécie
 - Progresso salvo entre sessões
 
 </td>
@@ -122,9 +131,9 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 
 ```
 ┌─────────────────────────────────┐
-│  [🐾]  Claw'd  v2  ● Conectado  │
+│  [🐾]  Claw'd v3.1  🪙 120       │
 ├──────────┬────────────┬──────────┤
-│ 🎨Aparência│ 🧠Comportamento│ ⚡Ações │
+│ 🎨 💼 🧠 ⚡ 🐕 🛍️ 🏆 ⚙️       │
 ├──────────┴────────────┴──────────┤
 │                                  │
 │  Nome do pet: [_____________]    │
@@ -145,28 +154,29 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **Cor** — 8 cores predefinidas + picker customizado
 - **Tamanho** — slider de 0.8× a 3.0×
 - **Velocidade** — controla a velocidade da animação
-- **Visual liso** — desativa o look pixelado, suavizando a arte
+- **Visual liso** — suaviza os pixels sem transformar ou redesenhar o pet
 - **Contorno** — adiciona borda escura ao redor do mascote
-- **Acessórios** — boné, óculos, laço ou fones de ouvido
+- **Acessórios** — 14 opções em slots separados de cabeça e rosto/corpo
 
 ### Aba Profissão
 - **⚽ Jogador** — bola de futebol jogável ao lado do pet
 - **📚 Tutor** — óculos automáticos + foco de estudo
 - **💻 Dev** — fones automáticos + reações a sites de código
+- **🎸 Músico** — riffs, dança e reações em sites de música
+- **🧑‍🍳 Chef** — cozinha e torna a alimentação mais eficaz
+- **🥷 Ninja** — truques de desaparecimento e surpresa
+- **🎣 Pescador** — vara, lago, fisgada manual/automática e peixes raros
 - **🐾 Livre** — modo padrão sem profissão
 
 ### Aba Comportamento
 - **Balão de fala** — ativa/desativa mensagens
 - **Andar automático** — pet passeia sozinho
 - **Dormir** — ativa o modo de inatividade
+- **Passeio entre abas** — mantém um único pet anfitrião e frequência configurável
+- **Pegadas** — indica abas onde o pet não está
 
 ### Aba Ações
-Dispare ações imediatas:
-- 👋 **Acenar** — anima o gesto de tchauzinho
-- 🕺 **Dançar** — tremida animada com partículas
-- ❤️ **Carinho** — pulo feliz com corações
-- 😴 **Dormir** — coloca o pet para dormir
-- ☀️ **Acordar** — acorda imediatamente
+Dispare ações imediatas como **acenar, dançar, dar carinho, alimentar, brincar, posar, dar banho, dormir, acordar, pescar, pular, esticar e rugir**. A aba também permite ocultar e resgatar o pet.
 
 ---
 
@@ -179,6 +189,8 @@ pet-ext-ap/
 │   ├── content/
 │   │   ├── content.js         # Motor do mascote + sistema de estados
 │   │   └── style.css          # Pixel-art CSS + keyframes de animação
+│   ├── shared/
+│   │   └── catalog.js         # Estado, catálogos, missões e migrações
 │   ├── popup/
 │   │   ├── popup.html         # Interface de personalização
 │   │   ├── popup.css          # Dark UI design system
@@ -188,6 +200,13 @@ pet-ext-ap/
 │   └── assets/
 │       ├── pet-banner.svg     # Banner animado
 │       └── pet-states.svg     # Showcase de estados
+├── tests/
+│   ├── catalog.test.js        # Regras, sprites, emoções e ciclo de vida
+│   └── extension.test.js      # Manifest, wiring do popup e reload seguro
+├── DOCUMENTACAO.md            # Arquitetura e protocolo interno
+├── MANUAL.md                  # Guia de uso
+├── VALIDACAO.md               # Evidências automatizadas e em Chromium real
+├── LICENSE                    # Licença MIT (2026)
 └── README.md
 ```
 
@@ -198,31 +217,30 @@ pet-ext-ap/
 ### Sistema de Estados (content.js)
 
 ```javascript
-// O mascote tem 5 estados gerenciados por CSS classes
+// Estados alteram classes CSS e o balão de emoção correspondente
 setState('happy')   // → node.classList.add('happy')
 setState('sleeping') // → olhos fechados + filter escurecido
 setState('excited')  // → animação de shake + walk acelerado
 setState('waving')   // → braço levantado
-setState('idle')     // → walk padrão com breathe
+setState('idle')     // → respiração/piscada, sem mexer as pernas
 ```
 
 ### Pixel-Art via CSS (style.css)
 
 ```css
-/* Cada pixel é um box-shadow de 4px × 4px */
-@keyframes walk {
-  0%, 100% {
-    box-shadow:
-      /* Orelhas: col 1-2 e col 9-10 */
-      4px 0 var(--agent-color), 8px 0 var(--agent-color),
-      /* Olhos abertos: col 3 e col 7 = preto */
-      12px 8px #111, 28px 8px #111,
-      /* Pernas frame A */
-      8px 28px var(--agent-color), 16px 28px var(--agent-color);
-  }
-  66% { /* frame com piscar de olhos */
-    box-shadow: /* ... olhos fechados como traço ... */;
-  }
+/* A geometria padrão continua sendo o mesmo box-shadow de pixels de 4×4px. */
+#aic-clawd-node .pixel-sprite {
+  animation: none !important; /* pernas imóveis em repouso */
+}
+
+#aic-clawd-node.walking .pixel-sprite,
+#aic-clawd-node.running .pixel-sprite {
+  animation: clawd-walk 0.55s steps(1) infinite !important;
+}
+
+/* O modo liso preserva o box-shadow e funde somente as bordas. */
+#aic-clawd-node.smooth .sprite-stack {
+  filter: blur(1.15px) contrast(1.38) saturate(1.08);
 }
 ```
 
@@ -241,9 +259,12 @@ bodyNode.style.transform = `scale(${scale})`;        // → tamanho sem reflow
 | Ação | Resultado |
 |------|-----------|
 | **Clicar** no pet | Pulo feliz + partículas + fala |
-| **Arrastar** | Repositiona e salva a posição |
+| **Arrastar e soltar** | Reposiciona, desliza com inércia e salva a posição |
 | **Scrollar** | Estado excited por 1s |
 | **Mover o mouse** | Perspectiva 3D (rotação suave) |
+| **Clique duplo/triplo** | Ações especiais e sequências de emoção |
+| **Clicar no sub-pet** | Carinho, despertar ou reação da espécie |
+| **Clicar no lago** | Fisga o peixe durante a profissão Pescador |
 | **Touch (mobile)** | Arrastar e clicar funcionam |
 | **Não interagir** por 30s | Pet adormece automaticamente |
 
@@ -263,12 +284,54 @@ chrome.storage.local.set({
     showSpeech:   true,
     autoWalk:     true,
     sleepEnabled: true,
-    position:     { x: 1200, y: 600 }
+    position:     { x: 1200, y: 600 },
+    smooth:       false,
+    accessoryHead: 'none',
+    accessoryFace: 'none',
+    subpets:      { active: null, unlocked: [], names: {}, colors: {} },
+    settings:     { crossTab: true, performanceMode: false }
   }
 });
 ```
 
 ---
+
+## 🗺️ Estado atual e próximos passos
+
+O núcleo da v3.1 está implementado e validado: favoritos, sub-pets, profissões contextuais, dois slots de acessórios, pixel art em camadas, stats, cross-tab, loja, conquistas e missão diária. O plano detalhado e as ideias de expansão estão em [MELHORIAS.md](./MELHORIAS.md):
+
+| Área | Destaques |
+|------|-----------|
+| ⭐ **Favoritos** | Favorite ações, profissões, acessórios, cores e apelidos — favoritos ganham prioridade |
+| 🐕 **Sub-Pets** | Cachorro, gato, dinossauro, dragão e mais, com apelido, cor própria, sprites pixel-art e interações entre eles |
+| 🎬 **Animações & Acessórios** | Novas ações (alimentar, banho, cambalhota), 2 slots de acessório e 🕶️ óculos de sol |
+| 😊 **Status & Emoções** | Felicidade, fome, energia e higiene estilo Tamagotchi, com emoções derivadas |
+| 💼 **Profissões 2.0** | Embaixadinhas com contador e recorde, desafios do Tutor, digitação do Dev + novas profissões |
+| 🎮 **Gamificação** | Curva de XP progressiva, PixelCoins, lojinha, conquistas, streak e missão diária resgatável |
+| 🖥️ **Renderização adaptativa** | Movimento em `requestAnimationFrame`, leitura do refresh rate e sprite pixel-perfect como padrão |
+| 🌐 **Cross-Tab** | O pet passeia entre abas; reload limpa instâncias órfãs e recria somente o principal na aba ativa |
+| 😄 **Emoções visuais** | Balão de emojis, piscadas e boca contextual sem substituir a sprite base |
+| ⚙️ **Configurações** | Skins, sons 8-bit, horário de silêncio, sites bloqueados, export/import de progresso |
+
+---
+
+## ✅ Validação
+
+O projeto não usa build step nem dependências externas. A validação local inclui:
+
+```powershell
+node --check src/shared/catalog.js
+node --check src/content/content.js
+node --check src/popup/popup.js
+node --check src/background/background.js
+node --test tests/*.test.js
+```
+
+Os testes validam catálogos, migração, missões, sprite padrão, pernas, modo liso, emoções, sub-pets, pesca, manifest, referências do popup, movimento adaptativo e reconciliação após reload. Para a prova visual final, carregue a pasta em `chrome://extensions`, abra um site real e teste clique, arraste, duplo/triplo clique, ações, acessórios, profissões, sub-pet e resgate da missão diária.
+
+O visual inicial é o sprite compacto vermelho de referência: pixels nítidos, sem blur, com escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
+
+Ao arrastar e soltar com velocidade, o Claw'd desliza sobre o conteúdo da página com inércia, rebate suavemente nas bordas e mantém o ciclo das pernas ativo apenas durante o movimento.
 
 ## 🤝 Contribuição
 
@@ -279,17 +342,17 @@ chrome.storage.local.set({
 5. Abra um Pull Request
 
 ### Ideias de contribuição
-- [ ] Novas skins / sprites alternativos
-- [ ] Sistema de conquistas (pet levels)
-- [ ] Reações a sites específicos
-- [ ] Modo escuro para o name-tag
+- [ ] Novas skins e acessórios pixel-art
+- [ ] Mais desafios e peixes raros por profissão
+- [ ] Novas interações entre sub-pets
+- [ ] Testes E2E automatizados em Chrome real
 - [ ] Suporte a Firefox (WebExtensions)
 
 ---
 
 ## 📄 Licença
 
-MIT © 2025 — Feito com ❤️ e muitos pixels.
+MIT © 2026 — Feito com ❤️ e muitos pixels.
 
 ---
 

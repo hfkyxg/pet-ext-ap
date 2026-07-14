@@ -1,46 +1,56 @@
-# Projeto Claw'd: Companheiro de Navegação
-## Documentação Arquitetural e Funcional
+# Projeto Claw'd v3.1 — Visão Arquitetural e Funcional
 
-### 1. Visão Executiva e Intuitividade
-O objetivo deste projeto é transformar a navegação web solitária em uma experiência acompanhada, dinâmica e gamificada. O mascote atua como uma âncora visual amigável que reage em tempo real às ações do usuário, injetando vida e contexto no navegador. A interface primária (o nó visual) deve ser totalmente fluida, não obstrutiva e altamente responsiva, integrando-se nativamente a qualquer layout de página.
+> Documento executivo atualizado em 2026. Para detalhes de implementação, consulte [DOCUMENTACAO.md](./DOCUMENTACAO.md); para uso diário, consulte [MANUAL.md](./MANUAL.md).
 
-### 2. Sistema de Profissões e Interatividade
-A personalização vai além dos cosméticos. O mascote assume "Profissões" que ditam não apenas suas animações idle (ociosas), mas suas funcionalidades práticas e reações a contextos específicos.
+## 1. Visão do produto
 
-**⚽ Profissão: Jogador de Futebol**
-*   **Visual:** O mascote veste a camisa de uma seleção escolhida pelo usuário. Como animação ociosa, ele puxa uma bola de futebol em pixel art e começa a fazer embaixadinhas na barra inferior do navegador.
-*   **Interatividade Contextual:** Se o usuário entra em sites de notícias esportivas (ex: ge.globo, ESPN), o mascote comemora como se tivesse feito um gol. Ele pode chutar a bola contra botões da página ou usar a bola para "rolar" a tela para baixo.
+O Claw'd transforma a navegação web em uma experiência acompanhada, leve e gamificada. O mascote reage em tempo real sem bloquear o conteúdo, mantém sua personalização entre sessões e funciona localmente, sem servidor, conta ou telemetria.
 
-**📚 Profissão: Tutor Acadêmico**
-*   **Visual:** Veste óculos e carrega uma prancheta ou um quadro-negro em miniatura.
-*   **Interatividade Contextual:** Interrompe ciclos de procrastinação (ex: tempo excessivo em redes sociais) lançando pequenos desafios lógicos para o usuário. Para liberar a aba ou ganhar moedas virtuais, o usuário resolve expressões numéricas rápidas ou responde a conceitos matemáticos sobre conjuntos, potências e raízes, gamificando o aprendizado direto no navegador.
+O visual padrão é o sprite compacto vermelho de referência. Em repouso, as pernas permanecem imóveis; elas só alternam durante caminhada, corrida, inércia e embaixadinhas. Piscadas, bocas e balões de emoji são camadas independentes, portanto não deformam o corpo base.
 
-**💻 Profissão: Engenheiro de Software**
-*   **Visual:** Usa fones de ouvido e digita rapidamente em um laptop minúsculo.
-*   **Interatividade Contextual:** Atua diretamente inspecionando o código. Quando o usuário acessa repositórios ou documentações, ele pode destacar blocos de código ou identificar erros visuais de CSS na página.
+## 2. Ecossistema funcional
 
-### 3. Integração com IA e Orquestração Multi-Agente
-Para que o mascote não seja apenas um script de animação predefinido, ele precisa de um cérebro dinâmico. O mascote servirá como a **interface de comunicação (nó)** de um robusto Sistema de Orquestração Multi-Agente, construído para operar de forma transparente em ecossistemas de desenvolvimento aberto (como o OpenCode).
+- **Movimento adaptativo:** `requestAnimationFrame`, leitura da cadência real do navegador, arraste, touch, inércia e colisão suave nas bordas;
+- **Emoções:** felicidade, fome, energia e higiene alimentam expressões, falas, piscadas e balões de emoji;
+- **Personalização:** nome, cor, tamanho, velocidade, skins, name-tag, camisa, bolas e 14 acessórios em dois slots;
+- **Sub-pets:** oito espécies com apelido, cor própria, sono, despertar sincronizado e ações especiais;
+- **Gamificação:** XP, níveis, PixelCoins, loja, conquistas, streak, favoritos e missão diária;
+- **Persistência:** estado versionado e migrado em `chrome.storage.local`;
+- **Presença entre abas:** um único pet principal via service worker e `chrome.storage.session`.
 
-**Arquitetura Multi-Agente**
-Diferentes agentes de IA rodam em segundo plano e se comunicam com o nó visual:
-*   **Agente de Contexto (O Olho):** Lê o DOM da página atual, identificando o tema (esportes, estudos, trabalho) sem violar a privacidade, extraindo palavras-chave.
-*   **Agente de Estado (A Memória):** Gerencia as emoções, a fome (se implementado) e os cosméticos atuais do mascote.
-*   **Agente Orquestrador (O Cérebro):** Recebe os dados do Agente de Contexto e decide qual animação ou caixa de diálogo o mascote deve exibir na tela.
+## 3. Profissões e interatividade
 
-### 4. Automações e Escalabilidade
-O sistema foi desenhado para escalar tanto horizontalmente (suportando milhões de usuários simultâneos com baixo uso de servidor, já que o processamento principal ocorre localmente na extensão) quanto verticalmente (adicionando novas funcionalidades).
+| Profissão | Visual e comportamento |
+|-----------|------------------------|
+| ⚽ Jogador | Camisa customizável, bola jogável, gols e embaixadinhas com recorde |
+| 📚 Tutor | Óculos, lembretes de foco e desafios rápidos em contextos de distração |
+| 💻 Dev | Fones/laptop, digitação e reações em repositórios e documentações |
+| 🎸 Músico | Riffs, notas e dança em páginas de música |
+| 🧑‍🍳 Chef | Cozinha, reage a receitas e melhora a alimentação |
+| 🥷 Ninja | Corridas, desaparecimento e surpresa |
+| 🎣 Pescador | Lago pixelado, vara, linha, fisgada interativa e peixes raros |
+| 🐾 Livre | Comportamento geral sem identidade profissional |
 
-#### 4.1. Continuidade de Sessão (Cross-Tab Automation)
-Através do `Service Worker` da extensão (Manifest V3), a posição XY, o estado atual da animação e os metadados do mascote são salvos em tempo real no `chrome.storage`. Ao clicar em um link, a nova aba resgata esses dados milissegundos antes da renderização, injetando o mascote exatamente na mesma coordenada, criando uma ilusão perfeita de continuidade.
+## 4. Ciclo de vida e reload seguro
 
-#### 4.2. Motor de Eventos (Event-Driven Behaviors)
-As automações do mascote reagem a Event Listeners nativos do navegador:
-*   `scroll`: O mascote corre na direção oposta ao scroll, como se estivesse em uma esteira.
-*   `mousemove`: Os olhos do mascote acompanham o cursor. Se o cursor o ameaçar, ele se esconde atrás de elementos da página (divs, imagens).
-*   `idle` (Inatividade): Se o usuário não mexe o mouse por 5 minutos, o mascote (e seu respectivo pet menor) deitam na barra de tarefas e começam a dormir, com balões de "Zzz" subindo.
+O content script possui um `destroy()` idempotente que encerra listeners, intervalos, timers conhecidos, animações, conexão cross-tab e sub-pet antes de remover os elementos injetados. Um token de boot impede callbacks assíncronos antigos de criarem uma segunda instância.
 
-### 5. Próximos Passos de Desenvolvimento
-1.  **Fase 1:** Refinamento do CSS e padronização do `#aic-clawd-node` para suportar sobreposição de sprites (Corpo base + Roupa + Acessório).
-2.  **Fase 2:** Implementação do Background Script para persistência de estado entre abas.
-3.  **Fase 3:** Integração da API de LLM via WebSockets para alimentar o Agente Orquestrador, permitindo que o mascote converse de forma inteligente baseada no conteúdo da tela.
+Após recarregar, atualizar ou reativar a extensão, o service worker executa uma reconciliação por sessão:
+
+1. encontra abas HTTP, HTTPS e `file:` elegíveis;
+2. remove pets e elementos auxiliares órfãos;
+3. seleciona a aba ativa da janela focada;
+4. injeta nela somente o pet principal novo;
+5. registra um marcador de sessão para não repetir a limpeza a cada despertar do service worker.
+
+## 5. Privacidade e limites
+
+O projeto não usa IA remota nem lê o conteúdo de formulários. As reações contextuais consultam apenas o hostname atual. Páginas internas do navegador, Chrome Web Store e alguns visualizadores protegidos não aceitam content scripts por restrição do próprio navegador.
+
+## 6. Qualidade e evolução
+
+A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, modo liso, sub-pets, pesca, manifest, popup e reload seguro. A evolução recomendada é ampliar testes E2E em Chrome real, adicionar novas profissões/sub-pets e manter cada novo cosmético coberto por catálogo e CSS.
+
+---
+
+*Documentação Arquitetural — Claw'd v3.1 · 2026*

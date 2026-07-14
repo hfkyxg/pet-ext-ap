@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Claw'd: Companheiro de Navegação",
-  "version": "1.1.0",
-  "description": "Um mascote interativo e orquestrador de IA direto no navegador.",
+  "version": "3.1.0",
+  "description": "Mascote pixel-art interativo, personalizável e fluido para acompanhar sua navegação.",
   "permissions": [
     "storage",
     "activeTab",
@@ -18,7 +18,7 @@
     {
       "matches": ["<all_urls>"],
       "css": ["src/content/style.css"],
-      "js": ["src/content/content.js"]
+      "js": ["src/shared/catalog.js", "src/content/content.js"]
     }
   ],
   "action": {
