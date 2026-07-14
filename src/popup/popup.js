@@ -47,6 +47,28 @@ chrome.storage.local.get(['clawdState'], (result) => {
 
   if (s.sleepEnabled !== undefined)
     document.getElementById('toggle-sleep').checked = !!s.sleepEnabled;
+
+  if (s.smooth !== undefined)
+    document.getElementById('toggle-smooth').checked = !!s.smooth;
+
+  if (s.outline !== undefined)
+    document.getElementById('toggle-outline').checked = !!s.outline;
+
+  if (s.accessory) {
+    document.querySelectorAll('.accessory-card').forEach(c => {
+      c.classList.toggle('active', c.dataset.accessory === s.accessory);
+    });
+  }
+
+  // Gamificação: barra de XP e nível
+  const xp = s.xp || 0;
+  const level = Math.floor(xp / 50) + 1;
+  const progress = ((xp % 50) / 50) * 100;
+  document.getElementById('xp-level').textContent = `Lv. ${level}`;
+  document.getElementById('xp-count').textContent = `${xp} XP`;
+  setTimeout(() => {
+    document.getElementById('xp-fill').style.width = `${progress}%`;
+  }, 150);
 });
 
 // ---- TABS ----
@@ -104,6 +126,23 @@ document.getElementById('range-speed').addEventListener('input', (e) => {
   const val = parseFloat(e.target.value);
   document.getElementById('speed-badge').textContent = `${val.toFixed(2)}×`;
   sendMsg({ action: 'updateConfig', key: 'animSpeed', value: val });
+});
+
+// Estilo visual: liso e contorno
+document.getElementById('toggle-smooth').addEventListener('change', (e) => {
+  sendMsg({ action: 'updateConfig', key: 'smooth', value: e.target.checked });
+});
+document.getElementById('toggle-outline').addEventListener('change', (e) => {
+  sendMsg({ action: 'updateConfig', key: 'outline', value: e.target.checked });
+});
+
+// Acessórios / roupas
+document.querySelectorAll('.accessory-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.accessory-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    sendMsg({ action: 'updateConfig', key: 'accessory', value: card.dataset.accessory });
+  });
 });
 
 // ---- COMPORTAMENTO ----

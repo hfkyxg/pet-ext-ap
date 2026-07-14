@@ -19,6 +19,11 @@
         <span class="status-dot"></span>
         <span id="status-text">Conectado</span>
       </span>
+      <div class="xp-area">
+        <span class="xp-level" id="xp-level">Lv. 1</span>
+        <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+        <span class="xp-count" id="xp-count">0 XP</span>
+      </div>
     </div>
   </header>
 
@@ -72,6 +77,51 @@
         <span class="value-badge" id="speed-badge">1×</span>
       </label>
       <input type="range" id="range-speed" min="0.5" max="3" step="0.25" value="1">
+    </div>
+
+    <div class="control-group">
+      <label>Estilo visual</label>
+      <div class="toggle-row compact">
+        <div class="toggle-info">
+          <span class="toggle-label">Visual liso</span>
+          <span class="toggle-desc">Suaviza os pixels da pixel-art</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-smooth">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row compact">
+        <div class="toggle-info">
+          <span class="toggle-label">Contorno</span>
+          <span class="toggle-desc">Borda escura ao redor do pet</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-outline">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Acessórios / Roupas</label>
+      <div class="accessory-grid">
+        <button class="accessory-card active" data-accessory="none" title="Nenhum">
+          <span class="acc-icon">🚫</span><span class="acc-name">Nenhum</span>
+        </button>
+        <button class="accessory-card" data-accessory="cap" title="Boné esportivo">
+          <span class="acc-icon">🧢</span><span class="acc-name">Boné</span>
+        </button>
+        <button class="accessory-card" data-accessory="glasses" title="Óculos de estudo">
+          <span class="acc-icon">👓</span><span class="acc-name">Óculos</span>
+        </button>
+        <button class="accessory-card" data-accessory="bow" title="Laço fofo">
+          <span class="acc-icon">🎀</span><span class="acc-name">Laço</span>
+        </button>
+        <button class="accessory-card" data-accessory="headphones" title="Fones de dev">
+          <span class="acc-icon">🎧</span><span class="acc-name">Fones</span>
+        </button>
+      </div>
     </div>
 
   </div>

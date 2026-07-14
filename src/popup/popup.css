@@ -413,6 +413,76 @@ input[type="color"] {
   background: rgba(199,21,21,0.1);
 }
 
+/* ---- XP / GAMIFICAÇÃO ---- */
+.xp-area {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.xp-level {
+  font-size: 10px;
+  font-weight: 800;
+  color: #f1c40f;
+  background: rgba(241,196,15,0.12);
+  border: 1px solid rgba(241,196,15,0.35);
+  border-radius: 6px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+.xp-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.xp-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f1c40f, #ff4757);
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.xp-count {
+  font-size: 9px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---- ACESSÓRIOS ---- */
+.accessory-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.accessory-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.accessory-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.accessory-card.active {
+  border-color: var(--accent2);
+  background: rgba(255,71,87,0.12);
+  box-shadow: 0 0 10px rgba(255,71,87,0.2);
+}
+.acc-icon { font-size: 16px; }
+.acc-name { font-size: 9px; color: var(--muted); font-weight: 600; }
+.accessory-card.active .acc-name { color: var(--text); }
+
+.toggle-row.compact { padding: 8px 0; }
+
 /* ---- PROFISSÕES ---- */
 .section-hint {
   font-size: 11px;

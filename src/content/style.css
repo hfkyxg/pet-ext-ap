@@ -14,20 +14,20 @@
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 @keyframes clawd-spin-bounce {
-  0%,100% { transform: scale(1.5) translateY(0) rotate(0deg); }
-  30%     { transform: scale(1.7) translateY(-18px) rotate(-10deg); }
-  60%     { transform: scale(1.5) translateY(-10px) rotate(8deg); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
+  30%     { transform: scale(calc(var(--agent-scale, 1.5) * 1.15)) translateY(-18px) rotate(-10deg); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateY(-10px) rotate(8deg); }
 }
 @keyframes clawd-shake {
-  0%,100% { transform: translateX(0); }
-  20%     { transform: translateX(-5px); }
-  40%     { transform: translateX(5px); }
-  60%     { transform: translateX(-3px); }
-  80%     { transform: translateX(3px); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateX(0); }
+  20%     { transform: scale(var(--agent-scale, 1.5)) translateX(-5px); }
+  40%     { transform: scale(var(--agent-scale, 1.5)) translateX(5px); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateX(-3px); }
+  80%     { transform: scale(var(--agent-scale, 1.5)) translateX(3px); }
 }
 @keyframes clawd-breathe {
-  0%,100% { transform: scaleY(1); }
-  50%     { transform: scaleY(0.96); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
+  50%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.96); }
 }
 @keyframes clawd-shadow-pulse {
   0%,100% { opacity: 0.35; transform: scaleX(1); }
@@ -192,22 +192,143 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  transform: scale(var(--agent-scale, 1.5));
   transform-origin: bottom center;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   filter: drop-shadow(0px 5px 8px rgba(0,0,0,0.45));
 }
 
+/* --- STACK: sprite + acessório (permite filtros compostos) --- */
+.sprite-stack {
+  position: relative;
+  width: 44px;
+  height: 36px;
+  transition: filter 0.3s ease;
+}
+
 /* --- SPRITE PIXEL ART --- */
 .pixel-sprite {
+  position: absolute;
+  top: 0; left: 0;
   width: 4px;
   height: 4px;
   background: transparent;
   animation: walk 0.55s steps(1) infinite;
   transform-origin: top left;
-  margin-right: 40px;
-  margin-bottom: 32px;
   transition: filter 0.3s ease;
   image-rendering: pixelated;
+}
+
+/* --- CAMADA DE ACESSÓRIO (roupa/item por cima do sprite) --- */
+.accessory {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Óculos (Tutor) */
+#aic-clawd-node[data-accessory="glasses"] .accessory {
+  box-shadow:
+    4px 8px rgba(25,25,40,0.9),
+    8px 8px rgba(25,25,40,0.55), 12px 8px rgba(25,25,40,0.55), 16px 8px rgba(25,25,40,0.55),
+    20px 8px rgba(25,25,40,0.9),
+    24px 8px rgba(25,25,40,0.55), 28px 8px rgba(25,25,40,0.55), 32px 8px rgba(25,25,40,0.55),
+    36px 8px rgba(25,25,40,0.9);
+}
+
+/* Boné (estilo esportivo) */
+#aic-clawd-node[data-accessory="cap"] .accessory {
+  box-shadow:
+    12px -8px #2c3e50, 16px -8px #2c3e50, 20px -8px #2c3e50, 24px -8px #2c3e50, 28px -8px #2c3e50,
+    8px -4px #2c3e50, 12px -4px #34495e, 16px -4px #34495e, 20px -4px #e74c3c,
+    24px -4px #34495e, 28px -4px #34495e, 32px -4px #2c3e50,
+    32px 0 #2c3e50, 36px 0 #2c3e50, 40px 0 #2c3e50;
+}
+
+/* Laço (fofinho) */
+#aic-clawd-node[data-accessory="bow"] .accessory {
+  box-shadow:
+    28px -8px #e84393, 36px -8px #e84393,
+    28px -4px #fd79a8, 32px -4px #e84393, 36px -4px #fd79a8;
+}
+
+/* Fones de ouvido (Dev) */
+#aic-clawd-node[data-accessory="headphones"] .accessory {
+  box-shadow:
+    12px -6px #2d3436, 16px -6px #2d3436, 20px -6px #2d3436, 24px -6px #2d3436, 28px -6px #2d3436,
+    8px -2px #2d3436, 32px -2px #2d3436,
+    4px 4px #2d3436, 4px 8px #636e72, 4px 12px #2d3436,
+    36px 4px #2d3436, 36px 8px #636e72, 36px 12px #2d3436;
+}
+
+/* ============================
+   MODO LISO x PIXELADO / CONTORNO
+   ============================ */
+
+/* Liso: suaviza os quadrados dos pixels */
+#aic-clawd-node.smooth .sprite-stack {
+  filter: blur(1.15px) saturate(1.08);
+}
+
+/* Contorno: traça uma borda escura em volta do pet */
+#aic-clawd-node.outlined .sprite-stack {
+  filter:
+    drop-shadow(2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(-2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(0 2px 0 var(--outline-color, #16161f))
+    drop-shadow(0 -2px 0 var(--outline-color, #16161f));
+}
+
+/* Liso + Contorno combinados */
+#aic-clawd-node.smooth.outlined .sprite-stack {
+  filter:
+    blur(1.15px) saturate(1.08)
+    drop-shadow(2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(-2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(0 2px 0 var(--outline-color, #16161f))
+    drop-shadow(0 -2px 0 var(--outline-color, #16161f));
+}
+
+/* ============================
+   BOLA DE FUTEBOL (Profissão: Jogador)
+   ============================ */
+@keyframes ball-juggle {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50%     { transform: translateY(-26px) rotate(180deg); }
+}
+@keyframes ball-kick {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  40%  { transform: translate(140px,-90px) rotate(380deg); }
+  70%  { transform: translate(220px,10px) rotate(680deg); }
+  100% { transform: translate(0,0) rotate(1080deg); }
+}
+
+.pet-ball {
+  position: absolute;
+  bottom: -4px;
+  left: -26px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #fff 0 38%, transparent 40%),
+    radial-gradient(circle at 62% 55%, #1a1a2e 0 16%, transparent 18%),
+    radial-gradient(circle at 30% 68%, #1a1a2e 0 14%, transparent 16%),
+    radial-gradient(circle at 75% 25%, #1a1a2e 0 12%, transparent 14%),
+    radial-gradient(circle at 50% 50%, #f5f5f5 0 100%);
+  box-shadow: inset -2px -3px 4px rgba(0,0,0,0.35), 0 3px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  display: none;
+  animation: ball-juggle 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  z-index: 5;
+}
+#aic-clawd-node.has-ball .pet-ball { display: block; }
+.pet-ball.kicked {
+  animation: ball-kick 1.3s cubic-bezier(0.3, 0, 0.4, 1) forwards !important;
 }
 
 /* --- SOMBRA NO CHÃO --- */
@@ -236,7 +357,7 @@
   padding: 3px 10px 3px 8px;
   border-radius: 20px;
   border: 2px solid var(--agent-color);
-  margin-top: 30px;
+  margin-top: 6px;
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
@@ -246,7 +367,7 @@
 /* --- BALÃO DE FALA --- */
 .speech-bubble {
   position: absolute;
-  bottom: 110px;
+  bottom: 95px;
   right: -8px;
   min-width: 80px;
   max-width: 180px;

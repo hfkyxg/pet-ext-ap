@@ -28,8 +28,15 @@ class ClawdCompanion {
       autoWalk: true,
       sleepEnabled: true,
       animSpeed: 1,
-      profession: 'idle'
+      profession: 'idle',
+      smooth: false,     // pixels visíveis (false) ou visual liso (true)
+      outline: false,    // contorno em volta do pet
+      accessory: 'none'  // none | glasses | cap | bow | headphones
     };
+
+    // Gamificação
+    this.xp = 0;
+    this.level = 1;
 
     this.messages = {
       idle:     ["Oi! 👋", "Bora navegar! 🌐", "Me arraste! ✨", "Aqui pra ajudar 🐾", "Clique em mim! 💫"],
@@ -69,9 +76,13 @@ class ClawdCompanion {
     this.node.innerHTML = `
       <div class="speech-bubble" id="aic-speech"></div>
       <div class="pet-body" id="aic-pet-body">
-        <div class="pixel-sprite" id="aic-sprite"></div>
+        <div class="sprite-stack" id="aic-stack">
+          <div class="pixel-sprite" id="aic-sprite"></div>
+          <div class="accessory" id="aic-accessory"></div>
+        </div>
         <div class="name-tag" id="aic-name-tag">${this.config.name}</div>
       </div>
+      <div class="pet-ball" id="aic-ball" title="Chuta a bola!"></div>
       <div class="ground-shadow" id="aic-shadow"></div>
     `;
     document.body.appendChild(this.node);
@@ -80,6 +91,7 @@ class ClawdCompanion {
     this.speechNode = document.getElementById('aic-speech');
     this.spriteNode = document.getElementById('aic-sprite');
     this.shadowNode = document.getElementById('aic-shadow');
+    this.ballNode   = document.getElementById('aic-ball');
 
     // Pop-in
     this.node.style.animation = 'clawd-pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both';
@@ -91,8 +103,18 @@ class ClawdCompanion {
       if (state.position?.x != null && state.position?.y != null) {
         this.updatePosition(state.position.x, state.position.y);
       }
-      const keys = ['name', 'color', 'scale', 'showSpeech', 'autoWalk', 'sleepEnabled', 'animSpeed'];
+      const keys = [
+        'name', 'color', 'scale', 'showSpeech', 'autoWalk', 'sleepEnabled',
+        'animSpeed', 'profession', 'smooth', 'outline', 'accessory'
+      ];
       keys.forEach(k => { if (state[k] !== undefined) this.applyConfig(k, state[k]); });
+
+      // Gamificação
+      this.xp = state.xp || 0;
+      this.level = Math.floor(this.xp / 50) + 1;
+
+      // Reage ao contexto da página com a profissão carregada
+      this._detectPageContext();
 
       // Welcome back message
       setTimeout(() => this.showSpeech(this.getRandom('idle')), 1200);
@@ -109,9 +131,8 @@ class ClawdCompanion {
         this.node.style.setProperty('--agent-color', value);
         break;
       case 'scale': {
-        const s = parseFloat(value);
-        this.node.style.setProperty('--agent-scale', s);
-        this.bodyNode.style.transform = `scale(${s})`;
+        // A escala vive numa CSS var para compor com todos os keyframes
+        this.node.style.setProperty('--agent-scale', parseFloat(value));
         break;
       }
       case 'animSpeed': {
@@ -119,8 +140,35 @@ class ClawdCompanion {
         this.spriteNode.style.animationDuration = `${dur}s`;
         break;
       }
+      case 'smooth':
+        this.node.classList.toggle('smooth', !!value);
+        break;
+      case 'outline':
+        this.node.classList.toggle('outlined', !!value);
+        break;
+      case 'accessory':
+        this.node.setAttribute('data-accessory', value);
+        break;
+      case 'profession':
+        this._applyProfessionVisuals(value);
+        break;
     }
     this._saveKey(key, value);
+  }
+
+  // Equipamento automático por profissão + bola do jogador
+  _applyProfessionVisuals(profession) {
+    const autoAccessory = {
+      footballer: 'cap',
+      tutor: 'glasses',
+      engineer: 'headphones'
+    };
+    if (autoAccessory[profession]) {
+      this.node.setAttribute('data-accessory', autoAccessory[profession]);
+      this.config.accessory = autoAccessory[profession];
+    }
+    // Em modo livre o acessório escolhido manualmente é mantido
+    this.node.classList.toggle('has-ball', profession === 'footballer');
   }
 
   _saveKey(key, value) {
@@ -151,6 +199,13 @@ class ClawdCompanion {
   }
 
   bindEvents() {
+    // --- BOLA: chutar ao clicar (não inicia drag) ---
+    this.ballNode.addEventListener('mousedown', (e) => e.stopPropagation());
+    this.ballNode.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.kickBall();
+    });
+
     // --- MOUSE DRAG ---
     this.node.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
@@ -240,11 +295,42 @@ class ClawdCompanion {
     this.node.style.transform = `perspective(600px) rotateX(${-rx}deg) rotateY(${ry}deg)`;
   }
 
+  // ---- GAMIFICAÇÃO ----
+  addXp(amount) {
+    this.xp += amount;
+    const newLevel = Math.floor(this.xp / 50) + 1;
+    this._saveKey('xp', this.xp);
+    if (newLevel > this.level) {
+      this.level = newLevel;
+      this.showSpeech(`🎖️ Level ${newLevel}!`, 3500);
+      this.spawnParticles();
+      this.spawnParticles(); // dose dupla de festa
+      this.setState('excited');
+      clearTimeout(this._stateTimer);
+      this._stateTimer = setTimeout(() => {
+        if (this.state === 'excited') this.setState('idle');
+      }, 2500);
+    }
+  }
+
+  kickBall() {
+    if (this.ballNode.classList.contains('kicked')) return;
+    this.ballNode.classList.add('kicked');
+    this.setState('excited');
+    this.showSpeech('Gooool! ⚽🥅', 2500);
+    this.addXp(10);
+    setTimeout(() => {
+      this.ballNode.classList.remove('kicked');
+      if (this.state === 'excited') this.setState('idle');
+    }, 1400);
+  }
+
   giveAffection() {
     if (this.state === 'sleeping') { this.wakeUp(); return; }
     this.setState('happy');
     this.showSpeech(this.getRandom('happy'));
     this.spawnParticles();
+    this.addXp(5);
     this.lastActivity = Date.now();
     clearTimeout(this._stateTimer);
     this._stateTimer = setTimeout(() => {
@@ -348,8 +434,9 @@ class ClawdCompanion {
     const stepX = dx / steps;
     const stepY = dy / steps;
 
-    // Flip se andando para esquerda
-    if (dx < 0) this.bodyNode.style.transform = `scale(${this.config.scale}) scaleX(-1)`;
+    // Flip se andando para esquerda (no stack, que não tem animação de transform)
+    const stack = document.getElementById('aic-stack');
+    if (dx < 0) stack.style.transform = 'scaleX(-1)';
 
     let i = 0;
     const tick = setInterval(() => {
@@ -359,7 +446,7 @@ class ClawdCompanion {
       if (i >= steps) {
         clearInterval(tick);
         this.isAutoWalking = false;
-        this.bodyNode.style.transform = `scale(${this.config.scale})`;
+        stack.style.transform = '';
         this.setState('idle');
         this._saveKey('position', {
           x: parseFloat(this.node.style.left),

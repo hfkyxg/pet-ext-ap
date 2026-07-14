@@ -49,6 +49,8 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 - **Partículas** de ❤️ ✨ ⭐ ao receber carinho
 - **Pop-in** animado ao carregar a página
 - **Sombra no chão** sincronizada com o movimento
+- **Modo liso** — suaviza os pixels da arte
+- **Contorno** — borda escura ao redor do pet
 
 </td>
 <td width="50%">
@@ -60,6 +62,27 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 - **Acorda** ao clicar, scrollar ou arrastar
 - Reação instantânea ao **scroll** da página
 - Suporte completo a **touch** (mobile)
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 💼 Profissões & Roupas
+- **⚽ Jogador** — ganha boné + bola de futebol jogável; celebra em sites esportivos
+- **📚 Tutor** — veste óculos; monitora foco em redes sociais
+- **💻 Dev** — usa fones; reage a GitHub, docs e Stack Overflow
+- **Acessórios manuais**: 🧢 boné · 👓 óculos · 🎀 laço · 🎧 fones
+
+</td>
+<td width="50%">
+
+### 🎮 Gamificação
+- **Sistema de XP e níveis** — carinho dá +5 XP, gol dá +10 XP
+- **Level up** com festa de partículas 🎖️
+- **Barra de progresso** animada no popup
+- **Bola jogável** — clique na bola e veja o Claw'd marcar um golaço ⚽🥅
+- Progresso salvo entre sessões
 
 </td>
 </tr>
@@ -122,6 +145,15 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **Cor** — 8 cores predefinidas + picker customizado
 - **Tamanho** — slider de 0.8× a 3.0×
 - **Velocidade** — controla a velocidade da animação
+- **Visual liso** — desativa o look pixelado, suavizando a arte
+- **Contorno** — adiciona borda escura ao redor do mascote
+- **Acessórios** — boné, óculos, laço ou fones de ouvido
+
+### Aba Profissão
+- **⚽ Jogador** — bola de futebol jogável ao lado do pet
+- **📚 Tutor** — óculos automáticos + foco de estudo
+- **💻 Dev** — fones automáticos + reações a sites de código
+- **🐾 Livre** — modo padrão sem profissão
 
 ### Aba Comportamento
 - **Balão de fala** — ativa/desativa mensagens
