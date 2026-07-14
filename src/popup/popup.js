@@ -36,6 +36,9 @@ function setConfig(key, value) {
   S[key] = value;
   sendMsg({ action: 'updateConfig', key, value });
   persist(st => { st[key] = value; });
+  if (['color', 'smooth', 'outline', 'skin', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace'].includes(key)) {
+    renderOutfitPreview();
+  }
 }
 
 function setSetting(key, value) {
@@ -90,6 +93,7 @@ function renderHeader() {
   renderStats(S.stats);
   if (S.color) applyHeaderColor(S.color);
   $('mini-sprite').classList.toggle('smooth', !!S.smooth);
+  renderOutfitPreview();
 }
 
 function renderStats(stats) {
@@ -107,6 +111,37 @@ function applyHeaderColor(color) {
   document.querySelector('.header-pet').style.borderColor = color;
   document.querySelector('.header-pet').style.boxShadow = `0 0 16px ${color}55`;
   $('mini-sprite').style.setProperty('--preview-color', color);
+  $('aic-clawd-node')?.style.setProperty('--agent-color', color);
+}
+
+function renderOutfitPreview() {
+  const preview = $('aic-clawd-node');
+  if (!preview) return;
+  const effective = clawdEffectiveAccessories(S);
+  const head = CLAWD_ACCESSORIES[effective.head];
+  const face = CLAWD_ACCESSORIES[effective.face];
+  const automatic = [effective.autoHead, effective.autoFace]
+    .filter(Boolean)
+    .map(id => CLAWD_ACCESSORIES[id]?.label)
+    .filter(Boolean);
+  const equipped = [head?.label, face?.label].filter(Boolean);
+
+  preview.dataset.accHead = effective.head;
+  preview.dataset.accFace = effective.face;
+  preview.dataset.skin = S.skin || 'normal';
+  preview.dataset.profession = effective.profession;
+  preview.classList.toggle('smooth', !!S.smooth);
+  preview.classList.toggle('outlined', !!S.outline);
+  preview.classList.toggle('has-jersey', effective.profession === 'footballer');
+  preview.style.setProperty('--agent-color', S.color || '#c71515');
+  preview.style.setProperty('--jersey-color', S.jerseyColor || '#e74c3c');
+  preview.setAttribute('aria-label', equipped.length
+    ? `Prévia do pet com ${equipped.join(' e ')}`
+    : 'Prévia do pet sem acessórios');
+  $('outfit-preview-title').textContent = equipped.length ? equipped.join(' + ') : 'Visual sem acessórios';
+  $('outfit-preview-detail').textContent = automatic.length
+    ? `${automatic.join(' + ')} temporário da profissão; sua escolha pessoal está salva.`
+    : `${S.smooth ? 'Liso sem grade' : 'Pixel-art'} · dois slots combináveis`;
 }
 
 /* Busca stats ao vivo do content script */
@@ -247,15 +282,19 @@ function accessoryUnlocked(id) {
 }
 
 function renderAccessories() {
+  const effective = clawdEffectiveAccessories(S);
   ['head', 'face'].forEach(slot => {
     const grid = $(slot === 'head' ? 'acc-head-grid' : 'acc-face-grid');
     grid.innerHTML = '';
     const configKey = slot === 'head' ? 'accessoryHead' : 'accessoryFace';
     const current = S[configKey] || 'none';
+    const autoId = slot === 'head' ? effective.autoHead : effective.autoFace;
 
     // card "nenhum"
     const noneCard = document.createElement('button');
     noneCard.className = 'accessory-card' + (current === 'none' ? ' active' : '');
+    noneCard.dataset.accessoryId = 'none';
+    noneCard.dataset.accessorySlot = slot;
     noneCard.innerHTML = `<span class="acc-icon">🚫</span><span class="acc-name">Nenhum</span>`;
     noneCard.title = `Remover acessório de ${slot === 'head' ? 'cabeça' : 'rosto e corpo'}`;
     noneCard.setAttribute('aria-label', noneCard.title);
@@ -268,13 +307,24 @@ function renderAccessories() {
       const def = CLAWD_ACCESSORIES[id];
       const unlocked = accessoryUnlocked(id);
       const card = document.createElement('button');
+      card.dataset.accessoryId = id;
+      card.dataset.accessorySlot = slot;
       card.className = 'accessory-card'
         + (current === id ? ' active' : '')
+        + (autoId === id ? ' profession-equipped' : '')
         + (isFav('accessories', id) ? ' favorited' : '')
         + (unlocked ? '' : ' locked');
       card.innerHTML = `<span class="acc-icon">${def.emoji}</span><span class="acc-name">${def.label}</span>`
         + (unlocked ? '' : `<span class="lock-badge">${def.unlock.type === 'level' ? `🔒 Lv.${def.unlock.level}` : '🔒 Loja'}</span>`);
       card.setAttribute('aria-pressed', String(current === id));
+      if (autoId === id) {
+        const badge = document.createElement('span');
+        badge.className = 'auto-gear-badge';
+        badge.textContent = 'PROF.';
+        badge.title = 'Equipado temporariamente pela profissão ativa';
+        card.appendChild(badge);
+        card.setAttribute('aria-current', 'true');
+      }
       if (unlocked) {
         card.title = def.desc;
         card.setAttribute('aria-label', `${def.label}. ${def.desc}`);
@@ -287,17 +337,24 @@ function renderAccessories() {
         card.title = `${def.desc}. ${unlockHint}`;
         card.setAttribute('aria-label', `${def.label}. ${card.title}`);
       }
+      if (autoId === id) {
+        card.setAttribute('aria-label', `${card.getAttribute('aria-label')}. Equipado temporariamente pela profissão ativa.`);
+      }
       grid.appendChild(card);
     });
 
     const selected = CLAWD_ACCESSORIES[current];
     const description = $(slot === 'head' ? 'acc-head-description' : 'acc-face-description');
-    description.textContent = selected
+    const automatic = autoId && CLAWD_ACCESSORIES[autoId];
+    description.textContent = automatic
+      ? `${automatic.emoji} ${automatic.label} está em uso pela profissão. ${selected ? `Sua escolha ${selected.label}` : 'A opção sem acessório'} volta no modo Livre.`
+      : selected
       ? `${selected.emoji} ${selected.label} — ${selected.desc}`
       : slot === 'head'
         ? 'Sem chapéu selecionado.'
         : 'Sem acessório de rosto ou corpo selecionado.';
   });
+  renderOutfitPreview();
 }
 
 /* =====================================================
@@ -323,14 +380,16 @@ function renderProfessions() {
   });
   updateProfStatus(S.profession);
   renderJersey();
+  renderOutfitPreview();
 }
 
 function updateProfStatus(profession) {
   const def = CLAWD_PROFESSIONS[profession] || CLAWD_PROFESSIONS.idle;
+  const gear = Object.values(def.gear || {}).map(id => CLAWD_ACCESSORIES[id]?.label).filter(Boolean);
   document.querySelector('.prof-status-icon').textContent = def.emoji;
   $('prof-status-text').textContent = profession === 'idle'
     ? 'Modo livre — sem profissão ativa'
-    : `${def.label} ativo — ${def.desc.toLowerCase()}`;
+    : `${def.label} ativo — ${def.desc.toLowerCase()}${gear.length ? ` · traje: ${gear.join(' + ')}` : ''}`;
   $('jersey-group').style.display = profession === 'footballer' ? '' : 'none';
 }
 

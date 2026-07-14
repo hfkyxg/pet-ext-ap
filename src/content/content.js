@@ -446,6 +446,7 @@ class ClawdCompanion {
     this._clickCount = 0;
     this._clickTimer = null;
     this._holdTimer = null;
+    this._wakeStretchTimer = null;
     this._fishing = false;
     this._lakeEl = null;
     this._fishingLineEl = null;
@@ -453,6 +454,7 @@ class ClawdCompanion {
     this._refreshRate = 60;
     this._refreshSamples = [];
     this._refreshMeasureRaf = null;
+    this._motionRaf = null;
     this._glideRaf = null;
     this._glide = null;
     this._destroyed = false;
@@ -640,12 +642,11 @@ class ClawdCompanion {
     this.node.classList.toggle('outlined', !!S.outline);
     this.node.classList.toggle('mouth-hidden', S.showMouth === false);
     this.node.classList.toggle('aic-nofx', !!S.settings.performanceMode);
-    this.node.setAttribute('data-acc-head', S.accessoryHead || 'none');
-    this.node.setAttribute('data-acc-face', S.accessoryFace || 'none');
+    this.node.dataset.state = this.state;
     this.node.setAttribute('data-skin', S.skin || 'normal');
     this.node.setAttribute('data-tag-theme', S.tagTheme || 'light');
     this.node.setAttribute('data-ball-skin', S.ballSkin || 'classic');
-    this._applyProfessionVisuals(S.profession);
+    this._applyProfessionVisuals();
     this.updateEmotion(true);
   }
 
@@ -743,20 +744,33 @@ class ClawdCompanion {
       case 'smooth':  this.node.classList.toggle('smooth', !!value); break;
       case 'outline': this.node.classList.toggle('outlined', !!value); break;
       case 'showMouth': this.node.classList.toggle('mouth-hidden', value === false); break;
+      case 'showSpeech':
+        if (!value) {
+          clearTimeout(this._speechTimer);
+          this._speechTimer = null;
+          this.speechNode.classList.remove('visible', 'interactive');
+        }
+        break;
+      case 'autoWalk':
+        if (!value) this.cancelMovement();
+        break;
+      case 'sleepEnabled':
+        if (!value && this.state === 'sleeping') this.wakeUp();
+        break;
       case 'skin':    this.node.setAttribute('data-skin', value); break;
       case 'tagTheme': this.node.setAttribute('data-tag-theme', value); break;
       case 'jerseyColor': this.node.style.setProperty('--jersey-color', value); break;
       case 'ballSkin': this.node.setAttribute('data-ball-skin', value); break;
       case 'accessoryHead':
-        this.node.setAttribute('data-acc-head', value);
+        this._syncAccessoryVisuals();
         this._trackAccessory(value);
         break;
       case 'accessoryFace':
-        this.node.setAttribute('data-acc-face', value);
+        this._syncAccessoryVisuals();
         this._trackAccessory(value);
         break;
       case 'profession':
-        this._applyProfessionVisuals(value);
+        this._applyProfessionVisuals();
         this._detectPageContext();
         break;
     }
@@ -796,26 +810,28 @@ class ClawdCompanion {
     }
   }
 
-  _applyProfessionVisuals(profession) {
-    this.node.dataset.profession = profession || 'idle';
-    const autoAcc = {
-      footballer: { face: null,         head: 'cap'       },
-      tutor:      { face: 'glasses',    head: null        },
-      engineer:   { face: 'headphones', head: null        },
-      musician:   { face: 'sunglasses', head: null        },
-      chef:       { face: null,         head: 'chefhat'   },
-      ninja:      { face: null,         head: 'ninjaband' },
-      fisher:     { face: null,         head: 'fishhat'   }
-    };
-    const a = autoAcc[profession];
-    if (a) {
-      if (a.head) { this.S.accessoryHead = a.head; this.node.setAttribute('data-acc-head', a.head); this._trackAccessory(a.head); }
-      if (a.face) { this.S.accessoryFace = a.face; this.node.setAttribute('data-acc-face', a.face); this._trackAccessory(a.face); }
-    }
-    this.node.classList.toggle('has-ball', profession === 'footballer');
-    this.node.classList.toggle('has-jersey', profession === 'footballer');
-    if (profession !== 'footballer') this.stopKeepyUppy();
-    if (profession !== 'fisher') this.stopFishing();
+  _syncAccessoryVisuals() {
+    const effective = clawdEffectiveAccessories(this.S);
+    this.node.dataset.accHead = effective.head;
+    this.node.dataset.accFace = effective.face;
+    this.node.dataset.userAccHead = effective.userHead;
+    this.node.dataset.userAccFace = effective.userFace;
+    this.node.dataset.accessoryHeadSource = effective.headSource;
+    this.node.dataset.accessoryFaceSource = effective.faceSource;
+    this.node.classList.toggle('profession-headwear', !!effective.autoHead);
+    this.node.classList.toggle('profession-facewear', !!effective.autoFace);
+    return effective;
+  }
+
+  _applyProfessionVisuals() {
+    const effective = this._syncAccessoryVisuals();
+    this.node.dataset.profession = effective.profession;
+    if (effective.autoHead) this._trackAccessory(effective.autoHead);
+    if (effective.autoFace) this._trackAccessory(effective.autoFace);
+    this.node.classList.toggle('has-ball', effective.profession === 'footballer');
+    this.node.classList.toggle('has-jersey', effective.profession === 'footballer');
+    if (effective.profession !== 'footballer') this.stopKeepyUppy();
+    if (effective.profession !== 'fisher') this.stopFishing();
   }
 
   /* ---------- POSIÇÃO / ESTADOS ---------- */
@@ -839,12 +855,21 @@ class ClawdCompanion {
     if (this.state === 'walking') this.setState('idle');
   }
 
+  cancelMovement() {
+    if (this._motionRaf) cancelAnimationFrame(this._motionRaf);
+    this._motionRaf = null;
+    this.cancelGlide();
+    this.isAutoWalking = false;
+    if (this.stackNode) this.stackNode.style.transform = '';
+    if (this.state === 'walking' || this.state === 'running') this.setState('idle');
+  }
+
   startGlide(velocityX, velocityY) {
     if (Math.hypot(velocityX, velocityY) < 0.35) {
       if (this.state === 'walking') this.setState('idle');
       return false;
     }
-    this.cancelGlide();
+    this.cancelMovement();
     const rect = this.node.getBoundingClientRect();
     this._glide = { x: rect.left, y: rect.top, vx: velocityX, vy: velocityY, last: performance.now() };
     this.isAutoWalking = true;
@@ -878,9 +903,14 @@ class ClawdCompanion {
 
   setState(newState) {
     if (this.state === newState) return;
+    if (newState !== 'idle' && this._wakeStretchTimer) {
+      clearTimeout(this._wakeStretchTimer);
+      this._wakeStretchTimer = null;
+    }
     if (this.state === 'sleeping' && newState !== 'sleeping') this._yawned = false;
     this.node.classList.remove(this.state);
     this.state = newState;
+    this.node.dataset.state = newState;
     if (newState !== 'idle') this.node.classList.add(newState);
     const stateEmoji = {
       happy: '🥰', excited: '🤩', sleeping: '😴', waving: '👋', eating: '😋',
@@ -903,6 +933,18 @@ class ClawdCompanion {
     }, ms);
   }
 
+  _queuePetClick() {
+    this._clickCount++;
+    clearTimeout(this._clickTimer);
+    this._clickTimer = setTimeout(() => {
+      if (this._clickCount >= 3) this.doSuperDance();
+      else if (this._clickCount === 2) this.doSomersault();
+      else this.giveAffection();
+      this._clickCount = 0;
+      this._clickTimer = null;
+    }, 260);
+  }
+
   /* ---------- EVENTOS ---------- */
   bindEvents() {
     const signal = this._abort.signal;
@@ -918,7 +960,7 @@ class ClawdCompanion {
     this.node.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
       if (e.target.closest('.challenge-opt')) return;
-      this.cancelGlide();
+      this.cancelMovement();
       this.isDragging = true;
       this.startX = e.clientX; this.startY = e.clientY;
       const rect = this.node.getBoundingClientRect();
@@ -944,17 +986,11 @@ class ClawdCompanion {
       }, 2000);
     }, { signal });
 
-    // Multi-clique: duplo → cambalhota, triplo → super dança
+    // Click sem ponteiro (ex.: element.click()) continua acessível. Cliques físicos
+    // são consolidados no mouseup para não depender do click sintético do navegador.
     this.node.addEventListener('click', (e) => {
       if (e.target.closest('.challenge-opt')) return;
-      this._clickCount++;
-      clearTimeout(this._clickTimer);
-      this._clickTimer = setTimeout(() => {
-        if (this._clickCount >= 3) this.doSuperDance();
-        else if (this._clickCount === 2) this.doSomersault();
-        else this.giveAffection();
-        this._clickCount = 0;
-      }, 260);
+      if (e.detail === 0) this._queuePetClick();
     }, { signal });
 
     let petCount = 0;
@@ -1011,7 +1047,7 @@ class ClawdCompanion {
       const diffX = Math.abs(e.clientX - this.startX);
       const diffY = Math.abs(e.clientY - this.startY);
       if (diffX < 5 && diffY < 5) {
-        // O listener de click processa o carinho/duplo/triplo clique.
+        this._queuePetClick();
       } else {
         this.startGlide(this._dragVelocityX || 0, this._dragVelocityY || 0);
         const rect = this.node.getBoundingClientRect();
@@ -1023,7 +1059,7 @@ class ClawdCompanion {
     // Touch
     this.node.addEventListener('touchstart', (e) => {
       const t = e.touches[0];
-      this.cancelGlide();
+      this.cancelMovement();
       this.isDragging = true;
       this.startX = t.clientX; this.startY = t.clientY;
       const rect = this.node.getBoundingClientRect();
@@ -1059,7 +1095,7 @@ class ClawdCompanion {
       this.isDragging = false;
       const t = e.changedTouches[0];
       if (Math.abs(t.clientX - this.startX) < 10 && Math.abs(t.clientY - this.startY) < 10) {
-        this.giveAffection();
+        this._queuePetClick();
       } else {
         this.startGlide(this._dragVelocityX || 0, this._dragVelocityY || 0);
       }
@@ -1452,7 +1488,9 @@ class ClawdCompanion {
     if (this.subpet) this.subpet.wakeUp('Acordamos juntos! ✨');
     this.lastActivity = Date.now();
     // estica ao acordar
-    setTimeout(() => {
+    clearTimeout(this._wakeStretchTimer);
+    this._wakeStretchTimer = setTimeout(() => {
+      this._wakeStretchTimer = null;
       if (this.state === 'idle') this.doStretch();
     }, 500);
   }
@@ -1633,14 +1671,15 @@ class ClawdCompanion {
       }
 
       if (progress < 1) {
-        requestAnimationFrame(step);
+        this._motionRaf = requestAnimationFrame(step);
       } else {
+        this._motionRaf = null;
         this.isAutoWalking = false;
         this.stackNode.style.transform = '';
         this.setState('idle');
       }
     };
-    requestAnimationFrame(step);
+    this._motionRaf = requestAnimationFrame(step);
   }
 
   /* ---------- BOLA / FUTEBOL ---------- */
@@ -1787,6 +1826,9 @@ class ClawdCompanion {
   }
 
   _catchFish() {
+    if (!this._fishing || this.state !== 'fishing') return false;
+    clearTimeout(this._fishBiteTimer);
+    this._fishBiteTimer = null;
     // Anima puxada
     this.setState('reeling');
     this.node.classList.remove('fishing');
@@ -1794,7 +1836,10 @@ class ClawdCompanion {
     this.showSpeech('Fisgou! 🎣', 1500);
     this.beep(550, 0.08);
 
-    setTimeout(() => {
+    clearTimeout(this._fishCatchTimer);
+    this._fishCatchTimer = setTimeout(() => {
+      if (!this._fishing || this.state !== 'reeling' || this._destroyed) return;
+      this._fishCatchTimer = null;
       // Escolhe peixe
       const isRare = Math.random() < 0.15;
       const pool = isRare ?
@@ -1837,12 +1882,17 @@ class ClawdCompanion {
       this.save();
       this.stopFishing();
     }, 800);
+    return true;
   }
 
   stopFishing() {
     this._fishing = false;
     clearTimeout(this._fishTimer);
     clearTimeout(this._fishBiteTimer);
+    clearTimeout(this._fishCatchTimer);
+    this._fishTimer = null;
+    this._fishBiteTimer = null;
+    this._fishCatchTimer = null;
     this.node.classList.remove('fishing', 'reeling');
     if (this.state === 'fishing' || this.state === 'reeling') this.setState('idle');
     if (this._lakeEl) {
@@ -2128,8 +2178,9 @@ class ClawdCompanion {
       this.updatePosition(startX + dx * progress, startY + dy * progress);
 
       if (progress < 1) {
-        requestAnimationFrame(step);
+        this._motionRaf = requestAnimationFrame(step);
       } else {
+        this._motionRaf = null;
         this.isAutoWalking = false;
         this.stackNode.style.transform = '';
         this.setState('idle');
@@ -2142,7 +2193,7 @@ class ClawdCompanion {
         this.save();
       }
     };
-    requestAnimationFrame(step);
+    this._motionRaf = requestAnimationFrame(step);
   }
 
   /* ---------- SUB-PETS ---------- */
@@ -2307,9 +2358,12 @@ class ClawdCompanion {
           return true;
         case 'getStatus':
           sendResponse({
-            stats: this.S.stats, emotion: this.emotion,
+            stats: this.S.stats, emotion: this.emotion, state: this.state,
             xp: this.S.xp, coins: this.S.game.coins,
             keepyRecord: this.S.game.counters.keepyRecord || 0,
+            fishCaught: this.S.game.counters.fish || 0,
+            fishing: this._fishing,
+            profession: this.S.profession,
             daily: clawdEnsureDailyQuest(this.S),
             subpet: this.subpet ? {
               species: this.subpet.species,
@@ -2347,7 +2401,12 @@ class ClawdCompanion {
       highfive:   () => this.doHighFive(),
       superdance: () => this.doSuperDance()
     };
-    if (map[action]) map[action]();
+    if (!map[action]) return false;
+    this.cancelMovement();
+    if (this._fishing && action !== 'fish') this.stopFishing();
+    if (this._keepy && action !== 'keepy' && action !== 'kick') this.stopKeepyUppy();
+    map[action]();
+    return true;
   }
 
   destroy({ skipExtensionApis = false } = {}) {
@@ -2360,15 +2419,18 @@ class ClawdCompanion {
 
     [
       '_speechTimer', '_stateTimer', '_saveTimer', '_clickTimer', '_holdTimer',
-      '_fishTimer', '_fishBiteTimer', '_emotionTimer', '_shinyTimer', '_keepy'
+      '_wakeStretchTimer', '_fishTimer', '_fishBiteTimer', '_fishCatchTimer',
+      '_emotionTimer', '_shinyTimer', '_keepy'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
     });
 
     cancelAnimationFrame(this._refreshMeasureRaf);
+    cancelAnimationFrame(this._motionRaf);
     cancelAnimationFrame(this._glideRaf);
     this._refreshMeasureRaf = null;
+    this._motionRaf = null;
     this._glideRaf = null;
 
     if (!skipExtensionApis && this._hasExtensionContext()) {

@@ -109,7 +109,7 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.match(showcaseJs, /previewPet\.dataset\.accFace/);
   assert.match(showcaseJs, /accessorySelect\.replaceChildren\(\)/);
   assert.match(showcaseJs, /Object\.entries\(accessories\)\.forEach/);
-  assert.match(showcaseHtml, /30\/30<\/b> contratos automatizados/);
+  assert.match(showcaseHtml, /32\/32<\/b> contratos automatizados/);
   assert.match(showcaseHtml, /não é um vídeo pré-gravado/);
   assert.doesNotMatch(showcaseHtml, /<video\b/i);
   assert.match(showcaseCss, /\.evidence-card-grid/);

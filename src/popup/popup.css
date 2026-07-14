@@ -61,7 +61,7 @@ body {
   transform-origin: top left;
   margin-right: 30px;
   margin-bottom: 25px;
-  animation: mini-walk 0.55s steps(1) infinite;
+  animation: mini-walk 0.55s steps(1) infinite paused;
   --preview-color: #c71515;
 }
 .mini-leg { display: none; }
@@ -500,6 +500,62 @@ input[type="color"] {
 }
 
 /* ---- ACESSÓRIOS ---- */
+.outfit-preview-card {
+  display: grid;
+  grid-template-columns: 1fr 112px;
+  align-items: center;
+  min-height: 104px;
+  margin-bottom: 16px;
+  padding: 10px 10px 10px 13px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 82% 42%, rgba(255,71,87,.16), transparent 34%),
+    linear-gradient(135deg, var(--surface2), rgba(30,16,64,.72));
+  box-shadow: inset 0 1px rgba(255,255,255,.04);
+}
+.outfit-preview-copy { display: flex; flex-direction: column; gap: 4px; }
+.outfit-preview-kicker {
+  color: var(--accent2);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+.outfit-preview-copy strong { color: #fff; font-size: 13px; }
+.outfit-preview-copy small { max-width: 155px; color: var(--muted); font-size: 9px; line-height: 1.4; }
+.outfit-preview-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 106px;
+  height: 82px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(255,255,255,.07), transparent 48%),
+    rgba(8,8,14,.62);
+}
+#aic-clawd-node.popup-outfit-pet {
+  position: relative;
+  width: 64px;
+  height: 72px;
+  pointer-events: none;
+  --agent-color: #c71515;
+  --agent-scale: 1.25;
+  --jersey-color: #e74c3c;
+}
+#aic-clawd-node.popup-outfit-pet .pet-body {
+  position: absolute;
+  left: 10px;
+  top: 31px;
+  gap: 0;
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,.45));
+}
+#aic-clawd-node.popup-outfit-pet .sprite-stack { contain: none; overflow: visible; }
+#aic-clawd-node.popup-outfit-pet .pixel-sprite { animation: none !important; }
+
 .accessory-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -525,6 +581,22 @@ input[type="color"] {
   border-color: var(--accent2);
   background: rgba(255,71,87,0.12);
   box-shadow: 0 0 10px rgba(255,71,87,0.2);
+}
+.accessory-card.profession-equipped {
+  border-color: #f1c40f;
+  box-shadow: 0 0 0 1px rgba(241,196,15,.22), 0 0 12px rgba(241,196,15,.12);
+}
+.auto-gear-badge {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #f1c40f;
+  color: #281f00;
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: .3px;
 }
 .acc-icon { font-size: 16px; }
 .acc-name { font-size: 9px; color: var(--muted); font-weight: 600; }

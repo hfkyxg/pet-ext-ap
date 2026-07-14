@@ -11,6 +11,7 @@ const {
   clawdEnsureDailyQuest,
   clawdRegisterDailyProgress,
   clawdMigrateState,
+  clawdEffectiveAccessories,
   clawdLevelFromXp,
   clawdHasExtensionContext,
   clawdIsExtensionContextError,
@@ -22,6 +23,7 @@ const contentSource = fs.readFileSync(require.resolve('../src/content/content.js
 const backgroundSource = fs.readFileSync(require.resolve('../src/background/background.js'), 'utf8');
 const popupSource = fs.readFileSync(require.resolve('../src/popup/popup.js'), 'utf8');
 const popupHtml = fs.readFileSync(require.resolve('../src/popup/popup.html'), 'utf8');
+const popupStyle = fs.readFileSync(require.resolve('../src/popup/popup.css'), 'utf8');
 
 test('estado padrão cria uma missão diária válida', () => {
   const state = clawdDefaultState();
@@ -103,14 +105,75 @@ test('chapéus têm descrição, arte refinada e movimento sincronizado ao passo
   assert.match(styleSource, /#aic-clawd-node\.running \.acc-head[\s\S]{0,150}clawd-headwear-step/);
   assert.match(popupSource, /card\.title = def\.desc/);
   assert.match(popupSource, /card\.setAttribute\('aria-pressed'/);
-  assert.match(popupSource, /description\.textContent = selected/);
+  assert.match(popupSource, /description\.textContent = automatic/);
   assert.match(popupHtml, /id="acc-head-description"/);
+});
+
+test('uniformes de profissão são temporários e preservam os acessórios pessoais', () => {
+  const state = clawdDefaultState();
+  state.accessoryHead = 'tophat';
+  state.accessoryFace = 'scarf';
+
+  state.profession = 'footballer';
+  assert.deepEqual(clawdEffectiveAccessories(state), {
+    profession: 'footballer',
+    head: 'cap',
+    face: 'scarf',
+    userHead: 'tophat',
+    userFace: 'scarf',
+    autoHead: 'cap',
+    autoFace: null,
+    headSource: 'profession',
+    faceSource: 'personal'
+  });
+  assert.equal(state.accessoryHead, 'tophat');
+  assert.equal(state.accessoryFace, 'scarf');
+
+  state.profession = 'musician';
+  assert.equal(clawdEffectiveAccessories(state).head, 'tophat');
+  assert.equal(clawdEffectiveAccessories(state).face, 'sunglasses');
+  state.profession = 'idle';
+  assert.equal(clawdEffectiveAccessories(state).head, 'tophat');
+  assert.equal(clawdEffectiveAccessories(state).face, 'scarf');
+
+  for (const profession of Object.values(CLAWD_PROFESSIONS)) {
+    for (const [slot, id] of Object.entries(profession.gear || {})) {
+      assert.equal(CLAWD_ACCESSORIES[id]?.slot, slot, `${profession.label}: traje inválido ${id}`);
+    }
+  }
+  const applyProfession = contentSource.slice(
+    contentSource.indexOf('_applyProfessionVisuals('),
+    contentSource.indexOf('/* ---------- POSIÇÃO', contentSource.indexOf('_applyProfessionVisuals('))
+  );
+  assert.doesNotMatch(applyProfession, /this\.S\.accessory(?:Head|Face)\s*=/);
+  assert.match(applyProfession, /_syncAccessoryVisuals\(\)/);
+});
+
+test('chapéus externos não são recortados e o popup mostra o traje efetivo', () => {
+  const stackRule = styleSource.match(/#aic-clawd-node \.sprite-stack\s*\{([^}]*)\}/)?.[1] || '';
+  const previewRule = popupStyle.match(/\.outfit-preview-stage\s*\{([^}]*)\}/)?.[1] || '';
+  assert.doesNotMatch(stackRule, /contain:[^;]*paint/);
+  assert.match(stackRule, /overflow:\s*visible/);
+  assert.doesNotMatch(previewRule, /12px 12px|repeating-linear-gradient/);
+  assert.match(styleSource, /#aic-clawd-node \.acc-head\s*\{\s*z-index:\s*4/);
+  assert.match(styleSource, /data-acc-face="headphones"[\s\S]{0,180}z-index:\s*3/);
+  assert.match(styleSource, /aic-nofx \.acc-head::after[\s\S]{0,260}animation:\s*none !important/);
+  assert.match(styleSource, /ninjaband[\s\S]{0,260}preserva os olhos/);
+  assert.match(popupHtml, /href="\.\.\/content\/style\.css"/);
+  assert.match(popupHtml, /class="outfit-preview-card"/);
+  assert.match(popupHtml, /id="aic-clawd-node"/);
+  assert.match(popupSource, /function renderOutfitPreview\(\)/);
+  assert.match(popupSource, /clawdEffectiveAccessories\(S\)/);
+  assert.match(popupSource, /profession-equipped/);
+  assert.match(popupSource, /setAttribute\('aria-current', 'true'\)/);
 });
 
 test('sub-pet e deslocamentos não usam timer fixo para renderizar frames', () => {
   assert.doesNotMatch(contentSource, /_frameTimer\s*=\s*setInterval/);
   assert.match(contentSource, /measureRefreshRate\(\)/);
   assert.match(contentSource, /requestAnimationFrame\(step\)/);
+  assert.match(contentSource, /_queuePetClick\(\)[\s\S]{0,420}this\.giveAffection\(\)/);
+  assert.match(contentSource, /if \(diffX < 5 && diffY < 5\) \{\s*this\._queuePetClick\(\)/);
 });
 
 test('sprite padrão é estático e pernas só animam durante deslocamento', () => {

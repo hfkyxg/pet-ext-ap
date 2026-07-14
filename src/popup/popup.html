@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Claw'd — Menu</title>
+  <link rel="stylesheet" href="../content/style.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -54,6 +55,30 @@
 
   <!-- PAINEL APARÊNCIA -->
   <div class="tab-panel active" id="tab-appearance">
+
+    <section class="outfit-preview-card" aria-labelledby="outfit-preview-title">
+      <div class="outfit-preview-copy">
+        <span class="outfit-preview-kicker">Provador ao vivo</span>
+        <strong id="outfit-preview-title">Seu visual atual</strong>
+        <small id="outfit-preview-detail">Dois slots combináveis</small>
+      </div>
+      <div class="outfit-preview-stage">
+        <div class="popup-outfit-pet" id="aic-clawd-node" data-acc-head="none" data-acc-face="none" data-skin="normal" role="img" aria-label="Prévia do visual do pet">
+          <div class="pet-body">
+            <div class="sprite-stack">
+              <div class="pixel-sprite"></div>
+              <div class="smooth-sprite" aria-hidden="true">
+                <span class="smooth-core"></span>
+                <span class="smooth-leg smooth-leg-1"></span><span class="smooth-leg smooth-leg-2"></span>
+                <span class="smooth-leg smooth-leg-3"></span><span class="smooth-leg smooth-leg-4"></span>
+              </div>
+              <div class="jersey"></div><div class="skin-mod"></div>
+              <div class="accessory acc-head"></div><div class="accessory acc-face"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="control-group">
       <label for="input-name">Nome do pet <button class="fav-star name-star" id="name-star" title="Favoritar apelido">☆</button></label>

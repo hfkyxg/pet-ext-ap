@@ -101,7 +101,7 @@ A separação `node` (posição) → `sprite-stack` (flip) → renderizador visu
 | Estado | Classe CSS | Trigger |
 |--------|-----------|---------|
 | `idle` | (nenhuma) | padrão |
-| `happy` | `.happy` | clique/carinho |
+| `happy` | `.happy` | clique/carinho; cede a `celebrate` quando o mesmo carinho sobe o nível |
 | `sleeping` | `.sleeping` | ~28s de inatividade |
 | `excited` | `.excited` | scroll, gol, level up |
 | `waving` | `.waving` | aleatório (~25s) ou ação manual |
@@ -122,7 +122,7 @@ O estado é uma classe no `#aic-clawd-node`; o CSS resolve a animação correspo
 
 - **Drag** (mouse/touch): reposiciona; soltar com deslocamento < 5px conta como clique → `giveAffection()`;
 - **Deslizamento** (mouse/touch): ao soltar após um arraste rápido, `startGlide()` continua o movimento com inércia em `requestAnimationFrame`, rebate nas bordas e persiste a posição final;
-- **Clique/carinho**: estado `happy` + partículas emoji + `+5 XP`;
+- **Clique/carinho**: estado `happy` + partículas emoji + `+5 XP`; se os pontos completarem um nível, `celebrate` assume corretamente a animação;
 - **Scroll**: estado `excited` por ~900ms;
 - **Mousemove**: `lookAtCursor()` aplica `perspective + rotateX/Y` limitado a ±12° (efeito 3D);
 - **Bola** (jogador): `kickBall()` — animação de chute, `+10 XP`.
@@ -221,7 +221,9 @@ O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `
 
 Cada espécie implementa `special`: cachorro late/busca, gato pode ignorar, pássaro rodopia, coelho salta, dinossauro corre, dragão solta fogo, fantasma desaparece e slime se divide. As animações preservam o flip horizontal por variável CSS e respeitam `prefers-reduced-motion`.
 
-No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite` assume o mesmo desenho angular com uma cabeça contínua, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os 14 acessórios e as skins especiais também têm variantes contínuas. Os 7 chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
+No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite` assume o mesmo desenho angular com uma cabeça contínua, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os 14 acessórios e as skins especiais também têm variantes contínuas. Os 7 chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. A `sprite-stack` mantém contenção de layout/estilo, mas não de pintura: isso permite que cartolas, coroas, toucas, hélices, abas e mochilas ultrapassem a caixa de 44×36px sem recorte. Fones usam uma camada atrás do chapéu, e a faixa ninja fica na testa sem cobrir os olhos.
+
+`clawdEffectiveAccessories(state)` separa seleção pessoal e traje profissional. O DOM recebe o item efetivo e a origem (`personal` ou `profession`), mas `accessoryHead`/`accessoryFace` continuam intactos no storage; ao voltar para Livre, o visual pessoal reaparece. O popup reutiliza `style.css` em um provador real que combina os dois slots e reflete pixel/liso, skin, cor, contorno e camisa. O Pescador cria lago, vara/linha e janela de fisgada; cancelamento limpa timers/cena sem conceder peixe, enquanto a captura completa incrementa o contador.
 
 ---
 
@@ -238,6 +240,8 @@ No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite`
 | `destroy()` + boot token | Evita listeners, timers e instâncias duplicadas após reinjeção |
 | Guardas de contexto MV3 | Encerram a instância antiga sem exceções após reload da extensão |
 | Reconciliação com healthcheck estável | Exige DOM conectado, tolera aba interna ativa e repete injeções transitórias sem duplicar o pet |
+| Acessório efetivo derivado | Uniformes automáticos não sobrescrevem a personalização persistente do usuário |
+| Ações com cancelamento de cena | Passeio, inércia, pesca e embaixadinha anteriores são encerrados antes da nova ação |
 
 **Limitações conhecidas:**
 
@@ -303,7 +307,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **30 testes** cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, os 7 chapéus refinados, sprite e pernas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida em runtime os dois renderizadores, todos os acessórios, alternância e persistência da boca, movimento dos chapéus, as 8 profissões, as 14 ações, popup (8 abas, loja e conquistas), subpet com apelido, corpo `#4a90e2`, olhos `#33ff99`, seis interações e três reloads sem erros ou duplicação. A inspeção da vitrine em navegador cobre desktop e 375 px, player, capítulos, modo liso, subpet, catálogos e console. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
+Os **32 testes** cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, os 7 chapéus refinados sem recorte, composição das camadas, trajes profissionais temporários, sprite e pernas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida os dois renderizadores, todos os acessórios, o provador pixel/liso, boca, movimento dos chapéus, restauração do visual pessoal, modo desempenho, 8 profissões, estado de 14/14 ações, cancelamento e conclusão da pesca, clique físico, popup, subpet com apelido/cor/olhos/seis interações e três reloads sem erros ou duplicação. A inspeção da vitrine em navegador cobre desktop e 375 px, player, capítulos, modo liso, subpet, catálogos e console. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
 
 ---
 

@@ -76,15 +76,41 @@ var CLAWD_ACCESSORIES = {
 
 /* ---- Profissões ---- */
 var CLAWD_PROFESSIONS = {
-  idle:       { emoji: '🐾', label: 'Livre',     desc: 'Sem profissão específica' },
-  footballer: { emoji: '⚽', label: 'Jogador',   desc: 'Embaixadinhas e gols' },
-  tutor:      { emoji: '📚', label: 'Tutor',     desc: 'Desafios anti-procrastinação' },
-  engineer:   { emoji: '💻', label: 'Dev',       desc: 'Digita e reage a código' },
-  musician:   { emoji: '🎸', label: 'Músico',    desc: 'Riffs em sites de música' },
-  chef:       { emoji: '🧑‍🍳', label: 'Chef',     desc: 'Alimentar 2× mais eficaz' },
-  ninja:      { emoji: '🥷', label: 'Ninja',     desc: 'Se esconde e surpreende' },
-  fisher:     { emoji: '🎣', label: 'Pescador',  desc: 'Pesca em um lago pixelado' }
+  idle:       { emoji: '🐾', label: 'Livre',     desc: 'Sem profissão específica', gear: {} },
+  footballer: { emoji: '⚽', label: 'Jogador',   desc: 'Embaixadinhas e gols', gear: { head: 'cap' } },
+  tutor:      { emoji: '📚', label: 'Tutor',     desc: 'Desafios anti-procrastinação', gear: { face: 'glasses' } },
+  engineer:   { emoji: '💻', label: 'Dev',       desc: 'Digita e reage a código', gear: { face: 'headphones' } },
+  musician:   { emoji: '🎸', label: 'Músico',    desc: 'Riffs em sites de música', gear: { face: 'sunglasses' } },
+  chef:       { emoji: '🧑‍🍳', label: 'Chef',     desc: 'Alimentar 2× mais eficaz', gear: { head: 'chefhat' } },
+  ninja:      { emoji: '🥷', label: 'Ninja',     desc: 'Se esconde e surpreende', gear: { head: 'ninjaband' } },
+  fisher:     { emoji: '🎣', label: 'Pescador',  desc: 'Pesca em um lago pixelado', gear: { head: 'fishhat' } }
 };
+
+/* O uniforme profissional é apenas visual e temporário. A seleção pessoal
+   continua salva para voltar assim que o pet retorna ao modo Livre. */
+function clawdEffectiveAccessories(state = {}) {
+  const profession = Object.prototype.hasOwnProperty.call(CLAWD_PROFESSIONS, state.profession)
+    ? state.profession
+    : 'idle';
+  const gear = CLAWD_PROFESSIONS[profession].gear || {};
+  const validForSlot = (id, slot) => CLAWD_ACCESSORIES[id]?.slot === slot ? id : null;
+  const userHead = validForSlot(state.accessoryHead, 'head') || 'none';
+  const userFace = validForSlot(state.accessoryFace, 'face') || 'none';
+  const autoHead = validForSlot(gear.head, 'head');
+  const autoFace = validForSlot(gear.face, 'face');
+
+  return {
+    profession,
+    head: autoHead || userHead,
+    face: autoFace || userFace,
+    userHead,
+    userFace,
+    autoHead,
+    autoFace,
+    headSource: autoHead ? 'profession' : 'personal',
+    faceSource: autoFace ? 'profession' : 'personal'
+  };
+}
 
 /* ---- Ações ---- */
 var CLAWD_ACTIONS = {
@@ -309,6 +335,7 @@ if (typeof module !== 'undefined' && module.exports) {
     clawdEnsureDailyQuest,
     clawdRegisterDailyProgress,
     clawdDefaultState,
+    clawdEffectiveAccessories,
     clawdLevelFromXp,
     clawdMigrateState,
     clawdHasExtensionContext,

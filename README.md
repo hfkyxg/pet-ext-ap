@@ -24,7 +24,7 @@ Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus pró
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
 
-A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css`, portanto os 14 acessórios exibidos são os mesmos do runtime, sem depender de fontes de emoji. Os selos do topo refletem a validação atual: **30/30 contratos**, **8/8 scripts**, **8 profissões**, **14 acessórios**, **14 ações**, **6 ações do subpet**, **3/3 reloads limpos** e **0 erros de runtime**.
+A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css`, portanto os 14 acessórios exibidos são os mesmos do runtime, sem depender de fontes de emoji. Os selos do topo refletem a validação atual: **32/32 contratos**, **8/8 scripts**, **8 profissões**, **14 acessórios**, **14 ações**, **6 ações do subpet**, **3/3 reloads limpos** e **0 erros de runtime**.
 
 ---
 
@@ -89,7 +89,9 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - **8 profissões**: Livre, Jogador, Tutor, Dev, Músico, Chef, Ninja e Pescador
 - Pescador monta um **lago interativo**, lança a vara, fisga e captura peixes
 - Jogador faz embaixadinhas; Tutor cria desafios; Dev digita; Músico toca riffs
-- **14 acessórios** em dois slots e nos dois renderizadores; os 7 chapéus têm detalhes, profundidade e movimento sincronizado ao passo
+- **14 acessórios** em dois slots e nos dois renderizadores; os 7 chapéus têm detalhes, profundidade, área externa sem recorte e movimento sincronizado ao passo
+- **Provador ao vivo no popup** usa a mesma arte do pet em pixel/liso e mostra os dois slots combinados
+- Trajes de profissão são temporários: entram automaticamente sem apagar o boné, chapéu ou acessório pessoal salvo
 
 </td>
 <td width="50%">
@@ -347,7 +349,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **30 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca opcional/emoções, chapéus, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, o controle persistente da boca, o movimento dos chapéus, 8 profissões, 14 ações, popup completo e o subpet com apelido, corpo, olhos e suas 6 interações; depois executa três reloads consecutivos, sempre com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **32 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, o provador pixel/liso do popup, o controle persistente da boca, o movimento dos chapéus, 8 profissões e os estados esperados das 14 ações. Também prova restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas 6 interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 A vitrine também foi inspecionada em navegador real nos layouts desktop e móvel: player funcional, avanço automático, seleção direta das etapas lisa/subpet, 14 acessórios no laboratório, **zero logs de erro** e nenhuma rolagem horizontal em 375 px.
 

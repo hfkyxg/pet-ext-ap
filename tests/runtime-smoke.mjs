@@ -169,6 +169,10 @@ async function validatePopupRuntime(port, worker) {
           shopItems: document.querySelector('#shop-grid')?.children.length || 0,
           achievements: document.querySelector('#ach-list')?.children.length || 0,
           mouthToggleChecked: document.querySelector('#toggle-mouth')?.checked ?? null,
+          outfitPreview: !!document.querySelector('#aic-clawd-node.popup-outfit-pet'),
+          outfitHead: document.querySelector('#aic-clawd-node.popup-outfit-pet')?.dataset.accHead || null,
+          outfitFace: document.querySelector('#aic-clawd-node.popup-outfit-pet')?.dataset.accFace || null,
+          outfitDetail: document.querySelector('#outfit-preview-detail')?.textContent || '',
           duplicateIds
         };
       })()`);
@@ -188,7 +192,58 @@ async function validatePopupRuntime(port, worker) {
     assert.equal(snapshot.shopItems, Object.keys(CLAWD_SHOP).length, 'Loja incompleta no popup.');
     assert.equal(snapshot.achievements, Object.keys(CLAWD_ACHIEVEMENTS).length, 'Conquistas incompletas no popup.');
     assert.equal(snapshot.mouthToggleChecked, true, 'A opção de boca deve iniciar ativada.');
+    assert.equal(snapshot.outfitPreview, true, 'O popup deve renderizar o provador com a arte real do pet.');
+    assert.equal(snapshot.outfitHead, 'none', 'O provador deve refletir o slot de cabeça inicial.');
+    assert.equal(snapshot.outfitFace, 'none', 'O provador deve refletir o slot de rosto inicial.');
+    assert.match(snapshot.outfitDetail, /dois slots combináveis/i);
     assert.deepEqual(snapshot.duplicateIds, [], `IDs duplicados no popup: ${snapshot.duplicateIds.join(', ')}`);
+
+    await popup.evaluate(`document.querySelector('[data-accessory-id="cap"][data-accessory-slot="head"]').click(); true`);
+    await popup.evaluate(`document.querySelector('[data-accessory-id="sunglasses"][data-accessory-slot="face"]').click(); true`);
+    const pixelOutfit = await retry(async () => {
+      const value = await popup.evaluate(`(() => {
+        const preview = document.querySelector('#aic-clawd-node.popup-outfit-pet');
+        const head = preview?.querySelector('.acc-head');
+        const face = preview?.querySelector('.acc-face');
+        return {
+          head: preview?.dataset.accHead,
+          face: preview?.dataset.accFace,
+          headPaint: head ? getComputedStyle(head).boxShadow : 'none',
+          facePaint: face ? getComputedStyle(face).boxShadow : 'none'
+        };
+      })()`);
+      return value.head === 'cap' && value.face === 'sunglasses' ? value : null;
+    }, 2_000, 50);
+    assert.notEqual(pixelOutfit.headPaint, 'none', 'O provador não pintou o boné em pixel-art.');
+    assert.notEqual(pixelOutfit.facePaint, 'none', 'O provador não pintou os óculos em pixel-art.');
+
+    await popup.evaluate(`document.querySelector('#toggle-smooth').click(); true`);
+    const smoothOutfit = await retry(async () => {
+      const value = await popup.evaluate(`(() => {
+        const preview = document.querySelector('#aic-clawd-node.popup-outfit-pet');
+        const head = preview?.querySelector('.acc-head');
+        const face = preview?.querySelector('.acc-face');
+        return {
+          smooth: !!preview?.classList.contains('smooth'),
+          pixelDisplay: getComputedStyle(preview.querySelector('.pixel-sprite')).display,
+          headPaint: head ? getComputedStyle(head).backgroundImage : 'none',
+          facePaint: face ? getComputedStyle(face, '::before').backgroundImage : 'none'
+        };
+      })()`);
+      return value.smooth && value.pixelDisplay === 'none' ? value : null;
+    }, 2_000, 50);
+    assert.notEqual(smoothOutfit.headPaint, 'none', 'O provador não pintou o boné liso.');
+    assert.notEqual(smoothOutfit.facePaint, 'none', 'O provador não pintou os óculos lisos.');
+
+    await popup.evaluate(`document.querySelector('#toggle-smooth').click(); true`);
+    await popup.evaluate(`document.querySelector('[data-accessory-id="none"][data-accessory-slot="head"]').click(); true`);
+    await popup.evaluate(`document.querySelector('[data-accessory-id="none"][data-accessory-slot="face"]').click(); true`);
+    await retry(() => popup.evaluate(`(() => {
+      const preview = document.querySelector('#aic-clawd-node.popup-outfit-pet');
+      return preview?.dataset.accHead === 'none' && preview?.dataset.accFace === 'none';
+    })()`), 2_000, 50);
+    snapshot.outfitVisuals = { pixel: pixelOutfit, smooth: smoothOutfit, removal: true };
+
     await popup.evaluate(`document.querySelector('#toggle-mouth').click(); true`);
     await retry(async () => {
       const value = await worker.evaluate(`(async () => (await chrome.storage.local.get('clawdState')).clawdState?.showMouth)()`);
@@ -308,6 +363,7 @@ async function petSnapshot(page) {
     return {
       count: pets.length,
       state: pet?.className || null,
+      engineState: pet?.dataset.state || null,
       emotion: pet?.getAttribute('data-emotion') || null,
       emotionLayer: !!emotion,
       spriteAnimation: sprite ? getComputedStyle(sprite).animationName : null,
@@ -363,6 +419,68 @@ async function accessorySnapshot(page, slot) {
     });
     return { painted, boxShadow: styles[0].boxShadow, display: styles[0].display };
   })()`);
+}
+
+async function accessoryStateSnapshot(page) {
+  return page.evaluate(`(() => {
+    const pet = document.querySelector('#aic-clawd-node');
+    const head = pet?.querySelector('.acc-head');
+    const face = pet?.querySelector('.acc-face');
+    return {
+      profession: pet?.dataset.profession || null,
+      head: pet?.dataset.accHead || null,
+      face: pet?.dataset.accFace || null,
+      userHead: pet?.dataset.userAccHead || null,
+      userFace: pet?.dataset.userAccFace || null,
+      headSource: pet?.dataset.accessoryHeadSource || null,
+      faceSource: pet?.dataset.accessoryFaceSource || null,
+      performanceMode: !!pet?.classList.contains('aic-nofx'),
+      headAnimation: head ? getComputedStyle(head).animationName : null,
+      headAfterAnimation: head ? getComputedStyle(head, '::after').animationName : null,
+      faceAnimation: face ? getComputedStyle(face).animationName : null
+    };
+  })()`);
+}
+
+async function clickPet(page) {
+  await page.evaluate(`(() => {
+    const pet = document.querySelector('#aic-clawd-node');
+    const startedAt = performance.now();
+    window.__clawdPointerTrace = [];
+    window.__clawdStateTrace = [{ at: 0, state: pet?.dataset.state, classes: pet?.className || '' }];
+    const observer = new MutationObserver(records => {
+      if (!records.some(record => record.attributeName === 'data-state' || record.attributeName === 'class')) return;
+      window.__clawdStateTrace.push({
+        at: Math.round(performance.now() - startedAt),
+        state: pet?.dataset.state,
+        classes: pet?.className || ''
+      });
+    });
+    if (pet) observer.observe(pet, { attributes: true, attributeFilter: ['data-state', 'class'] });
+    setTimeout(() => observer.disconnect(), 3500);
+    for (const type of ['mousedown', 'mouseup', 'click']) {
+      document.addEventListener(type, event => {
+        window.__clawdPointerTrace.push({
+          type,
+          detail: event.detail,
+          target: event.target?.className || event.target?.id || event.target?.tagName || ''
+        });
+      }, { capture: true, once: true });
+    }
+  })()`);
+  const point = await page.evaluate(`(() => {
+    const pet = document.querySelector('#aic-clawd-node');
+    const rect = pet.querySelector('.sprite-stack').getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    return { x, y, inside: pet.contains(document.elementFromPoint(x, y)) };
+  })()`);
+  assert.equal(point.inside, true, 'A área pintada do pet precisa aceitar interação do ponteiro.');
+  const coords = { x: point.x, y: point.y };
+  await page.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...coords });
+  await page.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...coords, button: 'left', buttons: 1, clickCount: 1 });
+  await delay(35);
+  await page.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...coords, button: 'left', buttons: 0, clickCount: 1 });
 }
 
 async function capturePetScreenshot(page, outputPath, { head = 'none', face = 'none' } = {}) {
@@ -554,6 +672,40 @@ async function main() {
       pixelAccessories.push(id);
     }
 
+    // O traje automático não pode apagar as escolhas pessoais do usuário.
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'accessoryHead', value: 'cap' });
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'accessoryFace', value: 'sunglasses' });
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'chef' });
+    const chefGear = await retry(async () => {
+      const snapshot = await accessoryStateSnapshot(page);
+      return snapshot.head === 'chefhat' && snapshot.face === 'sunglasses' ? snapshot : null;
+    }, 2_000, 50);
+    assert.equal(chefGear.userHead, 'cap');
+    assert.equal(chefGear.userFace, 'sunglasses');
+    assert.equal(chefGear.headSource, 'profession');
+
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'tutor' });
+    const tutorGear = await retry(async () => {
+      const snapshot = await accessoryStateSnapshot(page);
+      return snapshot.head === 'cap' && snapshot.face === 'glasses' ? snapshot : null;
+    }, 2_000, 50);
+    assert.equal(tutorGear.faceSource, 'profession');
+
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'idle' });
+    const restoredGear = await retry(async () => {
+      const snapshot = await accessoryStateSnapshot(page);
+      return snapshot.head === 'cap' && snapshot.face === 'sunglasses' ? snapshot : null;
+    }, 2_000, 50);
+    assert.equal(restoredGear.headSource, 'personal');
+    assert.equal(restoredGear.faceSource, 'personal');
+    await delay(450);
+    const storedGear = await controlWorker.evaluate(`(async () => {
+      const state = (await chrome.storage.local.get('clawdState')).clawdState;
+      return { head: state?.accessoryHead, face: state?.accessoryFace };
+    })()`);
+    assert.deepEqual(storedGear, { head: 'cap', face: 'sunglasses' }, 'A profissão sobrescreveu o visual salvo.');
+    const professionGear = { chef: chefGear, tutor: tutorGear, restored: restoredGear, stored: storedGear };
+
     const professions = [];
     for (const profession of Object.keys(CLAWD_PROFESSIONS)) {
       await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: profession });
@@ -561,26 +713,119 @@ async function main() {
       professions.push(profession);
     }
 
+    const expectedActionStates = {
+      wave: 'waving', dance: 'dance-1', happy: 'happy', feed: 'eating',
+      somersault: 'somersault', play: 'excited', pose: 'pose', bathing: 'bathing',
+      bath: 'bathing', sleep: 'sleeping', wake: 'idle', fish: 'fishing',
+      jump: 'jumping', stretch: 'stretching', roar: 'roaring'
+    };
     const actions = [];
     for (const action of Object.keys(CLAWD_ACTIONS)) {
       await sendToActivePet(controlWorker, { action: 'triggerAction', value: action });
-      actions.push(action);
-      await delay(25);
+      const expected = expectedActionStates[action];
+      let observed;
+      try {
+        observed = await retry(async () => {
+          const snapshot = await petSnapshot(page);
+          return snapshot.engineState === expected ? snapshot.engineState : null;
+        }, 1_200, 25);
+      } catch (error) {
+        const snapshot = await petSnapshot(page);
+        throw new Error(`Ação ${action}: esperado ${expected}, recebido ${snapshot.engineState}. ${error.message}`);
+      }
+      actions.push({ id: action, state: observed });
     }
-    await retry(() => page.evaluate(`!!document.querySelector('.aic-lake')`), 3_000, 80);
+
+    // Interromper uma ação fecha a cena anterior; pescar valida cancelamento e sucesso.
+    await retry(() => page.evaluate(`!document.querySelector('.aic-lake')`), 1_000, 40);
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'fisher' });
+    await sendToActivePet(controlWorker, { action: 'triggerAction', value: 'fish' });
+    await retry(() => page.evaluate(`!!document.querySelector('.aic-lake') && document.querySelector('#aic-clawd-node')?.dataset.state === 'fishing'`), 3_000, 80);
+    const fishBeforeCancel = (await sendToActivePet(controlWorker, { action: 'getStatus' })).fishCaught;
+    await page.evaluate(`document.querySelector('.aic-lake').click(); true`);
+    await retry(() => page.evaluate(`document.querySelector('#aic-clawd-node')?.dataset.state === 'reeling'`), 1_000, 25);
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'idle' });
+    await delay(950);
+    const cancelledStatus = await sendToActivePet(controlWorker, { action: 'getStatus' });
+    const cancelledFishing = await page.evaluate(`({
+      state: document.querySelector('#aic-clawd-node')?.dataset.state,
+      lake: !!document.querySelector('.aic-lake'),
+      caught: !!document.querySelector('.aic-fish-caught')
+    })`);
+    cancelledFishing.fish = cancelledStatus.fishCaught;
+    assert.equal(cancelledFishing.fish, fishBeforeCancel, 'Cancelar a pesca ainda concedeu um peixe.');
+    assert.equal(cancelledFishing.state, 'idle', 'Uma ação antiga invadiu o estado após cancelar a pesca.');
+    assert.equal(cancelledFishing.lake, false, 'Cancelar a pesca deixou o lago na página.');
+    assert.equal(cancelledFishing.caught, false, 'Cancelar a pesca deixou a captura voando.');
+
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'fisher' });
+    await sendToActivePet(controlWorker, { action: 'triggerAction', value: 'fish' });
+    await retry(() => page.evaluate(`!!document.querySelector('.aic-lake') && document.querySelector('#aic-clawd-node')?.dataset.state === 'fishing'`), 3_000, 80);
+    const fishBeforeCatch = (await sendToActivePet(controlWorker, { action: 'getStatus' })).fishCaught;
+    await page.evaluate(`document.querySelector('.aic-lake').click(); true`);
+    const successfulFishing = await retry(async () => {
+      const status = await sendToActivePet(controlWorker, { action: 'getStatus' });
+      const snapshot = await page.evaluate(`({
+        state: document.querySelector('#aic-clawd-node')?.dataset.state,
+        lake: !!document.querySelector('.aic-lake')
+      })`);
+      snapshot.fish = status.fishCaught;
+      return snapshot.fish === fishBeforeCatch + 1 && snapshot.state === 'idle' && !snapshot.lake ? snapshot : null;
+    }, 3_500, 50);
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'idle' });
+
+    // Efeitos cosméticos respeitam o modo desempenho sem sumir com a arte.
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: true });
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'accessoryHead', value: 'propeller' });
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'accessoryFace', value: 'medal' });
+    await sendToActivePet(controlWorker, { action: 'updateSetting', key: 'performanceMode', value: true });
+    const effectsDisabled = await retry(async () => {
+      const snapshot = await accessoryStateSnapshot(page);
+      return snapshot.performanceMode && snapshot.headAfterAnimation === 'none' && snapshot.faceAnimation === 'none'
+        ? snapshot
+        : null;
+    }, 2_000, 50);
+    await sendToActivePet(controlWorker, { action: 'updateSetting', key: 'performanceMode', value: false });
+    const effectsRestored = await retry(async () => {
+      const snapshot = await accessoryStateSnapshot(page);
+      return !snapshot.performanceMode
+        && /clawd-propeller-spin/.test(snapshot.headAfterAnimation || '')
+        && /clawd-accessory-sparkle/.test(snapshot.faceAnimation || '')
+        ? snapshot
+        : null;
+    }, 2_000, 50);
+    const accessoryPerformance = { disabled: effectsDisabled, restored: effectsRestored };
+
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: true });
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'accessoryHead', value: 'cap' });
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'accessoryFace', value: 'sunglasses' });
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'autoWalk', value: false });
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'showSpeech', value: false });
 
-    await page.evaluate(`document.querySelector('#aic-clawd-node').click()`);
-    const affectionate = await retry(async () => {
+    const statusBeforeAffection = await sendToActivePet(controlWorker, { action: 'getStatus' });
+    await clickPet(page);
+    let affectionate;
+    try {
+      affectionate = await retry(async () => {
+        const snapshot = await petSnapshot(page);
+        return /happy|celebrate/.test(snapshot.state) ? snapshot : null;
+      }, 3_000, 100);
+    } catch (error) {
       const snapshot = await petSnapshot(page);
-      return /happy/.test(snapshot.state) ? snapshot : null;
-    }, 3_000, 100);
-    assert.match(affectionate.state, /happy/);
+      const statusAfterAffection = await sendToActivePet(controlWorker, { action: 'getStatus' });
+      const pointerTrace = await page.evaluate(`window.__clawdPointerTrace || []`);
+      const stateTrace = await page.evaluate(`window.__clawdStateTrace || []`);
+      throw new Error(
+        `Clique de carinho não chegou a happy/celebrate: ${JSON.stringify(snapshot)}; `
+        + `xp=${statusBeforeAffection.xp}->${statusAfterAffection.xp}; `
+        + `happiness=${statusBeforeAffection.stats.happiness}->${statusAfterAffection.stats.happiness}; `
+        + `events=${JSON.stringify(pointerTrace)}; states=${JSON.stringify(stateTrace)}. ${error.message}`
+      );
+    }
+    const statusAfterAffection = await sendToActivePet(controlWorker, { action: 'getStatus' });
+    assert.match(affectionate.state, /happy|celebrate/);
+    assert.equal(statusAfterAffection.xp, statusBeforeAffection.xp + 5, 'O carinho físico não concedeu +5 XP.');
     const mouthVisual = await visualSnapshot(page);
     assert.equal(mouthVisual.mouthBackground, 'rgba(0, 0, 0, 0)', 'A boca não deve ser um bloco preenchido.');
     assert.equal(mouthVisual.mouthBorderBottom, '2px', 'O sorriso deve usar um traço arredondado.');
@@ -685,8 +930,12 @@ async function main() {
       mouthToggle: { hidden: hiddenMouth.mouthDisplay, restored: restoredMouth.mouthDisplay },
       headwearMotion,
       accessories: { smooth: smoothAccessories.length, pixel: pixelAccessories.length },
+      professionGear,
+      accessoryPerformance,
       professions: professions.length,
       actions: actions.length,
+      actionStates: actions,
+      fishing: { cancelled: cancelledFishing, successful: successfulFishing },
       popup: popupRuntime,
       subpet: subpetRuntime,
       screenshot,

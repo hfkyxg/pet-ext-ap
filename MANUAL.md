@@ -55,7 +55,8 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Visual liso** — conserva a geometria angular do pet, mas usa superfícies contínuas no lugar das células quadradas; não exibe grade ou textura e não transforma o Claw'd em slime;
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
 - **Exibir boca** — desligue para remover somente a boca; olhos, piscadas e balões de emoji continuam ativos;
-- **Acessórios** — 14 opções em dois slots, incluindo 7 chapéus redesenhados. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
+- **Provador ao vivo** — mostra a mesma arte do pet e combina cabeça + rosto/corpo antes de você fechar o popup;
+- **Acessórios** — 14 opções em dois slots, incluindo 7 chapéus redesenhados e sem recorte. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
 
 ### 💼 Aba Profissão
 
@@ -71,6 +72,8 @@ A profissão muda o comportamento do pet:
 | 🧑‍🍳 **Chef** | Cozinha e torna a alimentação duas vezes mais eficaz |
 | 🥷 **Ninja** | Desaparece, corre e surpreende com truques próprios |
 | 🎣 **Pescador** | Monta lago e vara, espera a fisgada e captura peixes |
+
+O equipamento indicado pela profissão é temporário e aparece com o selo **PROF.**. Sua escolha pessoal continua salva e volta automaticamente ao selecionar **Livre**.
 
 ### 🧠 Aba Comportamento
 

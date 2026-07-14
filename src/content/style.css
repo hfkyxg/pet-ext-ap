@@ -386,7 +386,11 @@
   width: 44px;
   height: 36px;
   transition: filter 0.3s ease;
-  contain: layout paint style;
+  /* paint containment recortava cartolas, coroas, hélices e mochilas que
+     ultrapassam a caixa de 44×36px. Mantemos isolamento de layout/estilo. */
+  contain: layout style;
+  overflow: visible;
+  isolation: isolate;
   transform: translateZ(0);
 }
 
@@ -417,6 +421,8 @@
   pointer-events: none;
 }
 #aic-clawd-node .accessory { z-index: 3; }
+#aic-clawd-node .acc-head  { z-index: 4; }
+#aic-clawd-node .acc-face  { z-index: 5; }
 #aic-clawd-node .jersey    { z-index: 2; }
 #aic-clawd-node .skin-mod  { z-index: 1; }
 #aic-clawd-node .laptop    { z-index: 4; display: none; }
@@ -449,6 +455,7 @@
     28px -4px #fd79a8, 32px -4px #e84393, 36px -4px #fd79a8;
 }
 [data-acc-face="headphones"] .acc-face {
+  z-index: 3;
   box-shadow:
     12px -6px #2d3436, 16px -6px #2d3436, 20px -6px #2d3436, 24px -6px #2d3436, 28px -6px #2d3436,
     8px -2px #2d3436, 32px -2px #2d3436,
@@ -473,6 +480,7 @@
   animation: clawd-scarf-wave 0.55s ease-in-out infinite;
 }
 [data-acc-face="backpack"] .acc-face {
+  z-index: 2;
   box-shadow:
     /* mochila com mais detalhe: bolso e alças */
     -4px 14px #7b5e42, -8px 14px #7b5e42,
@@ -538,11 +546,15 @@
 }
 [data-acc-head="ninjaband"] .acc-head {
   box-shadow:
-    /* faixa, brilho, nó e duas pontas */
-    8px 4px #8f1d24, 12px 4px #c52d39, 16px 4px #d94752, 20px 4px #c52d39,
-    24px 4px #d94752, 28px 4px #c52d39, 32px 4px #8f1d24, 36px 4px #76171d,
-    40px 0 #a8242e, 44px 0 #8f1d24,
-    40px 8px #a8242e, 44px 12px #8f1d24;
+    /* faixa assentada na testa: preserva os olhos da linha y=4 */
+    8px -4px #76171d, 12px -4px #8f1d24, 16px -4px #a8242e, 20px -4px #8f1d24,
+    24px -4px #a8242e, 28px -4px #8f1d24, 32px -4px #76171d,
+    8px 0 #8f1d24, 12px 0 #c52d39, 16px 0 #e05a63, 20px 0 #c52d39,
+    24px 0 #d94752, 28px 0 #c52d39, 32px 0 #8f1d24, 36px 0 #76171d,
+    /* nó e pontas atrás da cabeça */
+    40px -4px #a8242e, 44px -4px #8f1d24,
+    40px 4px #b52a35, 44px 8px #8f1d24,
+    40px 8px #a8242e, 44px 12px #76171d;
 }
 /* Chapéu de pescador: abas largas + faixa */
 [data-acc-head="fishhat"] .acc-head {
@@ -1527,6 +1539,10 @@
 [data-acc-face="bow"] .acc-face { animation: clawd-scarf-wave 1.1s steps(2) infinite; transform-origin: 32px 0; }
 [data-acc-face="glasses"] .acc-face,
 [data-acc-face="sunglasses"] .acc-face { filter: drop-shadow(0 1px 0 rgba(255,255,255,.25)); }
+[data-acc-head="cap"] .acc-head,
+[data-acc-head="tophat"] .acc-head,
+[data-acc-head="chefhat"] .acc-head,
+[data-acc-head="fishhat"] .acc-head { filter: drop-shadow(0 2px 0 rgba(10,15,25,.22)); }
 [data-acc-head="crown"] .acc-head { filter: drop-shadow(0 2px 1px rgba(93,54,0,.4)); }
 [data-acc-head="propeller"] .acc-head { filter: drop-shadow(0 1px 1px rgba(20,35,50,.35)); }
 
@@ -1538,10 +1554,28 @@
 #aic-clawd-node.walking .acc-head {
   animation: clawd-headwear-step var(--clawd-step-duration, .42s) ease-in-out infinite;
   transform-origin: 22px 4px;
+  will-change: transform;
 }
 #aic-clawd-node.running .acc-head {
   animation: clawd-headwear-step var(--clawd-run-duration, .18s) ease-in-out infinite;
   transform-origin: 22px 4px;
+  will-change: transform;
+}
+
+/* Fones ficam atrás do chapéu quando os dois slots são combinados. */
+#aic-clawd-node[data-acc-head]:not([data-acc-head="none"])[data-acc-face="headphones"] .acc-face {
+  z-index: 3;
+}
+
+/* O modo desempenho preserva a arte e corta somente animações cosméticas. */
+#aic-clawd-node.aic-nofx .acc-head,
+#aic-clawd-node.aic-nofx .acc-face,
+#aic-clawd-node.aic-nofx .acc-head::before,
+#aic-clawd-node.aic-nofx .acc-head::after,
+#aic-clawd-node.aic-nofx .acc-face::before,
+#aic-clawd-node.aic-nofx .acc-face::after {
+  animation: none !important;
+  will-change: auto !important;
 }
 
 /* HOLDING SIGN (Tutor com plaquinha) */
@@ -2022,7 +2056,7 @@
 
 #aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head {
   left: 7px;
-  top: 4px;
+  top: -2px;
   width: 30px;
   height: 5px;
   border-radius: 3px;
@@ -2116,6 +2150,18 @@
   box-shadow: 4px 0 #3498db, 8px 0 #f1c40f, 12px 0 #e74c3c, 16px 0 #b72f29;
   transform-origin: 10px 2px;
   animation: clawd-propeller-spin .72s steps(8) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .acc-head,
+  #aic-clawd-node .acc-face,
+  #aic-clawd-node .acc-head::before,
+  #aic-clawd-node .acc-head::after,
+  #aic-clawd-node .acc-face::before,
+  #aic-clawd-node .acc-face::after {
+    animation: none !important;
+    will-change: auto !important;
+  }
 }
 
 /* Skins também abandonam pixels soltos quando o modo liso está ativo. */

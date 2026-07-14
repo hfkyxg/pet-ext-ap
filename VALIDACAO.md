@@ -6,7 +6,7 @@
 ## Resultado
 
 - Verificações de sintaxe: **8/8 aprovadas** (fontes, testes, showcase e smoke harness);
-- Suíte `node:test`: **30/30 testes aprovados**;
+- Suíte `node:test`: **32/32 testes aprovados**;
 - `git diff --check`: **sem erros de whitespace**;
 - Smoke test em navegador Chromium real: **aprovado**;
 - Reload MV3 em página `file://`, três ciclos consecutivos: **0 erros e 1 pet por ciclo**;
@@ -32,7 +32,7 @@ git diff --check
 
 ## Cobertura automatizada
 
-A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios nos dois renderizadores, descrições e arte dos 7 chapéus, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso angular, preferência persistente da boca, emoções, pesca, sincronização e inicialização de subpets, ciclo de vida, cor independente dos olhos, seis interações, manifest, referências e IDs do popup, documentação interativa local com 18 etapas, namespace dos keyframes, ano/versão, contexto MV3 invalidado e reconciliação após reload.
+A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios nos dois renderizadores, descrições e arte dos 7 chapéus, ausência de recorte das áreas externas, composição de camadas, trajes profissionais temporários, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso angular, preferência persistente da boca, emoções, pesca, sincronização e inicialização de subpets, ciclo de vida, cor independente dos olhos, seis interações, manifest, referências e IDs do popup, documentação interativa local com 18 etapas, namespace dos keyframes, ano/versão, contexto MV3 invalidado e reconciliação após reload.
 
 ## Smoke test no navegador
 
@@ -42,12 +42,15 @@ Uma instância unpacked foi carregada em perfil isolado e inspecionada pelo Chro
 |---------|---------------------|
 | Boot da página | `#aic-clawd-node`: 1 instância |
 | Repouso | `animation-name: none` na sprite |
-| Boca e carinho | estado `happy`; fundo da boca transparente; sorriso em borda curva de 2px |
+| Boca e carinho | `happy` ou `celebrate` ao subir de nível; `+5 XP`; fundo transparente e sorriso em borda curva de 2px |
 | Boca opcional | popup persistiu `showMouth`; runtime alternou `display: block → none → block` |
 | Modo liso | pixel oculto, `box-shadow: none`, silhueta contínua visível e `background-image: none` |
-| Acessórios | 14 variantes lisas e 14 pixel-art pintadas; chapéu usa `clawd-headwear-step` em movimento e `none` parado |
-| Profissões e ações | 8 profissões aplicadas e 14 ações disparadas; Pescador criou lago interativo |
-| Popup real | 8 abas, 8 profissões, 14 ações, 16 opções cosméticas, 8 subpets, 6 ações do subpet, seletor de olhos, 10 itens e 12 conquistas; nenhum ID duplicado |
+| Acessórios | 14 variantes lisas e 14 pixel-art pintadas; áreas externas dos chapéus não são recortadas; fones ficam atrás do chapéu; `clawd-headwear-step` só em movimento |
+| Traje profissional | Chef/Tutor aplicaram equipamento temporário e o modo Livre restaurou/persistiu boné + óculos pessoais sem sobrescrita |
+| Profissões e ações | 8 profissões aplicadas; 14/14 ações alcançaram o estado esperado; uma nova ação encerrou movimento/pesca anterior |
+| Pescaria | cancelamento terminou em `idle`, sem lago/captura/recompensa; captura completa incrementou `fish: 0 → 1` |
+| Modo desempenho | hélice e medalha passaram a `animation-name: none` e retomaram suas animações ao sair do modo |
+| Popup real | 8 abas, 8 profissões, 14 ações, 16 opções cosméticas, provador pixel/liso pintado, remoção dos dois slots, 8 subpets, 6 ações, seletor de olhos, 10 itens e 12 conquistas; nenhum ID duplicado |
 | Subpet real | 1 instância “Rex”, corpo `#4a90e2`, olhos `#33ff99`, 6/6 interações (`cuddle`, `play`, `explore`, `spin`, `celebrate`, `special`) e remoção limpa |
 | Reload da extensão | 3 ciclos consecutivos, sempre 1 instância, sem `Extension context invalidated` |
 | Console/runtime | 0 exceções, 0 erros e 0 contextos MV3 inválidos |
@@ -56,7 +59,7 @@ Uma instância unpacked foi carregada em perfil isolado e inspecionada pelo Chro
 
 - Manifest/runtime: `3.1.0`;
 - Marcador `clawdRuntimeReconciled`, healthcheck duplo com DOM conectado, fallback para aba elegível recente e até três tentativas de injeção: ativos;
-- Popup: catálogo completo renderizado e inspecionado em uma aba `chrome-extension://` real, sem exceções;
+- Popup: catálogo completo e provador com a arte CSS real renderizados em uma aba `chrome-extension://`; boné + óculos foram equipados em pixel/liso e removidos sem exceções;
 - Subpets: migração preserva desbloqueios/apelidos/cores, `eyeColors` é independente, timers de ação são descartados e `data-state` permite diagnóstico sem romper o mundo isolado;
 - CSS da extensão: nó raiz isolado e todos os keyframes prefixados com `clawd-`, inclusive na página de reprodução que define `.pixel-sprite`, `.name-tag` e `@keyframes walk` próprios.
 
