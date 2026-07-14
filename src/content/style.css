@@ -495,55 +495,68 @@
 /* ===== ACESSÓRIOS — SLOT CABEÇA ===== */
 [data-acc-head="cap"] .acc-head {
   box-shadow:
-    /* aba alargada + botão */
-    8px -8px #2c3e50, 12px -8px #2c3e50, 16px -8px #2c3e50, 20px -8px #2c3e50, 24px -8px #2c3e50, 28px -8px #2c3e50, 32px -8px #2c3e50,
-    4px -4px #2c3e50, 8px -4px #34495e, 12px -4px #34495e, 16px -4px #34495e, 20px -4px #e74c3c,
-    24px -4px #34495e, 28px -4px #34495e, 32px -4px #2c3e50, 36px -4px #2c3e50,
-    /* botão no topo */
+    /* botão, painéis, costura e aba projetada */
     20px -12px #e74c3c,
-    /* aba frontal projetada */
-    32px 0 #2c3e50, 36px 0 #2c3e50, 40px 0 #2c3e50;
+    8px -8px #26384d, 12px -8px #526a84, 16px -8px #455a72, 20px -8px #34495e,
+    24px -8px #3b5068, 28px -8px #34495e, 32px -8px #26384d,
+    4px -4px #223247, 8px -4px #34495e, 12px -4px #455a72, 16px -4px #455a72,
+    20px -4px #2c3e50, 24px -4px #3b5068, 28px -4px #34495e, 32px -4px #26384d,
+    28px 0 #1d2b3b, 32px 0 #223247, 36px 0 #223247, 40px 0 #172332;
 }
 [data-acc-head="tophat"] .acc-head {
   box-shadow:
-    14px -16px #1a1a1a, 18px -16px #1a1a1a, 22px -16px #1a1a1a, 26px -16px #1a1a1a,
-    14px -12px #1a1a1a, 18px -12px #1a1a1a, 22px -12px #1a1a1a, 26px -12px #1a1a1a,
-    14px -8px #2a2a2a, 18px -8px #7d3c98, 22px -8px #7d3c98, 26px -8px #2a2a2a,
-    8px -4px #1a1a1a, 12px -4px #1a1a1a, 16px -4px #1a1a1a, 20px -4px #1a1a1a,
-    24px -4px #1a1a1a, 28px -4px #1a1a1a, 32px -4px #1a1a1a;
+    12px -20px #111118, 16px -20px #24242e, 20px -20px #2e2e39, 24px -20px #24242e, 28px -20px #111118,
+    12px -16px #111118, 16px -16px #30303a, 20px -16px #24242e, 24px -16px #1c1c24, 28px -16px #111118,
+    12px -12px #111118, 16px -12px #2c2c35, 20px -12px #24242e, 24px -12px #1c1c24, 28px -12px #111118,
+    12px -8px #552365, 16px -8px #8e44ad, 20px -8px #a45ac0, 24px -8px #8e44ad, 28px -8px #552365,
+    4px -4px #0d0d12, 8px -4px #15151c, 12px -4px #1d1d25, 16px -4px #24242e, 20px -4px #24242e,
+    24px -4px #24242e, 28px -4px #1d1d25, 32px -4px #15151c, 36px -4px #0d0d12;
 }
 [data-acc-head="crown"] .acc-head {
   box-shadow:
-    12px -12px #f1c40f, 20px -16px #f1c40f, 28px -12px #f1c40f,
-    12px -8px #f39c12, 16px -8px #f1c40f, 20px -8px #e74c3c, 24px -8px #f1c40f, 28px -8px #f39c12,
-    12px -4px #f39c12, 16px -4px #f39c12, 20px -4px #f39c12, 24px -4px #f39c12, 28px -4px #f39c12,
-    /* joias */
-    14px -6px #e74c3c, 22px -6px #3498db, 28px -6px #27ae60;
+    /* três pontas, reflexos, joias e base sombreada */
+    8px -16px #f6d44b, 20px -20px #fff09a, 32px -16px #f6d44b,
+    8px -12px #d88912, 12px -12px #f1c40f, 16px -12px #f6d44b, 20px -12px #f1c40f,
+    24px -12px #f6d44b, 28px -12px #f1c40f, 32px -12px #d88912,
+    8px -8px #f1c40f, 12px -8px #e74c3c, 16px -8px #f1c40f, 20px -8px #3498db,
+    24px -8px #f1c40f, 28px -8px #27ae60, 32px -8px #d88912,
+    8px -4px #c67d0c, 12px -4px #e8a817, 16px -4px #f1c40f, 20px -4px #e8a817,
+    24px -4px #f1c40f, 28px -4px #e8a817, 32px -4px #b96f08;
 }
 [data-acc-head="chefhat"] .acc-head {
   box-shadow:
-    12px -14px #fff, 16px -14px #fff, 20px -14px #fff, 24px -14px #fff, 28px -14px #fff,
-    10px -10px #fff, 14px -10px #f4f4f4, 18px -10px #fff, 22px -10px #f4f4f4, 26px -10px #fff, 30px -10px #fff,
-    12px -6px #eee, 16px -6px #eee, 20px -6px #eee, 24px -6px #eee, 28px -6px #eee,
-    12px -2px #ddd, 16px -2px #ddd, 20px -2px #ddd, 24px -2px #ddd, 28px -2px #ddd;
+    /* gomos altos, dobras centrais e faixa inferior */
+    16px -20px #fff, 20px -20px #f8f9fa, 24px -20px #fff,
+    8px -16px #fff, 12px -16px #fff, 16px -16px #eef1f3, 20px -16px #fff,
+    24px -16px #eef1f3, 28px -16px #fff, 32px -16px #fff,
+    4px -12px #f7f8f9, 8px -12px #fff, 12px -12px #edf0f2, 16px -12px #fff, 20px -12px #e5e9ec,
+    24px -12px #fff, 28px -12px #edf0f2, 32px -12px #fff, 36px -12px #f7f8f9,
+    8px -8px #e9edef, 12px -8px #f8f9fa, 16px -8px #e1e6e9, 20px -8px #f8f9fa,
+    24px -8px #e1e6e9, 28px -8px #f8f9fa, 32px -8px #d8dee2,
+    8px -4px #cfd6da, 12px -4px #e7ebed, 16px -4px #d8dee2, 20px -4px #e7ebed,
+    24px -4px #d8dee2, 28px -4px #e7ebed, 32px -4px #c5cdd2;
 }
 [data-acc-head="ninjaband"] .acc-head {
   box-shadow:
-    8px 6px #c0392b, 12px 6px #c0392b, 16px 6px #c0392b, 20px 6px #c0392b,
-    24px 6px #c0392b, 28px 6px #c0392b, 32px 6px #c0392b,
-    36px 6px #96281b, 40px 8px #96281b, 42px 12px #96281b;
+    /* faixa, brilho, nó e duas pontas */
+    8px 4px #8f1d24, 12px 4px #c52d39, 16px 4px #d94752, 20px 4px #c52d39,
+    24px 4px #d94752, 28px 4px #c52d39, 32px 4px #8f1d24, 36px 4px #76171d,
+    40px 0 #a8242e, 44px 0 #8f1d24,
+    40px 8px #a8242e, 44px 12px #8f1d24;
 }
 /* Chapéu de pescador: abas largas + faixa */
 [data-acc-head="fishhat"] .acc-head {
   box-shadow:
-    /* copa */
-    12px -10px #8B6914, 16px -10px #a07820, 20px -10px #8B6914, 24px -10px #8B6914, 28px -10px #8B6914,
-    12px -6px  #a07820, 16px -6px  #c4982a, 20px -6px  #a07820, 24px -6px  #a07820, 28px -6px  #a07820,
-    /* aba larga */
-    4px -2px   #8B6914, 8px -2px   #8B6914, 12px -2px  #8B6914, 16px -2px  #8B6914, 20px -2px  #8B6914,
-    24px -2px  #8B6914, 28px -2px  #8B6914, 32px -2px  #8B6914, 36px -2px  #8B6914, 40px -2px  #8B6914,
-    /* faixa colorida */
-    12px -4px  #e74c3c, 16px -4px  #e74c3c, 20px -4px  #e74c3c, 24px -4px  #e74c3c, 28px -4px  #e74c3c;
+    /* copa com luz e costura */
+    12px -12px #8b6914, 16px -12px #c4982a, 20px -12px #d4ae4f, 24px -12px #b98a22, 28px -12px #7a5a10,
+    8px -8px #8b6914, 12px -8px #b18425, 16px -8px #c4982a, 20px -8px #b18425,
+    24px -8px #a07820, 28px -8px #d64545, 32px -8px #76550f,
+    /* faixa vermelha e emblema dourado */
+    8px -4px #8f2525, 12px -4px #d64545, 16px -4px #e65b55, 20px -4px #d64545,
+    24px -4px #e65b55, 28px -4px #f1c40f, 32px -4px #8f2525,
+    /* aba larga com lado iluminado e parte inferior */
+    0 0 #6f500e, 4px 0 #8b6914, 8px 0 #a8781b, 12px 0 #b18425, 16px 0 #b98a22,
+    20px 0 #b18425, 24px 0 #a8781b, 28px 0 #a07820, 32px 0 #8b6914, 36px 0 #76550f, 40px 0 #604409;
 }
 /* Hélice: botão de hélice giratória */
 @keyframes clawd-propeller-spin {
@@ -552,8 +565,11 @@
 }
 [data-acc-head="propeller"] .acc-head {
   box-shadow:
-    20px -8px #e74c3c, 20px -12px #7f8c8d, 20px -16px #7f8c8d,
-    16px -18px #3498db, 24px -18px #e74c3c;
+    /* capacete bipartido, borda, haste e cubo */
+    12px -8px #2f86c1, 16px -8px #55a9dd, 20px -8px #f1c40f, 24px -8px #ef6258, 28px -8px #d63d34,
+    8px -4px #246c9b, 12px -4px #3498db, 16px -4px #3498db, 20px -4px #8e7c38,
+    24px -4px #e74c3c, 28px -4px #e74c3c, 32px -4px #b72f29,
+    20px -12px #6f7780, 20px -16px #9aa2a8, 20px -20px #f1c40f;
 }
 
 /* ===== CAMISA DE TIME (Jogador) ===== */
@@ -857,6 +873,10 @@
   background: #e76578;
   opacity: 0;
   transform: translateX(-50%);
+}
+#aic-clawd-node.mouth-hidden .emotion-mouth,
+#aic-clawd-node.mouth-hidden .emotion-mouth::after {
+  display: none !important;
 }
 @keyframes clawd-eye-cover { 0%, 91%, 96%, 100% { opacity: 0; } 92%, 95% { opacity: 1; } }
 @keyframes clawd-eye-line  { 0%, 91%, 96%, 100% { opacity: 0; } 92%, 95% { opacity: 1; } }
@@ -1479,12 +1499,26 @@
   0%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
   50% { filter: brightness(1.3) drop-shadow(0 0 4px rgba(255,215,80,.7)); }
 }
-[data-acc-head="crown"] .acc-head,
-[data-acc-head="propeller"] .acc-head,
 [data-acc-face="medal"] .acc-face { animation: clawd-accessory-sparkle 2.4s steps(2) infinite; }
 [data-acc-face="bow"] .acc-face { animation: clawd-scarf-wave 1.1s steps(2) infinite; transform-origin: 32px 0; }
 [data-acc-face="glasses"] .acc-face,
 [data-acc-face="sunglasses"] .acc-face { filter: drop-shadow(0 1px 0 rgba(255,255,255,.25)); }
+[data-acc-head="crown"] .acc-head { filter: drop-shadow(0 2px 1px rgba(93,54,0,.4)); }
+[data-acc-head="propeller"] .acc-head { filter: drop-shadow(0 1px 1px rgba(20,35,50,.35)); }
+
+/* Chapéus assentam na cabeça e acompanham o passo apenas quando o pet se move. */
+@keyframes clawd-headwear-step {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-1px) rotate(-1deg); }
+}
+#aic-clawd-node.walking .acc-head {
+  animation: clawd-headwear-step var(--clawd-step-duration, .42s) ease-in-out infinite;
+  transform-origin: 22px 4px;
+}
+#aic-clawd-node.running .acc-head {
+  animation: clawd-headwear-step var(--clawd-run-duration, .18s) ease-in-out infinite;
+  transform-origin: 22px 4px;
+}
 
 /* HOLDING SIGN (Tutor com plaquinha) */
 #aic-clawd-node.holding-sign .pixel-sprite { animation-play-state: paused !important; }
@@ -1853,8 +1887,10 @@
   width: 31px;
   height: 12px;
   border-radius: 10px 10px 3px 3px;
-  background: linear-gradient(135deg, #455a72, #223247);
-  box-shadow: inset 0 -3px rgba(0,0,0,.2) !important;
+  background:
+    linear-gradient(90deg, transparent 0 46%, rgba(255,255,255,.18) 47% 51%, transparent 52%),
+    linear-gradient(145deg, #5f7894 0 22%, #455a72 24% 54%, #2a3b50 56% 100%);
+  box-shadow: inset 0 -3px rgba(0,0,0,.24), inset 2px 2px rgba(255,255,255,.12) !important;
 }
 #aic-clawd-node.smooth[data-acc-head="cap"] .acc-head::before {
   left: 13px;
@@ -1862,7 +1898,8 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #e54b4b;
+  border: 1px solid #a92d2d;
+  background: radial-gradient(circle at 35% 30%, #ff8a82, #e54b4b 55%, #b72f2f);
 }
 #aic-clawd-node.smooth[data-acc-head="cap"] .acc-head::after {
   right: -7px;
@@ -1870,7 +1907,8 @@
   width: 15px;
   height: 5px;
   border-radius: 0 5px 5px 0;
-  background: #223247;
+  background: linear-gradient(#34495e, #1c2b3d);
+  box-shadow: inset 0 -1px rgba(0,0,0,.3);
 }
 
 #aic-clawd-node.smooth[data-acc-head="tophat"] .acc-head {
@@ -1879,7 +1917,8 @@
   width: 18px;
   height: 15px;
   border-radius: 3px 3px 1px 1px;
-  background: linear-gradient(90deg, #101016, #2b2b35 50%, #101016);
+  background: linear-gradient(100deg, #0d0d13, #393944 38%, #24242e 56%, #0c0c12);
+  box-shadow: inset 2px 0 rgba(255,255,255,.08), inset -2px 0 rgba(0,0,0,.38) !important;
 }
 #aic-clawd-node.smooth[data-acc-head="tophat"] .acc-head::before {
   left: -6px;
@@ -1887,14 +1926,16 @@
   width: 30px;
   height: 5px;
   border-radius: 4px;
-  background: #111118;
+  background: linear-gradient(#2a2a34, #0d0d13 60%);
+  box-shadow: 0 2px 2px rgba(0,0,0,.25);
 }
 #aic-clawd-node.smooth[data-acc-head="tophat"] .acc-head::after {
   left: 0;
   bottom: 2px;
   width: 18px;
   height: 4px;
-  background: linear-gradient(90deg, #632475, #aa55bd, #632475);
+  background: linear-gradient(90deg, #552365, #bc6bd0 42%, #8e44ad 62%, #552365);
+  box-shadow: inset 0 1px rgba(255,255,255,.25);
 }
 
 #aic-clawd-node.smooth[data-acc-head="crown"] .acc-head {
@@ -1906,14 +1947,23 @@
   background: linear-gradient(135deg, #fff09a, #f1c40f 45%, #d88912);
   filter: drop-shadow(0 2px 1px rgba(70,40,0,.3));
 }
+#aic-clawd-node.smooth[data-acc-head="crown"] .acc-head::before {
+  left: 7px;
+  top: 8px;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+}
 #aic-clawd-node.smooth[data-acc-head="crown"] .acc-head::after {
   left: 5px;
   bottom: 2px;
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #e74c3c;
-  box-shadow: 6px 0 #3498db, 12px 0 #27ae60;
+  border: 1px solid rgba(95,52,0,.28);
+  background: radial-gradient(circle at 35% 30%, #ff9b91, #e74c3c 60%);
+  box-shadow: 6px 0 0 -1px #3498db, 12px 0 0 -1px #27ae60;
 }
 
 #aic-clawd-node.smooth[data-acc-head="chefhat"] .acc-head {
@@ -1922,7 +1972,9 @@
   width: 24px;
   height: 15px;
   border-radius: 11px 11px 3px 3px;
-  background: linear-gradient(#fff, #eceff1);
+  background:
+    linear-gradient(90deg, transparent 0 28%, rgba(185,195,202,.35) 29% 33%, transparent 34% 64%, rgba(185,195,202,.3) 65% 69%, transparent 70%),
+    linear-gradient(#fff, #edf1f3);
   box-shadow: inset 0 -4px #dfe4e8, 0 2px 2px rgba(0,0,0,.14) !important;
 }
 #aic-clawd-node.smooth[data-acc-head="chefhat"] .acc-head::before {
@@ -1932,7 +1984,16 @@
   height: 9px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 9px -3px #fff, 18px 0 #fff;
+  box-shadow: 9px -3px #fff, 18px 0 #f8f9fa;
+}
+#aic-clawd-node.smooth[data-acc-head="chefhat"] .acc-head::after {
+  left: 0;
+  bottom: -1px;
+  width: 24px;
+  height: 5px;
+  border: 1px solid #cbd3d8;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #e7ebed, #fff 48%, #d4dade);
 }
 
 #aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head {
@@ -1941,7 +2002,10 @@
   width: 30px;
   height: 5px;
   border-radius: 3px;
-  background: linear-gradient(90deg, #8f1d24, #d33b47, #8f1d24);
+  background:
+    radial-gradient(circle at 93% 50%, #ff8b91 0 1px, transparent 1.4px),
+    linear-gradient(90deg, #76171d, #d94752 38%, #c52d39 72%, #76171d);
+  box-shadow: inset 0 1px rgba(255,255,255,.23), inset 0 -1px rgba(90,0,5,.25) !important;
 }
 #aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head::before,
 #aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head::after {
@@ -1950,7 +2014,7 @@
   width: 13px;
   height: 5px;
   border-radius: 0 4px 4px 0;
-  background: #a8242e;
+  background: linear-gradient(90deg, #b72f3a, #8f1d24);
   transform-origin: left center;
 }
 #aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head::before { transform: rotate(18deg); }
@@ -1962,8 +2026,10 @@
   width: 28px;
   height: 12px;
   border-radius: 9px 9px 3px 3px;
-  background: linear-gradient(135deg, #c49a43, #8b6914);
-  box-shadow: inset 0 -4px #a8781b !important;
+  background:
+    radial-gradient(circle at 78% 48%, #ffe37a 0 1.5px, #d64545 1.7px 3px, transparent 3.2px),
+    linear-gradient(135deg, #d4ae4f, #b18425 52%, #76550f);
+  box-shadow: inset 0 -4px #a8781b, inset 2px 2px rgba(255,255,255,.15) !important;
 }
 #aic-clawd-node.smooth[data-acc-head="fishhat"] .acc-head::before {
   left: -7px;
@@ -1971,7 +2037,8 @@
   width: 42px;
   height: 6px;
   border-radius: 50%;
-  background: #8b6914;
+  background: linear-gradient(#b18425 0 42%, #76550f 45% 100%);
+  box-shadow: 0 2px 2px rgba(55,35,5,.2);
 }
 #aic-clawd-node.smooth[data-acc-head="fishhat"] .acc-head::after {
   left: 2px;
@@ -1979,7 +2046,7 @@
   width: 24px;
   height: 3px;
   border-radius: 3px;
-  background: #d64545;
+  background: linear-gradient(90deg, #8f2525, #e65b55 45%, #a62d2d);
 }
 
 #aic-clawd-node.smooth[data-acc-head="propeller"] .acc-head {
@@ -1988,7 +2055,10 @@
   width: 26px;
   height: 8px;
   border-radius: 12px 12px 3px 3px;
-  background: linear-gradient(90deg, #3498db 0 50%, #e74c3c 50%);
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(255,255,255,.28) 49% 51%, transparent 52%),
+    linear-gradient(90deg, #55a9dd 0 48%, #ef6258 52% 100%);
+  box-shadow: inset 0 -2px rgba(35,35,50,.28), inset 2px 1px rgba(255,255,255,.2) !important;
 }
 #aic-clawd-node.smooth[data-acc-head="propeller"] .acc-head::before {
   left: 12px;
@@ -1996,7 +2066,7 @@
   width: 3px;
   height: 9px;
   border-radius: 2px;
-  background: #6f7780;
+  background: linear-gradient(90deg, #565d63, #b3bbc0 52%, #626a70);
 }
 #aic-clawd-node.smooth[data-acc-head="propeller"] .acc-head::after {
   left: 5px;
@@ -2004,21 +2074,24 @@
   width: 17px;
   height: 4px;
   border-radius: 5px;
-  background: linear-gradient(90deg, #3498db 0 50%, #e74c3c 50%);
+  background:
+    radial-gradient(circle at center, #f8d94e 0 2px, transparent 2.2px),
+    linear-gradient(90deg, #3498db 0 50%, #e74c3c 50%);
   transform-origin: center;
   animation: clawd-propeller-spin .72s linear infinite;
 }
 #aic-clawd-node:not(.smooth)[data-acc-head="propeller"] .acc-head::after {
   content: '';
   position: absolute;
-  left: 14px;
-  top: -21px;
-  width: 14px;
-  height: 3px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #3498db 0 50%, #e74c3c 50%);
-  transform-origin: center;
-  animation: clawd-propeller-spin .72s linear infinite;
+  left: 12px;
+  top: -20px;
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
+  background: #2479ad;
+  box-shadow: 4px 0 #3498db, 8px 0 #f1c40f, 12px 0 #e74c3c, 16px 0 #b72f29;
+  transform-origin: 10px 2px;
+  animation: clawd-propeller-spin .72s steps(8) infinite;
 }
 
 /* Skins também abandonam pixels soltos quando o modo liso está ativo. */
@@ -2071,7 +2144,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   #aic-clawd-node.smooth .smooth-leg,
-  #aic-clawd-node.smooth .accessory,
-  #aic-clawd-node.smooth .accessory::before,
-  #aic-clawd-node.smooth .accessory::after { animation: none !important; }
+  #aic-clawd-node .accessory,
+  #aic-clawd-node .accessory::before,
+  #aic-clawd-node .accessory::after { animation: none !important; }
 }

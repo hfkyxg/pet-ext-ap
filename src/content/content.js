@@ -532,6 +532,7 @@ class ClawdCompanion {
     this.spriteNode.style.animationDuration = `${(0.55 / animationSpeed).toFixed(2)}s`;
     this.node.classList.toggle('smooth', !!S.smooth);
     this.node.classList.toggle('outlined', !!S.outline);
+    this.node.classList.toggle('mouth-hidden', S.showMouth === false);
     this.node.classList.toggle('aic-nofx', !!S.settings.performanceMode);
     this.node.setAttribute('data-acc-head', S.accessoryHead || 'none');
     this.node.setAttribute('data-acc-face', S.accessoryFace || 'none');
@@ -635,6 +636,7 @@ class ClawdCompanion {
         break;
       case 'smooth':  this.node.classList.toggle('smooth', !!value); break;
       case 'outline': this.node.classList.toggle('outlined', !!value); break;
+      case 'showMouth': this.node.classList.toggle('mouth-hidden', value === false); break;
       case 'skin':    this.node.setAttribute('data-skin', value); break;
       case 'tagTheme': this.node.setAttribute('data-tag-theme', value); break;
       case 'jerseyColor': this.node.style.setProperty('--jersey-color', value); break;

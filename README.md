@@ -57,6 +57,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - **Sombra no chão** sincronizada com o movimento
 - **Modo liso real** — mantém a silhueta angular do modelo, mas troca as células por blocos contínuos, sem grade, textura ou efeito de slime
 - **Contorno** — borda escura ao redor do pet
+- **Boca opcional** — remove apenas a boca, preservando olhos, piscadas e balões de emoji
 
 </td>
 <td width="50%">
@@ -80,7 +81,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - **8 profissões**: Livre, Jogador, Tutor, Dev, Músico, Chef, Ninja e Pescador
 - Pescador monta um **lago interativo**, lança a vara, fisga e captura peixes
 - Jogador faz embaixadinhas; Tutor cria desafios; Dev digita; Músico toca riffs
-- **14 acessórios pixel-art** em dois slots, incluindo boné, cartola, óculos e óculos de sol
+- **14 acessórios** em dois slots e nos dois renderizadores; os 7 chapéus têm detalhes, profundidade e movimento sincronizado ao passo
 
 </td>
 <td width="50%">
@@ -156,7 +157,8 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **Velocidade** — controla a velocidade da animação
 - **Visual liso** — suaviza os pixels sem transformar ou redesenhar o pet
 - **Contorno** — adiciona borda escura ao redor do mascote
-- **Acessórios** — 14 opções em slots separados de cabeça e rosto/corpo
+- **Exibir boca** — mostra ou remove o sorriso e as expressões da boca sem alterar a sprite
+- **Acessórios** — 14 opções em slots separados, com descrição visível do item, dicas ao passar o cursor e estados selecionados acessíveis
 
 ### Aba Profissão
 - **⚽ Jogador** — bola de futebol jogável ao lado do pet
@@ -281,6 +283,7 @@ chrome.storage.local.set({
     scale:        1.5,
     animSpeed:    1,
     showSpeech:   true,
+    showMouth:    true,
     autoWalk:     true,
     sleepEnabled: true,
     position:     { x: 1200, y: 600 },
@@ -303,13 +306,13 @@ O núcleo da v3.1 está implementado e validado: favoritos, sub-pets, profissõe
 |------|-----------|
 | ⭐ **Favoritos** | Favorite ações, profissões, acessórios, cores e apelidos — favoritos ganham prioridade |
 | 🐕 **Sub-Pets** | Cachorro, gato, dinossauro, dragão e mais, com apelido, cor própria, sprites pixel-art e interações entre eles |
-| 🎬 **Animações & Acessórios** | Novas ações (alimentar, banho, cambalhota), 2 slots de acessório e 🕶️ óculos de sol |
+| 🎬 **Animações & Acessórios** | Novas ações, 2 slots e 7 chapéus refinados em pixel-art e superfícies contínuas |
 | 😊 **Status & Emoções** | Felicidade, fome, energia e higiene estilo Tamagotchi, com emoções derivadas |
 | 💼 **Profissões 2.0** | Embaixadinhas com contador e recorde, desafios do Tutor, digitação do Dev + novas profissões |
 | 🎮 **Gamificação** | Curva de XP progressiva, PixelCoins, lojinha, conquistas, streak e missão diária resgatável |
 | 🖥️ **Renderização adaptativa** | Movimento em `requestAnimationFrame`, leitura do refresh rate e sprite pixel-perfect como padrão |
 | 🌐 **Cross-Tab** | O pet passeia entre abas; reload limpa instâncias órfãs e recria somente o principal na aba ativa |
-| 😄 **Emoções visuais** | Balão de emojis, piscadas e boca contextual sem substituir a sprite base |
+| 😄 **Emoções visuais** | Balão de emojis, piscadas e boca contextual opcional sem substituir a sprite base |
 | ⚙️ **Configurações** | Skins, sons 8-bit, horário de silêncio, sites bloqueados, export/import de progresso |
 
 ---
@@ -327,7 +330,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **26 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca/emoções, sub-pets, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, 8 profissões, 14 ações, popup completo, sub-pet com apelido/cor/interação e três reloads consecutivos, sempre com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **28 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca opcional/emoções, chapéus, sub-pets, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, o controle persistente da boca, o movimento dos chapéus, 8 profissões, 14 ações, popup completo, sub-pet com apelido/cor/interação e três reloads consecutivos, sempre com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 O visual inicial é o sprite compacto vermelho de referência: pixels nítidos, sem blur, com escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
 

@@ -144,8 +144,10 @@ subpets: {
 | 🎒 Mochilinha | Combina com a profissão Tutor |
 
 **Melhorias nos existentes:**
-- Sobreposição correta em **todos** os frames (hoje acessórios não acompanham o squash do pulo) — acessório entra no mesmo `sprite-stack` e herda os keyframes via classe compartilhada;
-- Permitir **2 slots**: cabeça (boné/cartola/coroa) + rosto/corpo (óculos/laço/cachecol);
+- [x] Sobreposição correta no `sprite-stack`, acompanhando o corpo sem deslocar a sprite base;
+- [x] **2 slots**: cabeça (boné/cartola/coroa) + rosto/corpo (óculos/laço/cachecol);
+- [x] 7 chapéus redesenhados nos modos pixel-art e liso, com movimento somente em `walking`/`running`;
+- [x] Descrições, dicas de desbloqueio e estado selecionado acessível no popup;
 - Cores de acessório ajustáveis (CSS var `--acc-color`).
 
 **Implementação do óculos de sol (`style.css`):**

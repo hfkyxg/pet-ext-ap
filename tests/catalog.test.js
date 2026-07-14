@@ -19,6 +19,8 @@ const {
 const styleSource = fs.readFileSync(require.resolve('../src/content/style.css'), 'utf8');
 const contentSource = fs.readFileSync(require.resolve('../src/content/content.js'), 'utf8');
 const backgroundSource = fs.readFileSync(require.resolve('../src/background/background.js'), 'utf8');
+const popupSource = fs.readFileSync(require.resolve('../src/popup/popup.js'), 'utf8');
+const popupHtml = fs.readFileSync(require.resolve('../src/popup/popup.html'), 'utf8');
 
 test('estado padrão cria uma missão diária válida', () => {
   const state = clawdDefaultState();
@@ -47,6 +49,18 @@ test('migração preserva saves antigos e adiciona missão sem corromper sub-pet
   assert.ok(state.daily.date);
 });
 
+test('preferência de boca é persistente, retrocompatível e aplicada ao vivo', () => {
+  assert.equal(clawdDefaultState().showMouth, true);
+  assert.equal(clawdMigrateState({ schemaVersion: 3 }).showMouth, true);
+  assert.equal(clawdMigrateState({ schemaVersion: 3, showMouth: false }).showMouth, false);
+  assert.match(contentSource, /classList\.toggle\('mouth-hidden', S\.showMouth === false\)/);
+  assert.match(contentSource, /case 'showMouth':\s*this\.node\.classList\.toggle\('mouth-hidden', value === false\)/);
+  assert.match(styleSource, /#aic-clawd-node\.mouth-hidden \.emotion-mouth,[\s\S]{0,140}display:\s*none !important;/);
+  assert.match(popupHtml, /id="toggle-mouth"/);
+  assert.match(popupSource, /setConfig\('showMouth', e\.target\.checked\)/);
+  assert.match(popupSource, /S\.showMouth !== false/);
+});
+
 test('curva de nível permanece progressiva', () => {
   const low = clawdLevelFromXp(0);
   const high = clawdLevelFromXp(1000);
@@ -72,6 +86,23 @@ test('todos os acessórios também possuem variante contínua para o modo liso',
       `variante lisa ausente: ${id}`
     );
   }
+});
+
+test('chapéus têm descrição, arte refinada e movimento sincronizado ao passo', () => {
+  const headAccessories = Object.entries(CLAWD_ACCESSORIES).filter(([, item]) => item.slot === 'head');
+  assert.equal(headAccessories.length, 7);
+  for (const [id, accessory] of headAccessories) {
+    assert.ok(accessory.desc.length >= 20, `descrição insuficiente: ${id}`);
+    assert.match(styleSource, new RegExp(`\\[data-acc-head="${id}"\\] \\.acc-head\\s*\\{[\\s\\S]*?box-shadow:`));
+    assert.match(styleSource, new RegExp(`\\.smooth\\[data-acc-head="${id}"\\] \\.acc-head\\s*\\{`));
+  }
+  assert.match(styleSource, /@keyframes clawd-headwear-step/);
+  assert.match(styleSource, /#aic-clawd-node\.walking \.acc-head[\s\S]{0,150}clawd-headwear-step/);
+  assert.match(styleSource, /#aic-clawd-node\.running \.acc-head[\s\S]{0,150}clawd-headwear-step/);
+  assert.match(popupSource, /card\.title = def\.desc/);
+  assert.match(popupSource, /card\.setAttribute\('aria-pressed'/);
+  assert.match(popupSource, /description\.textContent = selected/);
+  assert.match(popupHtml, /id="acc-head-description"/);
 });
 
 test('sub-pet e deslocamentos não usam timer fixo para renderizar frames', () => {

@@ -257,6 +257,9 @@ function renderAccessories() {
     const noneCard = document.createElement('button');
     noneCard.className = 'accessory-card' + (current === 'none' ? ' active' : '');
     noneCard.innerHTML = `<span class="acc-icon">🚫</span><span class="acc-name">Nenhum</span>`;
+    noneCard.title = `Remover acessório de ${slot === 'head' ? 'cabeça' : 'rosto e corpo'}`;
+    noneCard.setAttribute('aria-label', noneCard.title);
+    noneCard.setAttribute('aria-pressed', String(current === 'none'));
     noneCard.addEventListener('click', () => { setConfig(configKey, 'none'); renderAccessories(); });
     grid.appendChild(noneCard);
 
@@ -271,16 +274,29 @@ function renderAccessories() {
         + (unlocked ? '' : ' locked');
       card.innerHTML = `<span class="acc-icon">${def.emoji}</span><span class="acc-name">${def.label}</span>`
         + (unlocked ? '' : `<span class="lock-badge">${def.unlock.type === 'level' ? `🔒 Lv.${def.unlock.level}` : '🔒 Loja'}</span>`);
+      card.setAttribute('aria-pressed', String(current === id));
       if (unlocked) {
+        card.title = def.desc;
+        card.setAttribute('aria-label', `${def.label}. ${def.desc}`);
         card.appendChild(makeStar('accessories', id, renderAccessories));
         card.addEventListener('click', () => { setConfig(configKey, id); renderAccessories(); });
       } else {
-        card.title = def.unlock.type === 'level'
+        const unlockHint = def.unlock.type === 'level'
           ? `Desbloqueia no nível ${def.unlock.level}`
           : `Compre na Lojinha por ${def.unlock.price} 🪙`;
+        card.title = `${def.desc}. ${unlockHint}`;
+        card.setAttribute('aria-label', `${def.label}. ${card.title}`);
       }
       grid.appendChild(card);
     });
+
+    const selected = CLAWD_ACCESSORIES[current];
+    const description = $(slot === 'head' ? 'acc-head-description' : 'acc-face-description');
+    description.textContent = selected
+      ? `${selected.emoji} ${selected.label} — ${selected.desc}`
+      : slot === 'head'
+        ? 'Sem chapéu selecionado.'
+        : 'Sem acessório de rosto ou corpo selecionado.';
   });
 }
 
@@ -648,6 +664,7 @@ function bindStatic() {
     setConfig('smooth', e.target.checked);
   });
   $('toggle-outline').addEventListener('change', e => setConfig('outline', e.target.checked));
+  $('toggle-mouth').addEventListener('change', e => setConfig('showMouth', e.target.checked));
 
   // Comportamento
   $('toggle-speech').addEventListener('change', e => setConfig('showSpeech', e.target.checked));
@@ -703,6 +720,7 @@ function renderAll() {
   $('toggle-sleep').checked = !!S.sleepEnabled;
   $('toggle-smooth').checked = !!S.smooth;
   $('toggle-outline').checked = !!S.outline;
+  $('toggle-mouth').checked = S.showMouth !== false;
 }
 
 chrome.storage.local.get(['clawdState'], (res) => {

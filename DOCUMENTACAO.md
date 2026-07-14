@@ -133,9 +133,10 @@ O estado é uma classe no `#aic-clawd-node`; o CSS resolve a animação correspo
 - **Pixel-art**: o corpo é um único elemento com dezenas de `box-shadow` de 4×4px; a cor principal vem da CSS var `--agent-color`;
 - **Renderização adaptativa**: deslocamento e sub-pet usam `requestAnimationFrame`; o content script mede a cadência real em 30 frames e registra `data-refresh-rate`, sem impor 60 Hz artificialmente;
 - **Walk cycle**: o frame padrão é estático e reproduz o modelo compacto vermelho; `clawd-pixel-walk` só é ativado em `walking`/`running` e `clawd-pixel-keepy` durante a embaixadinha;
-- **Emoções em camadas**: o corpo base não é substituído; `emotion-face` desenha piscada/boca e `emotion-badge` exibe o emoji correspondente ao estado;
+- **Emoções em camadas**: o corpo base não é substituído; `emotion-face` desenha piscada/boca, `emotion-badge` exibe o emoji e `.mouth-hidden` remove somente a boca;
 - **Escala**: `--agent-scale` compõe com todos os keyframes (evita sobrescrever `transform`);
 - **Modificadores**: `.smooth` alterna para a silhueta contínua; `.outlined` aplica contorno; `[data-acc-head]`/`[data-acc-face]` desenham 14 acessórios com variantes pixel-art e lisas;
+- **Chapéus responsivos**: os 7 itens de cabeça têm detalhes próprios nos dois renderizadores e `clawd-headwear-step` acompanha apenas `walking`/`running`, sem animação ociosa;
 - **Isolamento**: todos os keyframes usam namespace `clawd-`, evitando colisões com `walk`, `sleep`, `fish` e outras animações comuns do site;
 - Velocidade de animação ajustada pelas variáveis `--clawd-step-duration` e `--clawd-run-duration`, derivadas de `animSpeed`.
 
@@ -177,6 +178,7 @@ Tudo vive numa única chave `clawdState`:
   scale: 1.5,              // 0.8–3.0 (--agent-scale)
   animSpeed: 1,            // 0.5–3.0
   showSpeech: true,        // balões de fala
+  showMouth: true,         // sorriso e expressões da boca
   autoWalk: true,          // passeio automático
   sleepEnabled: true,      // dormir por inatividade
   profession: 'idle',      // idle | footballer | tutor | engineer | musician | chef | ninja | fisher
@@ -197,7 +199,7 @@ Sub-pets têm `subpets.names` e `subpets.colors` indexados pela espécie. A clas
 
 O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `playing`, `cuddling` e `racing`. `sleep()` e `wakeUp()` cancelam timers opostos; o clique e teclado no próprio sub-pet fazem carinho ou despertam, e o despertar do Claw'd principal chama o despertar sincronizado do sub-pet.
 
-No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite` assume o mesmo desenho angular com uma cabeça contínua, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto. Os 14 acessórios e as skins especiais também têm variantes contínuas. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
+No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite` assume o mesmo desenho angular com uma cabeça contínua, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os 14 acessórios e as skins especiais também têm variantes contínuas. Os 7 chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
 
 ---
 
@@ -263,4 +265,4 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os 26 testes cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, sprite e pernas, modo liso, boca/emoções, pesca, sub-pets, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O smoke test executa o Edge/Chromium em perfil isolado e valida em runtime os dois renderizadores, todos os acessórios, as 8 profissões, as 14 ações, popup (8 abas, loja e conquistas), sub-pet customizado e três reloads sem erros ou duplicação. A validação manual complementar deve incluir gestos de arraste/touch, export/import e viagem cross-tab entre janelas reais.
+Os 28 testes cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, os 7 chapéus refinados, sprite e pernas, modo liso, boca opcional/emoções, pesca, sub-pets, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O smoke test executa o Edge/Chromium em perfil isolado e valida em runtime os dois renderizadores, todos os acessórios, alternância e persistência da boca, movimento dos chapéus, as 8 profissões, as 14 ações, popup (8 abas, loja e conquistas), sub-pet customizado e três reloads sem erros ou duplicação. A validação manual complementar deve incluir gestos de arraste/touch, export/import e viagem cross-tab entre janelas reais.

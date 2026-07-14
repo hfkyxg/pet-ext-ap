@@ -58,20 +58,20 @@ var CLAWD_RARITY = {
 
 /* ---- Acessórios (2 slots: head + face) ---- */
 var CLAWD_ACCESSORIES = {
-  cap:        { slot: 'head', emoji: '🧢', label: 'Boné',         unlock: { type: 'free' } },
-  tophat:     { slot: 'head', emoji: '🎩', label: 'Cartola',       unlock: { type: 'shop', price: 40 } },
-  crown:      { slot: 'head', emoji: '👑', label: 'Coroa',         unlock: { type: 'level', level: 20 } },
-  chefhat:    { slot: 'head', emoji: '👨‍🍳', label: 'Chapéu Chef',  unlock: { type: 'shop', price: 35 } },
-  ninjaband:  { slot: 'head', emoji: '🥷', label: 'Faixa Ninja',   unlock: { type: 'shop', price: 35 } },
-  fishhat:    { slot: 'head', emoji: '🎣', label: 'Chapéu Pescador', unlock: { type: 'free' } },
-  propeller:  { slot: 'head', emoji: '🪖', label: 'Hélice Cabeça', unlock: { type: 'shop', price: 45 } },
-  glasses:    { slot: 'face', emoji: '👓', label: 'Óculos',         unlock: { type: 'free' } },
-  sunglasses: { slot: 'face', emoji: '🕶️', label: 'Óc. de Sol',    unlock: { type: 'free' } },
-  bow:        { slot: 'face', emoji: '🎀', label: 'Laço',           unlock: { type: 'free' } },
-  headphones: { slot: 'face', emoji: '🎧', label: 'Fones',          unlock: { type: 'free' } },
-  scarf:      { slot: 'face', emoji: '🧣', label: 'Cachecol',       unlock: { type: 'shop', price: 30 } },
-  backpack:   { slot: 'face', emoji: '🎒', label: 'Mochilinha',     unlock: { type: 'shop', price: 30 } },
-  medal:      { slot: 'face', emoji: '🏅', label: 'Medalha',        unlock: { type: 'level', level: 10 } }
+  cap:        { slot: 'head', emoji: '🧢', label: 'Boné',            desc: 'Boné esportivo com aba, painéis e botão', unlock: { type: 'free' } },
+  tophat:     { slot: 'head', emoji: '🎩', label: 'Cartola',          desc: 'Cartola clássica com faixa violeta', unlock: { type: 'shop', price: 40 } },
+  crown:      { slot: 'head', emoji: '👑', label: 'Coroa',            desc: 'Coroa dourada com três joias', unlock: { type: 'level', level: 20 } },
+  chefhat:    { slot: 'head', emoji: '👨‍🍳', label: 'Chapéu Chef',     desc: 'Touca de chef com gomos e faixa', unlock: { type: 'shop', price: 35 } },
+  ninjaband:  { slot: 'head', emoji: '🥷', label: 'Faixa Ninja',      desc: 'Faixa ninja com nó e pontas ao vento', unlock: { type: 'shop', price: 35 } },
+  fishhat:    { slot: 'head', emoji: '🎣', label: 'Chapéu Pescador', desc: 'Chapelão de pesca com aba larga e distintivo', unlock: { type: 'free' } },
+  propeller:  { slot: 'head', emoji: '🪖', label: 'Capacete Hélice', desc: 'Capacete colorido com hélice animada', unlock: { type: 'shop', price: 45 } },
+  glasses:    { slot: 'face', emoji: '👓', label: 'Óculos',          desc: 'Armação leve com lentes translúcidas', unlock: { type: 'free' } },
+  sunglasses: { slot: 'face', emoji: '🕶️', label: 'Óc. de Sol',     desc: 'Óculos escuros com lentes, ponte e reflexo', unlock: { type: 'free' } },
+  bow:        { slot: 'face', emoji: '🎀', label: 'Laço',            desc: 'Laço rosa com centro destacado', unlock: { type: 'free' } },
+  headphones: { slot: 'face', emoji: '🎧', label: 'Fones',           desc: 'Fones acolchoados sobre a cabeça', unlock: { type: 'free' } },
+  scarf:      { slot: 'face', emoji: '🧣', label: 'Cachecol',        desc: 'Cachecol vermelho com ponta animada', unlock: { type: 'shop', price: 30 } },
+  backpack:   { slot: 'face', emoji: '🎒', label: 'Mochilinha',      desc: 'Mochila compacta com bolso e fivela', unlock: { type: 'shop', price: 30 } },
+  medal:      { slot: 'face', emoji: '🏅', label: 'Medalha',         desc: 'Medalha dourada presa por fita', unlock: { type: 'level', level: 10 } }
 };
 
 /* ---- Profissões ---- */
@@ -161,6 +161,7 @@ function clawdDefaultState() {
     color: '#c71515',
     scale: 1.5,
     showSpeech: true,
+    showMouth: true,
     autoWalk: true,
     sleepEnabled: true,
     animSpeed: 1,

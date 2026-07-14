@@ -165,6 +165,7 @@ async function validatePopupRuntime(port, worker) {
           subpets: document.querySelector('#subpet-grid')?.children.length || 0,
           shopItems: document.querySelector('#shop-grid')?.children.length || 0,
           achievements: document.querySelector('#ach-list')?.children.length || 0,
+          mouthToggleChecked: document.querySelector('#toggle-mouth')?.checked ?? null,
           duplicateIds
         };
       })()`);
@@ -181,7 +182,18 @@ async function validatePopupRuntime(port, worker) {
     assert.equal(snapshot.subpets, Object.keys(CLAWD_SUBPETS).length, 'Catálogo de sub-pets incompleto no popup.');
     assert.equal(snapshot.shopItems, Object.keys(CLAWD_SHOP).length, 'Loja incompleta no popup.');
     assert.equal(snapshot.achievements, Object.keys(CLAWD_ACHIEVEMENTS).length, 'Conquistas incompletas no popup.');
+    assert.equal(snapshot.mouthToggleChecked, true, 'A opção de boca deve iniciar ativada.');
     assert.deepEqual(snapshot.duplicateIds, [], `IDs duplicados no popup: ${snapshot.duplicateIds.join(', ')}`);
+    await popup.evaluate(`document.querySelector('#toggle-mouth').click(); true`);
+    await retry(async () => {
+      const value = await worker.evaluate(`(async () => (await chrome.storage.local.get('clawdState')).clawdState?.showMouth)()`);
+      return value === false;
+    }, 3_000, 80);
+    await popup.evaluate(`document.querySelector('#toggle-mouth').click(); true`);
+    await retry(async () => {
+      const value = await worker.evaluate(`(async () => (await chrome.storage.local.get('clawdState')).clawdState?.showMouth)()`);
+      return value === true;
+    }, 3_000, 80);
     await delay(150);
     assert.deepEqual(runtimeErrors(popup), [], 'O popup gerou erro em runtime real.');
     return snapshot;
@@ -291,6 +303,7 @@ async function visualSnapshot(page) {
       smoothBackgroundImage: smoothStyle?.backgroundImage || null,
       coreColor: coreStyle?.backgroundColor || null,
       coreIsTransparent: !coreStyle || transparent(coreStyle.backgroundColor),
+      mouthDisplay: mouthStyle?.display || null,
       mouthBackground: mouthStyle?.backgroundColor || null,
       mouthBorderBottom: mouthStyle?.borderBottomWidth || null,
       mouthAfterOpacity: mouthAfter?.opacity || null
@@ -538,6 +551,33 @@ async function main() {
     assert.equal(mouthVisual.mouthBorderBottom, '2px', 'O sorriso deve usar um traço arredondado.');
     assert.notEqual(mouthVisual.mouthAfterOpacity, '0', 'A expressão feliz deve ter detalhe de língua.');
 
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'showMouth', value: false });
+    const hiddenMouth = await retry(async () => {
+      const snapshot = await visualSnapshot(page);
+      return snapshot.mouthDisplay === 'none' ? snapshot : null;
+    }, 3_000, 80);
+    assert.equal(hiddenMouth.mouthDisplay, 'none', 'Desativar a boca deve ocultar toda a camada de expressão.');
+
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'showMouth', value: true });
+    const restoredMouth = await retry(async () => {
+      const snapshot = await visualSnapshot(page);
+      return snapshot.mouthDisplay !== 'none' ? snapshot : null;
+    }, 3_000, 80);
+    assert.equal(restoredMouth.mouthBorderBottom, '2px', 'Reativar a boca deve restaurar o sorriso atual.');
+
+    const headwearMotion = await page.evaluate(`(() => {
+      const pet = document.querySelector('#aic-clawd-node');
+      const headwear = pet?.querySelector('.acc-head');
+      pet?.classList.remove('walking', 'running');
+      pet?.classList.add('walking');
+      const moving = headwear ? getComputedStyle(headwear).animationName : null;
+      pet?.classList.remove('walking', 'running');
+      const idle = headwear ? getComputedStyle(headwear).animationName : null;
+      return { moving, idle };
+    })()`);
+    assert.match(headwearMotion.moving || '', /clawd-headwear-step/, 'O chapéu deve acompanhar o passo do pet.');
+    assert.equal(headwearMotion.idle, 'none', 'O chapéu deve permanecer assentado quando o pet está parado.');
+
     let screenshot = null;
     let accessoryScreenshot = null;
     if (process.env.CLAWD_SCREENSHOT) {
@@ -607,6 +647,8 @@ async function main() {
       affection: affectionate.state,
       smooth: smoothVisual,
       mouth: mouthVisual,
+      mouthToggle: { hidden: hiddenMouth.mouthDisplay, restored: restoredMouth.mouthDisplay },
+      headwearMotion,
       accessories: { smooth: smoothAccessories.length, pixel: pixelAccessories.length },
       professions: professions.length,
       actions: actions.length,

@@ -52,7 +52,8 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Velocidade da animação** — deixe-o zen (0.5×) ou hiperativo (3×);
 - **Visual liso** — conserva a geometria angular do pet, mas usa superfícies contínuas no lugar das células quadradas; não exibe grade ou textura e não transforma o Claw'd em slime;
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
-- **Acessórios** — 14 opções em dois slots, incluindo boné, cartola, coroa, óculos, óculos de sol, laço, fones e mochila.
+- **Exibir boca** — desligue para remover somente a boca; olhos, piscadas e balões de emoji continuam ativos;
+- **Acessórios** — 14 opções em dois slots, incluindo 7 chapéus redesenhados. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
 
 ### 💼 Aba Profissão
 
@@ -125,6 +126,9 @@ Algumas páginas internas do navegador (chrome://, loja de extensões, PDFs) nã
 
 **As falas estão me atrapalhando.**
 Menu → Comportamento → desligue o **Balão de fala**. Você também pode desligar o andar automático.
+
+**Quero o pet sem boca, mas ainda expressivo.**
+Menu → Aparência → desligue **Exibir boca**. As piscadas, emoções dos olhos e o balão de emojis continuam funcionando.
 
 **Quero recomeçar do zero.**
 Remova e reinstale a extensão em `chrome://extensions/` — isso apaga todas as configurações e o XP.

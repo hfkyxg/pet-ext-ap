@@ -6,7 +6,7 @@
 ## Resultado
 
 - Verificações de sintaxe: **5/5 aprovadas** (incluindo o smoke harness);
-- Suíte `node:test`: **26/26 testes aprovados**;
+- Suíte `node:test`: **28/28 testes aprovados**;
 - `git diff --check`: **sem erros de whitespace**;
 - Smoke test em navegador Chromium real: **aprovado**;
 - Reload MV3 em página `file://`, três ciclos consecutivos: **0 erros e 1 pet por ciclo**;
@@ -28,7 +28,7 @@ git diff --check
 
 ## Cobertura automatizada
 
-A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios nos dois renderizadores, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso angular, boca/emoções, pesca, sincronização e inicialização de sub-pets, ciclo de vida, manifest, referências e IDs do popup, namespace dos keyframes, ano/versão da documentação, contexto MV3 invalidado e reconciliação após reload.
+A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios nos dois renderizadores, descrições e arte dos 7 chapéus, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso angular, preferência persistente da boca, emoções, pesca, sincronização e inicialização de sub-pets, ciclo de vida, manifest, referências e IDs do popup, namespace dos keyframes, ano/versão da documentação, contexto MV3 invalidado e reconciliação após reload.
 
 ## Smoke test no navegador
 
@@ -39,8 +39,9 @@ Uma instância unpacked foi carregada em perfil isolado e inspecionada pelo Chro
 | Boot da página | `#aic-clawd-node`: 1 instância |
 | Repouso | `animation-name: none` na sprite |
 | Boca e carinho | estado `happy`; fundo da boca transparente; sorriso em borda curva de 2px |
+| Boca opcional | popup persistiu `showMouth`; runtime alternou `display: block → none → block` |
 | Modo liso | pixel oculto, `box-shadow: none`, silhueta contínua visível e `background-image: none` |
-| Acessórios | 14 variantes lisas pintadas e 14 variantes pixel-art com arte própria |
+| Acessórios | 14 variantes lisas e 14 pixel-art pintadas; chapéu usa `clawd-headwear-step` em movimento e `none` parado |
 | Profissões e ações | 8 profissões aplicadas e 14 ações disparadas; Pescador criou lago interativo |
 | Popup real | 8 abas, 8 profissões, 14 ações, 16 opções cosméticas, 8 sub-pets, 10 itens e 12 conquistas; nenhum ID duplicado |
 | Sub-pet real | 1 instância “Rex”, cor `#4a90e2`, interação `cuddling` e remoção limpa |
