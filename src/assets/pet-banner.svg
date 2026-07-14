@@ -1,159 +1,100 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="820" height="220" viewBox="0 0 820 220">
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="260" viewBox="0 0 920 260" role="img" aria-labelledby="title desc">
+  <title id="title">Claw'd — companheiro de navegação pixel-art</title>
+  <desc id="desc">Banner da versão 3.2 com o modelo clássico e miniaturas dos quatro modelos pixel-art.</desc>
   <defs>
-    <style>
-      .bg { fill: #0f0f17; }
-      .card { fill: #1a1a2e; rx: 16; }
-      .title { font-family: 'Courier New', monospace; font-weight: 900; fill: #ffffff; font-size: 38px; letter-spacing: -1px; }
-      .sub   { font-family: 'Courier New', monospace; fill: #7a7a9a; font-size: 14px; }
-      .tag   { font-family: 'Courier New', monospace; fill: #ff4757; font-size: 12px; font-weight: bold; }
-      .pixel { animation: walk 0.55s steps(1) infinite; }
-      @keyframes walk {
-        0%,100% { transform: translate(0,0); }
-        50%     { transform: translate(0,2px); }
-      }
-      @keyframes bounce {
-        0%,100% { transform: translateY(0); }
-        50%     { transform: translateY(-6px); }
-      }
-      @keyframes blink {
-        0%,90%,100% { opacity:1; }
-        92%,98%     { opacity:0; }
-      }
-      .pet-group { animation: bounce 1.2s ease-in-out infinite; }
-      .eye       { animation: blink 4s ease-in-out infinite; }
-    </style>
-    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#1a1a2e"/>
-      <stop offset="100%" stop-color="#16213e"/>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111322"/>
+      <stop offset="1" stop-color="#090a12"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff3d57"/>
+      <stop offset="1" stop-color="#c71515"/>
+    </linearGradient>
+    <filter id="pet-shadow" x="-40%" y="-40%" width="180%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#000000" flood-opacity=".42"/>
     </filter>
+    <symbol id="pet-classic" viewBox="0 0 44 32">
+      <path fill="currentColor" d="M8 0h28v12H8zM0 12h44v8H0zM8 20h28v4H8zM8 24h4v8H8zM16 24h4v8h-4zM24 24h4v8h-4zM32 24h4v8h-4z"/>
+    </symbol>
+    <symbol id="pet-mini" viewBox="0 0 44 32">
+      <path fill="currentColor" d="M12 0h20v12H12zM4 12h36v8H4zM12 20h20v4H12zM12 24h8v8h-8zM24 24h8v8h-8z"/>
+    </symbol>
+    <symbol id="pet-claws" viewBox="0 0 44 32">
+      <path fill="currentColor" d="M8 0h28v4H8zM0 4h44v12H0zM4 16h36v4H4zM8 20h28v4H8zM8 24h4v8H8zM16 24h4v8h-4zM24 24h4v8h-4zM32 24h4v8h-4z"/>
+    </symbol>
+    <symbol id="pet-guardian" viewBox="0 0 44 32">
+      <path fill="currentColor" d="M4 0h36v12H4zM0 12h44v8H0zM4 20h36v4H4zM4 24h4v8H4zM12 24h4v8h-4zM28 24h4v8h-4zM36 24h4v8h-4z"/>
+    </symbol>
+    <style>
+      text { font-family: "Courier New", monospace; }
+      .pixel { shape-rendering: crispEdges; }
+      .label { fill: #8f97bd; font-size: 11px; font-weight: 700; letter-spacing: .7px; }
+      .model-name { fill: #f7f8ff; font-size: 11px; font-weight: 700; }
+      .model-card { fill: #171a2b; stroke: #2d3351; stroke-width: 1; }
+      @media (prefers-reduced-motion: no-preference) {
+        .hero-pet { animation: clawd-banner-float 2.6s steps(2, end) infinite; transform-origin: 105px 104px; }
+        .hero-eyes { animation: clawd-banner-blink 4.8s steps(1, end) infinite; }
+      }
+      @keyframes clawd-banner-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+      @keyframes clawd-banner-blink { 0%,94%,100% { opacity: 1; } 95%,98% { opacity: 0; } }
+    </style>
   </defs>
 
-  <!-- Background -->
-  <rect width="820" height="220" rx="18" fill="url(#grad)" />
+  <rect width="920" height="260" rx="20" fill="url(#background)"/>
+  <path d="M20 0h880a20 20 0 0 1 20 20v2H0v-2A20 20 0 0 1 20 0z" fill="url(#accent)"/>
+  <path d="M0 194h920" stroke="#252941" stroke-width="1"/>
 
-  <!-- Accent line -->
-  <rect x="0" y="0" width="820" height="4" rx="2" fill="#c71515" opacity="0.8"/>
+  <g class="pixel" filter="url(#pet-shadow)" color="#e11920" transform="translate(39 52) scale(3)">
+    <g class="hero-pet">
+      <use href="#pet-classic"/>
+      <g class="hero-eyes" fill="#08080b"><path d="M12 4h4v4h-4zM28 4h4v4h-4z"/></g>
+    </g>
+  </g>
+  <rect x="55" y="166" width="101" height="28" rx="5" fill="#f7f8ff" stroke="#ff3d57" stroke-width="3"/>
+  <text x="105.5" y="184.5" text-anchor="middle" font-size="14" font-weight="900" fill="#171825">Claw'd</text>
 
-  <!-- Grid dots decoration -->
-  <g opacity="0.05" fill="#ffffff">
-    <circle cx="60"  cy="40" r="2"/><circle cx="100" cy="40" r="2"/><circle cx="140" cy="40" r="2"/>
-    <circle cx="60"  cy="80" r="2"/><circle cx="100" cy="80" r="2"/><circle cx="140" cy="80" r="2"/>
-    <circle cx="60" cy="120" r="2"/><circle cx="100" cy="120" r="2"/><circle cx="140" cy="120" r="2"/>
-    <circle cx="660" cy="40" r="2"/><circle cx="700" cy="40" r="2"/><circle cx="740" cy="40" r="2"/>
-    <circle cx="660" cy="80" r="2"/><circle cx="700" cy="80" r="2"/><circle cx="740" cy="80" r="2"/>
+  <text x="204" y="72" fill="#ffffff" font-size="42" font-weight="900" letter-spacing="-2">Claw'd</text>
+  <text x="204" y="99" fill="#a3abd2" font-size="15">Seu companheiro de navegação pixel-art.</text>
+  <text x="204" y="126" fill="#ff566b" font-size="12" font-weight="800" letter-spacing="1.4">ESTÚDIO VISUAL v3.2</text>
+
+  <g transform="translate(204 142)">
+    <rect width="112" height="30" rx="7" fill="#201724" stroke="#7b2736"/>
+    <text x="56" y="19" text-anchor="middle" fill="#ff7183" font-size="11" font-weight="800">4 MODELOS</text>
+    <rect x="122" width="104" height="30" rx="7" fill="#161e29" stroke="#27445d"/>
+    <text x="174" y="19" text-anchor="middle" fill="#62c2ff" font-size="11" font-weight="800">4 ROSTOS</text>
+    <rect x="236" width="130" height="30" rx="7" fill="#19231f" stroke="#276044"/>
+    <text x="301" y="19" text-anchor="middle" fill="#65e6a4" font-size="11" font-weight="800">14 ACESSÓRIOS</text>
   </g>
 
-  <!-- PET PIXEL ART — cada quadrado = 7px -->
-  <g class="pet-group" transform="translate(60, 42)" filter="url(#glow)">
-    <!-- Orelhas -->
-    <rect x="7"  y="0"  width="7" height="7" fill="#c71515"/>
-    <rect x="14" y="0"  width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="0"  width="7" height="7" fill="#c71515"/>
-    <rect x="70" y="0"  width="7" height="7" fill="#c71515"/>
-    <!-- Cabeça topo -->
-    <rect x="14" y="7"  width="7" height="7" fill="#c71515"/>
-    <rect x="21" y="7"  width="7" height="7" fill="#c71515"/>
-    <rect x="28" y="7"  width="7" height="7" fill="#c71515"/>
-    <rect x="35" y="7"  width="7" height="7" fill="#c71515"/>
-    <rect x="42" y="7"  width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="7"  width="7" height="7" fill="#c71515"/>
-    <rect x="56" y="7"  width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="7"  width="7" height="7" fill="#c71515"/>
-    <!-- Rosto com olhos -->
-    <rect x="14" y="14" width="7" height="7" fill="#c71515"/>
-    <rect x="21" y="14" width="7" height="7" fill="#111" class="eye"/>
-    <rect x="28" y="14" width="7" height="7" fill="#c71515"/>
-    <rect x="35" y="14" width="7" height="7" fill="#c71515"/>
-    <rect x="42" y="14" width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="14" width="7" height="7" fill="#111" class="eye"/>
-    <rect x="56" y="14" width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="14" width="7" height="7" fill="#c71515"/>
-    <!-- Focinho -->
-    <rect x="14" y="21" width="7" height="7" fill="#c71515"/>
-    <rect x="21" y="21" width="7" height="7" fill="#c71515"/>
-    <rect x="28" y="21" width="7" height="7" fill="#c71515"/>
-    <rect x="35" y="21" width="7" height="7" fill="#c71515"/>
-    <rect x="42" y="21" width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="21" width="7" height="7" fill="#c71515"/>
-    <rect x="56" y="21" width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="21" width="7" height="7" fill="#c71515"/>
-    <!-- Corpo superior -->
-    <rect x="0"  y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="7"  y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="14" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="21" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="28" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="35" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="42" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="56" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="70" y="28" width="7" height="7" fill="#c71515"/>
-    <rect x="77" y="28" width="7" height="7" fill="#c71515"/>
-    <!-- Corpo inferior -->
-    <rect x="0"  y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="7"  y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="14" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="21" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="28" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="35" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="42" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="56" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="70" y="35" width="7" height="7" fill="#c71515"/>
-    <rect x="77" y="35" width="7" height="7" fill="#c71515"/>
-    <!-- Cintura -->
-    <rect x="14" y="42" width="7" height="7" fill="#c71515"/>
-    <rect x="21" y="42" width="7" height="7" fill="#c71515"/>
-    <rect x="28" y="42" width="7" height="7" fill="#c71515"/>
-    <rect x="35" y="42" width="7" height="7" fill="#c71515"/>
-    <rect x="42" y="42" width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="42" width="7" height="7" fill="#c71515"/>
-    <rect x="56" y="42" width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="42" width="7" height="7" fill="#c71515"/>
-    <!-- Pernas -->
-    <rect x="14" y="49" width="7" height="7" fill="#c71515"/>
-    <rect x="28" y="49" width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="49" width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="49" width="7" height="7" fill="#c71515"/>
-    <rect x="14" y="56" width="7" height="7" fill="#c71515"/>
-    <rect x="28" y="56" width="7" height="7" fill="#c71515"/>
-    <rect x="49" y="56" width="7" height="7" fill="#c71515"/>
-    <rect x="63" y="56" width="7" height="7" fill="#c71515"/>
-    <!-- Sombra -->
-    <ellipse cx="42" cy="70" rx="36" ry="5" fill="rgba(0,0,0,0.3)"/>
+  <g transform="translate(458 38)">
+    <text x="0" y="0" class="label">MODELOS COMBINÁVEIS</text>
+    <g transform="translate(0 14)">
+      <rect class="model-card" width="102" height="126" rx="10"/>
+      <g class="pixel" color="#e11920" transform="translate(7 22) scale(2)"><use href="#pet-classic"/><path fill="#08080b" d="M12 4h4v4h-4zM28 4h4v4h-4z"/></g>
+      <text x="51" y="112" text-anchor="middle" class="model-name">CLÁSSICO</text>
+    </g>
+    <g transform="translate(112 14)">
+      <rect class="model-card" width="102" height="126" rx="10"/>
+      <g class="pixel" color="#ff9f43" transform="translate(7 22) scale(2)"><use href="#pet-mini"/><path fill="#08080b" d="M12 4h4v4h-4zM28 4h4v4h-4z"/></g>
+      <text x="51" y="112" text-anchor="middle" class="model-name">MINI</text>
+    </g>
+    <g transform="translate(224 14)">
+      <rect class="model-card" width="102" height="126" rx="10"/>
+      <g class="pixel" color="#35a7ff" transform="translate(7 22) scale(2)"><use href="#pet-claws"/><path fill="#08080b" d="M12 4h4v4h-4zM28 4h4v4h-4z"/></g>
+      <text x="51" y="112" text-anchor="middle" class="model-name">PINÇAS</text>
+    </g>
+    <g transform="translate(336 14)">
+      <rect class="model-card" width="102" height="126" rx="10"/>
+      <g class="pixel" color="#a66cff" transform="translate(7 22) scale(2)"><use href="#pet-guardian"/><path fill="#08080b" d="M12 4h4v4h-4zM28 4h4v4h-4z"/></g>
+      <text x="51" y="112" text-anchor="middle" class="model-name">GUARDIÃO</text>
+    </g>
   </g>
 
-  <!-- Name tag abaixo do pet -->
-  <rect x="55" y="168" width="100" height="22" rx="11" fill="#ffffff" opacity="0.92"/>
-  <rect x="55" y="168" width="100" height="22" rx="11" fill="none" stroke="#c71515" stroke-width="2"/>
-  <text x="105" y="183" text-anchor="middle" font-family="'Courier New',monospace" font-weight="bold" font-size="12" fill="#1a1a2e">Claw'd</text>
-
-  <!-- Text area -->
-  <text x="200" y="70"  class="title">Claw'd</text>
-  <text x="200" y="98"  class="sub">Companheiro de navegação pixel-art</text>
-  <text x="200" y="98"  class="sub">Companheiro de navegação pixel-art</text>
-
-  <!-- Tags / badges -->
-  <rect x="200" y="112" width="110" height="22" rx="6" fill="rgba(199,21,21,0.15)" stroke="#c71515" stroke-width="1"/>
-  <text x="255" y="127" text-anchor="middle" class="tag">🎨 Personalizável</text>
-
-  <rect x="320" y="112" width="100" height="22" rx="6" fill="rgba(46,204,113,0.12)" stroke="#2ecc71" stroke-width="1"/>
-  <text x="370" y="127" text-anchor="middle" font-family="'Courier New',monospace" font-size="12" font-weight="bold" fill="#2ecc71">🖱️ Arrastável</text>
-
-  <rect x="430" y="112" width="110" height="22" rx="6" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="1"/>
-  <text x="485" y="127" text-anchor="middle" font-family="'Courier New',monospace" font-size="12" font-weight="bold" fill="#3498db">⚡ Interativo</text>
-
-  <!-- Feature list -->
-  <text x="200" y="162" font-family="'Courier New',monospace" font-size="12" fill="#7a7a9a">✓ Múltiplos estados  ✓ Balão de fala  ✓ Auto-movimento</text>
-  <text x="200" y="182" font-family="'Courier New',monospace" font-size="12" fill="#7a7a9a">✓ Dark UI popup     ✓ Reação ao scroll ✓ Touch support</text>
-
-  <!-- Version badge -->
-  <rect x="740" y="12" width="60" height="22" rx="6" fill="rgba(199,21,21,0.2)" stroke="#c71515" stroke-width="1"/>
-  <text x="770" y="27" text-anchor="middle" font-family="'Courier New',monospace" font-size="11" font-weight="bold" fill="#ff4757">v 2.0</text>
+  <text x="204" y="224" fill="#9299bd" font-size="12">CORPO ESTÁTICO</text>
+  <rect x="322" y="214" width="4" height="12" fill="#ff3d57"/>
+  <text x="339" y="224" fill="#9299bd" font-size="12">PERNAS EM MOVIMENTO</text>
+  <rect x="511" y="214" width="4" height="12" fill="#ff3d57"/>
+  <text x="528" y="224" fill="#9299bd" font-size="12">OLHOS INDEPENDENTES</text>
+  <rect x="718" y="214" width="4" height="12" fill="#ff3d57"/>
+  <text x="735" y="224" fill="#9299bd" font-size="12">100% CSS</text>
 </svg>

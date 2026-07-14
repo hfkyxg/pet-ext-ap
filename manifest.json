@@ -1,10 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Claw'd: Companheiro de Navegação",
-  "version": "2.2.0",
-  "description": "Um mascote interativo e orquestrador de IA direto no navegador.",
+  "version": "3.2.0",
+  "description": "Mascote pixel-art interativo, personalizável e fluido para acompanhar sua navegação.",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "src/background/background.js"
@@ -13,11 +18,17 @@
     {
       "matches": ["<all_urls>"],
       "css": ["src/content/style.css"],
-      "js": ["src/common/core.js", "src/content/content.js"]
+      "js": ["src/shared/catalog.js", "src/content/content.js"]
     }
   ],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Menu do Claw'd"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/assets/*.png", "src/assets/*.gif"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

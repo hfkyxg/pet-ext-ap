@@ -1,9 +1,9 @@
 /* ===================================================
-   CLAW'D — COMPANION STYLES v2.0
+   CLAW'D — COMPANION STYLES v3.2
    Pixel-art mascot injected into every page
    =================================================== */
 
-/* --- KEYFRAMES GLOBAIS (fora do shadow-dom) --- */
+/* --- KEYFRAMES GLOBAIS --- */
 @keyframes clawd-float-up {
   0%   { opacity: 1; transform: translateY(0)   scale(1)   rotate(-5deg); }
   100% { opacity: 0; transform: translateY(-65px) scale(1.4) rotate(15deg); }
@@ -33,182 +33,343 @@
   0%,100% { opacity: 0.35; transform: scaleX(1); }
   50%     { opacity: 0.2;  transform: scaleX(0.85); }
 }
+/* Cambalhota: 360° com squash & stretch */
+@keyframes clawd-somersault {
+  0%   { transform: scale(var(--agent-scale, 1.5)) rotate(0deg)   translateY(0); }
+  20%  { transform: scale(calc(var(--agent-scale, 1.5) * 0.9))  rotate(40deg)  translateY(-8px); }
+  50%  { transform: scale(calc(var(--agent-scale, 1.5) * 1.05)) rotate(200deg) translateY(-30px); }
+  80%  { transform: scale(calc(var(--agent-scale, 1.5) * 0.92)) rotate(330deg) translateY(-6px); }
+  100% { transform: scale(var(--agent-scale, 1.5)) rotate(360deg) translateY(0); }
+}
+/* Comer: mastigação */
+@keyframes clawd-chew {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
+  25%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.92) translateY(2px); }
+  50%     { transform: scale(var(--agent-scale, 1.5)) scaleY(1.02); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.94) translateY(1px); }
+}
+/* Comemorar: pulos rápidos */
+@keyframes clawd-celebrate {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0)    rotate(0deg); }
+  25%     { transform: scale(var(--agent-scale, 1.5)) translateY(-22px) rotate(-8deg); }
+  50%     { transform: scale(var(--agent-scale, 1.5)) translateY(0)    rotate(0deg); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) translateY(-16px) rotate(8deg); }
+}
+/* Bocejo: estica devagar */
+@keyframes clawd-yawn {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
+  40%     { transform: scale(var(--agent-scale, 1.5)) scaleY(1.12) translateY(-4px); }
+  70%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.9); }
+}
+/* Tímido: encolhe e vira de lado */
+@keyframes clawd-shy {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  50%     { transform: scale(calc(var(--agent-scale, 1.5) * 0.88)) rotate(-12deg) translateX(-4px); }
+}
+/* Birra: bate o pé */
+@keyframes clawd-tantrum {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+  15%     { transform: scale(var(--agent-scale, 1.5)) translateY(-8px) rotate(-4deg); }
+  30%     { transform: scale(var(--agent-scale, 1.5)) translateY(0)    rotate(0deg); }
+  45%     { transform: scale(var(--agent-scale, 1.5)) translateY(-8px) rotate(4deg); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+}
+/* Dança passo 2: giro */
+@keyframes clawd-dance-spin {
+  0%   { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) rotate(360deg); }
+}
+/* Dança passo 3: quica lateral */
+@keyframes clawd-dance-bounce {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translate(0,0); }
+  25%     { transform: scale(var(--agent-scale, 1.5)) translate(-8px,-12px) rotate(-6deg); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) translate(8px,-12px)  rotate(6deg); }
+}
+/* Pose: congela com brilho */
+@keyframes clawd-pose-sparkle {
+  0%,100% { filter: drop-shadow(0 5px 8px rgba(0,0,0,0.45)) brightness(1); }
+  50%     { filter: drop-shadow(0 5px 14px rgba(255,215,0,0.6)) brightness(1.25); }
+}
 @keyframes clawd-zzz {
   0%   { opacity: 0; transform: translate(0,0) scale(0.6); }
   30%  { opacity: 1; }
   100% { opacity: 0; transform: translate(18px,-25px) scale(1.1); }
 }
-@keyframes clawd-flip {
+/* Poeirinha da corrida */
+@keyframes clawd-dust {
+  0%   { opacity: 0.7; transform: scale(0.5); }
+  100% { opacity: 0;   transform: scale(1.6) translateY(-6px); }
+}
+/* Bolinha de brincar */
+@keyframes clawd-toyball {
+  0%   { transform: translate(0,0); }
+  30%  { transform: translate(60px,-70px); }
+  55%  { transform: translate(110px,0); }
+  75%  { transform: translate(140px,-30px); }
+  100% { transform: translate(160px,0); opacity: 0; }
+}
+/* Pulo alto */
+@keyframes clawd-jump {
+  0%   { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+  15%  { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(0.82); }
+  45%  { transform: scale(var(--agent-scale, 1.5)) translateY(-38px) scaleY(1.12); }
+  75%  { transform: scale(var(--agent-scale, 1.5)) translateY(-28px) scaleY(1.05); }
+  90%  { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(0.78); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+}
+/* Esticar ao acordar */
+@keyframes clawd-stretch {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)); }
+  20%  { transform: scale(var(--agent-scale, 1.5)) scaleX(1.18) scaleY(0.82); }
+  50%  { transform: scale(var(--agent-scale, 1.5)) scaleX(0.88) scaleY(1.22) translateY(-6px); }
+  80%  { transform: scale(var(--agent-scale, 1.5)) scaleX(1.05) scaleY(0.95); }
+}
+/* Rugido: inclinação para frente */
+@keyframes clawd-roar {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  25%  { transform: scale(calc(var(--agent-scale, 1.5)*1.2)) rotate(-8deg) translateY(-10px); }
+  50%  { transform: scale(calc(var(--agent-scale, 1.5)*1.25)) rotate(0deg) translateY(-14px); }
+  75%  { transform: scale(calc(var(--agent-scale, 1.5)*1.15)) rotate(8deg) translateY(-8px); }
+}
+/* Pescaria: leve balanço enquanto segura a vara */
+@keyframes clawd-fishing {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) rotate(-2deg) translateY(0); }
+  35%     { transform: scale(var(--agent-scale, 1.5)) rotate(3deg) translateY(-3px); }
+  70%     { transform: scale(var(--agent-scale, 1.5)) rotate(-1deg) translateY(1px); }
+}
+/* Puxar peixe: encolhimento de esforço */
+@keyframes clawd-reel {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)); }
+  30%     { transform: scale(calc(var(--agent-scale, 1.5)*0.92)) translateX(-4px) rotate(-5deg); }
+  60%     { transform: scale(calc(var(--agent-scale, 1.5)*1.08)) translateX(2px) rotate(3deg); }
+}
+/* High-five: salto e parada */
+@keyframes clawd-highfive {
   0%   { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
-  45%  { transform: scale(var(--agent-scale, 1.5)) translateY(-42px) rotate(200deg); }
-  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(360deg); }
-}
-@keyframes clawd-eat {
-  0%, 100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1) scaleX(1); }
-  50%      { transform: scale(var(--agent-scale, 1.5)) scaleY(0.88) scaleX(1.08); }
-}
-@keyframes clawd-quiz-pop {
-  0%   { opacity: 0; transform: translateY(12px) scale(0.7); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes clawd-quiz-shake {
-  0%, 100% { transform: translateX(0); }
-  25%      { transform: translateX(-6px); }
-  75%      { transform: translateX(6px); }
+  40%  { transform: scale(calc(var(--agent-scale, 1.5)*1.12)) translateY(-20px) rotate(-15deg); }
+  60%  { transform: scale(calc(var(--agent-scale, 1.5)*1.05)) translateY(-12px) rotate(10deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
 }
 
-/* ---- PIXEL-ART WALK FRAMES ---- */
-@keyframes walk {
+/* ---- PIXEL-ART WALK FRAMES (nova skin esbelto — modelo do usuário) ---- */
+@keyframes clawd-pixel-walk {
   0%,100% {
     box-shadow:
-      /* orelhas */
-      4px 0 var(--agent-color),  8px 0 var(--agent-color),
-      32px 0 var(--agent-color), 36px 0 var(--agent-color),
-      /* cabeça topo */
-      8px 4px var(--agent-color), 12px 4px var(--agent-color), 16px 4px var(--agent-color),
-      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px var(--agent-color), 32px 4px var(--agent-color),
-      /* olhos abertos */
-      8px 8px var(--agent-color), 12px 8px #111,
-      16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color),
-      28px 8px #111, 32px 8px var(--agent-color),
-      /* focinho */
-      8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color),
-      20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
-      /* corpo */
-      0 16px var(--agent-color), 4px 16px var(--agent-color),  8px 16px var(--agent-color),
-      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
-      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
-      36px 16px var(--agent-color), 40px 16px var(--agent-color),
-      /* cintura */
-      0 20px var(--agent-color), 4px 20px var(--agent-color),  8px 20px var(--agent-color),
-      12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color),
-      24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
-      36px 20px var(--agent-color), 40px 20px var(--agent-color),
-      /* corpo baixo */
-      8px 24px var(--agent-color), 12px 24px var(--agent-color), 16px 24px var(--agent-color),
-      20px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
-      /* pernas frame A */
-      8px 28px var(--agent-color), 16px 28px var(--agent-color),
-      24px 28px var(--agent-color), 32px 28px var(--agent-color),
-      8px 32px var(--agent-color), 16px 32px var(--agent-color),
-      24px 32px var(--agent-color), 32px 32px var(--agent-color);
-  }
-  33% {
-    box-shadow:
-      4px 0 var(--agent-color),  8px 0 var(--agent-color),
-      32px 0 var(--agent-color), 36px 0 var(--agent-color),
-      8px 4px var(--agent-color), 12px 4px var(--agent-color), 16px 4px var(--agent-color),
-      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px var(--agent-color), 32px 4px var(--agent-color),
-      8px 8px var(--agent-color), 12px 8px #111,
-      16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color),
-      28px 8px #111, 32px 8px var(--agent-color),
-      8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color),
-      20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
-      0 16px var(--agent-color), 4px 16px var(--agent-color),  8px 16px var(--agent-color),
-      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
-      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
-      36px 16px var(--agent-color), 40px 16px var(--agent-color),
-      0 20px var(--agent-color), 4px 20px var(--agent-color),  8px 20px var(--agent-color),
-      12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color),
-      24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
-      36px 20px var(--agent-color), 40px 20px var(--agent-color),
-      8px 24px var(--agent-color), 12px 24px var(--agent-color), 16px 24px var(--agent-color),
-      20px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
-      /* pernas frame B */
-      4px 28px var(--agent-color), 12px 28px var(--agent-color),
-      28px 28px var(--agent-color), 36px 28px var(--agent-color),
-      0px 32px var(--agent-color), 12px 32px var(--agent-color),
-      28px 32px var(--agent-color), 40px 32px var(--agent-color);
-  }
-  66% {
-    box-shadow:
-      4px 0 var(--agent-color),  8px 0 var(--agent-color),
-      32px 0 var(--agent-color), 36px 0 var(--agent-color),
-      8px 4px var(--agent-color), 12px 4px var(--agent-color), 16px 4px var(--agent-color),
-      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px var(--agent-color), 32px 4px var(--agent-color),
-      /* olho piscando (sem pupils) */
-      8px 8px var(--agent-color), 12px 8px var(--agent-color),
-      16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color),
-      28px 8px var(--agent-color), 32px 8px var(--agent-color),
-      /* olhos fechados — traçinho */
-      10px 9px #111, 12px 9px #111, 14px 9px #111,
-      26px 9px #111, 28px 9px #111, 30px 9px #111,
-      8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color),
-      20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
-      0 16px var(--agent-color), 4px 16px var(--agent-color),  8px 16px var(--agent-color),
-      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
-      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
-      36px 16px var(--agent-color), 40px 16px var(--agent-color),
-      0 20px var(--agent-color), 4px 20px var(--agent-color),  8px 20px var(--agent-color),
-      12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color),
-      24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
-      36px 20px var(--agent-color), 40px 20px var(--agent-color),
-      8px 24px var(--agent-color), 12px 24px var(--agent-color), 16px 24px var(--agent-color),
-      20px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
-      8px 28px var(--agent-color), 16px 28px var(--agent-color),
-      24px 28px var(--agent-color), 32px 28px var(--agent-color),
-      8px 32px var(--agent-color), 16px 32px var(--agent-color),
-      24px 32px var(--agent-color), 32px 32px var(--agent-color);
-  }
-}
-
-/* ---- SLEEP FRAME ---- */
-@keyframes sleep-anim {
-  0%,100% {
-    box-shadow:
-      4px 0 var(--agent-color),  8px 0 var(--agent-color),
-      32px 0 var(--agent-color), 36px 0 var(--agent-color),
-      8px 4px var(--agent-color), 12px 4px var(--agent-color), 16px 4px var(--agent-color),
-      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px var(--agent-color), 32px 4px var(--agent-color),
-      /* olhos fechados */
-      8px 8px var(--agent-color), 10px 8px #111, 12px 8px #111, 14px 8px #111,
-      16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color),
-      26px 8px #111, 28px 8px #111, 30px 8px #111, 32px 8px var(--agent-color),
-      8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color),
-      20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      /* Linha 0 (Topo da cabeça — orelhas) */
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      /* orelhas laterais */
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      /* Linha 1 (olhos abertos) */
+      8px 4px var(--agent-color),  12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color),
+      28px 4px #111,               32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      /* Linha 2 (Focinho/boca) */
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      /* nariz */
+      18px 8px #111, 22px 8px #111,
+      /* Linha 3 (Braços + Corpo) */
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      /* Linha 4 (Braços inferior) */
       0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
       12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
       24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
       36px 16px var(--agent-color), 40px 16px var(--agent-color),
-      0 20px var(--agent-color), 4px 20px var(--agent-color), 8px 20px var(--agent-color),
-      12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color),
-      24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
-      36px 20px var(--agent-color), 40px 20px var(--agent-color),
-      8px 24px var(--agent-color), 12px 24px var(--agent-color), 16px 24px var(--agent-color),
-      20px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
-      /* pernas dobradas */
-      8px 28px var(--agent-color), 12px 28px var(--agent-color),
-      28px 28px var(--agent-color), 32px 28px var(--agent-color);
+      /* Linha 5 (Base do corpo) */
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* Linha 6 (Pernas — Frame A: retas) */
+      8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+      /* Linha 7 (Pés — Frame A: retos) */
+      8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  }
+  33% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      8px 4px var(--agent-color),  12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color),
+      28px 4px #111,               32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* Frame B: pernas alternadas */
+      4px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 36px 24px var(--agent-color),
+      0px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 40px 28px var(--agent-color);
+  }
+  66% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      /* PISCAR: olhos fechados em linha */
+      8px 4px var(--agent-color), 4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      10px 5px #111, 12px 5px #111, 14px 5px #111,
+      26px 5px #111, 28px 5px #111, 30px 5px #111,
+      16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* Frame A novamente (sincroniza com olho piscando) */
+      8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+      8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  }
+}
+
+/* ---- FRAME EMBAIXADINHA — perna levantada ---- */
+@keyframes clawd-pixel-keepy {
+  0%,100% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      8px 4px var(--agent-color), 12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px #111, 32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      /* braço esquerdo levantado (cima) para o toque */
+      -4px 8px var(--agent-color), -4px 12px var(--agent-color),
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* perna direita levantada (embaixadinha) */
+      8px 24px var(--agent-color),
+      24px 20px var(--agent-color), 28px 20px var(--agent-color),
+      24px 24px var(--agent-color),
+      /* perna esq reta */
+      8px 28px var(--agent-color), 16px 28px var(--agent-color),
+      24px 28px var(--agent-color);
+  }
+  50% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      8px 4px var(--agent-color), 12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px #111, 32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* perna esquerda levantada */
+      32px 24px var(--agent-color),
+      28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* perna dir reta */
+      24px 24px var(--agent-color), 32px 28px var(--agent-color),
+      8px 24px var(--agent-color), 8px 28px var(--agent-color);
+  }
+}
+
+/* ---- SLEEP FRAME ---- */
+@keyframes clawd-pixel-sleep {
+  0%,100% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      /* olhos bem fechados */
+      8px 4px var(--agent-color), 4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      10px 5px #111, 12px 5px #111, 14px 5px #111,
+      26px 5px #111, 28px 5px #111, 30px 5px #111,
+      16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* pernas dobradas dormindo */
+      8px 24px var(--agent-color), 12px 24px var(--agent-color),
+      28px 24px var(--agent-color), 32px 24px var(--agent-color);
   }
 }
 
 /* --- O NÓ DO AGENTE --- */
-#aic-clawd-node {
+#aic-clawd-node[data-clawd-owned="true"] {
+  all: initial;
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 2147483647;
   cursor: grab;
   user-select: none;
-  touch-action: none; /* permite arrastar por toque sem rolar a página */
+  touch-action: none;
+  pointer-events: auto;
   width: 50px;
   height: 50px;
+  display: block !important;
+  animation: none !important;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, sans-serif;
 
-  /* A cor do usuário entra por --agent-base-color (inline); assim a
-     regra do estado .happy ainda consegue sobrescrever --agent-color */
-  --agent-color: var(--agent-base-color, #c71515);
+  --agent-color: #c71515;
   --agent-scale: 1.5;
+  --jersey-color: #e74c3c;
+  --clawd-refresh-rate: 60;
 
-  transition: transform 0.08s ease-out;
+  transition: transform 0.08s ease-out, opacity 0.4s ease;
   will-change: transform, left, top;
 }
-
-#aic-clawd-node:active {
-  cursor: grabbing;
-}
+#aic-clawd-node[data-clawd-owned="true"]:active { cursor: grabbing; }
+#aic-clawd-node[data-clawd-owned="true"],
+#aic-clawd-node[data-clawd-owned="true"] *,
+#aic-clawd-node[data-clawd-owned="true"] *::before,
+#aic-clawd-node[data-clawd-owned="true"] *::after { box-sizing: border-box; }
 
 /* --- CONTAINER INTERNO --- */
-.pet-body {
+#aic-clawd-node .pet-body {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -219,40 +380,56 @@
   filter: drop-shadow(0px 5px 8px rgba(0,0,0,0.45));
 }
 
-/* --- STACK: sprite + acessório (permite filtros compostos) --- */
-.sprite-stack {
+/* --- STACK: sprite + camadas (acessórios acompanham todos os frames) --- */
+#aic-clawd-node .sprite-stack {
   position: relative;
   width: 44px;
   height: 36px;
   transition: filter 0.3s ease;
+  /* paint containment recortava cartolas, coroas, hélices e mochilas que
+     ultrapassam a caixa de 44×36px. Mantemos isolamento de layout/estilo. */
+  contain: layout style;
+  overflow: visible;
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
-/* --- SPRITE PIXEL ART --- */
-.pixel-sprite {
+#aic-clawd-node .pixel-sprite {
   position: absolute;
   top: 0; left: 0;
   width: 4px;
   height: 4px;
   background: transparent;
-  animation: walk 0.55s steps(1) infinite;
+  animation: clawd-pixel-walk 0.55s steps(1) infinite;
   transform-origin: top left;
   transition: filter 0.3s ease;
   image-rendering: pixelated;
+  backface-visibility: hidden;
 }
 
-/* --- CAMADA DE ACESSÓRIO (roupa/item por cima do sprite) --- */
-.accessory {
+/* --- CAMADAS SOBRE O SPRITE (herdam squash do .pet-body) --- */
+#aic-clawd-node .accessory,
+#aic-clawd-node .jersey,
+#aic-clawd-node .skin-mod,
+#aic-clawd-node .laptop,
+#aic-clawd-node .fishing-rod-layer {
   position: absolute;
   top: 0; left: 0;
   width: 4px;
   height: 4px;
   background: transparent;
   pointer-events: none;
-  z-index: 2;
 }
+#aic-clawd-node .accessory { z-index: 3; }
+#aic-clawd-node .acc-head  { z-index: 4; }
+#aic-clawd-node .acc-face  { z-index: 5; }
+#aic-clawd-node .jersey    { z-index: 2; }
+#aic-clawd-node .skin-mod  { z-index: 1; }
+#aic-clawd-node .laptop    { z-index: 4; display: none; }
+#aic-clawd-node .fishing-rod-layer { z-index: 5; display: none; }
 
-/* Óculos (Tutor) */
-#aic-clawd-node[data-accessory="glasses"] .accessory {
+/* ===== ACESSÓRIOS — SLOT ROSTO/CORPO ===== */
+[data-acc-face="glasses"] .acc-face {
   box-shadow:
     4px 8px rgba(25,25,40,0.9),
     8px 8px rgba(25,25,40,0.55), 12px 8px rgba(25,25,40,0.55), 16px 8px rgba(25,25,40,0.55),
@@ -260,80 +437,214 @@
     24px 8px rgba(25,25,40,0.55), 28px 8px rgba(25,25,40,0.55), 32px 8px rgba(25,25,40,0.55),
     36px 8px rgba(25,25,40,0.9);
 }
-
-/* Boné (estilo esportivo) */
-#aic-clawd-node[data-accessory="cap"] .accessory {
+/* Óculos de sol: lentes escuras + ponte + brilho */
+[data-acc-face="sunglasses"] .acc-face {
   box-shadow:
-    12px -8px #2c3e50, 16px -8px #2c3e50, 20px -8px #2c3e50, 24px -8px #2c3e50, 28px -8px #2c3e50,
-    8px -4px #2c3e50, 12px -4px #34495e, 16px -4px #34495e, 20px -4px #e74c3c,
-    24px -4px #34495e, 28px -4px #34495e, 32px -4px #2c3e50,
-    32px 0 #2c3e50, 36px 0 #2c3e50, 40px 0 #2c3e50;
+    8px 4px 0 #111,  12px 4px 0 #111,
+    24px 4px 0 #111, 28px 4px 0 #111,
+    16px 4px 0 #333, 20px 4px 0 #333,
+    9px 5px 0 rgba(255,255,255,0.55),
+    25px 5px 0 rgba(255,255,255,0.35);
 }
+/* Pose "cool" com óculos de sol: idle mais lento e confiante */
+[data-acc-face="sunglasses"] .pixel-sprite { animation-duration: 0.8s !important; }
 
-/* Laço (fofinho) */
-#aic-clawd-node[data-accessory="bow"] .accessory {
+[data-acc-face="bow"] .acc-face {
   box-shadow:
     28px -8px #e84393, 36px -8px #e84393,
     28px -4px #fd79a8, 32px -4px #e84393, 36px -4px #fd79a8;
 }
-
-/* Fones de ouvido (Dev / DJ) */
-#aic-clawd-node[data-accessory="headphones"] .accessory {
+[data-acc-face="headphones"] .acc-face {
+  z-index: 3;
   box-shadow:
     12px -6px #2d3436, 16px -6px #2d3436, 20px -6px #2d3436, 24px -6px #2d3436, 28px -6px #2d3436,
     8px -2px #2d3436, 32px -2px #2d3436,
     4px 4px #2d3436, 4px 8px #636e72, 4px 12px #2d3436,
     36px 4px #2d3436, 36px 8px #636e72, 36px 12px #2d3436;
 }
-
-/* Coroa (realeza) */
-#aic-clawd-node[data-accessory="crown"] .accessory {
+/* Cachecol: balança no walk com física mais realista */
+@keyframes clawd-scarf-wave {
+  0%    { transform: translateX(0) rotate(0deg); }
+  25%   { transform: translateX(1px) rotate(1.5deg); }
+  50%   { transform: translateX(3px) rotate(3deg); }
+  75%   { transform: translateX(1px) rotate(1.5deg); }
+  100%  { transform: translateX(0) rotate(0deg); }
+}
+[data-acc-face="scarf"] .acc-face {
   box-shadow:
-    12px -8px #f6c344, 20px -8px #f6c344, 28px -8px #f6c344,
-    12px -4px #f6c344, 16px -4px #e74c3c, 20px -4px #f6c344,
-    24px -4px #3498db, 28px -4px #f6c344;
+    8px 14px var(--acc-color, #c0392b), 12px 14px var(--acc-color, #c0392b), 16px 14px var(--acc-color, #c0392b),
+    20px 14px var(--acc-color, #e74c3c), 24px 14px var(--acc-color, #c0392b), 28px 14px var(--acc-color, #c0392b),
+    32px 14px var(--acc-color, #c0392b),
+    /* ponta pendurada */
+    32px 18px var(--acc-color, #e74c3c), 32px 22px var(--acc-color, #c0392b), 32px 26px var(--acc-color, #e74c3c);
+  animation: clawd-scarf-wave 0.55s ease-in-out infinite;
+}
+[data-acc-face="backpack"] .acc-face {
+  z-index: 2;
+  box-shadow:
+    /* mochila com mais detalhe: bolso e alças */
+    -4px 14px #7b5e42, -8px 14px #7b5e42,
+    -4px 16px #a0522d, -8px 16px #a0522d,
+    -4px 18px #a0522d, -8px 18px #a0522d,
+    -4px 20px #a0522d, -8px 20px #a0522d,
+    -4px 22px #8e6e3f, -8px 22px #8e6e3f,
+    /* bolso frontal */
+    -5px 18px #c8864a, -7px 18px #c8864a,
+    /* fivela */
+    -6px 14px #e0c070;
+}
+/* Medalha: pendurada no peito */
+[data-acc-face="medal"] .acc-face {
+  box-shadow:
+    20px 16px #f1c40f, 20px 20px #e67e22, 20px 24px #f1c40f,
+    18px 14px #bdc3c7, 22px 14px #bdc3c7;
 }
 
-/* Chapéu de chef (toque) */
-#aic-clawd-node[data-accessory="chefhat"] .accessory {
+/* ===== ACESSÓRIOS — SLOT CABEÇA ===== */
+[data-acc-head="cap"] .acc-head {
   box-shadow:
-    16px -12px #f5f6fa, 20px -12px #f5f6fa, 24px -12px #f5f6fa,
-    12px -8px #f5f6fa, 16px -8px #ffffff, 20px -8px #ffffff, 24px -8px #ffffff, 28px -8px #f5f6fa,
-    12px -4px #dfe4ea, 16px -4px #dfe4ea, 20px -4px #dfe4ea, 24px -4px #dfe4ea, 28px -4px #dfe4ea;
+    /* botão, painéis, costura e aba projetada */
+    20px -12px #e74c3c,
+    8px -8px #26384d, 12px -8px #526a84, 16px -8px #455a72, 20px -8px #34495e,
+    24px -8px #3b5068, 28px -8px #34495e, 32px -8px #26384d,
+    4px -4px #223247, 8px -4px #34495e, 12px -4px #455a72, 16px -4px #455a72,
+    20px -4px #2c3e50, 24px -4px #3b5068, 28px -4px #34495e, 32px -4px #26384d,
+    28px 0 #1d2b3b, 32px 0 #223247, 36px 0 #223247, 40px 0 #172332;
+}
+[data-acc-head="tophat"] .acc-head {
+  box-shadow:
+    12px -20px #111118, 16px -20px #24242e, 20px -20px #2e2e39, 24px -20px #24242e, 28px -20px #111118,
+    12px -16px #111118, 16px -16px #30303a, 20px -16px #24242e, 24px -16px #1c1c24, 28px -16px #111118,
+    12px -12px #111118, 16px -12px #2c2c35, 20px -12px #24242e, 24px -12px #1c1c24, 28px -12px #111118,
+    12px -8px #552365, 16px -8px #8e44ad, 20px -8px #a45ac0, 24px -8px #8e44ad, 28px -8px #552365,
+    4px -4px #0d0d12, 8px -4px #15151c, 12px -4px #1d1d25, 16px -4px #24242e, 20px -4px #24242e,
+    24px -4px #24242e, 28px -4px #1d1d25, 32px -4px #15151c, 36px -4px #0d0d12;
+}
+[data-acc-head="crown"] .acc-head {
+  box-shadow:
+    /* três pontas, reflexos, joias e base sombreada */
+    8px -16px #f6d44b, 20px -20px #fff09a, 32px -16px #f6d44b,
+    8px -12px #d88912, 12px -12px #f1c40f, 16px -12px #f6d44b, 20px -12px #f1c40f,
+    24px -12px #f6d44b, 28px -12px #f1c40f, 32px -12px #d88912,
+    8px -8px #f1c40f, 12px -8px #e74c3c, 16px -8px #f1c40f, 20px -8px #3498db,
+    24px -8px #f1c40f, 28px -8px #27ae60, 32px -8px #d88912,
+    8px -4px #c67d0c, 12px -4px #e8a817, 16px -4px #f1c40f, 20px -4px #e8a817,
+    24px -4px #f1c40f, 28px -4px #e8a817, 32px -4px #b96f08;
+}
+[data-acc-head="chefhat"] .acc-head {
+  box-shadow:
+    /* gomos altos, dobras centrais e faixa inferior */
+    16px -20px #fff, 20px -20px #f8f9fa, 24px -20px #fff,
+    8px -16px #fff, 12px -16px #fff, 16px -16px #eef1f3, 20px -16px #fff,
+    24px -16px #eef1f3, 28px -16px #fff, 32px -16px #fff,
+    4px -12px #f7f8f9, 8px -12px #fff, 12px -12px #edf0f2, 16px -12px #fff, 20px -12px #e5e9ec,
+    24px -12px #fff, 28px -12px #edf0f2, 32px -12px #fff, 36px -12px #f7f8f9,
+    8px -8px #e9edef, 12px -8px #f8f9fa, 16px -8px #e1e6e9, 20px -8px #f8f9fa,
+    24px -8px #e1e6e9, 28px -8px #f8f9fa, 32px -8px #d8dee2,
+    8px -4px #cfd6da, 12px -4px #e7ebed, 16px -4px #d8dee2, 20px -4px #e7ebed,
+    24px -4px #d8dee2, 28px -4px #e7ebed, 32px -4px #c5cdd2;
+}
+[data-acc-head="ninjaband"] .acc-head {
+  box-shadow:
+    /* faixa assentada na testa: preserva os olhos da linha y=4 */
+    8px -4px #76171d, 12px -4px #8f1d24, 16px -4px #a8242e, 20px -4px #8f1d24,
+    24px -4px #a8242e, 28px -4px #8f1d24, 32px -4px #76171d,
+    8px 0 #8f1d24, 12px 0 #c52d39, 16px 0 #e05a63, 20px 0 #c52d39,
+    24px 0 #d94752, 28px 0 #c52d39, 32px 0 #8f1d24, 36px 0 #76171d,
+    /* nó e pontas atrás da cabeça */
+    40px -4px #a8242e, 44px -4px #8f1d24,
+    40px 4px #b52a35, 44px 8px #8f1d24,
+    40px 8px #a8242e, 44px 12px #76171d;
+}
+/* Chapéu de pescador: abas largas + faixa */
+[data-acc-head="fishhat"] .acc-head {
+  box-shadow:
+    /* copa com luz e costura */
+    12px -12px #8b6914, 16px -12px #c4982a, 20px -12px #d4ae4f, 24px -12px #b98a22, 28px -12px #7a5a10,
+    8px -8px #8b6914, 12px -8px #b18425, 16px -8px #c4982a, 20px -8px #b18425,
+    24px -8px #a07820, 28px -8px #d64545, 32px -8px #76550f,
+    /* faixa vermelha e emblema dourado */
+    8px -4px #8f2525, 12px -4px #d64545, 16px -4px #e65b55, 20px -4px #d64545,
+    24px -4px #e65b55, 28px -4px #f1c40f, 32px -4px #8f2525,
+    /* aba larga com lado iluminado e parte inferior */
+    0 0 #6f500e, 4px 0 #8b6914, 8px 0 #a8781b, 12px 0 #b18425, 16px 0 #b98a22,
+    20px 0 #b18425, 24px 0 #a8781b, 28px 0 #a07820, 32px 0 #8b6914, 36px 0 #76550f, 40px 0 #604409;
+}
+/* Hélice: botão de hélice giratória */
+@keyframes clawd-propeller-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+[data-acc-head="propeller"] .acc-head {
+  box-shadow:
+    /* capacete bipartido, borda, haste e cubo */
+    12px -8px #2f86c1, 16px -8px #55a9dd, 20px -8px #f1c40f, 24px -8px #ef6258, 28px -8px #d63d34,
+    8px -4px #246c9b, 12px -4px #3498db, 16px -4px #3498db, 20px -4px #8e7c38,
+    24px -4px #e74c3c, 28px -4px #e74c3c, 32px -4px #b72f29,
+    20px -12px #6f7780, 20px -16px #9aa2a8, 20px -20px #f1c40f;
 }
 
-/* Óculos escuros (Gamer) */
-#aic-clawd-node[data-accessory="sunglasses"] .accessory {
+/* ===== CAMISA DE TIME (Jogador) ===== */
+#aic-clawd-node.has-jersey .jersey {
   box-shadow:
-    4px 8px #16161f,
-    8px 8px #16161f, 12px 8px #16161f, 16px 8px #16161f,
-    20px 8px #16161f,
-    24px 8px #16161f, 28px 8px #16161f, 32px 8px #16161f,
-    36px 8px #16161f;
+    4px 12px var(--jersey-color), 8px 12px var(--jersey-color),
+    12px 12px var(--jersey-color), 16px 12px var(--jersey-color),
+    20px 12px var(--jersey-color), 24px 12px var(--jersey-color),
+    28px 12px var(--jersey-color), 32px 12px var(--jersey-color), 36px 12px var(--jersey-color),
+    4px 16px var(--jersey-color), 8px 16px var(--jersey-color),
+    16px 16px #fff, 20px 16px #fff, 24px 16px #fff,
+    28px 16px var(--jersey-color), 32px 16px var(--jersey-color), 36px 16px var(--jersey-color);
+  opacity: 0.85;
 }
 
-/* Cachecol (aconchego) */
-#aic-clawd-node[data-accessory="scarf"] .accessory {
+/* ===== VARA DE PESCAR (Pescador) ===== */
+#aic-clawd-node.fishing .fishing-rod-layer {
+  display: block;
   box-shadow:
-    8px 13px #d63031, 12px 13px #e17055, 16px 13px #d63031,
-    20px 13px #e17055, 24px 13px #d63031, 28px 13px #e17055, 32px 13px #d63031,
-    28px 17px #d63031, 28px 21px #e17055;
+    /* vara — longa e diagonal */
+    40px 8px  #8B6914, 44px 4px  #a07820, 48px 0   #8B6914, 52px -4px #c4982a,
+    56px -8px #8B6914, 60px -12px #a07820, 64px -16px #8B6914,
+    /* alça / grip */
+    36px 12px #5d3a1a, 36px 16px #5d3a1a, 36px 20px #5d3a1a,
+    /* linha de pesca (pontilhada) */
+    64px -16px #bdc3c7, 65px -12px rgba(189,195,199,0.7), 66px -8px rgba(189,195,199,0.5),
+    67px -4px rgba(189,195,199,0.7), 68px 0 rgba(189,195,199,0.5);
+}
+
+/* ===== SKINS DE CORPO ===== */
+[data-skin="droopy"] .skin-mod {
+  /* orelhas caídas */
+  box-shadow:
+    0px 2px var(--agent-color), 0px 6px var(--agent-color),
+    40px 2px var(--agent-color), 40px 6px var(--agent-color);
+}
+[data-skin="droopy"] .pixel-sprite { filter: none; }
+[data-skin="robot"] .skin-mod {
+  /* antena + parafusos */
+  box-shadow:
+    20px -8px #95a5a6, 20px -12px #7f8c8d, 20px -16px #e74c3c,
+    2px 18px #bdc3c7, 38px 18px #bdc3c7;
+}
+[data-skin="robot"] .pixel-sprite { filter: saturate(0.35) brightness(1.1); }
+
+/* ===== LAPTOP (Dev digitando) ===== */
+#aic-clawd-node.typing .laptop {
+  display: block;
+  box-shadow:
+    10px 30px #2c3e50, 14px 30px #34495e, 18px 30px #2c3e50, 22px 30px #34495e, 26px 30px #2c3e50,
+    10px 26px #85c1e9, 14px 26px #aed6f1, 18px 26px #85c1e9, 22px 26px #aed6f1, 26px 26px #85c1e9,
+    10px 22px #2c3e50, 26px 22px #2c3e50;
+}
+#aic-clawd-node.typing .pixel-sprite {
+  animation: clawd-pixel-walk 0.16s steps(1) infinite !important;
 }
 
 /* ============================
    MODO LISO x PIXELADO / CONTORNO
    ============================ */
-
-/* Liso: cada "pixel" (tile de box-shadow) cresce levemente e se
-   sobrepõe ao vizinho, fundindo a arte num preenchimento sólido —
-   sem a grade de frestas entre os tiles e sem borrar a silhueta. */
-#aic-clawd-node.smooth .pixel-sprite {
-  width: 4.6px;
-  height: 4.6px;
-  image-rendering: auto;
+#aic-clawd-node.smooth .sprite-stack {
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.18));
 }
-
-/* Contorno: traça uma borda escura em volta do pet (compõe com o liso) */
 #aic-clawd-node.outlined .sprite-stack {
   filter:
     drop-shadow(2px 0 0 var(--outline-color, #16161f))
@@ -341,22 +652,50 @@
     drop-shadow(0 2px 0 var(--outline-color, #16161f))
     drop-shadow(0 -2px 0 var(--outline-color, #16161f));
 }
+#aic-clawd-node.smooth.outlined .sprite-stack {
+  filter:
+    drop-shadow(2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(-2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(0 2px 0 var(--outline-color, #16161f))
+    drop-shadow(0 -2px 0 var(--outline-color, #16161f));
+}
+
+/* Banho: pet brilhando */
+#aic-clawd-node.shiny .sprite-stack {
+  filter: brightness(1.15) saturate(1.15) drop-shadow(0 0 6px rgba(160,220,255,0.7));
+}
 
 /* ============================
-   BOLA DE FUTEBOL (Profissão: Jogador)
+   BOLA (Jogador) + skins
    ============================ */
-@keyframes ball-juggle {
+@keyframes clawd-ball-juggle {
   0%,100% { transform: translateY(0) rotate(0deg); }
   50%     { transform: translateY(-26px) rotate(180deg); }
 }
-@keyframes ball-kick {
+/* Embaixadinha: arco mais realista com variação lateral */
+@keyframes clawd-ball-keepy {
   0%   { transform: translate(0,0) rotate(0deg); }
-  40%  { transform: translate(140px,-90px) rotate(380deg); }
-  70%  { transform: translate(220px,10px) rotate(680deg); }
-  100% { transform: translate(0,0) rotate(1080deg); }
+  20%  { transform: translate(3px,-40px) rotate(90deg); }
+  40%  { transform: translate(0,-52px) rotate(200deg); }
+  60%  { transform: translate(-4px,-38px) rotate(300deg); }
+  80%  { transform: translate(-2px,-18px) rotate(340deg); }
+  100% { transform: translate(0,0) rotate(360deg); }
+}
+/* Chute: parábola com rotação */
+@keyframes clawd-ball-kick {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  35%  { transform: translate(120px,-110px) rotate(380deg); }
+  60%  { transform: translate(210px,-40px) rotate(680deg); }
+  75%  { transform: translate(250px,15px) rotate(830deg); }
+  100% { transform: translate(0,0) rotate(1080deg); opacity: 1; }
+}
+/* Bola rolando (erro na embaixadinha) */
+@keyframes clawd-ball-roll {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  100% { transform: translate(-110px,4px) rotate(-720deg); }
 }
 
-.pet-ball {
+#aic-clawd-node .pet-ball {
   position: absolute;
   bottom: -4px;
   left: -26px;
@@ -372,16 +711,77 @@
   box-shadow: inset -2px -3px 4px rgba(0,0,0,0.35), 0 3px 4px rgba(0,0,0,0.3);
   cursor: pointer;
   display: none;
-  animation: ball-juggle 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  animation: clawd-ball-juggle 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
   z-index: 5;
 }
 #aic-clawd-node.has-ball .pet-ball { display: block; }
-.pet-ball.kicked {
-  animation: ball-kick 1.3s cubic-bezier(0.3, 0, 0.4, 1) forwards !important;
+#aic-clawd-node.keepy .pet-ball {
+  animation: clawd-ball-keepy 0.6s cubic-bezier(0.4, 0, 0.5, 1) infinite !important;
+}
+#aic-clawd-node .pet-ball.kicked  { animation: clawd-ball-kick 1.3s cubic-bezier(0.3, 0, 0.4, 1) forwards !important; }
+#aic-clawd-node .pet-ball.rolling { animation: clawd-ball-roll 1.1s ease-out forwards !important; }
+
+/* Skins da bola */
+[data-ball-skin="ball_gold"] .pet-ball {
+  background:
+    radial-gradient(circle at 35% 30%, #fff8dc 0 30%, transparent 34%),
+    radial-gradient(circle at 50% 50%, #f1c40f 0 100%);
+  box-shadow: inset -2px -3px 4px rgba(120,80,0,0.5), 0 0 8px rgba(241,196,15,0.7);
+}
+[data-ball-skin="ball_beach"] .pet-ball {
+  background:
+    conic-gradient(#e74c3c 0 60deg, #fff 60deg 120deg, #3498db 120deg 180deg,
+                   #fff 180deg 240deg, #f1c40f 240deg 300deg, #fff 300deg 360deg);
+  box-shadow: inset -2px -3px 4px rgba(0,0,0,0.25), 0 3px 4px rgba(0,0,0,0.3);
+}
+
+/* Trave pixel-art no gol */
+.aic-goalpost {
+  position: fixed;
+  right: 8px;
+  width: 60px;
+  height: 74px;
+  z-index: 2147483646;
+  border-top: 6px solid #ecf0f1;
+  border-left: 6px solid #ecf0f1;
+  border-right: 6px solid #ecf0f1;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, rgba(236,240,241,0.35) 6px 8px),
+    repeating-linear-gradient(-45deg, transparent 0 6px, rgba(236,240,241,0.35) 6px 8px);
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none;
+}
+.aic-goalpost.visible { opacity: 1; transform: translateX(0); }
+
+/* Bolinha genérica de brincar */
+.aic-toyball {
+  position: fixed;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #aef56e 0 35%, #4caf50 40% 100%);
+  box-shadow: inset -2px -2px 3px rgba(0,0,0,0.3);
+  z-index: 2147483647;
+  pointer-events: none;
+  animation: clawd-toyball 1.9s cubic-bezier(0.3,0,0.4,1) forwards;
+}
+
+/* Poeirinha da corrida */
+.aic-dust {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(180,170,160,0.6);
+  z-index: 2147483646;
+  pointer-events: none;
+  animation: clawd-dust 0.6s ease-out forwards;
 }
 
 /* --- SOMBRA NO CHÃO --- */
-.ground-shadow {
+#aic-clawd-node .ground-shadow {
   position: absolute;
   bottom: -8px;
   left: 50%;
@@ -395,8 +795,138 @@
   pointer-events: none;
 }
 
-/* --- ETIQUETA DE NOME --- */
-.name-tag {
+/* --- BADGE DE EMOÇÃO --- */
+#aic-clawd-node .emotion-badge {
+  position: absolute;
+  top: -62px;
+  left: -24px;
+  min-width: 28px;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 4px 6px;
+  font-size: 18px;
+  line-height: 1;
+  background: rgba(255,255,255,.96);
+  border: 2px solid var(--agent-color);
+  border-radius: 50% 50% 50% 12px;
+  box-shadow: 0 5px 14px rgba(0,0,0,.22);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+  opacity: 0;
+  transform: translateY(6px) scale(.65) rotate(-8deg);
+  transition: opacity .22s ease, transform .32s cubic-bezier(.34,1.56,.64,1);
+  z-index: 11;
+}
+#aic-clawd-node .emotion-badge.visible { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+#aic-clawd-node .emotion-badge::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border-right: 2px solid var(--agent-color);
+  border-bottom: 2px solid var(--agent-color);
+  transform: rotate(28deg);
+}
+
+/* Camada facial: pisca sem alterar a silhueta ou os acessórios. */
+#aic-clawd-node .emotion-face {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+#aic-clawd-node .blink-cover,
+#aic-clawd-node .blink-line,
+#aic-clawd-node .emotion-mouth { position: absolute; display: block; pointer-events: none; }
+#aic-clawd-node .blink-cover {
+  left: 12px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  background: var(--agent-color);
+  box-shadow: 16px 0 var(--agent-color);
+  opacity: 0;
+  animation: clawd-eye-cover 5.2s steps(1) infinite;
+}
+#aic-clawd-node .blink-line {
+  left: 12px;
+  top: 6px;
+  width: 4px;
+  height: 1px;
+  background: #111;
+  box-shadow: 16px 0 #111;
+  opacity: 0;
+  animation: clawd-eye-line 5.2s steps(1) infinite;
+}
+#aic-clawd-node .emotion-mouth {
+  left: 18px;
+  top: 8px;
+  width: 8px;
+  height: 4px;
+  box-sizing: border-box;
+  background: transparent;
+  border: 0 solid #211418;
+  opacity: 0;
+  transform-origin: center;
+  transition: opacity .16s ease, transform .18s ease;
+}
+#aic-clawd-node .emotion-mouth::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 2px;
+  height: 1px;
+  border-radius: 0 0 2px 2px;
+  background: #e76578;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+#aic-clawd-node.mouth-hidden .emotion-mouth,
+#aic-clawd-node.mouth-hidden .emotion-mouth::after {
+  display: none !important;
+}
+@keyframes clawd-eye-cover { 0%, 91%, 96%, 100% { opacity: 0; } 92%, 95% { opacity: 1; } }
+@keyframes clawd-eye-line  { 0%, 91%, 96%, 100% { opacity: 0; } 92%, 95% { opacity: 1; } }
+#aic-clawd-node[data-emotion="sleepy"] .blink-cover,
+#aic-clawd-node[data-emotion="sleepy"] .blink-line { opacity: 1; animation: none; }
+#aic-clawd-node[data-emotion="sad"] .emotion-mouth {
+  top: 10px;
+  border-top-width: 2px;
+  border-radius: 8px 8px 0 0;
+  opacity: .9;
+}
+#aic-clawd-node[data-emotion="hungry"] .emotion-mouth,
+#aic-clawd-node[data-emotion="sleepy"] .emotion-mouth,
+#aic-clawd-node.sleeping .emotion-mouth {
+  left: 19px;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border: 2px solid #211418;
+  border-radius: 50%;
+  opacity: .92;
+}
+#aic-clawd-node[data-emotion="joyful"] .emotion-mouth,
+#aic-clawd-node.happy .emotion-mouth,
+#aic-clawd-node.celebrate .emotion-mouth {
+  left: 18px;
+  width: 8px;
+  height: 4px;
+  border-bottom-width: 2px;
+  border-radius: 0 0 10px 10px;
+  opacity: 1;
+}
+#aic-clawd-node[data-emotion="joyful"] .emotion-mouth::after,
+#aic-clawd-node.happy .emotion-mouth::after,
+#aic-clawd-node.celebrate .emotion-mouth::after { opacity: .9; }
+
+/* --- ETIQUETA DE NOME (+ temas) --- */
+#aic-clawd-node .name-tag {
   font-family: 'Courier New', Courier, monospace;
   font-weight: 700;
   font-size: 13px;
@@ -410,16 +940,34 @@
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-  transition: border-color 0.4s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s ease;
 }
+#aic-clawd-node[data-tag-theme="dark"] .name-tag {
+  background: rgba(20,20,32,0.92);
+  color: #e8e8f0;
+}
+#aic-clawd-node[data-tag-theme="neon"] .name-tag {
+  background: rgba(10,10,20,0.95);
+  color: #0ff;
+  border-color: #0ff;
+  text-shadow: 0 0 6px #0ff;
+  box-shadow: 0 0 12px rgba(0,255,255,0.5);
+}
+#aic-clawd-node[data-tag-theme="invisible"] .name-tag { display: none; }
+
+/* Cor do name-tag reage à emoção */
+#aic-clawd-node[data-emotion="joyful"] .name-tag { border-color: #f1c40f; }
+#aic-clawd-node[data-emotion="sad"]    .name-tag { border-color: #5d7a9c; }
+#aic-clawd-node[data-emotion="hungry"] .name-tag { border-color: #e67e22; }
+#aic-clawd-node[data-emotion="sleepy"] .name-tag { border-color: #8e7cc3; }
 
 /* --- BALÃO DE FALA --- */
-.speech-bubble {
+#aic-clawd-node .speech-bubble {
   position: absolute;
   bottom: 95px;
   right: -8px;
   min-width: 80px;
-  max-width: 180px;
+  max-width: 190px;
   background: #fff;
   border: 2px solid var(--agent-color);
   border-radius: 14px;
@@ -441,8 +989,7 @@
     border-color 0.4s ease;
   z-index: 10;
 }
-
-.speech-bubble::after {
+#aic-clawd-node .speech-bubble::after {
   content: '';
   position: absolute;
   bottom: -9px;
@@ -452,7 +999,7 @@
   border-right: 7px solid transparent;
   border-top: 9px solid var(--agent-color);
 }
-.speech-bubble::before {
+#aic-clawd-node .speech-bubble::before {
   content: '';
   position: absolute;
   bottom: -6px;
@@ -463,10 +1010,374 @@
   border-top: 7px solid #fff;
   z-index: 1;
 }
+#aic-clawd-node .speech-bubble.visible { opacity: 1; transform: translateY(0) scale(1); }
 
-.speech-bubble.visible {
+/* Balão interativo (desafio do Tutor) */
+#aic-clawd-node .speech-bubble.interactive {
+  pointer-events: auto;
+  white-space: normal;
+  max-width: 210px;
+  cursor: default;
+}
+.challenge-q { margin-bottom: 6px; font-size: 12px; }
+.challenge-opts { display: flex; gap: 5px; justify-content: center; }
+.challenge-opt {
+  border: 2px solid var(--agent-color);
+  background: #f7f7fb;
+  color: #1a1a2e;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 12px;
+  border-radius: 8px;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.challenge-opt:hover { background: var(--agent-color); color: #fff; transform: scale(1.1); }
+
+/* ============================
+   LAGO DE PESCA PIXEL-ART
+   ============================ */
+@keyframes clawd-lake-ripple {
+  0%,100% { box-shadow:
+    0 0 0 2px rgba(52,152,219,0.3),
+    0 0 0 5px rgba(52,152,219,0.1); }
+  50% { box-shadow:
+    0 0 0 4px rgba(52,152,219,0.4),
+    0 0 0 10px rgba(52,152,219,0.1); }
+}
+@keyframes clawd-fish-swim {
+  0%,100% { transform: translateX(0) scaleX(1); }
+  45%     { transform: translateX(30px) scaleX(1); }
+  50%     { transform: translateX(30px) scaleX(-1); }
+  95%     { transform: translateX(0) scaleX(-1); }
+}
+@keyframes clawd-fishing-line-sway {
+  0%,100% { transform: rotate(0deg); transform-origin: top left; }
+  40%     { transform: rotate(3deg); }
+  70%     { transform: rotate(-2deg); }
+}
+@keyframes clawd-fish-splash {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  50%  { opacity: 1; transform: translateY(-20px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-35px) scale(0.5); }
+}
+.aic-lake {
+  position: fixed;
+  bottom: 8px;
+  width: 110px;
+  height: 50px;
+  border-radius: 55px 55px 50% 50% / 30px 30px 25px 25px;
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(100,180,255,0.7) 0%, transparent 60%),
+    linear-gradient(180deg, #5dade2 0%, #2e86c1 60%, #1a5276 100%);
+  border: 2px solid #1a8fd1;
+  z-index: 2147483644;
+  pointer-events: auto;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: hidden;
+}
+.aic-lake.visible {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: scaleX(1);
+}
+.aic-lake { cursor: pointer; }
+.aic-lake.bite { filter: brightness(1.25) saturate(1.35); }
+/* espelho d'água (brilho) */
+.aic-lake::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 15px;
+  width: 40px; height: 6px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 50%;
+  animation: clawd-lake-ripple 2s ease-in-out infinite;
+}
+/* nenúfar */
+.aic-lake::after {
+  content: '🍃';
+  position: absolute;
+  bottom: 4px; right: 10px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+.aic-fish {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  font-size: 10px;
+  animation: clawd-fish-swim 3s ease-in-out infinite;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+.aic-fishing-line {
+  position: fixed;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(189,195,199,0.8), rgba(52,152,219,0.6));
+  transform-origin: top center;
+  z-index: 2147483645;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: clawd-fishing-line-sway 2s ease-in-out infinite;
+}
+.aic-fishing-line.visible { opacity: 1; }
+.aic-fish-caught {
+  position: fixed;
+  font-size: 18px;
+  z-index: 2147483647;
+  pointer-events: none;
+  animation: clawd-fish-splash 1.2s cubic-bezier(0.3,0,0.4,1) forwards;
+}
+
+/* ============================
+   TOAST DE CONQUISTA — GAMIFICADO ÉPICO
+   ============================ */
+@keyframes clawd-toast-slide-in {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(80px) scale(0.7); }
+  60%  { transform: translateX(-50%) translateY(-8px) scale(1.04); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes clawd-toast-slide-out {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(60px) scale(0.8); }
+}
+@keyframes clawd-toast-shine {
+  0%   { left: -60%; }
+  100% { left: 130%; }
+}
+@keyframes clawd-toast-glow-pulse {
+  0%,100% { box-shadow: var(--toast-shadow, 4px 4px 0 rgba(0,0,0,0.4)); }
+  50%     { box-shadow: var(--toast-glow, 0 0 20px rgba(255,215,0,0.6)), 4px 4px 0 rgba(0,0,0,0.4); }
+}
+@keyframes clawd-toast-star-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.3); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes clawd-toast-progress {
+  0%   { width: 100%; }
+  100% { width: 0%; }
+}
+@keyframes clawd-rarity-flicker {
+  0%,90%,100% { opacity: 1; }
+  92%         { opacity: 0.6; }
+  96%         { opacity: 0.8; }
+}
+
+.aic-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  min-width: 280px;
+  max-width: 340px;
+  background: #0d0d1a;
+  border: 2px solid var(--toast-color, #ffe66d);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5), var(--toast-glow, 0 0 16px rgba(255,230,109,0.35));
+  font-family: 'Courier New', monospace;
+  z-index: 2147483647;
+  opacity: 0;
+  pointer-events: none;
+  image-rendering: pixelated;
+  overflow: hidden;
+  animation: clawd-toast-glow-pulse 2s ease-in-out infinite;
+}
+.aic-toast.visible {
+  animation: clawd-toast-slide-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both, clawd-toast-glow-pulse 2s 0.5s ease-in-out infinite;
+}
+.aic-toast.hiding {
+  animation: clawd-toast-slide-out 0.4s ease-in both !important;
+}
+/* Efeito de brilho que desliza */
+.aic-toast::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: clawd-toast-shine 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.aic-toast-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 14px;
+}
+.aic-toast-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px var(--toast-color, #ffe66d));
+  animation: clawd-toast-star-spin 3s linear infinite;
+}
+.aic-toast-text {
+  flex: 1;
+  min-width: 0;
+}
+.aic-toast-rarity {
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--toast-color, #ffe66d);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+  animation: clawd-rarity-flicker 3s ease-in-out infinite;
+}
+.aic-toast-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aic-toast-desc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aic-toast-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 10px;
+  margin-top: 3px;
+}
+.aic-toast-progress-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.aic-toast-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--toast-color, #ffe66d), rgba(255,255,255,0.8));
+  animation: clawd-toast-progress 3.5s linear forwards;
+  transform-origin: left;
+}
+/* Pixel corners decorativos */
+.aic-toast-corner {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--toast-color, #ffe66d);
+}
+.aic-toast-corner.tl { top: 0; left: 0; }
+.aic-toast-corner.tr { top: 0; right: 0; }
+.aic-toast-corner.bl { bottom: 3px; left: 0; }
+.aic-toast-corner.br { bottom: 3px; right: 0; }
+
+/* Pegadas nas abas sem pet (cross-tab) */
+#aic-footprints {
+  position: fixed;
+  bottom: 12px;
+  right: 16px;
+  font-size: 15px;
+  opacity: 0.35;
+  z-index: 2147483645;
+  pointer-events: none;
+  animation: clawd-breathe 4s ease-in-out infinite;
+}
+
+/* ============================
+   SUB-PET
+   ============================ */
+.aic-subpet {
+  --subpet-direction: 1;
+  position: fixed;
+  z-index: 2147483646;
+  width: 30px;
+  height: 22px;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 0.5s ease;
+}
+.aic-subpet .subpet-sprite {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction));
+  transform-origin: top left;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+  will-change: transform, filter;
+}
+.aic-subpet.flipped { --subpet-direction: -1; }
+.aic-subpet .subpet-bubble {
+  position: absolute;
+  bottom: 26px;
+  left: -6px;
+  background: #fff;
+  border: 2px solid #555;
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  color: #1a1a2e;
+  padding: 2px 7px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.aic-subpet .subpet-bubble.visible { opacity: 1; transform: scale(1); }
+
+@keyframes clawd-subpet-hop {
+  0%,100% { margin-top: 0; }
+  50%     { margin-top: -10px; }
+}
+.aic-subpet.playing .subpet-sprite { animation: clawd-subpet-hop 0.4s ease-in-out infinite; }
+.aic-subpet.cuddling .subpet-sprite { animation: clawd-subpet-cuddle 0.32s ease-in-out 3; }
+.aic-subpet.racing .subpet-sprite { animation: clawd-subpet-run 0.18s steps(2) infinite; }
+.aic-subpet.waking .subpet-sprite { animation: clawd-subpet-wake 1s cubic-bezier(.34,1.56,.64,1); }
+.aic-subpet.spinning .subpet-sprite { animation: clawd-subpet-spin 0.62s cubic-bezier(.45,.05,.55,.95) 2; }
+.aic-subpet.celebrating .subpet-sprite { animation: clawd-subpet-celebrate 0.46s cubic-bezier(.34,1.56,.64,1) 4; }
+.aic-subpet.exploring .subpet-sprite { animation: clawd-subpet-explore 0.34s steps(2) infinite; }
+.aic-subpet.vanishing .subpet-sprite { animation: clawd-subpet-vanish 1.9s ease-in-out both; }
+.aic-subpet.sleeping .subpet-sprite { filter: brightness(0.55) saturate(0.3) drop-shadow(0 3px 4px rgba(0,0,0,0.2)); }
+.aic-subpet.fire .subpet-sprite { filter: drop-shadow(0 0 8px rgba(231,76,60,0.9)); }
+@keyframes clawd-subpet-split {
+  0%,100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
+  50%     { transform: scale(calc(var(--subpet-scale, 1) * 0.7)) scaleX(var(--subpet-direction)) translateX(8px); }
+}
+.aic-subpet.split .subpet-sprite { animation: clawd-subpet-split 0.5s ease-in-out 3; }
+@keyframes clawd-subpet-cuddle {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) rotate(-5deg); }
+}
+@keyframes clawd-subpet-run {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -3px; }
+}
+@keyframes clawd-subpet-wake {
+  0% { transform: scale(calc(var(--subpet-scale, 1) * .65)) scaleX(var(--subpet-direction)) translateY(7px); filter: brightness(.55); }
+  55% { transform: scale(calc(var(--subpet-scale, 1) * 1.16)) scaleX(var(--subpet-direction)) translateY(-7px); filter: brightness(1.25); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); filter: none; }
+}
+@keyframes clawd-subpet-spin {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) rotate(180deg) translateY(-4px); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(360deg); }
+}
+@keyframes clawd-subpet-celebrate {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
+  45% { transform: scale(calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-10px) rotate(-7deg); }
+  70% { transform: scale(calc(var(--subpet-scale, 1) * .96)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(5deg); }
+}
+@keyframes clawd-subpet-explore {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(-2deg); filter: brightness(1); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px) rotate(2deg); filter: brightness(1.13); }
+}
+@keyframes clawd-subpet-vanish {
+  0%, 100% { opacity: 1; transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); filter: blur(0) brightness(1); }
+  45%, 62% { opacity: .08; transform: scale(calc(var(--subpet-scale, 1) * .68)) scaleX(var(--subpet-direction)) translateY(-8px); filter: blur(1px) brightness(1.8); }
 }
 
 /* ============================
@@ -474,45 +1385,36 @@
    ============================ */
 
 /* IDLE: respiração suave */
-#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving) .pet-body {
+#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.stretching):not(.roaring):not(.highfive) .pet-body {
   animation: clawd-breathe 3s ease-in-out infinite;
 }
 
-/* HAPPY: pula e brilha */
+/* HAPPY */
 #aic-clawd-node.happy .pet-body {
   animation: clawd-spin-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
 #aic-clawd-node.happy .pixel-sprite {
-  animation: walk 0.2s steps(1) infinite !important;
+  animation: clawd-pixel-walk 0.2s steps(1) infinite !important;
   filter: brightness(1.4) saturate(1.6) hue-rotate(15deg);
 }
-#aic-clawd-node.happy .name-tag {
-  transform: scale(1.15);
-}
-#aic-clawd-node.happy {
-  --agent-color: #ff4757;
-}
+#aic-clawd-node.happy .name-tag { transform: scale(1.15); }
+#aic-clawd-node.happy { --agent-color: #ff4757; }
 
-/* SLEEPING: dimeia e para */
+/* SLEEPING */
 #aic-clawd-node.sleeping .pixel-sprite {
-  animation: sleep-anim 2.5s ease-in-out infinite !important;
+  animation: clawd-pixel-sleep 2.5s ease-in-out infinite !important;
   filter: brightness(0.55) saturate(0.25);
 }
 #aic-clawd-node.sleeping .pet-body {
   animation: clawd-breathe 2.5s ease-in-out infinite !important;
   filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.2));
 }
-#aic-clawd-node.sleeping .name-tag {
-  opacity: 0.5;
-  font-size: 11px;
-}
-#aic-clawd-node.sleeping .ground-shadow {
-  opacity: 0.15;
-}
+#aic-clawd-node.sleeping .name-tag { opacity: 0.5; font-size: 11px; }
+#aic-clawd-node.sleeping .ground-shadow { opacity: 0.15; }
 
-/* EXCITED: sacode e acelera */
+/* EXCITED */
 #aic-clawd-node.excited .pixel-sprite {
-  animation: walk 0.18s steps(1) infinite !important;
+  animation: clawd-pixel-walk 0.18s steps(1) infinite !important;
   filter: brightness(1.2) saturate(1.3);
 }
 #aic-clawd-node.excited .pet-body {
@@ -521,112 +1423,1052 @@
 }
 
 /* WAVING */
-#aic-clawd-node.waving .pixel-sprite {
-  animation: walk 0.4s steps(1) infinite !important;
-}
-#aic-clawd-node.waving .pet-body {
-  animation: clawd-breathe 0.8s ease-in-out infinite !important;
+#aic-clawd-node.waving .pixel-sprite { animation: clawd-pixel-walk 0.4s steps(1) infinite !important; }
+#aic-clawd-node.waving .pet-body { animation: clawd-breathe 0.8s ease-in-out infinite !important; }
+
+/* WALKING / RUNNING */
+#aic-clawd-node.walking .pixel-sprite { animation: clawd-pixel-walk 0.35s steps(1) infinite !important; }
+#aic-clawd-node.running .pixel-sprite { animation: clawd-pixel-walk 0.14s steps(1) infinite !important; }
+#aic-clawd-node.running .pet-body { animation: clawd-breathe 0.4s ease-in-out infinite !important; }
+
+/* SOMERSAULT (cambalhota) */
+#aic-clawd-node.somersault .pet-body {
+  animation: clawd-somersault 1s cubic-bezier(0.4, 0, 0.4, 1) forwards !important;
 }
 
-/* WALKING (auto-walk) */
-#aic-clawd-node.walking .pixel-sprite {
-  animation: walk 0.35s steps(1) infinite !important;
+/* EATING */
+#aic-clawd-node.eating .pet-body { animation: clawd-chew 0.45s ease-in-out 4 !important; }
+
+/* CELEBRATE */
+#aic-clawd-node.celebrate .pet-body {
+  animation: clawd-celebrate 0.7s cubic-bezier(0.34,1.56,0.64,1) 3 !important;
+}
+#aic-clawd-node.celebrate .pixel-sprite {
+  animation: clawd-pixel-walk 0.18s steps(1) infinite !important;
+  filter: brightness(1.3) saturate(1.5);
 }
 
-/* FLIPPING: salto mortal 360° */
-#aic-clawd-node.flipping .pet-body {
-  animation: clawd-flip 0.85s cubic-bezier(0.34, 1.2, 0.5, 1) forwards !important;
+/* YAWNING (bocejo pré-sono) */
+#aic-clawd-node.yawning .pet-body { animation: clawd-yawn 2s ease-in-out forwards !important; }
+#aic-clawd-node.yawning .pixel-sprite { filter: brightness(0.85); }
+
+/* SHY (tímido) */
+#aic-clawd-node.shy .pet-body { animation: clawd-shy 1.2s ease-in-out 2 !important; }
+#aic-clawd-node.shy .pixel-sprite { filter: saturate(1.3) hue-rotate(-10deg) brightness(1.05); }
+
+/* TANTRUM (birra) */
+#aic-clawd-node.tantrum .pet-body { animation: clawd-tantrum 0.8s ease-in-out 3 !important; }
+#aic-clawd-node.tantrum .pixel-sprite { filter: saturate(1.6) hue-rotate(-20deg); }
+
+/* DANÇA — 3 passos distintos */
+#aic-clawd-node.dance-1 .pet-body { animation: clawd-shake 0.3s ease-in-out infinite !important; }
+#aic-clawd-node.dance-2 .pet-body { animation: clawd-dance-spin 0.9s linear 1 !important; }
+#aic-clawd-node.dance-3 .pet-body { animation: clawd-dance-bounce 0.5s ease-in-out infinite !important; }
+#aic-clawd-node.dance-1 .pixel-sprite,
+#aic-clawd-node.dance-2 .pixel-sprite,
+#aic-clawd-node.dance-3 .pixel-sprite {
+  animation: clawd-pixel-walk 0.2s steps(1) infinite !important;
+  filter: brightness(1.2) saturate(1.4);
 }
 
-/* EATING: mastiga com squash & stretch */
-#aic-clawd-node.eating .pet-body {
-  animation: clawd-eat 0.28s ease-in-out 5 !important;
+/* POSE (congela para foto) */
+#aic-clawd-node.pose .pixel-sprite { animation-play-state: paused !important; }
+#aic-clawd-node.pose .pet-body { animation: clawd-pose-sparkle 1s ease-in-out infinite !important; }
+
+/* BATHING */
+#aic-clawd-node.bathing .pet-body { animation: clawd-shake 0.5s ease-in-out infinite !important; }
+#aic-clawd-node.bathing .pixel-sprite { filter: brightness(1.2) saturate(0.8) hue-rotate(160deg); }
+
+/* KEEPY-UPPY (embaixadinhas) — perna alternando com animação dedicada */
+#aic-clawd-node.keepy-uppy .pixel-sprite {
+  animation: clawd-pixel-keepy 0.4s steps(1) infinite !important;
 }
-#aic-clawd-node.eating .pixel-sprite {
-  filter: brightness(1.15) saturate(1.2);
+#aic-clawd-node.keepy-uppy .pet-body { animation: clawd-breathe 0.7s ease-in-out infinite !important; }
+
+/* FISHING (pescando) */
+#aic-clawd-node.fishing .pixel-sprite { animation: clawd-pixel-walk 0.8s steps(1) infinite !important; }
+#aic-clawd-node.fishing .pet-body {
+  animation: clawd-fishing 1.8s ease-in-out infinite !important;
 }
+#aic-clawd-node.fishing .pixel-sprite { filter: brightness(0.95) saturate(0.85); }
+
+/* REELING (puxando peixe) */
+#aic-clawd-node.reeling .pet-body {
+  animation: clawd-reel 0.4s ease-in-out 3 !important;
+}
+
+/* JUMPING (pulo) */
+#aic-clawd-node.jumping .pet-body {
+  animation: clawd-jump 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards !important;
+}
+#aic-clawd-node.jumping .pixel-sprite {
+  animation: clawd-pixel-walk 0.2s steps(1) infinite !important;
+  filter: brightness(1.1) saturate(1.2);
+}
+
+/* STRETCHING (esticão) */
+#aic-clawd-node.stretching .pet-body {
+  animation: clawd-stretch 1.2s ease-in-out forwards !important;
+}
+#aic-clawd-node.stretching .pixel-sprite { filter: brightness(0.9); }
+
+/* ROARING (rugido) */
+#aic-clawd-node.roaring .pet-body {
+  animation: clawd-roar 0.8s cubic-bezier(0.34,1.56,0.64,1) 2 !important;
+}
+#aic-clawd-node.roaring .pixel-sprite {
+  animation: clawd-pixel-walk 0.15s steps(1) infinite !important;
+  filter: brightness(1.5) saturate(2) hue-rotate(-10deg);
+}
+
+/* HIGHFIVE */
+#aic-clawd-node.highfive .pet-body {
+  animation: clawd-highfive 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards !important;
+}
+#aic-clawd-node.highfive .pixel-sprite {
+  animation: clawd-pixel-walk 0.25s steps(1) infinite !important;
+  filter: brightness(1.3) saturate(1.4) hue-rotate(20deg);
+}
+
+/* Detalhes de acabamento: acessórios têm leitura própria sem trocar o sprite base. */
+@keyframes clawd-accessory-sparkle {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+  50% { filter: brightness(1.3) drop-shadow(0 0 4px rgba(255,215,80,.7)); }
+}
+[data-acc-face="medal"] .acc-face { animation: clawd-accessory-sparkle 2.4s steps(2) infinite; }
+[data-acc-face="bow"] .acc-face { animation: clawd-scarf-wave 1.1s steps(2) infinite; transform-origin: 32px 0; }
+[data-acc-face="glasses"] .acc-face,
+[data-acc-face="sunglasses"] .acc-face { filter: drop-shadow(0 1px 0 rgba(255,255,255,.25)); }
+[data-acc-head="cap"] .acc-head,
+[data-acc-head="tophat"] .acc-head,
+[data-acc-head="chefhat"] .acc-head,
+[data-acc-head="fishhat"] .acc-head { filter: drop-shadow(0 2px 0 rgba(10,15,25,.22)); }
+[data-acc-head="crown"] .acc-head { filter: drop-shadow(0 2px 1px rgba(93,54,0,.4)); }
+[data-acc-head="propeller"] .acc-head { filter: drop-shadow(0 1px 1px rgba(20,35,50,.35)); }
+
+/* Chapéus assentam na cabeça e acompanham o passo apenas quando o pet se move. */
+@keyframes clawd-headwear-step {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-1px) rotate(-1deg); }
+}
+#aic-clawd-node.walking .acc-head {
+  animation: clawd-headwear-step var(--clawd-step-duration, .42s) ease-in-out infinite;
+  transform-origin: 22px 4px;
+  will-change: transform;
+}
+#aic-clawd-node.running .acc-head {
+  animation: clawd-headwear-step var(--clawd-run-duration, .18s) ease-in-out infinite;
+  transform-origin: 22px 4px;
+  will-change: transform;
+}
+
+/* Fones ficam atrás do chapéu quando os dois slots são combinados. */
+#aic-clawd-node[data-acc-head]:not([data-acc-head="none"])[data-acc-face="headphones"] .acc-face {
+  z-index: 3;
+}
+
+/* O modo desempenho preserva a arte e corta somente animações cosméticas. */
+#aic-clawd-node.aic-nofx .acc-head,
+#aic-clawd-node.aic-nofx .acc-face,
+#aic-clawd-node.aic-nofx .acc-head::before,
+#aic-clawd-node.aic-nofx .acc-head::after,
+#aic-clawd-node.aic-nofx .acc-face::before,
+#aic-clawd-node.aic-nofx .acc-face::after {
+  animation: none !important;
+  will-change: auto !important;
+}
+
+/* HOLDING SIGN (Tutor com plaquinha) */
+#aic-clawd-node.holding-sign .pixel-sprite { animation-play-state: paused !important; }
+#aic-clawd-node.holding-sign .pet-body { animation: clawd-breathe 2s ease-in-out infinite !important; }
 
 /* ============================
-   DESAFIO DO TUTOR (quiz)
+   MODO DESEMPENHO / ACESSIBILIDADE
    ============================ */
-.quiz-card {
-  position: absolute;
-  bottom: 105px;
-  right: -12px;
-  min-width: 185px;
-  background: #fff;
-  border: 2px solid var(--agent-color);
-  border-radius: 14px;
-  padding: 10px 14px;
-  font-family: 'Courier New', monospace;
-  color: #1a1a2e;
-  text-align: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  z-index: 11;
-  animation: clawd-quiz-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  cursor: default;
-}
-.quiz-card.wrong {
-  animation: clawd-quiz-shake 0.3s ease both;
-}
-.quiz-title {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #7a7a9a;
-  margin-bottom: 4px;
-}
-.quiz-question {
-  font-size: 17px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.quiz-options {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-}
-.quiz-options button {
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border: 1.5px solid #d5d5e2;
-  border-radius: 8px;
-  background: #f4f4f8;
-  color: #1a1a2e;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.quiz-options button:hover {
-  border-color: var(--agent-color);
-  background: #fff;
-  transform: translateY(-1px);
-}
-.quiz-options button:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  transform: none;
-}
-.quiz-close {
-  position: absolute;
-  top: 2px;
-  right: 7px;
-  border: none;
-  background: none;
-  font-size: 13px;
-  color: #aab;
-  cursor: pointer;
-  padding: 2px;
-}
-.quiz-close:hover { color: #1a1a2e; }
+#aic-clawd-node.aic-nofx .pet-body { filter: none; }
+#aic-clawd-node.aic-nofx .sprite-stack { transition: none; }
+#aic-clawd-node.aic-nofx .ground-shadow { display: none; }
+#aic-clawd-node.aic-low-refresh .aic-dust,
+#aic-clawd-node.aic-low-refresh .aic-toast-progress-bar { display: none; }
 
-/* Acessibilidade: menos vai-e-vem para quem prefere movimento reduzido */
+/* O modo padrão mantém a referência nítida; suavização é uma opção de baixa intensidade. */
+#aic-clawd-node:not(.smooth) .pixel-sprite,
+#aic-clawd-node:not(.smooth) .accessory,
+#aic-clawd-node:not(.smooth) .skin-mod,
+#aic-clawd-node:not(.smooth) .jersey { image-rendering: pixelated; }
+
 @media (prefers-reduced-motion: reduce) {
   #aic-clawd-node .pet-body,
+  #aic-clawd-node .pixel-sprite,
+  #aic-clawd-node .pet-ball,
   #aic-clawd-node .ground-shadow,
-  #aic-clawd-node .pet-ball {
-    animation: none !important;
+  .aic-subpet .subpet-sprite {
+    animation-duration: 4s !important;
+    animation-iteration-count: 1 !important;
   }
+  #aic-clawd-node { transition: none; }
+}
+
+/* Modo liso preserva a mesma silhueta e funde as bordas dos pixels. */
+#aic-clawd-node.smooth,
+#aic-clawd-node.smooth .pet-body,
+#aic-clawd-node.smooth .sprite-stack,
+#aic-clawd-node.smooth .pixel-sprite {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* ============================================================
+   SPRITE PADRÃO — frame estático do modelo de referência
+   As pernas só entram no ciclo quando o pet está se deslocando.
+   ============================================================ */
+#aic-clawd-node .pixel-sprite {
+  animation: none !important;
+  box-shadow:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    8px 4px var(--agent-color), 12px 4px #000, 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px #000, 32px 4px var(--agent-color),
+    8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color) !important;
+}
+#aic-clawd-node.walking .pixel-sprite,
+#aic-clawd-node.running .pixel-sprite { animation: clawd-pixel-walk var(--clawd-step-duration, .42s) steps(1) infinite !important; }
+#aic-clawd-node.running .pixel-sprite { animation-duration: var(--clawd-run-duration, .18s) !important; }
+#aic-clawd-node.keepy-uppy .pixel-sprite { animation: clawd-pixel-keepy var(--clawd-step-duration, .42s) steps(1) infinite !important; }
+
+/* Garantia global: nenhum estado estacionário pode ativar o ciclo das pernas. */
+#aic-clawd-node:not(.walking):not(.running):not(.keepy-uppy) .pixel-sprite {
+  animation: none !important;
+}
+
+/* As ações mudam o corpo, não deixam as pernas caminhando no lugar. */
+#aic-clawd-node.happy .pixel-sprite,
+#aic-clawd-node.excited .pixel-sprite,
+#aic-clawd-node.waving .pixel-sprite,
+#aic-clawd-node.celebrate .pixel-sprite,
+#aic-clawd-node.dance-1 .pixel-sprite,
+#aic-clawd-node.dance-2 .pixel-sprite,
+#aic-clawd-node.dance-3 .pixel-sprite,
+#aic-clawd-node.jumping .pixel-sprite,
+#aic-clawd-node.roaring .pixel-sprite,
+#aic-clawd-node.highfive .pixel-sprite { animation: none !important; }
+
+/* Óculos de sol com armação, ponte, lentes, brilho e hastes laterais. */
+[data-acc-face="sunglasses"] .acc-face {
+  box-shadow:
+    4px 4px #141420, 8px 4px #141420, 12px 4px #141420, 16px 4px #141420,
+    24px 4px #141420, 28px 4px #141420, 32px 4px #141420, 36px 4px #141420,
+    4px 8px #141420, 8px 8px #24344a, 12px 8px #24344a, 16px 8px #141420,
+    24px 8px #141420, 28px 8px #24344a, 32px 8px #24344a, 36px 8px #141420,
+    8px 12px #141420, 12px 12px #141420, 28px 12px #141420, 32px 12px #141420,
+    8px 5px rgba(255,255,255,.85), 28px 5px rgba(255,255,255,.65),
+    0 6px #141420, 40px 6px #141420;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node.walking .pixel-sprite,
+  #aic-clawd-node.running .pixel-sprite,
+  #aic-clawd-node.keepy-uppy .pixel-sprite { animation-duration: 4s !important; }
+}
+
+/* ============================================================
+   MODO LISO REAL — mesma silhueta, sem células de box-shadow
+   ============================================================ */
+#aic-clawd-node .smooth-sprite {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 44px;
+  height: 36px;
+  z-index: 0;
+  transform-origin: bottom center;
+}
+#aic-clawd-node.smooth .pixel-sprite {
+  display: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+#aic-clawd-node.smooth .smooth-sprite { display: block; }
+#aic-clawd-node .smooth-core {
+  position: absolute;
+  left: 8px;
+  top: 0;
+  width: 28px;
+  height: 24px;
+  background: var(--agent-color);
+  border-radius: 0;
+  box-shadow: none;
+}
+#aic-clawd-node .smooth-core::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 12px;
+  width: 44px;
+  height: 8px;
+  background: var(--agent-color);
+  border-radius: 0;
+}
+#aic-clawd-node .smooth-core::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
+  background: #08080b;
+  box-shadow: 16px 0 #08080b;
+}
+#aic-clawd-node .smooth-leg {
+  position: absolute;
+  top: 24px;
+  width: 4px;
+  height: 8px;
+  background: var(--agent-color);
+  border-radius: 0;
+  transform-origin: center top;
+}
+#aic-clawd-node .smooth-leg-1 { left: 8px; }
+#aic-clawd-node .smooth-leg-2 { left: 16px; }
+#aic-clawd-node .smooth-leg-3 { left: 24px; }
+#aic-clawd-node .smooth-leg-4 { left: 32px; }
+
+@keyframes clawd-smooth-leg-a {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  50% { transform: translate(-2px, 1px) rotate(14deg); }
+}
+@keyframes clawd-smooth-leg-b {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  50% { transform: translate(2px, 1px) rotate(-14deg); }
+}
+#aic-clawd-node.smooth.walking .smooth-leg-1,
+#aic-clawd-node.smooth.walking .smooth-leg-3,
+#aic-clawd-node.smooth.running .smooth-leg-1,
+#aic-clawd-node.smooth.running .smooth-leg-3 {
+  animation: clawd-smooth-leg-a var(--clawd-step-duration, .42s) ease-in-out infinite;
+}
+#aic-clawd-node.smooth.walking .smooth-leg-2,
+#aic-clawd-node.smooth.walking .smooth-leg-4,
+#aic-clawd-node.smooth.running .smooth-leg-2,
+#aic-clawd-node.smooth.running .smooth-leg-4 {
+  animation: clawd-smooth-leg-b var(--clawd-step-duration, .42s) ease-in-out infinite;
+}
+#aic-clawd-node.smooth.running .smooth-leg { animation-duration: var(--clawd-run-duration, .18s); }
+#aic-clawd-node.smooth.keepy-uppy .smooth-leg-4 { transform: translate(3px, -5px) rotate(-28deg); }
+#aic-clawd-node.smooth.sleeping .smooth-sprite { transform: translateY(4px) scaleY(.84); }
+#aic-clawd-node.smooth:not(.walking):not(.running) .smooth-leg { animation: none; }
+
+/* Camisa contínua no modo liso. */
+#aic-clawd-node.smooth.has-jersey .jersey {
+  left: 4px;
+  top: 12px;
+  width: 36px;
+  height: 10px;
+  border-radius: 5px 5px 4px 4px;
+  background:
+    linear-gradient(90deg, transparent 0 14px, rgba(255,255,255,.92) 14px 22px, transparent 22px),
+    var(--jersey-color);
+  box-shadow: inset 0 -2px rgba(0,0,0,.13) !important;
+  opacity: .94;
+}
+
+/* Base vetorial dos cosméticos: cada variante abaixo usa superfícies contínuas. */
+#aic-clawd-node.smooth .accessory,
+#aic-clawd-node.smooth .skin-mod {
+  box-shadow: none !important;
+  image-rendering: auto;
+}
+#aic-clawd-node.smooth .accessory::before,
+#aic-clawd-node.smooth .accessory::after,
+#aic-clawd-node.smooth .skin-mod::before,
+#aic-clawd-node.smooth .skin-mod::after {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+}
+
+/* Rosto e corpo — variantes lisas. */
+#aic-clawd-node.smooth[data-acc-face="glasses"] .acc-face,
+#aic-clawd-node.smooth[data-acc-face="sunglasses"] .acc-face {
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 20px;
+  background:
+    linear-gradient(#202333 0 0) 0 8px / 7px 2px no-repeat,
+    linear-gradient(#202333 0 0) 19px 8px / 6px 2px no-repeat,
+    linear-gradient(#202333 0 0) 37px 8px / 7px 2px no-repeat;
+}
+#aic-clawd-node.smooth[data-acc-face="glasses"] .acc-face::before,
+#aic-clawd-node.smooth[data-acc-face="glasses"] .acc-face::after {
+  top: 4px;
+  width: 13px;
+  height: 10px;
+  border: 2px solid #202333;
+  border-radius: 5px;
+  background: rgba(165, 220, 245, .28);
+}
+#aic-clawd-node.smooth[data-acc-face="glasses"] .acc-face::before { left: 6px; }
+#aic-clawd-node.smooth[data-acc-face="glasses"] .acc-face::after { left: 25px; }
+#aic-clawd-node.smooth[data-acc-face="sunglasses"] .acc-face::before,
+#aic-clawd-node.smooth[data-acc-face="sunglasses"] .acc-face::after {
+  top: 3px;
+  width: 14px;
+  height: 12px;
+  border: 2px solid #10131c;
+  border-radius: 5px 5px 7px 7px;
+  background: linear-gradient(145deg, rgba(255,255,255,.72) 0 17%, #263b55 19% 48%, #111722 50% 100%);
+  box-shadow: 0 2px 2px rgba(0,0,0,.22);
+}
+#aic-clawd-node.smooth[data-acc-face="sunglasses"] .acc-face::before { left: 5px; }
+#aic-clawd-node.smooth[data-acc-face="sunglasses"] .acc-face::after { left: 25px; }
+
+#aic-clawd-node.smooth[data-acc-face="bow"] .acc-face {
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 18px;
+  background: radial-gradient(circle, #c62f77 0 3px, transparent 3.4px) 31px -5px / 9px 9px no-repeat;
+}
+#aic-clawd-node.smooth[data-acc-face="bow"] .acc-face::before,
+#aic-clawd-node.smooth[data-acc-face="bow"] .acc-face::after {
+  top: -8px;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(135deg, #ff8fc6, #e84393);
+}
+#aic-clawd-node.smooth[data-acc-face="bow"] .acc-face::before {
+  left: 27px;
+  clip-path: polygon(0 12%, 100% 50%, 0 88%);
+}
+#aic-clawd-node.smooth[data-acc-face="bow"] .acc-face::after {
+  left: 36px;
+  clip-path: polygon(100% 12%, 0 50%, 100% 88%);
+}
+
+#aic-clawd-node.smooth[data-acc-face="headphones"] .acc-face {
+  left: 7px;
+  top: -5px;
+  width: 30px;
+  height: 21px;
+  border: 3px solid #252936;
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+}
+#aic-clawd-node.smooth[data-acc-face="headphones"] .acc-face::before,
+#aic-clawd-node.smooth[data-acc-face="headphones"] .acc-face::after {
+  top: 8px;
+  width: 7px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #252936, #77808e);
+  box-shadow: inset 0 -2px rgba(0,0,0,.2);
+}
+#aic-clawd-node.smooth[data-acc-face="headphones"] .acc-face::before { left: -5px; }
+#aic-clawd-node.smooth[data-acc-face="headphones"] .acc-face::after { right: -5px; transform: scaleX(-1); }
+
+#aic-clawd-node.smooth[data-acc-face="scarf"] .acc-face {
+  left: 6px;
+  top: 13px;
+  width: 32px;
+  height: 7px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #a6202d, #eb4d5c 48%, #a6202d);
+  box-shadow: inset 0 -2px rgba(80,0,0,.2) !important;
+}
+#aic-clawd-node.smooth[data-acc-face="scarf"] .acc-face::after {
+  right: 0;
+  top: 5px;
+  width: 7px;
+  height: 15px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(#eb4d5c, #a6202d);
+  transform: rotate(-5deg);
+  transform-origin: top center;
+}
+
+#aic-clawd-node.smooth[data-acc-face="backpack"] .acc-face {
+  left: -8px;
+  top: 12px;
+  width: 14px;
+  height: 17px;
+  border: 2px solid #684126;
+  border-radius: 6px 3px 4px 6px;
+  background: linear-gradient(135deg, #c48247, #8c512c);
+  box-shadow: inset -2px -2px rgba(70,35,15,.18) !important;
+}
+#aic-clawd-node.smooth[data-acc-face="backpack"] .acc-face::before {
+  left: 1px;
+  top: 8px;
+  width: 9px;
+  height: 6px;
+  border: 1px solid #6f4528;
+  border-radius: 3px;
+  background: #ce9256;
+}
+#aic-clawd-node.smooth[data-acc-face="backpack"] .acc-face::after {
+  right: -5px;
+  top: 1px;
+  width: 5px;
+  height: 14px;
+  border: 2px solid #684126;
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+#aic-clawd-node.smooth[data-acc-face="medal"] .acc-face {
+  left: 17px;
+  top: 13px;
+  width: 10px;
+  height: 15px;
+  background: linear-gradient(65deg, transparent 0 25%, #d8dde3 26% 45%, transparent 46% 54%, #b9c2cc 55% 74%, transparent 75%);
+}
+#aic-clawd-node.smooth[data-acc-face="medal"] .acc-face::after {
+  left: 1px;
+  bottom: 0;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #d88912;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff2a6, #f1c40f 45%, #d88912);
+}
+
+/* Cabeça — variantes lisas. */
+#aic-clawd-node.smooth[data-acc-head="cap"] .acc-head {
+  left: 7px;
+  top: -10px;
+  width: 31px;
+  height: 12px;
+  border-radius: 10px 10px 3px 3px;
+  background:
+    linear-gradient(90deg, transparent 0 46%, rgba(255,255,255,.18) 47% 51%, transparent 52%),
+    linear-gradient(145deg, #5f7894 0 22%, #455a72 24% 54%, #2a3b50 56% 100%);
+  box-shadow: inset 0 -3px rgba(0,0,0,.24), inset 2px 2px rgba(255,255,255,.12) !important;
+}
+#aic-clawd-node.smooth[data-acc-head="cap"] .acc-head::before {
+  left: 13px;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid #a92d2d;
+  background: radial-gradient(circle at 35% 30%, #ff8a82, #e54b4b 55%, #b72f2f);
+}
+#aic-clawd-node.smooth[data-acc-head="cap"] .acc-head::after {
+  right: -7px;
+  bottom: -3px;
+  width: 15px;
+  height: 5px;
+  border-radius: 0 5px 5px 0;
+  background: linear-gradient(#34495e, #1c2b3d);
+  box-shadow: inset 0 -1px rgba(0,0,0,.3);
+}
+
+#aic-clawd-node.smooth[data-acc-head="tophat"] .acc-head {
+  left: 13px;
+  top: -17px;
+  width: 18px;
+  height: 15px;
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(100deg, #0d0d13, #393944 38%, #24242e 56%, #0c0c12);
+  box-shadow: inset 2px 0 rgba(255,255,255,.08), inset -2px 0 rgba(0,0,0,.38) !important;
+}
+#aic-clawd-node.smooth[data-acc-head="tophat"] .acc-head::before {
+  left: -6px;
+  bottom: -3px;
+  width: 30px;
+  height: 5px;
+  border-radius: 4px;
+  background: linear-gradient(#2a2a34, #0d0d13 60%);
+  box-shadow: 0 2px 2px rgba(0,0,0,.25);
+}
+#aic-clawd-node.smooth[data-acc-head="tophat"] .acc-head::after {
+  left: 0;
+  bottom: 2px;
+  width: 18px;
+  height: 4px;
+  background: linear-gradient(90deg, #552365, #bc6bd0 42%, #8e44ad 62%, #552365);
+  box-shadow: inset 0 1px rgba(255,255,255,.25);
+}
+
+#aic-clawd-node.smooth[data-acc-head="crown"] .acc-head {
+  left: 10px;
+  top: -16px;
+  width: 24px;
+  height: 15px;
+  clip-path: polygon(0 22%, 23% 55%, 40% 0, 59% 55%, 79% 20%, 100% 58%, 92% 100%, 8% 100%);
+  background: linear-gradient(135deg, #fff09a, #f1c40f 45%, #d88912);
+  filter: drop-shadow(0 2px 1px rgba(70,40,0,.3));
+}
+#aic-clawd-node.smooth[data-acc-head="crown"] .acc-head::before {
+  left: 7px;
+  top: 8px;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+}
+#aic-clawd-node.smooth[data-acc-head="crown"] .acc-head::after {
+  left: 5px;
+  bottom: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(95,52,0,.28);
+  background: radial-gradient(circle at 35% 30%, #ff9b91, #e74c3c 60%);
+  box-shadow: 6px 0 0 -1px #3498db, 12px 0 0 -1px #27ae60;
+}
+
+#aic-clawd-node.smooth[data-acc-head="chefhat"] .acc-head {
+  left: 10px;
+  top: -16px;
+  width: 24px;
+  height: 15px;
+  border-radius: 11px 11px 3px 3px;
+  background:
+    linear-gradient(90deg, transparent 0 28%, rgba(185,195,202,.35) 29% 33%, transparent 34% 64%, rgba(185,195,202,.3) 65% 69%, transparent 70%),
+    linear-gradient(#fff, #edf1f3);
+  box-shadow: inset 0 -4px #dfe4e8, 0 2px 2px rgba(0,0,0,.14) !important;
+}
+#aic-clawd-node.smooth[data-acc-head="chefhat"] .acc-head::before {
+  left: -2px;
+  top: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 9px -3px #fff, 18px 0 #f8f9fa;
+}
+#aic-clawd-node.smooth[data-acc-head="chefhat"] .acc-head::after {
+  left: 0;
+  bottom: -1px;
+  width: 24px;
+  height: 5px;
+  border: 1px solid #cbd3d8;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #e7ebed, #fff 48%, #d4dade);
+}
+
+#aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head {
+  left: 7px;
+  top: -2px;
+  width: 30px;
+  height: 5px;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 93% 50%, #ff8b91 0 1px, transparent 1.4px),
+    linear-gradient(90deg, #76171d, #d94752 38%, #c52d39 72%, #76171d);
+  box-shadow: inset 0 1px rgba(255,255,255,.23), inset 0 -1px rgba(90,0,5,.25) !important;
+}
+#aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head::before,
+#aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head::after {
+  right: -11px;
+  top: 2px;
+  width: 13px;
+  height: 5px;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, #b72f3a, #8f1d24);
+  transform-origin: left center;
+}
+#aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head::before { transform: rotate(18deg); }
+#aic-clawd-node.smooth[data-acc-head="ninjaband"] .acc-head::after { transform: rotate(42deg); }
+
+#aic-clawd-node.smooth[data-acc-head="fishhat"] .acc-head {
+  left: 8px;
+  top: -12px;
+  width: 28px;
+  height: 12px;
+  border-radius: 9px 9px 3px 3px;
+  background:
+    radial-gradient(circle at 78% 48%, #ffe37a 0 1.5px, #d64545 1.7px 3px, transparent 3.2px),
+    linear-gradient(135deg, #d4ae4f, #b18425 52%, #76550f);
+  box-shadow: inset 0 -4px #a8781b, inset 2px 2px rgba(255,255,255,.15) !important;
+}
+#aic-clawd-node.smooth[data-acc-head="fishhat"] .acc-head::before {
+  left: -7px;
+  bottom: -3px;
+  width: 42px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(#b18425 0 42%, #76550f 45% 100%);
+  box-shadow: 0 2px 2px rgba(55,35,5,.2);
+}
+#aic-clawd-node.smooth[data-acc-head="fishhat"] .acc-head::after {
+  left: 2px;
+  bottom: 1px;
+  width: 24px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #8f2525, #e65b55 45%, #a62d2d);
+}
+
+#aic-clawd-node.smooth[data-acc-head="propeller"] .acc-head {
+  left: 9px;
+  top: -7px;
+  width: 26px;
+  height: 8px;
+  border-radius: 12px 12px 3px 3px;
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(255,255,255,.28) 49% 51%, transparent 52%),
+    linear-gradient(90deg, #55a9dd 0 48%, #ef6258 52% 100%);
+  box-shadow: inset 0 -2px rgba(35,35,50,.28), inset 2px 1px rgba(255,255,255,.2) !important;
+}
+#aic-clawd-node.smooth[data-acc-head="propeller"] .acc-head::before {
+  left: 12px;
+  top: -8px;
+  width: 3px;
+  height: 9px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #565d63, #b3bbc0 52%, #626a70);
+}
+#aic-clawd-node.smooth[data-acc-head="propeller"] .acc-head::after {
+  left: 5px;
+  top: -11px;
+  width: 17px;
+  height: 4px;
+  border-radius: 5px;
+  background:
+    radial-gradient(circle at center, #f8d94e 0 2px, transparent 2.2px),
+    linear-gradient(90deg, #3498db 0 50%, #e74c3c 50%);
+  transform-origin: center;
+  animation: clawd-propeller-spin .72s linear infinite;
+}
+#aic-clawd-node:not(.smooth)[data-acc-head="propeller"] .acc-head::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: -20px;
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
+  background: #2479ad;
+  box-shadow: 4px 0 #3498db, 8px 0 #f1c40f, 12px 0 #e74c3c, 16px 0 #b72f29;
+  transform-origin: 10px 2px;
+  animation: clawd-propeller-spin .72s steps(8) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .acc-head,
+  #aic-clawd-node .acc-face,
+  #aic-clawd-node .acc-head::before,
+  #aic-clawd-node .acc-head::after,
+  #aic-clawd-node .acc-face::before,
+  #aic-clawd-node .acc-face::after {
+    animation: none !important;
+    will-change: auto !important;
+  }
+}
+
+/* Skins também abandonam pixels soltos quando o modo liso está ativo. */
+#aic-clawd-node.smooth[data-skin="droopy"] .skin-mod {
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 16px;
+}
+#aic-clawd-node.smooth[data-skin="droopy"] .skin-mod::before,
+#aic-clawd-node.smooth[data-skin="droopy"] .skin-mod::after {
+  top: 1px;
+  width: 7px;
+  height: 12px;
+  border-radius: 5px 5px 7px 7px;
+  background: var(--agent-color);
+}
+#aic-clawd-node.smooth[data-skin="droopy"] .skin-mod::before { left: 2px; transform: rotate(8deg); }
+#aic-clawd-node.smooth[data-skin="droopy"] .skin-mod::after { right: 2px; transform: rotate(-8deg); }
+#aic-clawd-node.smooth[data-skin="robot"] .skin-mod {
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 24px;
+  background:
+    radial-gradient(circle, #d9e0e6 0 2px, #6f7b84 2.4px 3px, transparent 3.2px) 0 14px / 8px 8px no-repeat,
+    radial-gradient(circle, #d9e0e6 0 2px, #6f7b84 2.4px 3px, transparent 3.2px) 36px 14px / 8px 8px no-repeat;
+}
+#aic-clawd-node.smooth[data-skin="robot"] .skin-mod::before {
+  left: 20px;
+  top: -12px;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: #7f8c8d;
+}
+#aic-clawd-node.smooth[data-skin="robot"] .skin-mod::after {
+  left: 17px;
+  top: -16px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #7f8c8d;
+  border-radius: 50%;
+  background: #ff4757;
+}
+
+#aic-clawd-node.aic-nofx .accessory,
+#aic-clawd-node.aic-nofx .accessory::before,
+#aic-clawd-node.aic-nofx .accessory::after { animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node.smooth .smooth-leg,
+  #aic-clawd-node .accessory,
+  #aic-clawd-node .accessory::before,
+  #aic-clawd-node .accessory::after { animation: none !important; }
+}
+
+/* ============================================================
+   MODELOS v3.2 — SILHUETA, ROSTO E PERNAS EM CAMADAS
+   O clássico reproduz exatamente a referência. Os demais modelos
+   permanecem na grade de 4 px para compartilhar chapéus e óculos.
+   ============================================================ */
+:is(#aic-clawd-node, .clawd-model-preview) {
+  --agent-color: #c71515;
+  --agent-eye-color: #08080b;
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="classic"] {
+  --clawd-pixel-body:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color),
+    8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color);
+  --clawd-legs-idle:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    4px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 36px 24px var(--agent-color),
+    0 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    8px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-kick:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="mini"] {
+  --clawd-pixel-body:
+    12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color),
+    12px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px var(--agent-color),
+    12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color),
+    4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color),
+    4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color),
+    12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color);
+  --clawd-legs-idle:
+    12px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 24px var(--agent-color),
+    12px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 28px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    12px 24px var(--agent-color), 20px 24px var(--agent-color), 20px 28px var(--agent-color), 28px 24px var(--agent-color),
+    12px 28px var(--agent-color), 20px 28px var(--agent-color), 28px 28px var(--agent-color);
+  --clawd-legs-kick:
+    12px 24px var(--agent-color), 16px 24px var(--agent-color), 12px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 28px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="claws"] {
+  --clawd-pixel-body:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    0 4px var(--agent-color), 4px 4px var(--agent-color), 8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color), 36px 4px var(--agent-color), 40px 4px var(--agent-color),
+    0 8px var(--agent-color), 4px 8px var(--agent-color), 8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color), 36px 8px var(--agent-color), 40px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color);
+  --clawd-legs-idle:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    4px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 36px 24px var(--agent-color),
+    0 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    8px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-kick:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="guardian"] {
+  --clawd-pixel-body:
+    4px 0 var(--agent-color), 8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color), 36px 0 var(--agent-color),
+    4px 4px var(--agent-color), 8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color), 36px 4px var(--agent-color),
+    4px 8px var(--agent-color), 8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color), 36px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    4px 20px var(--agent-color), 8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color), 36px 20px var(--agent-color);
+  --clawd-legs-idle:
+    4px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 36px 24px var(--agent-color),
+    4px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 36px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    0 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 40px 24px var(--agent-color),
+    0 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    4px 24px var(--agent-color), 8px 24px var(--agent-color), 32px 24px var(--agent-color), 36px 24px var(--agent-color),
+    4px 28px var(--agent-color), 8px 28px var(--agent-color), 32px 28px var(--agent-color), 36px 28px var(--agent-color);
+  --clawd-legs-kick:
+    4px 24px var(--agent-color), 12px 24px var(--agent-color), 4px 28px var(--agent-color), 12px 28px var(--agent-color),
+    28px 20px var(--agent-color), 32px 20px var(--agent-color), 28px 24px var(--agent-color), 36px 28px var(--agent-color);
+}
+
+@keyframes clawd-pixel-leg-cycle {
+  0%, 50%, 100% { box-shadow: var(--clawd-legs-idle); }
+  25% { box-shadow: var(--clawd-legs-step-a); }
+  75% { box-shadow: var(--clawd-legs-step-b); }
+}
+@keyframes clawd-pixel-leg-kick {
+  0%, 100% { box-shadow: var(--clawd-legs-idle); }
+  50% { box-shadow: var(--clawd-legs-kick); }
+}
+
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-sprite,
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  image-rendering: pixelated;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-sprite {
+  box-shadow: var(--clawd-pixel-body) !important;
+  animation: none !important;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs {
+  z-index: 0;
+  box-shadow: var(--clawd-legs-idle);
+  animation: none;
+}
+#aic-clawd-node.walking .pixel-legs {
+  animation: clawd-pixel-leg-cycle var(--clawd-step-duration, .42s) steps(1) infinite;
+}
+#aic-clawd-node.running .pixel-legs {
+  animation: clawd-pixel-leg-cycle var(--clawd-run-duration, .18s) steps(1) infinite;
+}
+#aic-clawd-node.keepy-uppy .pixel-legs {
+  animation: clawd-pixel-leg-kick var(--clawd-step-duration, .42s) steps(1) infinite;
+}
+#aic-clawd-node:not(.walking):not(.running):not(.keepy-uppy) .pixel-legs {
+  animation: none !important;
+  box-shadow: var(--clawd-legs-idle);
+}
+#aic-clawd-node[data-clawd-owned="true"] .pixel-sprite,
+#aic-clawd-node.popup-outfit-pet .pixel-sprite { animation: none !important; }
+
+/* Olhos e estilos faciais compartilham a mesma âncora em todos os modelos. */
+:is(#aic-clawd-node, .clawd-model-preview) .pet-eyes,
+:is(#aic-clawd-node, .clawd-model-preview) .face-detail {
+  position: absolute;
+  pointer-events: none;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pet-eyes {
+  left: 12px;
+  top: 4px;
+  z-index: 2;
+  width: 4px;
+  height: 4px;
+  background: var(--agent-eye-color);
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+:is(#aic-clawd-node, .clawd-model-preview) .face-detail {
+  inset: 0;
+  z-index: 2;
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="sparkle"] .face-detail::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 4px;
+  width: 1px;
+  height: 1px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 16px 0 rgba(255,255,255,.92), 2px 2px rgba(255,255,255,.45), 18px 2px rgba(255,255,255,.45);
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::before,
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  width: 6px;
+  height: 2px;
+  background: var(--agent-eye-color);
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::before { left: 11px; transform: rotate(12deg); }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::after { left: 27px; transform: rotate(-12deg); }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="sleepy"] .pet-eyes {
+  left: 11px;
+  top: 6px;
+  width: 6px;
+  height: 1px;
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+#aic-clawd-node .blink-line {
+  background: var(--agent-eye-color);
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+
+/* O renderizador contínuo mantém cada silhueta sem células ou textura. */
+#aic-clawd-node .smooth-core::after { content: none; }
+#aic-clawd-node.smooth .pixel-legs {
+  display: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+#aic-clawd-node[data-model="mini"] .smooth-core { left: 12px; width: 20px; }
+#aic-clawd-node[data-model="mini"] .smooth-core::before { left: -8px; width: 36px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-1 { left: 12px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-2 { left: 16px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-3 { left: 24px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-4 { left: 28px; }
+#aic-clawd-node[data-model="claws"] .smooth-core::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 4px;
+  width: 44px;
+  height: 12px;
+  background:
+    linear-gradient(var(--agent-color) 0 0) left top / 8px 12px no-repeat,
+    linear-gradient(var(--agent-color) 0 0) right top / 8px 12px no-repeat;
+}
+#aic-clawd-node[data-model="guardian"] .smooth-core { left: 4px; width: 36px; }
+#aic-clawd-node[data-model="guardian"] .smooth-core::before { left: -4px; width: 44px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-1 { left: 4px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-2 { left: 12px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-3 { left: 28px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-4 { left: 36px; }
+
+/* Miniaturas reais usadas pelo popup; a arte vem do mesmo CSS do runtime. */
+.clawd-model-preview {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 36px;
+  flex: 0 0 44px;
+  overflow: visible;
+  transform-origin: center;
+}
+.clawd-model-preview .accessory,
+.clawd-model-preview .skin-mod {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+}
+.clawd-model-preview .skin-mod { z-index: 1; }
+.clawd-model-preview .acc-head { z-index: 4; }
+.clawd-model-preview .acc-face { z-index: 5; }
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .pixel-legs { animation-duration: 4s !important; animation-iteration-count: 1 !important; }
 }
