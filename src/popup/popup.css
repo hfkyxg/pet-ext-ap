@@ -386,6 +386,30 @@ input[type="color"] {
   margin: 4px 0 12px;
 }
 
+/* ---- ESTATÍSTICAS ---- */
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+}
+.stat-icon { font-size: 14px; }
+.stat-value {
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- BUTTONS ---- */
 .btn {
   display: flex;

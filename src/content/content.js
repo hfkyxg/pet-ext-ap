@@ -21,7 +21,12 @@
     WAVE_EVERY_MS: 25000,
     WALK_EVERY_MS: 18000,
     WALK_DURATION_MS: 1150,
-    KICK_DURATION_MS: 1400
+    KICK_DURATION_MS: 1400,
+    EAT_MS: 1500,
+    FLIP_MS: 900,
+    QUIZ_AFTER_MS: 40000,     // desafio do tutor após ~40s num site de distração
+    COMBO_WINDOW_MS: 4000,    // 3 carinhos dentro da janela = combo
+    STREAK_WINDOW_MS: 12000   // 3 gols dentro da janela = hat-trick
   });
 
   const CHANCE = Object.freeze({ speech: 0.6, wave: 0.45, walk: 0.55 });
@@ -30,10 +35,13 @@
     idle:     ['Oi! 👋', 'Bora navegar! 🌐', 'Me arraste! ✨', 'Aqui pra ajudar 🐾', 'Clique em mim! 💫'],
     happy:    ['❤️ Obrigado!', 'Uhuuu! 🎉', 'Que bom! ✨', 'Adoro carinho! 💕', 'Yay! 🌟'],
     sleeping: ['ZzZz... 💤', '😴 Shh...', 'Descansando... 💤'],
-    excited:  ['Wow! 🤩', 'Olha isso! 👀', 'Nova página! 🚀', 'Uau! ⚡']
+    excited:  ['Wow! 🤩', 'Olha isso! 👀', 'Nova página! 🚀', 'Uau! ⚡'],
+    eating:   ['Nham nham! 😋', 'Delícia! 🤤', 'Que petisco bom! 🍪']
   });
 
   const PARTICLE_EMOJIS = ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
+  const FOOD_EMOJIS = ['🍖', '🍕', '🍪', '🍎', '🧀'];
+  const MUSIC_EMOJIS = ['🎵', '🎶', '🎧', '✨'];
 
   const CONFIG_KEYS = [
     'name', 'color', 'scale', 'animSpeed', 'showSpeech', 'autoWalk',
@@ -82,9 +90,17 @@
         wave:  () => { this.setStateFor('waving', 2200); this.showSpeech('Oi! 👋'); },
         dance: () => { this.setStateFor('excited', 2200); this.spawnParticles(); this.showSpeech('Yeahh! 🕺'); },
         happy: () => this.giveAffection(),
+        feed:  () => this.feed(),
+        flip:  () => this.doFlip(),
+        quiz:  () => this.startQuiz(),
         sleep: () => { this.setState('sleeping'); this.showSpeech('ZzZz... 💤', 6000); },
         wake:  () => this.wakeUp()
       };
+
+      this._petTimes = [];   // janela do combo de carinho
+      this._goalTimes = [];  // janela do hat-trick
+      this._quizShown = false;
+      this._nightMsgShown = false;
     }
 
     get config() {
@@ -386,6 +402,20 @@
       this.showSpeech(randomOf(MESSAGES.happy));
       this.spawnParticles();
       this.addXp(XP_REWARDS.affection);
+      this._bumpStat('pets');
+
+      // Combo: 3 carinhos dentro da janela rendem bônus
+      const now = Date.now();
+      this._petTimes = this._petTimes.filter((t) => now - t < TIMING.COMBO_WINDOW_MS);
+      this._petTimes.push(now);
+      if (this._petTimes.length >= 3) {
+        this._petTimes = [];
+        setTimeout(() => {
+          this.showSpeech('Combo de carinho! 🥰 +5 XP', 3000);
+          this.spawnParticles(8);
+          this.addXp(XP_REWARDS.combo);
+        }, 600);
+      }
     }
 
     kickBall() {
@@ -395,12 +425,45 @@
       this.setStateFor('excited', TIMING.KICK_DURATION_MS);
       this.showSpeech('Gooool! ⚽🥅', 2500);
       this.addXp(XP_REWARDS.goal);
+      this._bumpStat('goals');
       setTimeout(() => this.els.ball.classList.remove('kicked'), TIMING.KICK_DURATION_MS);
+
+      // Sequência: 3 gols dentro da janela = hat-trick com bônus
+      const now = Date.now();
+      this._goalTimes = this._goalTimes.filter((t) => now - t < TIMING.STREAK_WINDOW_MS);
+      this._goalTimes.push(now);
+      if (this._goalTimes.length >= 3) {
+        this._goalTimes = [];
+        setTimeout(() => {
+          this.showSpeech('HAT-TRICK! 🎩⚽ +20 XP', 3500);
+          this.spawnParticles(10);
+          this.addXp(XP_REWARDS.hatTrick);
+        }, 900);
+      }
+    }
+
+    feed() {
+      if (this.node.classList.contains('eating')) return;
+      this.markActivity();
+      if (this.state === 'sleeping') this.wakeUp();
+      this.node.classList.add('eating');
+      this.showSpeech(randomOf(MESSAGES.eating), 2200);
+      this.spawnParticles(5, FOOD_EMOJIS);
+      this.addXp(XP_REWARDS.feed);
+      this._bumpStat('feeds');
+      setTimeout(() => this.node.classList.remove('eating'), TIMING.EAT_MS);
+    }
+
+    doFlip() {
+      this.markActivity();
+      if (this.state === 'sleeping') this.wakeUp();
+      this.setStateFor('flipping', TIMING.FLIP_MS);
+      this.showSpeech('Ihuuu! 🤸', 2000);
     }
 
     /* ---------- Efeitos ---------- */
 
-    spawnParticles(count = 5) {
+    spawnParticles(count = 5, emojis = PARTICLE_EMOJIS) {
       if (this._reducedMotion) return;
       const rect = this.node.getBoundingClientRect();
       for (let i = 0; i < count; i++) {
@@ -415,11 +478,90 @@
             pointer-events:none;
             animation:clawd-float-up ${0.8 + Math.random() * 0.4}s ease-out forwards;
           `;
-          el.textContent = randomOf(PARTICLE_EMOJIS);
+          el.textContent = randomOf(emojis);
           document.body.appendChild(el);
           setTimeout(() => el.remove(), 1400);
         }, i * 90);
       }
+    }
+
+    /* ---------- Estatísticas ---------- */
+
+    _bumpStat(key) {
+      const stats = { pets: 0, goals: 0, feeds: 0, quizzes: 0, ...(this.store.get('stats') || {}) };
+      stats[key] = (stats[key] || 0) + 1;
+      this.store.set('stats', stats);
+    }
+
+    /* ---------- Desafio do Tutor (quiz) ---------- */
+
+    _makeQuiz() {
+      const rand = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+      const ops = [
+        { symbol: '+', apply: (a, b) => a + b },
+        { symbol: '−', apply: (a, b) => a - b },
+        { symbol: '×', apply: (a, b) => a * b }
+      ];
+      const op = randomOf(ops);
+      let a = rand(2, 9);
+      let b = rand(2, 9);
+      if (op.symbol === '−' && b > a) [a, b] = [b, a];
+      const answer = op.apply(a, b);
+      const options = new Set([answer]);
+      while (options.size < 3) {
+        const wrong = answer + rand(1, 4) * (Math.random() < 0.5 ? -1 : 1);
+        if (wrong !== answer && wrong >= 0) options.add(wrong);
+      }
+      return {
+        question: `${a} ${op.symbol} ${b} = ?`,
+        answer,
+        options: [...options].sort(() => Math.random() - 0.5)
+      };
+    }
+
+    startQuiz() {
+      this.node.querySelector('.quiz-card')?.remove();
+      this.markActivity();
+      if (this.state === 'sleeping') this.wakeUp();
+
+      const quiz = this._makeQuiz();
+      const card = document.createElement('div');
+      card.className = 'quiz-card';
+      card.innerHTML = `
+        <button class="quiz-close" title="Fechar">✕</button>
+        <div class="quiz-title">🧠 Desafio do Tutor</div>
+        <div class="quiz-question">${quiz.question}</div>
+        <div class="quiz-options"></div>
+      `;
+      // Interações do quiz não devem iniciar drag nem contar como carinho
+      card.addEventListener('pointerdown', (e) => e.stopPropagation());
+      card.addEventListener('click', (e) => e.stopPropagation());
+
+      const optionsEl = card.querySelector('.quiz-options');
+      quiz.options.forEach((value) => {
+        const btn = document.createElement('button');
+        btn.textContent = value;
+        btn.addEventListener('click', () => {
+          if (value === quiz.answer) {
+            card.remove();
+            this.showSpeech(`Mandou bem! 🎓 +${XP_REWARDS.quiz} XP`, 3500);
+            this.setStateFor('happy', 2000);
+            this.spawnParticles(8);
+            this.addXp(XP_REWARDS.quiz);
+            this._bumpStat('quizzes');
+          } else {
+            btn.disabled = true;
+            card.classList.remove('wrong');
+            void card.offsetWidth; // reinicia a animação de shake
+            card.classList.add('wrong');
+            this.showSpeech('Quase! Tenta de novo ✏️', 2200);
+          }
+        });
+        optionsEl.appendChild(btn);
+      });
+      card.querySelector('.quiz-close').addEventListener('click', () => card.remove());
+
+      this.node.appendChild(card);
     }
 
     showSpeech(text, duration = 2800) {
@@ -448,6 +590,15 @@
     _tick() {
       if (!this.isVisible || document.hidden || this._drag) return;
       const now = Date.now();
+
+      // Recado noturno (uma vez por sessão)
+      if (!this._nightMsgShown && this.state === 'idle') {
+        const hour = new Date().getHours();
+        if (hour >= 22 || hour < 5) {
+          this._nightMsgShown = true;
+          this.showSpeech('Já é tarde… 🌙 Descansa um pouco!', 4000);
+        }
+      }
 
       // Dormir por inatividade
       if (
@@ -529,13 +680,23 @@
       if (!prof?.keywords?.length) return;
       const host = window.location.hostname.toLowerCase();
       if (!prof.keywords.some((k) => host.includes(k))) return;
+
       setTimeout(() => {
         this.showSpeech(randomOf(prof.messages), 3500);
         if (prof.celebrates) {
           this.setStateFor('happy', 2000);
-          this.spawnParticles();
+          const emojis = this.config.profession === 'musician' ? MUSIC_EMOJIS : PARTICLE_EMOJIS;
+          this.spawnParticles(5, emojis);
         }
       }, 2000);
+
+      // Tutor: lança um desafio de lógica após um tempo em site de distração
+      if (prof.challenge && !this._quizShown) {
+        this._quizShown = true;
+        setTimeout(() => {
+          if (this.config.profession === 'tutor' && this.isVisible) this.startQuiz();
+        }, TIMING.QUIZ_AFTER_MS);
+      }
     }
 
     /* ---------- Mensagens do popup ---------- */

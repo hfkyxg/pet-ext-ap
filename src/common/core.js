@@ -14,7 +14,14 @@ const CLAWD = (() => {
 
   /* ---- Gamificação ---- */
   const XP_PER_LEVEL = 50;
-  const XP_REWARDS = Object.freeze({ affection: 5, goal: 10 });
+  const XP_REWARDS = Object.freeze({
+    affection: 5,   // carinho (clique)
+    combo: 5,       // bônus: 3 carinhos em sequência
+    goal: 10,       // gol na bola
+    hatTrick: 20,   // bônus: 3 gols seguidos
+    feed: 5,        // petisco
+    quiz: 15        // desafio do tutor respondido certo
+  });
 
   const levelForXp = (xp) => Math.floor((xp || 0) / XP_PER_LEVEL) + 1;
   const levelProgress = (xp) => ((xp || 0) % XP_PER_LEVEL) / XP_PER_LEVEL;
@@ -44,6 +51,7 @@ const CLAWD = (() => {
       status: 'Tutor ativo — monitorando foco de estudo',
       accessory: 'glasses',
       celebrates: false,
+      challenge: true, // lança desafios de lógica em sites de distração
       keywords: ['youtube', 'twitter', 'x.com', 'instagram', 'facebook', 'tiktok', 'reddit'],
       messages: ['Foca nos estudos! 📚', 'Sem distrações! 🎯', 'Hora de estudar! ✏️', 'Que tal uma pausa produtiva? 🧠']
     },
@@ -54,6 +62,30 @@ const CLAWD = (() => {
       celebrates: false,
       keywords: ['github', 'gitlab', 'stackoverflow', 'developer.', 'docs.', 'mdn', 'npmjs', 'pypi'],
       messages: ['Código limpo! 💻', 'PR aprovado? 🚀', 'Git push! 📦', 'Stack overflow aberto 👀']
+    },
+    musician: {
+      icon: '🎵',
+      status: 'DJ ativo — vibrando com sites de música',
+      accessory: 'headphones',
+      celebrates: true,
+      keywords: ['spotify', 'soundcloud', 'deezer', 'music.youtube', 'last.fm', 'bandcamp', 'letras', 'genius'],
+      messages: ['Que som é esse? 🎵', 'Aumenta o volume! 🔊', 'Dropa o beat! 🎧', 'Playlist nova? 🎶']
+    },
+    chef: {
+      icon: '🍳',
+      status: 'Chef ativo — farejando receitas',
+      accessory: 'chefhat',
+      celebrates: false,
+      keywords: ['tudogostoso', 'receita', 'ifood', 'cybercook', 'panelinha', 'food', 'recipe', 'tasty'],
+      messages: ['Que fome! 😋', 'Essa receita parece boa! 🍲', 'Bora cozinhar? 👨‍🍳', 'Hmm, cheirinho bom! 🍰']
+    },
+    gamer: {
+      icon: '🎮',
+      status: 'Gamer ativo — no grind com você',
+      accessory: 'sunglasses',
+      celebrates: true,
+      keywords: ['twitch', 'steam', 'epicgames', 'ign', 'gamespot', 'playstation', 'xbox', 'nintendo', 'game'],
+      messages: ['GG! 🎮', 'Speedrun? ⏱️', 'Boss fight! ⚔️', 'Level up IRL! 🕹️']
     }
   });
 
@@ -70,6 +102,7 @@ const CLAWD = (() => {
     outline: false,
     accessory: 'none',
     xp: 0,
+    stats: { pets: 0, goals: 0, feeds: 0, quizzes: 0 },
     position: { x: null, y: null }
   });
 

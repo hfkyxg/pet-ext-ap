@@ -62,6 +62,14 @@ function renderAccessory(accessory) {
   });
 }
 
+function renderStats(stats) {
+  const s = { pets: 0, goals: 0, feeds: 0, quizzes: 0, ...(stats || {}) };
+  $('stat-pets').textContent = s.pets;
+  $('stat-goals').textContent = s.goals;
+  $('stat-feeds').textContent = s.feeds;
+  $('stat-quizzes').textContent = s.quizzes;
+}
+
 function renderProfession(profession) {
   document.querySelectorAll('.profession-card').forEach((card) => {
     card.classList.toggle('active', card.dataset.profession === profession);
@@ -86,6 +94,7 @@ function renderAll(state) {
   renderAccessory(state.accessory);
   renderProfession(state.profession);
   renderXp(state.xp);
+  renderStats(state.stats);
 }
 
 /* ---- Boot ---- */
@@ -102,6 +111,7 @@ store.load().then((state) => {
 store.subscribe((key) => {
   if (key === 'xp') renderXp(store.get('xp'));
   else if (key === 'accessory') renderAccessory(store.get('accessory'));
+  else if (key === 'stats') renderStats(store.get('stats'));
 });
 
 // Garante que a última mudança não se perca ao fechar o popup
