@@ -20,6 +20,32 @@ Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus pró
 
 ---
 
+## 📖 O artigo: um bichinho de estimação para a web moderna
+
+> *Toda aba aberta é um lugar solitário. O Claw'd existe para que não seja.*
+
+Passamos horas dentro do navegador — lendo, trabalhando, procrastinando — e a página nunca olha de volta. O **Claw'd** nasceu de uma ideia simples e teimosa: e se um cantinho da tela tivesse vida própria? Não um assistente que fala demais, nem um popup que interrompe, mas um **companheiro pixel-art** que anda pela borda da janela, cochila quando você some, comemora quando você volta e, de vez em quando, faz uma embaixadinha só para se exibir.
+
+### Pixel a pixel, de propósito
+
+O visual é deliberadamente **pixel-art numa grade de 4 px**. Cada modelo — Clássico, Mini, Pinças e Guardião — é uma silhueta desenhada célula a célula, com **corpo estático e pernas em camada própria**: elas só entram no ciclo de passos quando o pet realmente se desloca, então nada "escorrega" pela tela. Os olhos têm cor independente, piscam sozinhos e ganham quatro rostos (Clássico, Brilho, Focado, Sonolento). É charme retrô com engenharia moderna: **100% CSS**, sem sprites raster, sincronizado ao *refresh rate* real do monitor via `requestAnimationFrame`.
+
+### O gramado dentro do navegador ⚽
+
+A alma brincalhona do Claw'd está na profissão **Jogador**. Aqui a bola não é enfeite — é jogável. **Toque na bola** e ele começa uma sequência de **embaixadinhas**: cada toque sobe a bola num arco, o som ganha um tom mais agudo e um **contador ao vivo** flutua ao lado. Demore demais e a bola cai, rola pela página e o pet corre atrás — a janela de tempo *encolhe* conforme o combo cresce, transformando um detalhe fofo num pequeno **minijogo de ritmo e habilidade**. Quando quiser fechar com chave de ouro, **dê um duplo-clique**: o Claw'd finaliza a jogada com um **golaço**, e quanto maior a sequência de embaixadinhas, maior o bônus de XP. Recordes viram conquistas (Malabarista, Rei do Combo), e quando você o deixa ocioso ele continua treinando sozinho.
+
+### Um elenco em harmonia
+
+Ao redor do futebol há um sistema inteiro que conversa entre si: **oito profissões** (Jogador, Tutor, Dev, Músico, Chef, Ninja, Pescador e Livre), cada uma com um uniforme temporário que *não* apaga seus acessórios pessoais; **14 acessórios** em dois slots; **sub-pets** com espécie, apelido e habilidades; **status estilo Tamagotchi** que geram emoções; e uma camada de **gamificação** com XP progressivo, PixelCoins, loja, missão diária e conquistas. Tudo compartilha o mesmo **catálogo único** (`src/shared/catalog.js`), então o popup e o pet real sempre mostram exatamente os mesmos dados.
+
+### Feito para durar (e para hackear)
+
+Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da inicialização, o conteúdo se auto-recupera de recargas da extensão, e **35 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, renderização e a mecânica das embaixadinhas. É um brinquedo — mas construído como software de verdade.
+
+O Claw'd não quer sua atenção o tempo todo. Ele só quer estar lá, no rodapé da sua tarde, pronto para uma embaixadinha quando você precisar sorrir.
+
+---
+
 ## 🎬 Demonstração executável
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
