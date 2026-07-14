@@ -602,7 +602,7 @@
    MODO LISO x PIXELADO / CONTORNO
    ============================ */
 #aic-clawd-node.smooth .sprite-stack {
-  filter: blur(1.15px) contrast(1.38) saturate(1.08) drop-shadow(0 2px 2px rgba(0,0,0,.22));
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.18));
 }
 #aic-clawd-node.outlined .sprite-stack {
   filter:
@@ -613,7 +613,6 @@
 }
 #aic-clawd-node.smooth.outlined .sprite-stack {
   filter:
-    blur(1.15px) contrast(1.38) saturate(1.08)
     drop-shadow(2px 0 0 var(--outline-color, #16161f))
     drop-shadow(-2px 0 0 var(--outline-color, #16161f))
     drop-shadow(0 2px 0 var(--outline-color, #16161f))
@@ -1464,6 +1463,16 @@
 }
 
 /* Modo liso preserva a mesma silhueta e funde as bordas dos pixels. */
+#aic-clawd-node.smooth,
+#aic-clawd-node.smooth .pet-body,
+#aic-clawd-node.smooth .sprite-stack,
+#aic-clawd-node.smooth .pixel-sprite,
+#aic-clawd-node.smooth .accessory,
+#aic-clawd-node.smooth .jersey,
+#aic-clawd-node.smooth .skin-mod {
+  background-color: transparent !important;
+  background-image: none !important;
+}
 #aic-clawd-node.smooth .pixel-sprite,
 #aic-clawd-node.smooth .accessory,
 #aic-clawd-node.smooth .jersey,

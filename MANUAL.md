@@ -50,7 +50,7 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Cor principal** — 8 cores prontas ou o seletor para qualquer cor;
 - **Tamanho** — de 0.8× (mini) a 3× (gigante);
 - **Velocidade da animação** — deixe-o zen (0.5×) ou hiperativo (3×);
-- **Visual liso** — funde as bordas visíveis dos pixels, mantendo exatamente o mesmo formato do pet (não vira slime e não troca de sprite);
+- **Visual liso** — funde as bordas visíveis dos pixels, mantém exatamente o mesmo formato do pet e usa fundo transparente, sem grade ou textura (não vira slime e não troca de sprite);
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
 - **Acessórios** — 14 opções em dois slots, incluindo boné, cartola, coroa, óculos, óculos de sol, laço, fones e mochila.
 

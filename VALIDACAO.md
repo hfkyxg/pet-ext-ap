@@ -36,7 +36,7 @@ Uma instância unpacked foi carregada em perfil isolado e inspecionada pelo Chro
 | Repouso | `animation-name: none` na sprite |
 | Arraste | classe `walking` e `animation-name: walk` |
 | Carinho | estado `happy` e balão de emoji visível |
-| Modo liso | filtro suave ativo e `box-shadow` preservado |
+| Modo liso | vermelho nítido, `box-shadow` preservado e fundos `transparent`/`none` no nó, corpo, stack e sprite |
 | Reload da página | 1 instância após novo carregamento |
 | Emoções | `emotion-face` e `emotion-badge` presentes |
 

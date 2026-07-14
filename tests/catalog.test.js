@@ -79,7 +79,9 @@ test('sub-pets suportam apelidos e paletas customizadas por espécie', () => {
 });
 
 test('modo liso preserva a silhueta do sprite e apenas funde as bordas dos pixels', () => {
-  assert.match(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[\s\S]*filter:\s*blur\(1\.15px\)/);
+  assert.match(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[\s\S]*filter:\s*drop-shadow/);
+  assert.doesNotMatch(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[^}]*blur\(/);
+  assert.match(styleSource, /#aic-clawd-node\.smooth,[\s\S]*background-color:\s*transparent !important;[\s\S]*background-image:\s*none !important;/);
   assert.match(styleSource, /#aic-clawd-node\.smooth \.pixel-sprite,[\s\S]*image-rendering:\s*auto/);
   assert.doesNotMatch(styleSource, /#aic-clawd-node\.smooth \.pixel-sprite\s*\{[\s\S]{0,500}box-shadow:\s*none !important/);
 });

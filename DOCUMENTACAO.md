@@ -190,7 +190,7 @@ Sub-pets têm `subpets.names` e `subpets.colors` indexados pela espécie. A clas
 
 O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `playing`, `cuddling` e `racing`. `sleep()` e `wakeUp()` cancelam timers opostos; o clique e teclado no próprio sub-pet fazem carinho ou despertam, e o despertar do Claw'd principal chama o despertar sincronizado do sub-pet.
 
-No modo liso, o `pixel-sprite` mantém o mesmo `box-shadow`, proporções e sprite do modo padrão; apenas `blur`, `contrast` e `image-rendering: auto` fundem as bordas visíveis dos pixels. A camada de emoção continua desenhando piscadas e boca sobre a arte, sem transformá-la em slime. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
+No modo liso, o `pixel-sprite` mantém o mesmo `box-shadow`, proporções e sprite do modo padrão; `image-rendering: auto` suaviza a rasterização sem borrar o vermelho ou os olhos. O nó, corpo, stack e camadas cosméticas têm fundo explicitamente transparente e sem `background-image`, impedindo grade ou textura atrás da silhueta. A camada de emoção continua desenhando piscadas e boca sobre a arte, sem transformá-la em slime. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
 
 ---
 

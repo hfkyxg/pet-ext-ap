@@ -240,7 +240,7 @@ setState('idle')     // → respiração/piscada, sem mexer as pernas
 
 /* O modo liso preserva o box-shadow e funde somente as bordas. */
 #aic-clawd-node.smooth .sprite-stack {
-  filter: blur(1.15px) contrast(1.38) saturate(1.08);
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.18));
 }
 ```
 
