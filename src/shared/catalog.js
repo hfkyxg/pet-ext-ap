@@ -235,6 +235,52 @@ function clawdMigrateState(raw) {
   return merged;
 }
 
+/* ---- Ciclo de vida seguro do contexto MV3 ---- */
+function clawdHasExtensionContext(api) {
+  try {
+    return !!(api && api.runtime && api.runtime.id && api.storage && api.storage.local);
+  } catch (_) {
+    return false;
+  }
+}
+
+function clawdIsExtensionContextError(error) {
+  const message = String(error && (error.message || error) || '');
+  return /extension context invalidated|context invalidated/i.test(message);
+}
+
+function clawdSafeExtensionCall(api, operation, options = {}) {
+  const fallback = Object.prototype.hasOwnProperty.call(options, 'fallback') ? options.fallback : null;
+  const invalidate = (error) => {
+    if (typeof options.onInvalidated === 'function') {
+      try { options.onInvalidated(error); } catch (_) {}
+    }
+    return fallback;
+  };
+
+  if (!clawdHasExtensionContext(api)) return invalidate(new Error('Extension context invalidated.'));
+  try {
+    const result = operation();
+    if (result && typeof result.then === 'function') {
+      return result.catch(error => {
+        if (clawdIsExtensionContextError(error) || !clawdHasExtensionContext(api)) return invalidate(error);
+        throw error;
+      });
+    }
+    return result;
+  } catch (error) {
+    if (clawdIsExtensionContextError(error) || !clawdHasExtensionContext(api)) return invalidate(error);
+    throw error;
+  }
+}
+
+function clawdGuardExtensionCallback(api, callback, onInvalidated) {
+  return (...args) => clawdSafeExtensionCall(api, () => callback(...args), {
+    fallback: undefined,
+    onInvalidated
+  });
+}
+
 // Export opcional para validações locais sem alterar o carregamento da extensão.
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -251,6 +297,10 @@ if (typeof module !== 'undefined' && module.exports) {
     clawdRegisterDailyProgress,
     clawdDefaultState,
     clawdLevelFromXp,
-    clawdMigrateState
+    clawdMigrateState,
+    clawdHasExtensionContext,
+    clawdIsExtensionContextError,
+    clawdSafeExtensionCall,
+    clawdGuardExtensionCallback
   };
 }

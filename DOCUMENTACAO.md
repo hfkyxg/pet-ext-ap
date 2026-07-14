@@ -61,8 +61,10 @@ Todo o motor vive na classe **`ClawdCompanion`**, instanciada uma vez por págin
 **Ciclo de vida (`init()`):**
 
 ```
-createNode() → loadState() → bindEvents() → listenToMessages() → startBehaviorLoop() → _detectPageContext()
+createNode() → applyAll() → bindEvents() → listeners → contextHeartbeat() → startBehaviorLoop() → setupCrossTab()
 ```
+
+Antes e durante esse ciclo, todas as chamadas a `chrome.runtime`, `chrome.storage` e ao Port cross-tab passam por guardas de contexto. Se um reload invalidar o ambiente MV3, callbacks tardios usam fallback, a instância cancela timers/listeners e remove seu DOM sem voltar a chamar APIs expiradas. Um heartbeat de 500 ms cobre também contextos invalidados quando nenhum callback está pendente.
 
 **DOM criado (`createNode`):**
 
@@ -151,6 +153,7 @@ Coordena a **presença cross-tab**, escolhe a aba anfitriã e persiste o host em
 
 ```javascript
 chrome.runtime.onMessage — ações aceitas pelo content script:
+{ action: 'healthcheck' }                            // confirma instância viva ao service worker
 { action: 'toggleVisibility' }                      // mostra/oculta o pet
 { action: 'resetPosition' }                         // volta ao canto inferior direito
 { action: 'updateConfig', key, value }              // qualquer chave de config
@@ -205,7 +208,8 @@ No modo liso, o `pixel-sprite` mantém o mesmo `box-shadow`, proporções e spri
 | Sem frameworks | Injeção leve em toda página; auditável; sem supply-chain risk |
 | `z-index: 2147483647` | Garante o pet acima de qualquer layout |
 | `destroy()` + boot token | Evita listeners, timers e instâncias duplicadas após reinjeção |
-| Reconciliação por sessão | Remove pets órfãos no reload sem repetir o trabalho quando o service worker apenas desperta |
+| Guardas de contexto MV3 | Encerram a instância antiga sem exceções após reload da extensão |
+| Reconciliação com healthcheck | Preserva uma instância viva; limpa órfãos e reinjeta apenas a principal quando ela não responde |
 
 **Limitações conhecidas:**
 
@@ -252,6 +256,7 @@ node --check src/content/content.js
 node --check src/popup/popup.js
 node --check src/background/background.js
 node --test tests/*.test.js
+node tests/runtime-smoke.mjs
 ```
 
-Os testes cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS de acessórios, sprite e pernas, modo liso, emoções, pesca, sub-pets, referências do popup, manifest e reconciliação de reload. A validação manual deve incluir clique/arraste/inércia, duplo e triplo clique, acessórios em ambos os slots, cada profissão, embaixadinhas, pesca, sub-pets, loja, export/import e cross-tab.
+Os testes cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS de acessórios, sprite e pernas, modo liso, emoções, pesca, sub-pets, referências do popup, manifest, invalidação do contexto MV3 e reconciliação de reload. O smoke test executa o Edge/Chromium em perfil isolado e valida boot, repouso, carinho e três reloads da extensão sem erros ou duplicação. A validação manual deve incluir clique/arraste/inércia, duplo e triplo clique, acessórios em ambos os slots, cada profissão, embaixadinhas, pesca, sub-pets, loja, export/import e cross-tab.

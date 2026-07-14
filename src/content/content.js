@@ -351,6 +351,7 @@ class ClawdCompanion {
     this._glideRaf = null;
     this._glide = null;
     this._destroyed = false;
+    this._contextInvalidated = false;
     this._abort = new AbortController();
 
     this.messages = {
@@ -402,22 +403,62 @@ class ClawdCompanion {
 
   /* ---------- BOOT ---------- */
   init() {
+    if (!this._hasExtensionContext()) {
+      this._handleExtensionContextInvalidated();
+      return;
+    }
     this.createNode();
     this.applyAll();
     this.measureRefreshRate();
     this.bindEvents();
     this.listenToMessages();
+    if (this._destroyed) return;
     this.listenToStorage();
+    if (this._destroyed) return;
+    this._startContextHeartbeat();
     this.applyOfflineDecay();
     this.checkStreak();
     this.trackTab();
     this.startBehaviorLoop();
     this.setupCrossTab();
+    if (this._destroyed) return;
     this._detectPageContext();
     this.refreshSubpet();
     setTimeout(() => {
-      if (this.isVisible && !this.isQuiet()) this.showSpeech(this.getRandom('idle'));
+      if (!this._destroyed && this.isVisible && !this.isQuiet()) this.showSpeech(this.getRandom('idle'));
     }, 1400);
+  }
+
+  _hasExtensionContext() {
+    return clawdHasExtensionContext(globalThis.chrome);
+  }
+
+  _handleExtensionContextInvalidated() {
+    if (this._contextInvalidated) return;
+    this._contextInvalidated = true;
+    this.destroy({ skipExtensionApis: true });
+    if (window.__clawd === this) window.__clawd = null;
+  }
+
+  _safeChrome(operation, fallback = null) {
+    return clawdSafeExtensionCall(globalThis.chrome, operation, {
+      fallback,
+      onInvalidated: () => this._handleExtensionContextInvalidated()
+    });
+  }
+
+  _guardChromeCallback(callback) {
+    return clawdGuardExtensionCallback(
+      globalThis.chrome,
+      callback,
+      () => this._handleExtensionContextInvalidated()
+    );
+  }
+
+  _startContextHeartbeat() {
+    this._timers.push(setInterval(() => {
+      if (!this._hasExtensionContext()) this._handleExtensionContextInvalidated();
+    }, 500));
   }
 
   createNode() {
@@ -518,8 +559,12 @@ class ClawdCompanion {
   save() {
     clearTimeout(this._saveTimer);
     this._saveTimer = setTimeout(() => {
+      if (this._destroyed || !this._hasExtensionContext()) {
+        this._handleExtensionContextInvalidated();
+        return;
+      }
       // read-modify-write: preserva mudanças feitas pelo popup em paralelo
-      chrome.storage.local.get(['clawdState'], (res) => {
+      const onState = this._guardChromeCallback((res) => {
         const stored = clawdMigrateState(res.clawdState);
         // popup é dono destes campos — mantém a versão do storage
         this.S.favorites = stored.favorites;
@@ -527,15 +572,17 @@ class ClawdCompanion {
         this.S.subpets.active = stored.subpets.active;
         this.S.game.inventory = stored.game.inventory;
         this._writing = true;
-        chrome.storage.local.set({ clawdState: this.S }, () => {
+        const onSaved = this._guardChromeCallback(() => {
           setTimeout(() => { this._writing = false; }, 50);
         });
+        this._safeChrome(() => chrome.storage.local.set({ clawdState: this.S }, onSaved));
       });
+      this._safeChrome(() => chrome.storage.local.get(['clawdState'], onState));
     }, 350);
   }
 
   listenToStorage() {
-    this._storageListener = (changes, area) => {
+    this._storageListener = this._guardChromeCallback((changes, area) => {
       if (area !== 'local' || !changes.clawdState || this._writing) return;
       const fresh = clawdMigrateState(changes.clawdState.newValue);
       // Sincroniza campos que o popup controla
@@ -556,8 +603,8 @@ class ClawdCompanion {
         this.S.subpets.colors = fresh.subpets.colors;
         if (this.subpet) this.subpet.setColor(this.S.subpets.colors[this.subpet.species]);
       }
-    };
-    chrome.storage.onChanged.addListener(this._storageListener);
+    });
+    this._safeChrome(() => chrome.storage.onChanged.addListener(this._storageListener));
   }
 
   applyConfig(key, value) {
@@ -2009,13 +2056,25 @@ class ClawdCompanion {
 
   /* ---------- CROSS-TAB (passeio entre abas) ---------- */
   setupCrossTab() {
-    if (!this.S.settings.crossTab) return;
-    try {
-      this._port = chrome.runtime.connect({ name: 'clawd-presence' });
-      this._port.postMessage({ type: 'register', freq: this.S.settings.travelFreq });
-      this._port.onMessage.addListener((msg) => this._onPresenceMsg(msg));
-      this._port.onDisconnect.addListener(() => { this._port = null; });
-    } catch (_) { /* SW indisponível — pet fica visível localmente */ }
+    if (!this.S.settings.crossTab || !this._hasExtensionContext()) return;
+    const port = this._safeChrome(() => chrome.runtime.connect({ name: 'clawd-presence' }));
+    if (!port) return;
+
+    this._port = port;
+    const registered = this._safeChrome(() => {
+      port.postMessage({ type: 'register', freq: this.S.settings.travelFreq });
+      return true;
+    }, false);
+    if (!registered) return;
+
+    this._portMessageListener = this._guardChromeCallback((msg) => this._onPresenceMsg(msg));
+    this._portDisconnectListener = () => {
+      try { void chrome.runtime.lastError; } catch (_) {}
+      this._port = null;
+      if (!this._hasExtensionContext()) this._handleExtensionContextInvalidated();
+    };
+    this._safeChrome(() => port.onMessage.addListener(this._portMessageListener));
+    this._safeChrome(() => port.onDisconnect.addListener(this._portDisconnectListener));
   }
 
   _onPresenceMsg(msg) {
@@ -2040,7 +2099,7 @@ class ClawdCompanion {
         this.startRun(dir);
         setTimeout(() => {
           this.setHidden(true);
-          if (this._port) { try { this._port.postMessage({ type: 'travelComplete' }); } catch (_) {} }
+          if (this._port) this._safeChrome(() => this._port.postMessage({ type: 'travelComplete' }));
         }, 1300);
         break;
       }
@@ -2066,9 +2125,12 @@ class ClawdCompanion {
 
   /* ---------- MENSAGENS DO POPUP ---------- */
   listenToMessages() {
-    this._messageListener = (request, _sender, sendResponse) => {
+    this._messageListener = this._guardChromeCallback((request, _sender, sendResponse) => {
       if (this._destroyed) return false;
       switch (request.action) {
+        case 'healthcheck':
+          sendResponse({ alive: true, bootId: window.__clawdBootId || 0 });
+          break;
         case 'toggleVisibility':
           this.isVisible = !this.isVisible;
           this.node.style.display = this.isVisible ? '' : 'none';
@@ -2115,8 +2177,8 @@ class ClawdCompanion {
           return true;
       }
       return false;
-    };
-    chrome.runtime.onMessage.addListener(this._messageListener);
+    });
+    this._safeChrome(() => chrome.runtime.onMessage.addListener(this._messageListener));
   }
 
   _handleAction(action) {
@@ -2144,7 +2206,7 @@ class ClawdCompanion {
     if (map[action]) map[action]();
   }
 
-  destroy() {
+  destroy({ skipExtensionApis = false } = {}) {
     if (this._destroyed) return;
     this._destroyed = true;
 
@@ -2165,8 +2227,20 @@ class ClawdCompanion {
     this._refreshMeasureRaf = null;
     this._glideRaf = null;
 
-    if (this._storageListener) chrome.storage.onChanged.removeListener(this._storageListener);
-    if (this._messageListener) chrome.runtime.onMessage.removeListener(this._messageListener);
+    if (!skipExtensionApis && this._hasExtensionContext()) {
+      if (this._storageListener) {
+        clawdSafeExtensionCall(globalThis.chrome, () => chrome.storage.onChanged.removeListener(this._storageListener));
+      }
+      if (this._messageListener) {
+        clawdSafeExtensionCall(globalThis.chrome, () => chrome.runtime.onMessage.removeListener(this._messageListener));
+      }
+      if (this._port && this._portMessageListener) {
+        clawdSafeExtensionCall(globalThis.chrome, () => this._port.onMessage.removeListener(this._portMessageListener));
+      }
+      if (this._port && this._portDisconnectListener) {
+        clawdSafeExtensionCall(globalThis.chrome, () => this._port.onDisconnect.removeListener(this._portDisconnectListener));
+      }
+    }
     if (this._port) {
       try { this._port.disconnect(); } catch (_) {}
       this._port = null;
@@ -2196,16 +2270,22 @@ class ClawdCompanion {
   const bootId = (window.__clawdBootId || 0) + 1;
   window.__clawdBootId = bootId;
 
-  if (window.__clawd && typeof window.__clawd.destroy === 'function') {
-    window.__clawd.destroy();
-  }
-  document.querySelectorAll([
-    '#aic-clawd-node', '.aic-subpet', '#aic-footprints', '.aic-toast',
-    '.aic-lake', '.aic-fishing-line', '.aic-fish-caught', '.aic-goalpost',
-    '.aic-toyball', '.aic-dust', '.aic-particle'
-  ].join(',')).forEach(el => el.remove());
+  const cleanupStaleDom = () => {
+    document.querySelectorAll([
+      '#aic-clawd-node', '.aic-subpet', '#aic-footprints', '.aic-toast',
+      '.aic-lake', '.aic-fishing-line', '.aic-fish-caught', '.aic-goalpost',
+      '.aic-toyball', '.aic-dust', '.aic-particle'
+    ].join(',')).forEach(el => el.remove());
+  };
 
-  chrome.storage.local.get(['clawdState'], (result) => {
+  if (window.__clawd && typeof window.__clawd.destroy === 'function') {
+    try { window.__clawd.destroy(); } catch (_) { cleanupStaleDom(); }
+  }
+  cleanupStaleDom();
+
+  if (!clawdHasExtensionContext(globalThis.chrome)) return;
+
+  const onState = clawdGuardExtensionCallback(globalThis.chrome, (result) => {
     if (window.__clawdBootId !== bootId) return;
     const state = clawdMigrateState(result.clawdState);
     const host = location.hostname.toLowerCase();
@@ -2216,9 +2296,14 @@ class ClawdCompanion {
     if (blocked) return;
     // persiste migração, se houve upgrade de schema
     if (!result.clawdState || (result.clawdState.schemaVersion || 1) < CLAWD_SCHEMA_VERSION) {
-      chrome.storage.local.set({ clawdState: state });
+      clawdSafeExtensionCall(globalThis.chrome, () => chrome.storage.local.set({ clawdState: state }), {
+        onInvalidated: cleanupStaleDom
+      });
     }
     window.__clawd = new ClawdCompanion(state);
+  }, cleanupStaleDom);
+  clawdSafeExtensionCall(globalThis.chrome, () => chrome.storage.local.get(['clawdState'], onState), {
+    onInvalidated: cleanupStaleDom
   });
 })();
 

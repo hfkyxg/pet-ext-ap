@@ -24,21 +24,26 @@ function removeClawdDom() {
 }
 
 async function reconcileRuntimeAfterReload() {
-  const session = await chrome.storage.session.get([RUNTIME_RECONCILE_KEY]);
-  if (session[RUNTIME_RECONCILE_KEY]) return;
-  await chrome.storage.session.set({ [RUNTIME_RECONCILE_KEY]: true });
-
   const tabs = await chrome.tabs.query({});
   const eligibleTabs = tabs.filter(tab => tab.id != null && RUNTIME_ELIGIBLE_URL.test(tab.url || ''));
-  await Promise.all(eligibleTabs.map(tab =>
-    chrome.scripting.executeScript({ target: { tabId: tab.id }, func: removeClawdDom }).catch(() => null)
-  ));
-
   const [focusedActive] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   const active = eligibleTabs.find(tab => tab.id === focusedActive?.id)
     || eligibleTabs.find(tab => tab.active)
     || null;
   if (!active) return;
+
+  const session = await chrome.storage.session.get([RUNTIME_RECONCILE_KEY]);
+  if (session[RUNTIME_RECONCILE_KEY]) {
+    const live = await chrome.tabs.sendMessage(active.id, { action: 'healthcheck' })
+      .then(response => response?.alive === true)
+      .catch(() => false);
+    if (live) return;
+  }
+  await chrome.storage.session.set({ [RUNTIME_RECONCILE_KEY]: true });
+
+  await Promise.all(eligibleTabs.map(tab =>
+    chrome.scripting.executeScript({ target: { tabId: tab.id }, func: removeClawdDom }).catch(() => null)
+  ));
 
   await chrome.scripting.insertCSS({
     target: { tabId: active.id },

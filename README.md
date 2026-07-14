@@ -325,9 +325,10 @@ node --check src/content/content.js
 node --check src/popup/popup.js
 node --check src/background/background.js
 node --test tests/*.test.js
+node tests/runtime-smoke.mjs
 ```
 
-Os testes validam catálogos, migração, missões, sprite padrão, pernas, modo liso, emoções, sub-pets, pesca, manifest, referências do popup, movimento adaptativo e reconciliação após reload. Para a prova visual final, carregue a pasta em `chrome://extensions`, abra um site real e teste clique, arraste, duplo/triplo clique, ações, acessórios, profissões, sub-pet e resgate da missão diária.
+Os testes validam catálogos, migração, missões, sprite padrão, pernas, modo liso, emoções, sub-pets, pesca, manifest, referências do popup, movimento adaptativo, contexto MV3 invalidado e reconciliação após reload. O smoke test abre o Edge/Chromium com um perfil isolado, testa carinho e emoções, recarrega a extensão três vezes e exige exatamente um pet sem erros de runtime. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 O visual inicial é o sprite compacto vermelho de referência: pixels nítidos, sem blur, com escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
 

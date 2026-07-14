@@ -6,9 +6,10 @@
 ## Resultado
 
 - Verificações de sintaxe: **4/4 aprovadas**;
-- Suíte `node:test`: **19/19 testes aprovados**;
+- Suíte `node:test`: **23/23 testes aprovados**;
 - `git diff --check`: **sem erros de whitespace**;
 - Smoke test em navegador Chromium real: **aprovado**;
+- Reload MV3 em página `file://`, três ciclos consecutivos: **0 erros e 1 pet por ciclo**;
 - Popup e service worker em runtime real: **aprovados**.
 
 ## Comandos reproduzíveis
@@ -19,12 +20,13 @@ node --check src/content/content.js
 node --check src/popup/popup.js
 node --check src/background/background.js
 node --test tests/*.test.js
+node tests/runtime-smoke.mjs
 git diff --check
 ```
 
 ## Cobertura automatizada
 
-A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso, emoções, pesca, sub-pets, ciclo de vida, manifest, referências e IDs do popup, ano/versão da documentação e reconciliação após reload.
+A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso, emoções, pesca, sub-pets, ciclo de vida, manifest, referências e IDs do popup, ano/versão da documentação, contexto MV3 invalidado e reconciliação após reload.
 
 ## Smoke test no navegador
 
@@ -38,14 +40,15 @@ Uma instância unpacked foi carregada em perfil isolado e inspecionada pelo Chro
 | Carinho | estado `happy` e balão de emoji visível |
 | Modo liso | vermelho nítido, `box-shadow` preservado e fundos `transparent`/`none` no nó, corpo, stack e sprite |
 | Reload da página | 1 instância após novo carregamento |
+| Reload da extensão | 3 ciclos consecutivos, sempre 1 instância, sem `Extension context invalidated` |
 | Emoções | `emotion-face` e `emotion-badge` presentes |
 
 ## Popup e service worker
 
 - Manifest/runtime: `3.1.0`;
-- Marcador `clawdRuntimeReconciled`: ativo;
+- Marcador `clawdRuntimeReconciled` + healthcheck da instância ativa: ativos;
 - Popup: 8 abas, 8 profissões, 14 ações, 8 sub-pets, 16 cards de acessórios (14 itens + opção “nenhum” por slot), 10 itens de loja, 12 conquistas e missão diária renderizada.
 
 ## Limite do teste
 
-Páginas internas protegidas (`chrome://`, loja de extensões e alguns visualizadores) não aceitam content scripts. O smoke test usa uma página HTTPS normal, que representa o ambiente suportado pela extensão.
+Páginas internas protegidas (`chrome://`, loja de extensões e alguns visualizadores) não aceitam content scripts. O smoke test padrão gera uma página `file://` temporária; também foi executado diretamente em `Novo Documento de Texto.html`, a página local que originou o erro reportado.

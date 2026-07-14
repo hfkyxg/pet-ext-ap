@@ -41,11 +41,17 @@ test('popup não contém IDs duplicados', () => {
 
 test('reload limpa todas as abas e reinjeta somente na aba ativa focada', () => {
   assert.match(backgroundSource, /chrome\.storage\.session\.get\(\[RUNTIME_RECONCILE_KEY\]\)/);
+  assert.match(backgroundSource, /chrome\.tabs\.sendMessage\(active\.id, \{ action: 'healthcheck' \}\)/);
+  assert.match(contentSource, /case 'healthcheck':/);
   assert.match(backgroundSource, /Promise\.all\(eligibleTabs\.map/);
   assert.match(backgroundSource, /lastFocusedWindow:\s*true/);
   assert.match(backgroundSource, /files:\s*\['src\/shared\/catalog\.js', 'src\/content\/content\.js'\]/);
   assert.match(contentSource, /\(function clawdContentScope\(\)/);
   assert.doesNotMatch(catalogSource, /^const CLAWD_/m);
+  assert.match(contentSource, /_startContextHeartbeat\(\)/);
+  assert.match(contentSource, /clawdSafeExtensionCall\(globalThis\.chrome/);
+  const companionSource = contentSource.slice(contentSource.indexOf('class ClawdCompanion'));
+  assert.match(companionSource, /destroy\(\{ skipExtensionApis = false \} = \{\}\)/);
 });
 
 test('movimento visual usa requestAnimationFrame e não fixa FPS por intervalo', () => {

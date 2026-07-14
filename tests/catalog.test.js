@@ -7,7 +7,11 @@ const {
   clawdEnsureDailyQuest,
   clawdRegisterDailyProgress,
   clawdMigrateState,
-  clawdLevelFromXp
+  clawdLevelFromXp,
+  clawdHasExtensionContext,
+  clawdIsExtensionContextError,
+  clawdSafeExtensionCall,
+  clawdGuardExtensionCallback
 } = require('../src/shared/catalog.js');
 const styleSource = fs.readFileSync(require.resolve('../src/content/style.css'), 'utf8');
 const contentSource = fs.readFileSync(require.resolve('../src/content/content.js'), 'utf8');
@@ -108,6 +112,47 @@ test('reinjeção destrói a instância anterior e remove pets órfãos', () => 
   assert.match(contentSource, /chrome\.storage\.onChanged\.removeListener/);
   assert.match(contentSource, /chrome\.runtime\.onMessage\.removeListener/);
   assert.match(contentSource, /document\.querySelectorAll\(\[/);
+});
+
+test('contexto MV3 invalidado é detectado sem lançar erro', () => {
+  const invalidApi = {
+    runtime: { get id() { throw new Error('Extension context invalidated.'); } },
+    storage: { local: {} }
+  };
+  assert.equal(clawdHasExtensionContext(invalidApi), false);
+  assert.equal(clawdIsExtensionContextError(new Error('Extension context invalidated.')), true);
+});
+
+test('chamada síncrona usa fallback e encerra a instância no contexto inválido', () => {
+  const invalidApi = { runtime: { id: '' }, storage: { local: {} } };
+  let invalidations = 0;
+  const result = clawdSafeExtensionCall(invalidApi, () => { throw new Error('não deveria executar'); }, {
+    fallback: 'offline',
+    onInvalidated: () => { invalidations++; }
+  });
+  assert.equal(result, 'offline');
+  assert.equal(invalidations, 1);
+});
+
+test('rejeição assíncrona por contexto invalidado não fica sem tratamento', async () => {
+  const validApi = { runtime: { id: 'test-extension' }, storage: { local: {} } };
+  const result = await clawdSafeExtensionCall(
+    validApi,
+    () => Promise.reject(new Error('Extension context invalidated.')),
+    { fallback: null }
+  );
+  assert.equal(result, null);
+});
+
+test('callback tardio não executa depois que o contexto expira', () => {
+  const api = { runtime: { id: 'test-extension' }, storage: { local: {} } };
+  let calls = 0;
+  let invalidations = 0;
+  const guarded = clawdGuardExtensionCallback(api, () => { calls++; }, () => { invalidations++; });
+  api.runtime.id = '';
+  guarded();
+  assert.equal(calls, 0);
+  assert.equal(invalidations, 1);
 });
 
 test('sub-pet tem ciclo explícito de sono, despertar e interação manual', () => {
