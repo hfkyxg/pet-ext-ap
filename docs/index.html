@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b12">
+  <meta name="description" content="Documentação interativa do Claw'd, o companheiro pixel-art para navegador.">
+  <title>Claw'd — Documentação interativa</title>
+  <link rel="stylesheet" href="./showcase.css">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <div class="reading-progress" aria-hidden="true"><span id="reading-progress-fill"></span></div>
+
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Claw'd — início">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+      <span><b>CLAW'D</b><small>PROJECT FIELD GUIDE · 2026</small></span>
+    </a>
+    <nav aria-label="Navegação principal">
+      <a href="#laboratorio">Laboratório</a>
+      <a href="#ecossistema">Ecossistema</a>
+      <a href="#arquitetura">Arquitetura</a>
+      <a href="#validacao">Qualidade</a>
+    </nav>
+    <a class="header-cta" href="../README.md">README <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero section-shell" id="inicio">
+      <div class="hero-copy reveal">
+        <div class="eyebrow"><span></span> extensão MV3 · local-first · pixel-art</div>
+        <h1>Um pequeno pet.<br><em>Um ecossistema inteiro.</em></h1>
+        <p class="hero-lead">Claw'd transforma qualquer página em um espaço vivo: acompanha a navegação, reage ao usuário, assume profissões, evolui e cuida de oito sub-pets — sem servidor e sem telemetria.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#laboratorio">Experimentar ao vivo <span aria-hidden="true">↓</span></a>
+          <a class="button ghost" href="#instalacao">Ver instalação</a>
+        </div>
+        <ul class="hero-proof" aria-label="Destaques técnicos">
+          <li><span>01</span> Movimento no refresh rate do navegador</li>
+          <li><span>02</span> Persistência versionada e reload seguro</li>
+          <li><span>03</span> Interface, teclado, mouse e touch</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual reveal" aria-label="Prévia animada do mascote">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="hero-status"><i></i> COMPANHEIRO ONLINE</div>
+        <div class="hero-pet-wrap">
+          <div class="hero-bubble">Olá! 👋</div>
+          <div class="hero-pet" aria-hidden="true"><span></span></div>
+          <div class="hero-shadow"></div>
+        </div>
+        <div class="float-card card-emotion"><small>EMOÇÃO</small><b>CONTENTE</b><span>● 92%</span></div>
+        <div class="float-card card-fps"><small>RENDER</small><b>rAF</b><span>↗ Hz nativo</span></div>
+        <div class="float-card card-level"><small>PROGRESSO</small><b>LV. 12</b><span>1.240 XP</span></div>
+      </div>
+    </section>
+
+    <section class="metrics section-shell" aria-label="Números do projeto">
+      <article><strong data-count="14">14</strong><span>ações do pet</span></article>
+      <article><strong data-count="14">14</strong><span>acessórios</span></article>
+      <article><strong data-count="8">8</strong><span>profissões</span></article>
+      <article><strong data-count="8">8</strong><span>sub-pets</span></article>
+      <article><strong data-count="6">6</strong><span>ações do subpet</span></article>
+    </section>
+
+    <section class="section-shell intro-grid" id="visao">
+      <div class="section-heading reveal">
+        <div class="eyebrow"><span></span> visão do produto</div>
+        <h2>Presença que reage,<br>não apenas decora.</h2>
+      </div>
+      <div class="intro-copy reveal">
+        <p>O mascote entende o ritmo da página e responde com movimento, expressão e contexto. As pernas só entram em ciclo quando há deslocamento real; olhos, boca e balões são camadas independentes; o modo liso preserva a silhueta sem expor grade ou quadrados de fundo.</p>
+        <p>O resultado é um companheiro discreto quando precisa ser, surpreendente quando recebe atenção e sempre configurável pelo usuário.</p>
+      </div>
+    </section>
+
+    <section class="capability-band" aria-label="Capacidades centrais">
+      <div class="section-shell capability-grid" id="capability-grid"></div>
+    </section>
+
+    <section class="section-shell live-lab" id="laboratorio">
+      <div class="section-heading centered reveal">
+        <div class="eyebrow"><span></span> laboratório interativo</div>
+        <h2>Monte o seu Claw'd.</h2>
+        <p>Teste o corpo padrão, o visual liso contínuo, a boca opcional e acessórios sem sair da documentação.</p>
+      </div>
+
+      <div class="lab-panel reveal">
+        <div class="lab-stage" id="lab-stage">
+          <div class="stage-grid" aria-hidden="true"></div>
+          <div class="lab-emotion" id="lab-emotion" aria-live="polite">✨</div>
+          <div class="doc-main-pet" id="doc-main-pet" role="img" aria-label="Prévia do Claw'd vermelho">
+            <span class="doc-accessory" id="doc-accessory" aria-hidden="true"></span>
+            <span class="doc-pixel-seed" aria-hidden="true"></span>
+            <span class="doc-smooth-pet" aria-hidden="true">
+              <i class="smooth-head"></i><i class="smooth-arm left"></i><i class="smooth-arm right"></i>
+              <i class="smooth-leg left"></i><i class="smooth-leg right"></i>
+              <i class="smooth-eye left"></i><i class="smooth-eye right"></i>
+            </span>
+            <span class="doc-mouth" aria-hidden="true"></span>
+          </div>
+          <div class="doc-pet-shadow" aria-hidden="true"></div>
+          <div class="stage-note"><span id="lab-mode-label">PIXEL</span><small>sprite padrão · pernas em repouso</small></div>
+        </div>
+
+        <form class="lab-controls" id="main-pet-controls">
+          <div class="control-heading"><span>01</span><div><b>Aparência</b><small>alterações em tempo real</small></div></div>
+          <label class="control-row" for="lab-body-color"><span>Cor do corpo<small>identidade principal</small></span><input id="lab-body-color" type="color" value="#c71515"></label>
+          <label class="control-row" for="lab-render-mode"><span>Renderização<small>pixel ou contínua</small></span><select id="lab-render-mode"><option value="pixel">Pixel-art</option><option value="smooth">Liso, sem grade</option></select></label>
+          <label class="control-row" for="lab-accessory"><span>Acessório<small>prévia cosmética</small></span><select id="lab-accessory"><option value="none">Nenhum</option><option value="cap">🧢 Boné</option><option value="fishhat">🎣 Chapéu pescador</option><option value="crown">👑 Coroa</option><option value="sunglasses">🕶️ Óculos de sol</option><option value="headphones">🎧 Fones</option></select></label>
+          <label class="toggle-control" for="lab-mouth"><span><b>Exibir boca</b><small>olhos e emoções continuam independentes</small></span><input id="lab-mouth" type="checkbox" checked><i aria-hidden="true"></i></label>
+          <div class="lab-action-title">Emoções rápidas</div>
+          <div class="lab-actions" id="lab-main-actions">
+            <button type="button" data-mood="happy" data-emoji="😄">Feliz</button>
+            <button type="button" data-mood="sleep" data-emoji="💤">Dormir</button>
+            <button type="button" data-mood="wave" data-emoji="👋">Acenar</button>
+            <button type="button" data-mood="love" data-emoji="❤️">Carinho</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="section-shell catalog-section" id="ecossistema">
+      <div class="section-heading reveal">
+        <div class="eyebrow"><span></span> catálogo vivo</div>
+        <h2>Todo o ecossistema,<br>em uma única visão.</h2>
+        <p>Os itens abaixo são carregados diretamente do catálogo compartilhado da extensão.</p>
+      </div>
+
+      <div class="catalog-block reveal" id="profissoes">
+        <div class="catalog-title"><span>02</span><div><h3>Profissões</h3><p>Comportamentos e cenas próprias para cada papel.</p></div><b id="profession-count">08</b></div>
+        <div class="profession-grid" id="profession-grid"></div>
+      </div>
+
+      <div class="catalog-block reveal" id="acessorios">
+        <div class="catalog-title"><span>03</span><div><h3>Acessórios</h3><p>Dois slots combináveis: cabeça e rosto.</p></div><b id="accessory-count">14</b></div>
+        <div class="filter-bar" id="accessory-filters" role="group" aria-label="Filtrar acessórios">
+          <button class="active" type="button" data-filter="all">Todos</button>
+          <button type="button" data-filter="head">Cabeça</button>
+          <button type="button" data-filter="face">Rosto</button>
+        </div>
+        <div class="accessory-grid" id="accessory-grid"></div>
+      </div>
+
+      <div class="catalog-block reveal" id="acoes">
+        <div class="catalog-title"><span>04</span><div><h3>Ações do mascote</h3><p>Interações manuais, estados e respostas imediatas.</p></div><b id="action-count">14</b></div>
+        <div class="action-marquee" id="action-catalog"></div>
+      </div>
+    </section>
+
+    <section class="subpet-section" id="subpets">
+      <div class="section-shell">
+        <div class="section-heading light reveal">
+          <div class="eyebrow"><span></span> companheiro do companheiro</div>
+          <h2>Sub-pets que dormem,<br>acordam e brincam.</h2>
+          <p>Oito espécies evolutivas, cada uma com apelido, corpo, olhos e habilidade própria.</p>
+        </div>
+
+        <div class="subpet-lab reveal">
+          <div class="subpet-preview-stage">
+            <div class="subpet-bubble" id="subpet-bubble" aria-live="polite">Pronto para brincar!</div>
+            <div class="subpet-preview" id="subpet-preview" role="img" aria-label="Prévia do sub-pet"></div>
+            <div class="subpet-ground" aria-hidden="true"></div>
+            <span class="subpet-species-label" id="subpet-species-label">CACHORRO · LV. 2</span>
+          </div>
+          <div class="subpet-console">
+            <div class="control-heading"><span>05</span><div><b>Sub-pet studio</b><small>corpo e olhos independentes</small></div></div>
+            <div class="subpet-form-grid">
+              <label for="subpet-species">Espécie<select id="subpet-species"></select></label>
+              <label for="subpet-nickname">Apelido<input id="subpet-nickname" maxlength="16" value="Rex" autocomplete="off"></label>
+              <label for="subpet-body-color">Corpo<input id="subpet-body-color" type="color" value="#8d5a2b"></label>
+              <label for="subpet-eye-color">Olhos<input id="subpet-eye-color" type="color" value="#33ff99"></label>
+            </div>
+            <div class="lab-action-title">Interações ao vivo</div>
+            <div class="subpet-actions" id="subpet-actions"></div>
+            <p class="subpet-special" id="subpet-special"></p>
+          </div>
+        </div>
+        <div class="subpet-roster" id="subpet-roster"></div>
+      </div>
+    </section>
+
+    <section class="section-shell mechanics" id="mecanicas">
+      <div class="section-heading centered reveal">
+        <div class="eyebrow"><span></span> sistemas conectados</div>
+        <h2>Mais que animações isoladas.</h2>
+        <p>Cada ação alimenta um ciclo de estado, progressão e resposta visual.</p>
+      </div>
+      <div class="mechanic-flow reveal" aria-label="Fluxo das mecânicas">
+        <article><span>01</span><b>Entrada</b><p>Clique, arraste, touch, scroll, teclado e inatividade.</p></article>
+        <i aria-hidden="true">→</i>
+        <article><span>02</span><b>Estado</b><p>Movimento, profissão, emoção, necessidades e contexto.</p></article>
+        <i aria-hidden="true">→</i>
+        <article><span>03</span><b>Resposta</b><p>Sprite, fala, emoji, som opcional, partículas e subpet.</p></article>
+        <i aria-hidden="true">→</i>
+        <article><span>04</span><b>Progresso</b><p>XP, níveis, moedas, missões, streak e conquistas.</p></article>
+      </div>
+      <div class="feature-ledger" id="feature-ledger"></div>
+    </section>
+
+    <section class="architecture-section" id="arquitetura">
+      <div class="section-shell">
+        <div class="section-heading light reveal">
+          <div class="eyebrow"><span></span> arquitetura local-first</div>
+          <h2>Uma extensão pequena,<br>com limites claros.</h2>
+          <p>Estado compartilhado, renderização isolada e coordenação segura entre abas.</p>
+        </div>
+        <div class="architecture-map reveal">
+          <article class="arch-node popup"><small>INTERFACE</small><b>Popup</b><p>Configura, personaliza e dispara ações.</p><code>popup.js · popup.css</code></article>
+          <div class="arch-link"><span>mensagens</span><i>↔</i></div>
+          <article class="arch-node content"><small>RUNTIME</small><b>Content script</b><p>Estados, física, animações e profissões.</p><code>content.js · style.css</code></article>
+          <div class="arch-link"><span>presença</span><i>↔</i></div>
+          <article class="arch-node worker"><small>COORDENAÇÃO</small><b>Service worker</b><p>Reload seguro e anfitrião entre abas.</p><code>background.js</code></article>
+          <div class="arch-storage">
+            <i>↕</i><article class="arch-node storage"><small>FONTE ÚNICA</small><b>Catálogo + storage</b><p>Schema v3, migração e persistência local.</p><code>catalog.js · chrome.storage</code></article>
+          </div>
+        </div>
+        <div class="privacy-strip reveal"><span>◉</span><div><b>Privacidade por arquitetura</b><p>Sem conta, servidor, telemetria ou leitura de formulários. As reações contextuais usam apenas o hostname da aba.</p></div></div>
+      </div>
+    </section>
+
+    <section class="section-shell validation" id="validacao">
+      <div class="section-heading reveal">
+        <div class="eyebrow"><span></span> validação contínua</div>
+        <h2>Qualidade demonstrável.</h2>
+        <p>A suíte combina contratos estáticos, regras de catálogo e execução em Chromium real.</p>
+      </div>
+      <div class="validation-grid reveal">
+        <article class="validation-terminal">
+          <div class="terminal-top"><span></span><span></span><span></span><b>validation.log</b></div>
+          <pre><code><span>$</span> node --test tests/*.test.js
+<b>✓</b> estado e migrações
+<b>✓</b> sprites, modo liso e acessórios
+<b>✓</b> profissões, pesca e sub-pets
+<b>✓</b> popup, manifest e reload seguro
+
+<span>$</span> node tests/runtime-smoke.mjs
+<b>✓</b> extensão carregada em Chromium
+<b>✓</b> interações e persistência ao vivo
+<b>✓</b> zero exceções de runtime</code></pre>
+        </article>
+        <div class="quality-list">
+          <article><span>01</span><div><b>Sintaxe integral</b><p>Todos os scripts são verificados pelo runtime Node antes da entrega.</p></div></article>
+          <article><span>02</span><div><b>Contratos de catálogo</b><p>Cada item configurável precisa de estado, camada visual e wiring funcional.</p></div></article>
+          <article><span>03</span><div><b>Smoke test MV3</b><p>Instalação unpacked, popup, aba real, reload e limpeza de órfãos.</p></div></article>
+          <article><span>04</span><div><b>Acessibilidade básica</b><p>Foco, teclado, labels, regiões ao vivo e preferência de movimento reduzido.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="install-section" id="instalacao">
+      <div class="section-shell install-grid">
+        <div class="section-heading light reveal">
+          <div class="eyebrow"><span></span> pronto para acompanhar</div>
+          <h2>Carregue. Personalize.<br>Deixe o Claw'd viver.</h2>
+          <p>Compatível com navegadores Chromium que suportam Manifest V3.</p>
+          <div class="doc-links">
+            <a href="../README.md"><span>↗</span><b>README</b><small>visão geral e instalação</small></a>
+            <a href="../DOCUMENTACAO.md"><span>↗</span><b>Documentação técnica</b><small>arquitetura e protocolos</small></a>
+            <a href="../MANUAL.md"><span>↗</span><b>Manual</b><small>controles e uso diário</small></a>
+            <a href="../VALIDACAO.md"><span>↗</span><b>Validação</b><small>evidências da suíte</small></a>
+          </div>
+        </div>
+        <div class="install-card reveal">
+          <div class="install-step"><span>1</span><p>Abra <code>chrome://extensions</code> ou <code>edge://extensions</code>.</p></div>
+          <div class="install-step"><span>2</span><p>Ative o <b>Modo do desenvolvedor</b>.</p></div>
+          <div class="install-step"><span>3</span><p>Clique em <b>Carregar sem compactação</b>.</p></div>
+          <div class="install-step"><span>4</span><p>Selecione a raiz do projeto e abra uma página comum.</p></div>
+          <div class="install-ready"><i></i><span><b>CLAW'D READY</b><small>configuração salva localmente</small></span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="section-shell footer-inner">
+      <div class="brand footer-brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i></span><span><b>CLAW'D</b><small>COMPANHEIRO DE NAVEGAÇÃO</small></span></div>
+      <p>Manifest V3 · JavaScript · CSS pixel-art · MIT © 2026</p>
+      <a href="#inicio">Voltar ao topo ↑</a>
+    </div>
+  </footer>
+
+  <script src="../src/shared/catalog.js" defer></script>
+  <script src="./showcase.js" defer></script>
+</body>
+</html>

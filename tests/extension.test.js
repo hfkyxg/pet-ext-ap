@@ -11,6 +11,9 @@ const popupJs = read('src/popup/popup.js');
 const backgroundSource = read('src/background/background.js');
 const contentSource = read('src/content/content.js');
 const catalogSource = read('src/shared/catalog.js');
+const showcaseHtml = read('docs/index.html');
+const showcaseCss = read('docs/showcase.css');
+const showcaseJs = read('docs/showcase.js');
 
 test('manifest v3.1 referencia apenas arquivos existentes', () => {
   assert.equal(manifest.manifest_version, 3);
@@ -72,4 +75,28 @@ test('README e documentação identificam a versão e o ano atuais', () => {
   assert.match(readme, /MIT © 2026/);
   assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
   assert.match(docs, /2026/);
+});
+
+test('documentação interativa é local, completa e ligada aos catálogos reais', () => {
+  assert.match(showcaseHtml, /<title>Claw'd — Documentação interativa<\/title>/);
+  assert.match(showcaseHtml, /id="laboratorio"/);
+  assert.match(showcaseHtml, /id="ecossistema"/);
+  assert.match(showcaseHtml, /id="arquitetura"/);
+  assert.match(showcaseHtml, /id="validacao"/);
+  assert.match(showcaseHtml, /id="subpet-eye-color"/);
+  assert.match(showcaseHtml, /src="\.\.\/src\/shared\/catalog\.js"/);
+  assert.match(showcaseHtml, /src="\.\/showcase\.js"/);
+  assert.match(showcaseHtml, /href="\.\/showcase\.css"/);
+  assert.doesNotMatch(showcaseHtml, /<(?:script|link)[^>]+(?:src|href)="https?:\/\//i);
+
+  const usedIds = [...showcaseJs.matchAll(/\$\('([^']+)'\)/g)].map(match => match[1]);
+  const allHtmlIds = [...showcaseHtml.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+  const htmlIds = new Set(allHtmlIds);
+  assert.deepEqual([...new Set(usedIds)].filter(id => !htmlIds.has(id)), []);
+  assert.equal(allHtmlIds.length, htmlIds.size, 'A documentação interativa não pode ter IDs duplicados.');
+  assert.match(showcaseJs, /globalThis\.CLAWD_ACCESSORIES/);
+  assert.match(showcaseJs, /globalThis\.CLAWD_SUBPET_ACTIONS/);
+  assert.match(showcaseJs, /speciesColors\[select\.value\]\.eyes/);
+  assert.match(showcaseCss, /@media \(max-width: 520px\)/);
+  assert.match(showcaseCss, /@media \(prefers-reduced-motion: reduce\)/);
 });

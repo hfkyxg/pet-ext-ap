@@ -5,6 +5,7 @@ const {
   CLAWD_ACCESSORIES,
   CLAWD_PROFESSIONS,
   CLAWD_ACTIONS,
+  CLAWD_SUBPET_ACTIONS,
   clawdDefaultState,
   clawdDailyQuestForDate,
   clawdEnsureDailyQuest,
@@ -46,6 +47,7 @@ test('migração preserva saves antigos e adiciona missão sem corromper sub-pet
   assert.equal(state.schemaVersion, 3);
   assert.equal(state.accessoryHead, 'cap');
   assert.equal(state.subpets.active, 'dog');
+  assert.deepEqual(state.subpets.eyeColors, {});
   assert.ok(state.daily.date);
 });
 
@@ -137,10 +139,16 @@ test('sub-pets suportam apelidos e paletas customizadas por espécie', () => {
   const state = clawdDefaultState();
   state.subpets.names.dog = 'Rex';
   state.subpets.colors.dog = '#4a90e2';
+  state.subpets.eyeColors.dog = '#33ff99';
   const migrated = clawdMigrateState(state);
   assert.equal(migrated.subpets.names.dog, 'Rex');
   assert.equal(migrated.subpets.colors.dog, '#4a90e2');
+  assert.equal(migrated.subpets.eyeColors.dog, '#33ff99');
   assert.match(contentSource, /if \(this\.spriteNode\) this\._paint\(\);/);
+  assert.match(contentSource, /setEyeColor\(color\)/);
+  assert.match(contentSource, /case 'setSubpetEyeColor':/);
+  assert.match(popupHtml, /id="input-subpet-eye-color"/);
+  assert.match(popupSource, /action: 'setSubpetEyeColor'/);
   assert.match(contentSource, /this\.S\.subpets\s*=\s*stored\.subpets;/);
   assert.doesNotMatch(contentSource, /changes\.clawdState\s*\|\|\s*this\._writing/);
   assert.match(contentSource, /this\.S\.subpets\s*=\s*fresh\.subpets;\s*this\.refreshSubpet\(\);/);
@@ -254,4 +262,22 @@ test('sub-pet tem ciclo explícito de sono, despertar e interação manual', () 
   assert.match(contentSource, /this\.subpet\.wakeUp\('Acordamos juntos!/);
   assert.match(styleSource, /\.aic-subpet\.waking \.subpet-sprite/);
   assert.match(styleSource, /\.aic-subpet\.cuddling \.subpet-sprite/);
+});
+
+test('sub-pet oferece seis ações manuais animadas e habilidade por espécie', () => {
+  assert.deepEqual(Object.keys(CLAWD_SUBPET_ACTIONS), [
+    'cuddle', 'play', 'explore', 'spin', 'celebrate', 'special'
+  ]);
+  assert.match(popupHtml, /id="subpet-action-grid"/);
+  assert.match(popupSource, /function renderSubpetActions\(\)/);
+  assert.match(popupSource, /action: 'triggerSubpetAction'/);
+  assert.match(contentSource, /case 'triggerSubpetAction':/);
+  assert.match(contentSource, /this\.subpet\.interact\(request\.value, \{ force: true \}\)/);
+  assert.match(contentSource, /case 'explore':/);
+  assert.match(contentSource, /case 'spin':/);
+  assert.match(contentSource, /case 'celebrate':/);
+  assert.match(styleSource, /\.aic-subpet\.exploring \.subpet-sprite/);
+  assert.match(styleSource, /\.aic-subpet\.spinning \.subpet-sprite/);
+  assert.match(styleSource, /\.aic-subpet\.celebrating \.subpet-sprite/);
+  assert.match(styleSource, /@keyframes clawd-subpet-vanish/);
 });

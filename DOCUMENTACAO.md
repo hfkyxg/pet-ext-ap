@@ -1,7 +1,7 @@
 # 📖 Claw'd — Documentação Técnica
 
 > Documentação de arquitetura, código e funcionamento interno da extensão.
-> Complementa o [README](./README.md) (visão geral), o [MANUAL.md](./MANUAL.md) (uso) e o [MELHORIAS.md](./MELHORIAS.md) (roadmap v3).
+> Complementa a [documentação interativa](./docs/index.html), o [README](./README.md) (visão geral), o [MANUAL.md](./MANUAL.md) (uso) e o [MELHORIAS.md](./MELHORIAS.md) (roadmap v3).
 
 ---
 
@@ -31,17 +31,25 @@ clawd-extension/
 │   │   ├── popup.html         # UI de personalização (8 abas)
 │   │   ├── popup.css          # Design system dark da UI
 │   │   └── popup.js           # Controles, preview e mensageria com a aba
+│   ├── shared/
+│   │   └── catalog.js         # Estado, migrações e catálogos compartilhados
 │   ├── background/
 │   │   └── background.js      # Service worker (inicialização de estado)
 │   └── assets/
 │       ├── pet-banner.svg     # Banner do README
 │       └── pet-states.svg     # Showcase de estados
+├── docs/
+│   ├── index.html             # Vitrine e laboratório interativo
+│   ├── showcase.css           # Layout responsivo sem dependências externas
+│   └── showcase.js            # Previews e catálogos vivos
+├── tests/
+│   ├── catalog.test.js        # Contratos de estado, arte e mecânicas
+│   ├── extension.test.js      # Manifest, popup, docs e ciclo de reload
+│   └── runtime-smoke.mjs      # Smoke real em Edge/Chromium + reload MV3
 ├── README.md                  # Visão geral e instalação
 ├── DOCUMENTACAO.md            # Este arquivo
 ├── MANUAL.md                  # Manual do usuário
 └── MELHORIAS.md               # Especificação das melhorias v3
-├── tests/catalog.test.js      # Testes unitários e estruturais do ecossistema
-└── tests/runtime-smoke.mjs    # Smoke real em Edge/Chromium + reload MV3
 ```
 
 ---
@@ -163,6 +171,11 @@ chrome.runtime.onMessage — ações aceitas pelo content script:
 { action: 'resetPosition' }                         // volta ao canto inferior direito
 { action: 'updateConfig', key, value }              // qualquer chave de config
 { action: 'triggerAction', value: 'wave'|'dance'|'happy'|'sleep'|'wake' }
+{ action: 'setSubpet', value: 'dog'|null }           // ativa ou remove uma espécie
+{ action: 'setSubpetColor', species, value: '#rrggbb' }
+{ action: 'setSubpetEyeColor', species, value: '#rrggbb' }
+{ action: 'triggerSubpetAction', value: 'cuddle'|'play'|'explore'|'spin'|'celebrate'|'special' }
+{ action: 'getStatus' }                              // stats, jogo, missão e subpet atual
 ```
 
 ---
@@ -187,7 +200,14 @@ Tudo vive numa única chave `clawdState`:
   accessoryHead: 'none',   // slot de cabeça
   accessoryFace: 'none',   // slot de rosto/corpo
   position: { x, y },      // última posição arrastada
-  xp: 0                    // gamificação
+  xp: 0,                   // gamificação
+  subpets: {
+    active: null,
+    unlocked: [],
+    names: {},             // apelido por espécie
+    colors: {},            // cor do corpo por espécie
+    eyeColors: {}          // cor dos olhos por espécie
+  }
 }
 ```
 
@@ -195,9 +215,11 @@ O estado inicial mantém o sprite compacto vermelho de referência (`color: #c71
 
 Escrita incremental via `save()`/`persist()` (read-modify-write). O schema ganha `schemaVersion`, `stats`, `game`, `favorites`, `subpets` e `daily` — com migrador incremental. A missão diária é derivada da data, tem progresso limitado ao alvo e recompensa idempotente.
 
-Sub-pets têm `subpets.names` e `subpets.colors` indexados pela espécie. A classe `SubPet` deriva automaticamente uma cor de sombra para manter profundidade no pixel-art. O popup envia `setSubpetColor` para atualização ao vivo.
+Sub-pets têm `subpets.names`, `subpets.colors` e `subpets.eyeColors` indexados pela espécie. A classe `SubPet` deriva automaticamente uma cor de sombra do corpo para manter profundidade e aplica os olhos como canal `K` independente. O popup envia `setSubpetColor` e `setSubpetEyeColor` para atualização ao vivo; saves antigos recebem `eyeColors: {}` pela migração sem perder os demais dados.
 
-O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `playing`, `cuddling` e `racing`. `sleep()` e `wakeUp()` cancelam timers opostos; o clique e teclado no próprio sub-pet fazem carinho ou despertam, e o despertar do Claw'd principal chama o despertar sincronizado do sub-pet.
+O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `playing`, `cuddling`, `racing`, `exploring`, `spinning`, `celebrating`, `special`, `vanishing`, `splitting` e `fire`. O estado atual também fica em `data-state`, uma fronteira pública de diagnóstico que não expõe o objeto do content script ao mundo JavaScript da página. `sleep()` e `wakeUp()` cancelam timers opostos; clique/teclado e qualquer uma das seis ações manuais despertam o subpet antes de interagir. Timers de ação ficam registrados e são cancelados por `destroy()`.
+
+Cada espécie implementa `special`: cachorro late/busca, gato pode ignorar, pássaro rodopia, coelho salta, dinossauro corre, dragão solta fogo, fantasma desaparece e slime se divide. As animações preservam o flip horizontal por variável CSS e respeitam `prefers-reduced-motion`.
 
 No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite` assume o mesmo desenho angular com uma cabeça contínua, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os 14 acessórios e as skins especiais também têm variantes contínuas. Os 7 chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
 
@@ -265,4 +287,4 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os 28 testes cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, os 7 chapéus refinados, sprite e pernas, modo liso, boca opcional/emoções, pesca, sub-pets, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O smoke test executa o Edge/Chromium em perfil isolado e valida em runtime os dois renderizadores, todos os acessórios, alternância e persistência da boca, movimento dos chapéus, as 8 profissões, as 14 ações, popup (8 abas, loja e conquistas), sub-pet customizado e três reloads sem erros ou duplicação. A validação manual complementar deve incluir gestos de arraste/touch, export/import e viagem cross-tab entre janelas reais.
+Os **30 testes** cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, os 7 chapéus refinados, sprite e pernas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O smoke test executa o Edge/Chromium em perfil isolado e valida em runtime os dois renderizadores, todos os acessórios, alternância e persistência da boca, movimento dos chapéus, as 8 profissões, as 14 ações, popup (8 abas, loja e conquistas), subpet com apelido, corpo `#4a90e2`, olhos `#33ff99`, seis interações e três reloads sem erros ou duplicação. A validação manual complementar deve incluir gestos de arraste/touch, export/import e viagem cross-tab entre janelas reais.

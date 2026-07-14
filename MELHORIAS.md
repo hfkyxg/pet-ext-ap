@@ -3,7 +3,7 @@
 > Especificação técnica que orientou a evolução até a v3.1.
 > Os seis blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção e futuras expansões.
 
-**Base atual:** `content.js` (classe `ClawdCompanion`), `popup.js/html/css`, `background.js` (service worker MV3), persistência via `chrome.storage.local` (chave `clawdState`).
+**Base atual:** `content.js` (classes `ClawdCompanion` e `SubPet`), `popup.js/html/css`, `background.js` (service worker MV3), catálogo compartilhado, persistência via `chrome.storage.local` (chave `clawdState`) e [vitrine interativa](./docs/index.html).
 
 ---
 
@@ -81,20 +81,26 @@ O Claw'd pode **adotar seus próprios pets** em pixel-art — dos convencionais 
 - **Renderização**: cada sub-pet é um nó próprio (`.aic-subpet`) com sprite em `box-shadow` pixel-art (mesma técnica do Claw'd), ~60% do tamanho do pet principal, herdando `--agent-scale`.
 - **Follow**: o sub-pet segue o Claw'd com atraso suave (lerp de posição, ~300ms atrás), inclusive no auto-walk e no drag.
 - **Interações pet↔pet** (sorteadas a cada ~30s quando ambos idle):
-  - `play`: correm um atrás do outro em círculo;
+  - `play`: pulam e brincam juntos;
   - `cuddle`: encostam e sobem corações;
   - `nap`: dormem juntos (Zzz sincronizado);
   - `race`: apostam corrida até a borda da tela;
+  - `explore`: o subpet visita outra região visível da página;
+  - `spin`: executa um rodopio curto com partículas;
+  - `celebrate`: pet e subpet comemoram juntos;
   - especial por espécie (tabela acima).
-- **Estados próprios**: o sub-pet tem `idle / following / playing / sleeping` e dorme quando o Claw'd dorme.
-- O usuário pode ter **1 sub-pet ativo** por vez (expansível para 2 no futuro); seleção pela nova aba **🐕 Pets** do popup, com cards mostrando preview, nível de desbloqueio e ☆ de favorito.
+- **Estados próprios**: o subpet tem `following / playing / cuddling / racing / exploring / spinning / celebrating / special / sleeping / waking`; o atributo `data-state` mantém o diagnóstico observável sem romper o isolamento MV3.
+- O usuário pode ter **1 subpet ativo** por vez; a aba **🐕 Pets** mostra nível, favorito, apelido e personalizações independentes de corpo e olhos.
+- Um painel de **6 ações ao vivo** oferece carinho, brincar, explorar, rodopiar, comemorar e habilidade especial. A ação acorda o subpet antes de começar.
 
 ### Modelo de dados
 ```javascript
 subpets: {
   active: 'dragon',                    // ou null
   unlocked: ['dog', 'cat', 'dragon'],
-  names: { dog: 'Rex', dragon: 'Fumaça' }
+  names: { dog: 'Rex', dragon: 'Fumaça' },
+  colors: { dog: '#4a90e2' },
+  eyeColors: { dog: '#33ff99' }
 }
 ```
 
@@ -102,12 +108,14 @@ subpets: {
 | Arquivo | Mudança |
 |---------|---------|
 | `content.js` | Nova classe `SubPet` (sprite, follow, estados, interações); instanciada por `ClawdCompanion` |
-| `style.css` | Keyframes por espécie (`subpet-dog-walk`, `subpet-dragon-fly`, etc.) |
-| `popup.html/js` | Nova aba "🐕 Pets" com grid de cards (bloqueados exibem cadeado + nível) |
+| `style.css` | Keyframes isolados `clawd-subpet-*`, direção preservada e movimento reduzido |
+| `popup.html/js` | Aba "🐕 Pets", corpo/olhos, apelido e painel de seis ações |
+| `catalog.js` | Catálogo `CLAWD_SUBPET_ACTIONS`, defaults e migração de `eyeColors` |
 
 ### Critérios de aceite
 - [x] Sub-pet segue o Claw'd suavemente em qualquer página.
-- [x] Ao menos 4 interações pet↔pet observáveis.
+- [x] Seis interações manuais e oito habilidades por espécie são observáveis.
+- [x] Apelido, corpo e olhos persistem de forma independente.
 - [x] Desbloqueio por nível funciona e persiste.
 
 ---
@@ -369,6 +377,7 @@ Nova aba **⚙️ Config** no popup, consolidando:
 | **4** | Profissões 2.0 | Embaixadinhas, Tutor, Dev e novas profissões | ✅ Concluída |
 | **5** | Sub-Pets | Classe `SubPet`, catálogo, apelidos, cores e interações | ✅ Concluída |
 | **6** | Cross-Tab | PresenceManager, viagens e reconciliação de reload | ✅ Concluída |
+| **7** | Showcase + Sub-Pets 2.0 | Documentação interativa, olhos customizáveis e seis ações | ✅ Concluída |
 
 ### Diretrizes gerais
 - Manter **zero dependências externas** — tudo em Vanilla JS + CSS puro;

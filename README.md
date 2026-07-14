@@ -14,7 +14,7 @@ Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus pró
 
 [Instalar](#-instalação) · [Funcionalidades](#-funcionalidades) · [Personalização](#-personalização) · [Validação](#-validação) · [Contribuir](#-contribuição)
 
-📖 **Documentação:** [Documentação Técnica](./DOCUMENTACAO.md) · [Manual de Instruções](./MANUAL.md) · [Relatório de Validação](./VALIDACAO.md) · [Registro de Melhorias v3.1](./MELHORIAS.md)
+🌐 **Explore:** [Documentação Interativa](./docs/index.html) · [Documentação Técnica](./DOCUMENTACAO.md) · [Manual de Instruções](./MANUAL.md) · [Relatório de Validação](./VALIDACAO.md) · [Registro de Melhorias v3.1](./MELHORIAS.md)
 
 </div>
 
@@ -91,7 +91,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - **PixelCoins, loja, conquistas, streak e missão diária**
 - **Barra de progresso** animada no popup
 - **Bola jogável** — clique na bola e veja o Claw'd marcar um golaço ⚽🥅
-- **8 sub-pets** com apelido, cor, sono, despertar e interação por espécie
+- **8 sub-pets** com apelido, cores independentes de corpo/olhos, sono, despertar, 6 ações manuais e habilidade por espécie
 - Progresso salvo entre sessões
 
 </td>
@@ -180,6 +180,9 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 ### Aba Ações
 Dispare ações imediatas como **acenar, dançar, dar carinho, alimentar, brincar, posar, dar banho, dormir, acordar, pescar, pular, esticar e rugir**. A aba também permite ocultar e resgatar o pet.
 
+### Aba Sub-pets
+Ative uma das oito espécies, atribua um **apelido**, personalize separadamente as cores do **corpo** e dos **olhos** e use o painel ao vivo para **dar carinho, brincar, explorar, rodopiar, comemorar ou executar a habilidade especial**. Uma interação acorda o subpet adormecido antes da animação.
+
 ---
 
 ## 🏗️ Estrutura do Projeto
@@ -204,7 +207,12 @@ pet-ext-ap/
 │       └── pet-states.svg     # Showcase de estados
 ├── tests/
 │   ├── catalog.test.js        # Regras, sprites, emoções e ciclo de vida
-│   └── extension.test.js      # Manifest, wiring do popup e reload seguro
+│   ├── extension.test.js      # Manifest, popup, documentação e reload seguro
+│   └── runtime-smoke.mjs      # Chromium real, interações e reloads
+├── docs/
+│   ├── index.html             # Vitrine e laboratório interativo
+│   ├── showcase.css           # Sistema visual responsivo da documentação
+│   └── showcase.js            # Catálogos vivos e previews customizáveis
 ├── DOCUMENTACAO.md            # Arquitetura e protocolo interno
 ├── MANUAL.md                  # Guia de uso
 ├── VALIDACAO.md               # Evidências automatizadas e em Chromium real
@@ -264,7 +272,8 @@ bodyNode.style.transform = `scale(${scale})`;        // → tamanho sem reflow
 | **Scrollar** | Estado excited por 1s |
 | **Mover o mouse** | Perspectiva 3D (rotação suave) |
 | **Clique duplo/triplo** | Ações especiais e sequências de emoção |
-| **Clicar no sub-pet** | Carinho, despertar ou reação da espécie |
+| **Clicar no sub-pet** | Carinho ou despertar com animação própria |
+| **Painel do sub-pet** | Brincar, explorar, rodopiar, comemorar ou usar a habilidade da espécie |
 | **Clicar no lago** | Fisga o peixe durante a profissão Pescador |
 | **Touch (mobile)** | Arrastar e clicar funcionam |
 | **Não interagir** por 30s | Pet adormece automaticamente |
@@ -290,7 +299,7 @@ chrome.storage.local.set({
     smooth:       false,
     accessoryHead: 'none',
     accessoryFace: 'none',
-    subpets:      { active: null, unlocked: [], names: {}, colors: {} },
+    subpets:      { active: null, unlocked: [], names: {}, colors: {}, eyeColors: {} },
     settings:     { crossTab: true, performanceMode: false }
   }
 });
@@ -305,7 +314,7 @@ O núcleo da v3.1 está implementado e validado: favoritos, sub-pets, profissõe
 | Área | Destaques |
 |------|-----------|
 | ⭐ **Favoritos** | Favorite ações, profissões, acessórios, cores e apelidos — favoritos ganham prioridade |
-| 🐕 **Sub-Pets** | Cachorro, gato, dinossauro, dragão e mais, com apelido, cor própria, sprites pixel-art e interações entre eles |
+| 🐕 **Sub-Pets** | Oito espécies com apelido, corpo/olhos customizáveis, sprites pixel-art, seis ações ao vivo e habilidades próprias |
 | 🎬 **Animações & Acessórios** | Novas ações, 2 slots e 7 chapéus refinados em pixel-art e superfícies contínuas |
 | 😊 **Status & Emoções** | Felicidade, fome, energia e higiene estilo Tamagotchi, com emoções derivadas |
 | 💼 **Profissões 2.0** | Embaixadinhas com contador e recorde, desafios do Tutor, digitação do Dev + novas profissões |
@@ -330,7 +339,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **28 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca opcional/emoções, chapéus, sub-pets, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, o controle persistente da boca, o movimento dos chapéus, 8 profissões, 14 ações, popup completo, sub-pet com apelido/cor/interação e três reloads consecutivos, sempre com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **30 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca opcional/emoções, chapéus, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, o controle persistente da boca, o movimento dos chapéus, 8 profissões, 14 ações, popup completo e o subpet com apelido, corpo, olhos e suas 6 interações; depois executa três reloads consecutivos, sempre com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 O visual inicial é o sprite compacto vermelho de referência: pixels nítidos, sem blur, com escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
 
@@ -347,7 +356,7 @@ Ao arrastar e soltar com velocidade, o Claw'd desliza sobre o conteúdo da pági
 ### Ideias de contribuição
 - [ ] Novas skins e acessórios pixel-art
 - [ ] Mais desafios e peixes raros por profissão
-- [ ] Novas interações entre sub-pets
+- [x] Seis interações manuais e habilidades próprias para os sub-pets
 - [ ] Testes E2E automatizados em Chrome real
 - [ ] Suporte a Firefox (WebExtensions)
 

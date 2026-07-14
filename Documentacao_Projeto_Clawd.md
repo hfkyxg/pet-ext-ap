@@ -1,6 +1,6 @@
 # Projeto Claw'd v3.1 — Visão Arquitetural e Funcional
 
-> Documento executivo atualizado em 2026. Para detalhes de implementação, consulte [DOCUMENTACAO.md](./DOCUMENTACAO.md); para uso diário, consulte [MANUAL.md](./MANUAL.md).
+> Documento executivo atualizado em 2026. Conheça o sistema na [Documentação Interativa](./docs/index.html), consulte a implementação em [DOCUMENTACAO.md](./DOCUMENTACAO.md) e o uso diário em [MANUAL.md](./MANUAL.md).
 
 ## 1. Visão do produto
 
@@ -13,7 +13,7 @@ O visual padrão é o sprite compacto vermelho de referência. Em repouso, as pe
 - **Movimento adaptativo:** `requestAnimationFrame`, leitura da cadência real do navegador, arraste, touch, inércia e colisão suave nas bordas;
 - **Emoções:** felicidade, fome, energia e higiene alimentam expressões, falas, piscadas e balões de emoji;
 - **Personalização:** nome, cor, tamanho, velocidade, skins, name-tag, camisa, bolas e 14 acessórios em dois slots;
-- **Sub-pets:** oito espécies com apelido, cor própria, sono, despertar sincronizado e ações especiais;
+- **Sub-pets:** oito espécies com apelido, cores independentes de corpo e olhos, sono, despertar sincronizado, seis ações manuais e habilidades especiais;
 - **Gamificação:** XP, níveis, PixelCoins, loja, conquistas, streak, favoritos e missão diária;
 - **Persistência:** estado versionado e migrado em `chrome.storage.local`;
 - **Presença entre abas:** um único pet principal via service worker e `chrome.storage.session`.
@@ -49,7 +49,9 @@ O projeto não usa IA remota nem lê o conteúdo de formulários. As reações c
 
 ## 6. Qualidade e evolução
 
-A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, modo liso, sub-pets, pesca, manifest, popup e reload seguro. A evolução recomendada é ampliar testes E2E em Chrome real, adicionar novas profissões/sub-pets e manter cada novo cosmético coberto por catálogo e CSS.
+A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, modo liso, sub-pets, documentação, pesca, manifest, popup e reload seguro. Em 14/07/2026, **30/30 contratos** passaram; o smoke test em Chromium confirmou 14 acessórios em cada renderizador, 8 profissões, 14 ações principais, 6 ações do subpet, cor independente dos olhos, três reloads com uma única instância e zero erros de runtime.
+
+A vitrine em `docs/index.html` documenta visualmente o produto, carrega os catálogos reais e oferece laboratórios interativos do Claw'd e dos sub-pets. Ela não depende de CDN, build ou servidor.
 
 ---
 

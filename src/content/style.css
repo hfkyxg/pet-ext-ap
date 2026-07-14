@@ -1276,6 +1276,7 @@
    SUB-PET
    ============================ */
 .aic-subpet {
+  --subpet-direction: 1;
   position: fixed;
   z-index: 2147483646;
   width: 30px;
@@ -1290,12 +1291,13 @@
   width: 3px;
   height: 3px;
   background: transparent;
-  transform: scale(var(--subpet-scale, 1));
+  transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction));
   transform-origin: top left;
   image-rendering: pixelated;
   filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+  will-change: transform, filter;
 }
-.aic-subpet.flipped .subpet-sprite { transform: scale(var(--subpet-scale, 1)) scaleX(-1); }
+.aic-subpet.flipped { --subpet-direction: -1; }
 .aic-subpet .subpet-bubble {
   position: absolute;
   bottom: 26px;
@@ -1323,25 +1325,47 @@
 .aic-subpet.cuddling .subpet-sprite { animation: clawd-subpet-cuddle 0.32s ease-in-out 3; }
 .aic-subpet.racing .subpet-sprite { animation: clawd-subpet-run 0.18s steps(2) infinite; }
 .aic-subpet.waking .subpet-sprite { animation: clawd-subpet-wake 1s cubic-bezier(.34,1.56,.64,1); }
+.aic-subpet.spinning .subpet-sprite { animation: clawd-subpet-spin 0.62s cubic-bezier(.45,.05,.55,.95) 2; }
+.aic-subpet.celebrating .subpet-sprite { animation: clawd-subpet-celebrate 0.46s cubic-bezier(.34,1.56,.64,1) 4; }
+.aic-subpet.exploring .subpet-sprite { animation: clawd-subpet-explore 0.34s steps(2) infinite; }
+.aic-subpet.vanishing .subpet-sprite { animation: clawd-subpet-vanish 1.9s ease-in-out both; }
 .aic-subpet.sleeping .subpet-sprite { filter: brightness(0.55) saturate(0.3) drop-shadow(0 3px 4px rgba(0,0,0,0.2)); }
 .aic-subpet.fire .subpet-sprite { filter: drop-shadow(0 0 8px rgba(231,76,60,0.9)); }
 @keyframes clawd-subpet-split {
-  0%,100% { transform: scale(var(--subpet-scale, 1)); }
-  50%     { transform: scale(calc(var(--subpet-scale, 1) * 0.7)) translateX(8px); }
+  0%,100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
+  50%     { transform: scale(calc(var(--subpet-scale, 1) * 0.7)) scaleX(var(--subpet-direction)) translateX(8px); }
 }
 .aic-subpet.split .subpet-sprite { animation: clawd-subpet-split 0.5s ease-in-out 3; }
 @keyframes clawd-subpet-cuddle {
-  0%, 100% { transform: scale(var(--subpet-scale, 1)) rotate(0deg); }
-  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.12)) rotate(-5deg); }
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) rotate(-5deg); }
 }
 @keyframes clawd-subpet-run {
   0%, 100% { margin-top: 0; }
   50% { margin-top: -3px; }
 }
 @keyframes clawd-subpet-wake {
-  0% { transform: scale(calc(var(--subpet-scale, 1) * .65)) translateY(7px); filter: brightness(.55); }
-  55% { transform: scale(calc(var(--subpet-scale, 1) * 1.16)) translateY(-7px); filter: brightness(1.25); }
-  100% { transform: scale(var(--subpet-scale, 1)) translateY(0); filter: none; }
+  0% { transform: scale(calc(var(--subpet-scale, 1) * .65)) scaleX(var(--subpet-direction)) translateY(7px); filter: brightness(.55); }
+  55% { transform: scale(calc(var(--subpet-scale, 1) * 1.16)) scaleX(var(--subpet-direction)) translateY(-7px); filter: brightness(1.25); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); filter: none; }
+}
+@keyframes clawd-subpet-spin {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) rotate(180deg) translateY(-4px); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(360deg); }
+}
+@keyframes clawd-subpet-celebrate {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
+  45% { transform: scale(calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-10px) rotate(-7deg); }
+  70% { transform: scale(calc(var(--subpet-scale, 1) * .96)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(5deg); }
+}
+@keyframes clawd-subpet-explore {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(-2deg); filter: brightness(1); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px) rotate(2deg); filter: brightness(1.13); }
+}
+@keyframes clawd-subpet-vanish {
+  0%, 100% { opacity: 1; transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); filter: blur(0) brightness(1); }
+  45%, 62% { opacity: .08; transform: scale(calc(var(--subpet-scale, 1) * .68)) scaleX(var(--subpet-direction)) translateY(-8px); filter: blur(1px) brightness(1.8); }
 }
 
 /* ============================

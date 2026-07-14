@@ -376,6 +376,40 @@ function renderActions() {
 /* =====================================================
    SUB-PETS
    ===================================================== */
+function renderSubpetActions() {
+  const grid = $('subpet-action-grid');
+  const status = $('subpet-action-status');
+  const active = S.subpets.active;
+  grid.innerHTML = '';
+
+  Object.entries(CLAWD_SUBPET_ACTIONS).forEach(([id, def]) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'subpet-action-btn';
+    btn.disabled = !active;
+    btn.dataset.action = id;
+    btn.title = active ? `${def.label}: ${def.feedback}` : 'Ative um sub-pet primeiro';
+    btn.innerHTML = `<span aria-hidden="true">${def.emoji}</span><b>${def.label}</b>`;
+    btn.addEventListener('click', () => {
+      if (!S.subpets.active) return;
+      const species = S.subpets.active;
+      const petName = (S.subpets.names || {})[species] || CLAWD_SUBPETS[species]?.label || 'Sub-pet';
+      sendMsg({ action: 'triggerSubpetAction', value: id });
+      status.textContent = `${def.emoji} ${petName}: ${def.feedback}`;
+      btn.classList.add('playing');
+      setTimeout(() => btn.classList.remove('playing'), 420);
+    });
+    grid.appendChild(btn);
+  });
+
+  if (!active) {
+    status.textContent = 'Ative um sub-pet para brincar.';
+  } else {
+    const petName = (S.subpets.names || {})[active] || CLAWD_SUBPETS[active]?.label || 'Sub-pet';
+    status.textContent = `${petName} está acordado e pronto para interagir.`;
+  }
+}
+
 function renderSubpets() {
   const grid = $('subpet-grid');
   grid.innerHTML = '';
@@ -416,9 +450,13 @@ function renderSubpets() {
     $('input-subpet-name').value = (S.subpets.names || {})[S.subpets.active] || '';
     const defaultColor = CLAWD_COLORS[Object.keys(CLAWD_SUBPETS).indexOf(S.subpets.active) % CLAWD_COLORS.length] || '#8d5a2b';
     const color = (S.subpets.colors || {})[S.subpets.active] || defaultColor;
+    const eyeColor = (S.subpets.eyeColors || {})[S.subpets.active] || '#111111';
     $('input-subpet-color').value = color;
     $('subpet-color-hex').textContent = color;
+    $('input-subpet-eye-color').value = eyeColor;
+    $('subpet-eye-color-hex').textContent = eyeColor;
   }
+  renderSubpetActions();
 }
 
 /* =====================================================
@@ -685,7 +723,23 @@ function bindStatic() {
     S.subpets.colors = S.subpets.colors || {};
     S.subpets.colors[species] = color;
     sendMsg({ action: 'setSubpetColor', species, value: color });
-    persist(st => { st.subpets.colors[species] = color; });
+    persist(st => {
+      st.subpets.colors = st.subpets.colors || {};
+      st.subpets.colors[species] = color;
+    });
+  });
+  $('input-subpet-eye-color').addEventListener('input', (e) => {
+    const species = S.subpets.active;
+    if (!species) return;
+    const color = e.target.value;
+    $('subpet-eye-color-hex').textContent = color;
+    S.subpets.eyeColors = S.subpets.eyeColors || {};
+    S.subpets.eyeColors[species] = color;
+    sendMsg({ action: 'setSubpetEyeColor', species, value: color });
+    persist(st => {
+      st.subpets.eyeColors = st.subpets.eyeColors || {};
+      st.subpets.eyeColors[species] = color;
+    });
   });
 
   // Sistema

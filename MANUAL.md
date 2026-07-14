@@ -1,7 +1,7 @@
 # 📘 Claw'd — Manual de Instruções
 
 > Guia completo de uso para quem acabou de adotar o Claw'd. 🐾
-> Nada de código aqui — só como usar. Para detalhes técnicos, veja a [Documentação](./DOCUMENTACAO.md).
+> Nada de código aqui — só como usar. Para conhecer tudo visualmente, abra a [Documentação Interativa](./docs/index.html); para detalhes técnicos, veja a [Documentação](./DOCUMENTACAO.md).
 
 ---
 
@@ -80,9 +80,20 @@ A profissão muda o comportamento do pet:
 
 ### 🐕 Sub-pets
 
-Ao selecionar um sub-pet, você pode definir um apelido e uma cor própria. O nome aparece nas falas e a cor é aplicada ao sprite pixel-art, incluindo uma sombra mais escura automaticamente.
+Ao selecionar um subpet, você pode definir um **apelido**, a **cor do corpo** e uma **cor independente para os olhos**. O nome aparece nas falas; o corpo recebe uma sombra mais escura automaticamente para preservar a profundidade da pixel-art.
 
-Clique ou use Enter/Espaço no sub-pet para fazer carinho. Se ele estiver dormindo, acordará com uma animação própria; quando o Claw'd principal acorda, os dois despertam juntos. Sub-pets também brincam, correm, cochilam e fazem uma reação especial conforme a espécie.
+Clique ou use Enter/Espaço no subpet para fazer carinho. Se ele estiver dormindo, acordará com uma animação própria; quando o Claw'd principal acorda, os dois despertam juntos.
+
+No painel **Interações ao vivo**, escolha uma destas seis ações:
+
+- **🫶 Carinho** — aproxima a dupla, mostra coração e gera partículas;
+- **🎾 Brincar** — ativa pulos e uma resposta animada;
+- **🔎 Explorar** — o subpet percorre outra região da página;
+- **🌀 Rodopiar** — executa um giro curto;
+- **🎉 Comemorar** — pet e subpet festejam juntos;
+- **✨ Especial** — usa o comportamento exclusivo da espécie, como fogo do dragão, corrida do dinossauro ou desaparecimento do fantasma.
+
+Qualquer ação manual acorda o subpet antes de começar. Se você escolher outra enquanto uma animação ainda acontece, a nova ação assume de forma imediata.
 
 ### 🎣 Profissão Pescador
 
@@ -108,7 +119,7 @@ Na aba **🏆 Conquistas**, uma missão muda diariamente. Ela acompanha ações 
 O Claw'd evolui com carinho:
 
 - Carinho (clique): **+5 XP** · Golaço na bola: **+10 XP**;
-- A cada **50 XP** ele sobe de nível, com festa de partículas e balão "🎖️ Level X!";
+- O primeiro nível exige **50 XP** e os seguintes usam uma curva progressiva, com festa de partículas e balão de nível;
 - O progresso fica na barra do menu e **é salvo para sempre** — mesmo fechando o navegador.
 
 ---
@@ -143,7 +154,7 @@ Ainda não — por enquanto Chrome, Edge e Brave. Suporte a Firefox está nas id
 
 ## 7. Recursos avançados já disponíveis
 
-O Claw'd já inclui **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…), **status e emoções** estilo Tamagotchi, balões de emoji, piscadas e expressões, embaixadinhas ⚽, **óculos de sol 🕶️**, lojinha com PixelCoins, conquistas, missão diária e o pet **passeando entre suas abas abertas**. Novas ideias e melhorias futuras estão no [MELHORIAS.md](./MELHORIAS.md).
+O Claw'd já inclui **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com olhos customizáveis e seis ações, **status e emoções** estilo Tamagotchi, balões de emoji, piscadas e expressões, embaixadinhas ⚽, **óculos de sol 🕶️**, lojinha com PixelCoins, conquistas, missão diária e o pet **passeando entre suas abas abertas**. Novas ideias e melhorias futuras estão no [MELHORIAS.md](./MELHORIAS.md).
 
 ---
 

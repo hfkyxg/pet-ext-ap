@@ -87,9 +87,10 @@ function shadePixelColor(hex, factor = 0.7) {
   return `#${rgb.map(part => part.toString(16).padStart(2, '0')).join('')}`;
 }
 
-function subPetPalette(sprite, customColor) {
+function subPetPalette(sprite, customColor, customEyeColor) {
   const primary = /^#[\da-f]{6}$/i.test(customColor || '') ? customColor : sprite.colors.B;
-  return { ...sprite.colors, B: primary, D: shadePixelColor(primary, 0.68) };
+  const eyes = /^#[\da-f]{6}$/i.test(customEyeColor || '') ? customEyeColor : (sprite.colors.K || '#111111');
+  return { ...sprite.colors, B: primary, D: shadePixelColor(primary, 0.68), K: eyes };
 }
 
 class SubPet {
@@ -99,7 +100,9 @@ class SubPet {
     this.def = CLAWD_SUBPETS[species] || CLAWD_SUBPETS.dog;
     this.sprite = SUBPET_SPRITES[species] || SUBPET_SPRITES.dog;
     this.color = this.sprite.colors.B;
+    this.eyeColor = this.sprite.colors.K || '#111111';
     this.setColor(owner.S.subpets.colors?.[species]);
+    this.setEyeColor(owner.S.subpets.eyeColors?.[species]);
     this.state = 'following';
     this.x = 0; this.y = 0;
     this.frame = 0;
@@ -108,6 +111,8 @@ class SubPet {
     this._interactTimer = null;
     this._sleepTimer = null;
     this._wakeTimer = null;
+    this._interactionEndTimer = null;
+    this._actionTimers = new Set();
     this._interactionBusy = false;
     this.node = null;
     this.create();
@@ -119,6 +124,7 @@ class SubPet {
     this.y = rect.top + 20;
     this.node = document.createElement('div');
     this.node.className = 'aic-subpet';
+    this.node.dataset.state = this.state;
     this.node.setAttribute('role', 'button');
     this.node.setAttribute('tabindex', '0');
     this.node.setAttribute('aria-label', `${this.owner.S.subpets.names?.[this.species] || this.def.label}, sub-pet interativo`);
@@ -159,29 +165,98 @@ class SubPet {
     this.bubbleNode.textContent = text;
     this.bubbleNode.classList.add('visible');
     clearTimeout(this._sayTimer);
-    this._sayTimer = setTimeout(() => this.bubbleNode.classList.remove('visible'), dur);
+    this._sayTimer = dur > 0
+      ? setTimeout(() => this.bubbleNode?.classList.remove('visible'), dur)
+      : null;
   }
 
   setColor(color) {
     this.color = /^#[\da-f]{6}$/i.test(color || '') ? color : this.sprite.colors.B;
-    this.colors = subPetPalette(this.sprite, this.color);
+    this.colors = subPetPalette(this.sprite, this.color, this.eyeColor);
     if (this.spriteNode) this._paint();
+  }
+
+  setEyeColor(color) {
+    this.eyeColor = /^#[\da-f]{6}$/i.test(color || '') ? color : (this.sprite.colors.K || '#111111');
+    this.colors = subPetPalette(this.sprite, this.color, this.eyeColor);
+    if (this.spriteNode) this._paint();
+  }
+
+  _later(callback, delay) {
+    const timer = setTimeout(() => {
+      this._actionTimers.delete(timer);
+      if (this.node) callback();
+    }, delay);
+    this._actionTimers.add(timer);
+    return timer;
+  }
+
+  _cancelInteractionTimer() {
+    if (!this._interactionEndTimer) return;
+    clearTimeout(this._interactionEndTimer);
+    this._actionTimers.delete(this._interactionEndTimer);
+    this._interactionEndTimer = null;
+  }
+
+  _clearActionClasses() {
+    this.node?.classList.remove(
+      'playing', 'cuddling', 'racing', 'spinning', 'celebrating',
+      'exploring', 'vanishing', 'fire', 'split'
+    );
+  }
+
+  _setState(state) {
+    this.state = state;
+    if (this.node) this.node.dataset.state = state;
+  }
+
+  _beginInteraction(state, className) {
+    this._cancelInteractionTimer();
+    this._clearActionClasses();
+    this.node?.classList.remove('sleeping', 'waking');
+    this._setState(state);
+    this._interactionBusy = true;
+    if (className) this.node?.classList.add(className);
+  }
+
+  _finishInteractionAfter(delay, onFinish) {
+    this._cancelInteractionTimer();
+    this._interactionEndTimer = this._later(() => {
+      if (onFinish) onFinish();
+      this._setState('following');
+      this._clearActionClasses();
+      this._interactionBusy = false;
+      this._interactionEndTimer = null;
+    }, delay);
+  }
+
+  _startRace(message = 'Corrida! 🏁', duration = 3600) {
+    this._beginInteraction('racing', 'racing');
+    this._raceX = Math.random() < 0.5 ? 10 : window.innerWidth - 60;
+    this.say(message);
+    this.owner.startRun(this._raceX);
+    this.owner.addXp(2);
+    this._finishInteractionAfter(duration);
   }
 
   sleep() {
     if (this.state === 'sleeping') return;
     clearTimeout(this._wakeTimer);
-    this.state = 'sleeping';
-    this.node.classList.remove('playing', 'cuddling', 'racing', 'waking');
+    this._cancelInteractionTimer();
+    this._setState('sleeping');
+    this._clearActionClasses();
+    this.node.classList.remove('waking');
     this.node.classList.add('sleeping');
+    this._interactionBusy = true;
     this.say('💤', 0);
   }
 
   wakeUp(message = 'Bom dia, pequenino! ☀️') {
     if (this.state !== 'sleeping') return;
     clearTimeout(this._sleepTimer);
-    this.state = 'following';
+    this._setState('following');
     this.node.classList.remove('sleeping');
+    this._clearActionClasses();
     this.node.classList.add('waking');
     this._interactionBusy = false;
     this.say(message, 2200);
@@ -208,8 +283,9 @@ class SubPet {
         ty = rect.top - 40 + Math.sin(t) * 18;
       }
       if (this.state === 'racing') { tx = this._raceX; ty = this.y; }
+      if (this.state === 'exploring') { tx = this._exploreX; ty = this._exploreY; }
       // lerp suave (~300ms de atraso)
-      const k = this.state === 'racing' ? 0.16 : 0.07;
+      const k = this.state === 'racing' ? 0.16 : this.state === 'exploring' ? 0.11 : 0.07;
       this.x += (tx - this.x) * k;
       this.y += (ty - this.y) * k;
       this.node.style.left = `${Math.max(0, Math.min(window.innerWidth - 30, this.x))}px`;
@@ -231,74 +307,100 @@ class SubPet {
       if (this.owner.state !== 'idle') return;
       const chance = this.owner.emotion === 'joyful' ? 0.75 : 0.45;
       if (Math.random() > chance) return;
-      const pool = ['play', 'cuddle', 'nap', 'race', 'special'];
+      const pool = ['play', 'cuddle', 'nap', 'race', 'explore', 'spin', 'celebrate', 'special'];
       const pick = pool[Math.floor(Math.random() * pool.length)];
       this.interact(pick);
     }, 30000);
   }
 
-  interact(kind) {
-    if (this._interactionBusy && kind !== 'cuddle') return;
-    this._interactionBusy = true;
-    if (kind === 'special') setTimeout(() => { this._interactionBusy = false; }, 2800);
+  interact(kind, { force = false } = {}) {
+    if (!this.node) return false;
+    if (this.state === 'sleeping') {
+      if (kind === 'nap') return false;
+      this.wakeUp('Acordei para brincar! ✨');
+    }
+    if (this._interactionBusy && kind !== 'cuddle' && !force) return false;
     switch (kind) {
       case 'play':
-        this.state = 'playing';
-        this.node.classList.add('playing');
+        this._beginInteraction('playing', 'playing');
         this.owner.showSpeech('Vem brincar! 🎾', 2000);
         this.say('Ual! ✨');
         this.owner.addXp(2);
-        setTimeout(() => { this.state = 'following'; this.node.classList.remove('playing'); this._interactionBusy = false; }, 4000);
+        this._finishInteractionAfter(2800);
         break;
       case 'cuddle':
-        this.node.classList.add('cuddling');
+        this._beginInteraction('cuddling', 'cuddling');
         this.say('❤️');
         this.owner.setStateFor('happy', 2000);
         this.owner.showSpeech('Que fofo! 💕', 2200);
         this.owner.spawnParticles();
         this.owner.addXp(2);
-        setTimeout(() => { this.node && this.node.classList.remove('cuddling'); this._interactionBusy = false; }, 1200);
+        this._finishInteractionAfter(1200);
         break;
       case 'nap':
+        this._interactionBusy = true;
         this.sleep();
         this._sleepTimer = setTimeout(() => this.wakeUp('Já descansei! ☀️'), 8000);
         break;
-      case 'race': {
-        this.state = 'racing';
-        this.node.classList.add('racing');
-        this._raceX = Math.random() < 0.5 ? 10 : window.innerWidth - 60;
-        this.say('Corrida! 🏁');
-        this.owner.startRun(this._raceX);
-        this.owner.addXp(2);
-        setTimeout(() => { this.state = 'following'; this.node.classList.remove('racing'); this._interactionBusy = false; }, 4500);
+      case 'race':
+        this._startRace();
+        break;
+      case 'explore': {
+        this._beginInteraction('exploring', 'exploring');
+        this._exploreX = 20 + Math.random() * Math.max(20, window.innerWidth - 80);
+        this._exploreY = 30 + Math.random() * Math.max(20, window.innerHeight - 100);
+        this.say('Explorando! 🔎');
+        this.owner.showSpeech('Vai, pequeno explorador! 🗺️', 2200);
+        this.owner.addXp(1);
+        this._finishInteractionAfter(3200);
         break;
       }
+      case 'spin':
+        this._beginInteraction('spinning', 'spinning');
+        this.say('Uhuuu! 🌀');
+        this.owner.spawnParticles(['✨', '⭐']);
+        this.owner.addXp(1);
+        this._finishInteractionAfter(1300);
+        break;
+      case 'celebrate':
+        this._beginInteraction('celebrating', 'celebrating');
+        this.say('Nós conseguimos! 🎉');
+        this.owner.setStateFor('celebrate', 1900);
+        this.owner.spawnParticles(['🎉', '✨', '⭐']);
+        this.owner.addXp(2);
+        this._finishInteractionAfter(1900);
+        break;
       case 'special':
+        this._beginInteraction('special', null);
         this._special();
         break;
+      default:
+        this._interactionBusy = false;
+        return false;
     }
+    return true;
   }
 
   _special() {
     const map = {
-      dog:    () => this.say('Au au! 🦴'),
-      cat:    () => { Math.random() < 0.4 ? this.say('...😼 (te ignorando)') : this.say('Miau~'); },
-      bird:   () => this.say('Piu piu! 🎶'),
-      rabbit: () => { this.node.classList.add('playing'); this.say('Hop hop! 🐰'); setTimeout(() => { this.node.classList.remove('playing'); this._interactionBusy = false; }, 2500); },
-      dino:   () => { this.say('RAWR! 🦖', 2600); this.interact('race'); },
-      dragon: () => { this.say('🔥🔥🔥', 2400); this.node.classList.add('fire'); setTimeout(() => this.node.classList.remove('fire'), 2000); },
-      ghost:  () => { this.node.style.opacity = '0'; setTimeout(() => { this.node.style.opacity = ''; this.say('Buu! 👻'); }, 1500); },
-      slime:  () => this.say('blub blub 🫧')
+      dog:    () => { this.say('Au au! 🦴'); this._finishInteractionAfter(2200); },
+      cat:    () => { this.say(Math.random() < 0.4 ? '...😼 (te ignorando)' : 'Miau~'); this._finishInteractionAfter(2200); },
+      bird:   () => { this.say('Piu piu! 🎶'); this._beginInteraction('spinning', 'spinning'); this._finishInteractionAfter(1500); },
+      rabbit: () => { this._beginInteraction('playing', 'playing'); this.say('Hop hop! 🐰'); this._finishInteractionAfter(2200); },
+      dino:   () => { this._startRace('RAWR! 🦖', 3200); },
+      dragon: () => { this._beginInteraction('celebrating', 'celebrating'); this.node.classList.add('fire'); this.say('🔥🔥🔥', 2200); this._finishInteractionAfter(2200); },
+      ghost:  () => { this._beginInteraction('vanishing', 'vanishing'); this.say('Buu! 👻', 1900); this._finishInteractionAfter(1900); },
+      slime:  () => { this._beginInteraction('splitting', 'split'); this.say('blub blub 🫧'); this._finishInteractionAfter(1800); }
     };
     (map[this.species] || map.dog)();
   }
 
   fetchBall(ballRect) {
     // Cachorro busca a bola chutada
-    this.state = 'racing';
+    this._beginInteraction('racing', 'racing');
     this._raceX = ballRect.left;
     this.say('Eu pego! 🎾');
-    setTimeout(() => { this.state = 'following'; this.say('Trouxe! 🐶'); }, 1800);
+    this._finishInteractionAfter(1800, () => this.say('Trouxe! 🐶'));
   }
 
   destroy() {
@@ -307,7 +409,11 @@ class SubPet {
     clearTimeout(this._sayTimer);
     clearTimeout(this._sleepTimer);
     clearTimeout(this._wakeTimer);
+    this._actionTimers.forEach(clearTimeout);
+    this._actionTimers.clear();
+    this._interactionEndTimer = null;
     if (this.node) this.node.remove();
+    this.node = null;
   }
 }
 
@@ -1084,7 +1190,6 @@ class ClawdCompanion {
   onLevelUp(level) {
     this.showSpeech(`🎖️ Level ${level}!`, 3500);
     this.spawnParticles(['🎉', '⭐', '✨', '🎊']);
-    this.spawnParticles(['🎉', '⭐', '✨', '🎊']);
     this.setStateFor('celebrate', 2500);
     this.beep(880, 0.12);
     // Desbloqueio de sub-pets por nível
@@ -1287,9 +1392,7 @@ class ClawdCompanion {
     this.checkAchievements();
     this.updateEmotion(true);
     if (this.subpet && this.subpet.species === 'slime' && Math.random() < 0.35) {
-      this.subpet.say('✌️ dividindo!');
-      this.subpet.node.classList.add('split');
-      setTimeout(() => this.subpet && this.subpet.node.classList.remove('split'), 2200);
+      this.subpet.interact('special');
     }
   }
 
@@ -2046,11 +2149,15 @@ class ClawdCompanion {
   refreshSubpet() {
     const want = this.S.subpets.active;
     const wantedColor = want ? this.S.subpets.colors?.[want] : null;
+    const wantedEyeColor = want ? this.S.subpets.eyeColors?.[want] : null;
     if (this.subpet && this.subpet.species !== want) {
       this.subpet.destroy();
       this.subpet = null;
     }
     if (this.subpet && wantedColor && this.subpet.color !== wantedColor) this.subpet.setColor(wantedColor);
+    if (this.subpet && wantedEyeColor && this.subpet.eyeColor !== wantedEyeColor) {
+      this.subpet.setEyeColor(wantedEyeColor);
+    }
     if (this.S.settings.performanceMode) {
       if (this.subpet) { this.subpet.destroy(); this.subpet = null; }
       return;
@@ -2176,9 +2283,24 @@ class ClawdCompanion {
           this.refreshSubpet();
           break;
         case 'setSubpetColor':
+          this.S.subpets.colors = this.S.subpets.colors || {};
           this.S.subpets.colors[request.species] = request.value;
           if (this.subpet && this.subpet.species === request.species) this.subpet.setColor(request.value);
           this.save();
+          break;
+        case 'setSubpetEyeColor':
+          this.S.subpets.eyeColors = this.S.subpets.eyeColors || {};
+          this.S.subpets.eyeColors[request.species] = request.value;
+          if (this.subpet && this.subpet.species === request.species) this.subpet.setEyeColor(request.value);
+          this.save();
+          break;
+        case 'triggerSubpetAction':
+          if (
+            this.subpet
+            && Object.prototype.hasOwnProperty.call(CLAWD_SUBPET_ACTIONS, request.value)
+          ) {
+            this.subpet.interact(request.value, { force: true });
+          }
           break;
         case 'claimDailyQuest':
           sendResponse({ claimed: this.claimDailyQuest(), daily: this.S.daily });
@@ -2188,7 +2310,13 @@ class ClawdCompanion {
             stats: this.S.stats, emotion: this.emotion,
             xp: this.S.xp, coins: this.S.game.coins,
             keepyRecord: this.S.game.counters.keepyRecord || 0,
-            daily: clawdEnsureDailyQuest(this.S)
+            daily: clawdEnsureDailyQuest(this.S),
+            subpet: this.subpet ? {
+              species: this.subpet.species,
+              state: this.subpet.state,
+              color: this.subpet.color,
+              eyeColor: this.subpet.eyeColor
+            } : null
           });
           return true;
       }

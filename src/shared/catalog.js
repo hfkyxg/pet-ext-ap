@@ -116,6 +116,16 @@ var CLAWD_SUBPETS = {
   slime:  { emoji: '🟢', label: 'Slime',     level: 15, special: 'Se divide ao receber carinho' }
 };
 
+/* ---- Interações manuais dos Sub-Pets ---- */
+var CLAWD_SUBPET_ACTIONS = {
+  cuddle:    { emoji: '🫶', label: 'Carinho',   feedback: 'Carinho compartilhado!' },
+  play:      { emoji: '🎾', label: 'Brincar',   feedback: 'Hora de brincar!' },
+  explore:   { emoji: '🔎', label: 'Explorar',  feedback: 'Explorando a página!' },
+  spin:      { emoji: '🌀', label: 'Rodopiar',  feedback: 'Rodopio completo!' },
+  celebrate: { emoji: '🎉', label: 'Comemorar', feedback: 'Dupla em festa!' },
+  special:   { emoji: '✨', label: 'Especial',   feedback: 'Habilidade da espécie!' }
+};
+
 /* ---- Loja (PixelCoins) ---- */
 var CLAWD_SHOP = {
   tophat:     { emoji: '🎩', label: 'Cartola',       price: 40,  kind: 'accessory' },
@@ -185,7 +195,7 @@ function clawdDefaultState() {
     },
     favorites: { actions: [], professions: [], accessories: [], colors: [], nicknames: [], subpets: [] },
     nicknameHistory: [],
-    subpets: { active: null, unlocked: [], names: {}, colors: {} },
+    subpets: { active: null, unlocked: [], names: {}, colors: {}, eyeColors: {} },
     daily: clawdDailyQuestForDate(),
     settings: {
       crossTab: true,
@@ -219,6 +229,7 @@ function clawdMigrateState(raw) {
   merged.subpets   = Object.assign({}, def.subpets, raw.subpets || {});
   merged.subpets.names = Object.assign({}, def.subpets.names, (raw.subpets || {}).names || {});
   merged.subpets.colors = Object.assign({}, def.subpets.colors, (raw.subpets || {}).colors || {});
+  merged.subpets.eyeColors = Object.assign({}, def.subpets.eyeColors, (raw.subpets || {}).eyeColors || {});
   merged.daily     = Object.assign({}, def.daily, raw.daily || {});
   clawdEnsureDailyQuest(merged);
   merged.settings  = Object.assign({}, def.settings, raw.settings || {});
@@ -290,6 +301,7 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_PROFESSIONS,
     CLAWD_ACTIONS,
     CLAWD_SUBPETS,
+    CLAWD_SUBPET_ACTIONS,
     CLAWD_SHOP,
     CLAWD_ACHIEVEMENTS,
     CLAWD_COLORS,

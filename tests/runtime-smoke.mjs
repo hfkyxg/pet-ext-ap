@@ -15,6 +15,7 @@ const {
   CLAWD_PROFESSIONS,
   CLAWD_ACTIONS,
   CLAWD_SUBPETS,
+  CLAWD_SUBPET_ACTIONS,
   CLAWD_SHOP,
   CLAWD_ACHIEVEMENTS
 } = require('../src/shared/catalog.js');
@@ -163,6 +164,8 @@ async function validatePopupRuntime(port, worker) {
           headAccessories: document.querySelector('#acc-head-grid')?.children.length || 0,
           faceAccessories: document.querySelector('#acc-face-grid')?.children.length || 0,
           subpets: document.querySelector('#subpet-grid')?.children.length || 0,
+          subpetActions: document.querySelector('#subpet-action-grid')?.children.length || 0,
+          subpetEyeColorInput: !!document.querySelector('#input-subpet-eye-color'),
           shopItems: document.querySelector('#shop-grid')?.children.length || 0,
           achievements: document.querySelector('#ach-list')?.children.length || 0,
           mouthToggleChecked: document.querySelector('#toggle-mouth')?.checked ?? null,
@@ -180,6 +183,8 @@ async function validatePopupRuntime(port, worker) {
     assert.equal(snapshot.headAccessories, expectedHead, 'Catálogo de acessórios de cabeça incompleto no popup.');
     assert.equal(snapshot.faceAccessories, expectedFace, 'Catálogo de acessórios de rosto incompleto no popup.');
     assert.equal(snapshot.subpets, Object.keys(CLAWD_SUBPETS).length, 'Catálogo de sub-pets incompleto no popup.');
+    assert.equal(snapshot.subpetActions, Object.keys(CLAWD_SUBPET_ACTIONS).length, 'Ações do sub-pet incompletas no popup.');
+    assert.equal(snapshot.subpetEyeColorInput, true, 'O popup deve oferecer cor independente para os olhos do sub-pet.');
     assert.equal(snapshot.shopItems, Object.keys(CLAWD_SHOP).length, 'Loja incompleta no popup.');
     assert.equal(snapshot.achievements, Object.keys(CLAWD_ACHIEVEMENTS).length, 'Conquistas incompletas no popup.');
     assert.equal(snapshot.mouthToggleChecked, true, 'A opção de boca deve iniciar ativada.');
@@ -211,6 +216,8 @@ async function validateSubpetRuntime(worker, page) {
     state.subpets.unlocked = [...new Set([...(state.subpets.unlocked || []), 'dog'])];
     state.subpets.names.dog = 'Rex';
     state.subpets.colors.dog = '#4a90e2';
+    state.subpets.eyeColors = state.subpets.eyeColors || {};
+    state.subpets.eyeColors.dog = '#33ff99';
     state.subpets.active = 'dog';
     await chrome.storage.local.set({ clawdState: state });
     return true;
@@ -235,9 +242,31 @@ async function validateSubpetRuntime(worker, page) {
   assert.equal(snapshot.count, 1, 'Apenas um sub-pet ativo deve ser renderizado.');
   assert.match(snapshot.label, /^Rex,/, 'O apelido customizado do sub-pet não foi aplicado.');
   assert.match(snapshot.boxShadow, /rgb\(74, 144, 226\)/, 'A cor customizada do sub-pet não foi aplicada.');
+  assert.match(snapshot.boxShadow, /rgb\(51, 255, 153\)/, 'A cor customizada dos olhos do sub-pet não foi aplicada.');
 
   await page.evaluate(`document.querySelector('.aic-subpet').click()`);
   await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.classList.contains('cuddling')`), 2_000, 50);
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'following'`), 3_000, 60);
+
+  await sendToActivePet(worker, { action: 'triggerSubpetAction', value: 'play' });
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'playing'`), 2_000, 50);
+  await sendToActivePet(worker, { action: 'triggerSubpetAction', value: 'spin' });
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'spinning'`), 2_000, 50);
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'following'`), 4_000, 80);
+
+  const interactions = ['explore', 'celebrate', 'special'];
+  const expectedStates = {
+    explore: 'exploring', celebrate: 'celebrating', special: 'special'
+  };
+  for (const action of interactions) {
+    await sendToActivePet(worker, { action: 'triggerSubpetAction', value: action });
+    await retry(
+      () => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === ${JSON.stringify(expectedStates[action])}`),
+      2_000,
+      50
+    );
+    await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'following'`), 5_000, 80);
+  }
 
   await sendToActivePet(worker, { action: 'setSubpet', value: null });
   await worker.evaluate(`(async () => {
@@ -248,7 +277,13 @@ async function validateSubpetRuntime(worker, page) {
   })()`);
   await retry(() => page.evaluate(`!document.querySelector('.aic-subpet')`), 3_000, 80);
 
-  return { ...snapshot, interaction: 'cuddling', removedCleanly: true };
+  return {
+    ...snapshot,
+    eyeColor: '#33ff99',
+    interactions: ['cuddle', 'play', 'spin', ...interactions],
+    forcedOverride: 'play→spin',
+    removedCleanly: true
+  };
 }
 
 function runtimeErrors(client) {
