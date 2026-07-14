@@ -15,9 +15,9 @@ const showcaseHtml = read('docs/index.html');
 const showcaseCss = read('docs/showcase.css');
 const showcaseJs = read('docs/showcase.js');
 
-test('manifest v3.1 referencia apenas arquivos existentes', () => {
+test('manifest v3.2 referencia apenas arquivos existentes', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.version, '3.1.0');
+  assert.equal(manifest.version, '3.2.0');
 
   const files = [
     manifest.background.service_worker,
@@ -71,10 +71,19 @@ test('movimento visual usa requestAnimationFrame e não fixa FPS por intervalo',
 test('README e documentação identificam a versão e o ano atuais', () => {
   const readme = read('README.md');
   const docs = `${read('DOCUMENTACAO.md')}\n${read('MANUAL.md')}`;
-  assert.match(readme, /version-3\.1/);
+  const banner = read('src/assets/pet-banner.svg');
+  const modelGallery = read('src/assets/pet-states.svg');
+  assert.match(readme, /version-3\.2/);
   assert.match(readme, /MIT © 2026/);
   assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
   assert.match(docs, /2026/);
+  assert.match(banner, /ESTÚDIO VISUAL v3\.2/);
+  assert.match(banner, /id="pet-classic"/);
+  assert.match(modelGallery, /id="classic"/);
+  assert.match(modelGallery, /id="mini"/);
+  assert.match(modelGallery, /id="claws"/);
+  assert.match(modelGallery, /id="guardian"/);
+  assert.doesNotMatch(`${banner}\n${modelGallery}`, /\s(?:w|h)="\d+"/);
 });
 
 test('documentação interativa é local, completa e ligada aos catálogos reais', () => {
@@ -88,6 +97,9 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.match(showcaseHtml, /id="arquitetura"/);
   assert.match(showcaseHtml, /id="validacao"/);
   assert.match(showcaseHtml, /id="subpet-eye-color"/);
+  assert.match(showcaseHtml, /id="lab-model"/);
+  assert.match(showcaseHtml, /id="lab-face-style"/);
+  assert.match(showcaseHtml, /id="lab-eye-color"/);
   assert.match(showcaseHtml, /src="\.\.\/src\/shared\/catalog\.js"/);
   assert.match(showcaseHtml, /href="\.\.\/src\/content\/style\.css"/);
   assert.match(showcaseHtml, /src="\.\/showcase\.js"/);
@@ -100,6 +112,8 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.deepEqual([...new Set(usedIds)].filter(id => !htmlIds.has(id)), []);
   assert.equal(allHtmlIds.length, htmlIds.size, 'A documentação interativa não pode ter IDs duplicados.');
   assert.match(showcaseJs, /globalThis\.CLAWD_ACCESSORIES/);
+  assert.match(showcaseJs, /globalThis\.CLAWD_MODELS/);
+  assert.match(showcaseJs, /globalThis\.CLAWD_FACE_STYLES/);
   assert.match(showcaseJs, /globalThis\.CLAWD_SUBPET_ACTIONS/);
   assert.match(showcaseJs, /speciesColors\[select\.value\]\.eyes/);
   const demoStepsSource = showcaseJs.slice(showcaseJs.indexOf('const DEMO_STEPS'), showcaseJs.indexOf('const EVIDENCE_SECTIONS'));
@@ -109,7 +123,7 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.match(showcaseJs, /previewPet\.dataset\.accFace/);
   assert.match(showcaseJs, /accessorySelect\.replaceChildren\(\)/);
   assert.match(showcaseJs, /Object\.entries\(accessories\)\.forEach/);
-  assert.match(showcaseHtml, /32\/32<\/b> contratos automatizados/);
+  assert.match(showcaseHtml, /35\/35<\/b> contratos automatizados/);
   assert.match(showcaseHtml, /não é um vídeo pré-gravado/);
   assert.doesNotMatch(showcaseHtml, /<video\b/i);
   assert.match(showcaseCss, /\.evidence-card-grid/);

@@ -99,7 +99,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['clawdState'], (res) => {
     if (!res.clawdState) {
       chrome.storage.local.set({
-        clawdState: { schemaVersion: 3, position: { x: null, y: null }, profession: 'idle' }
+        clawdState: { schemaVersion: 4, position: { x: null, y: null }, profession: 'idle' }
       });
     }
   });

@@ -1,5 +1,5 @@
 /* ===================================================
-   CLAW'D POPUP — Dark UI v3.1
+   CLAW'D POPUP — Dark UI v3.2
    =================================================== */
 
 :root {
@@ -52,101 +52,9 @@ body {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Mini pixel-art preview (scaled down) */
-.mini-sprite {
-  width: 4px;
-  height: 4px;
-  background: transparent;
-  transform: scale(0.7);
-  transform-origin: top left;
-  margin-right: 30px;
-  margin-bottom: 25px;
-  animation: mini-walk 0.55s steps(1) infinite paused;
-  --preview-color: #c71515;
-}
-.mini-leg { display: none; }
-.mini-sprite.smooth {
-  position: relative;
-  width: 28px;
-  height: 24px;
-  margin: 0 0 8px;
-  transform: scale(.9);
+.header-model-preview {
+  transform: scale(.76);
   transform-origin: center;
-  border-radius: 0;
-  background: var(--preview-color);
-  box-shadow: none;
-  animation: none;
-}
-.mini-sprite.smooth::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 12px;
-  width: 44px;
-  height: 8px;
-  border-radius: 0;
-  background: var(--preview-color);
-}
-.mini-sprite.smooth::after {
-  content: '';
-  position: absolute;
-  left: 4px;
-  top: 4px;
-  width: 4px;
-  height: 4px;
-  border-radius: 0;
-  background: #08080b;
-  box-shadow: 16px 0 #08080b;
-}
-.mini-sprite.smooth .mini-leg {
-  display: block;
-  position: absolute;
-  top: 24px;
-  width: 4px;
-  height: 8px;
-  border-radius: 0;
-  background: var(--preview-color);
-}
-.mini-sprite.smooth .mini-leg-1 { left: 0; }
-.mini-sprite.smooth .mini-leg-2 { left: 8px; }
-.mini-sprite.smooth .mini-leg-3 { left: 16px; }
-.mini-sprite.smooth .mini-leg-4 { left: 24px; }
-
-@keyframes mini-walk {
-  0%,100% {
-    box-shadow:
-      4px 0 var(--preview-color), 8px 0 var(--preview-color),
-      32px 0 var(--preview-color), 36px 0 var(--preview-color),
-      8px 4px var(--preview-color), 12px 4px var(--preview-color), 16px 4px var(--preview-color),
-      20px 4px var(--preview-color), 24px 4px var(--preview-color), 28px 4px var(--preview-color), 32px 4px var(--preview-color),
-      8px 8px var(--preview-color), 12px 8px #111, 16px 8px var(--preview-color),
-      20px 8px var(--preview-color), 24px 8px var(--preview-color), 28px 8px #111, 32px 8px var(--preview-color),
-      8px 12px var(--preview-color), 12px 12px var(--preview-color), 16px 12px var(--preview-color),
-      20px 12px var(--preview-color), 24px 12px var(--preview-color), 28px 12px var(--preview-color), 32px 12px var(--preview-color),
-      0 16px var(--preview-color), 4px 16px var(--preview-color), 8px 16px var(--preview-color),
-      12px 16px var(--preview-color), 16px 16px var(--preview-color), 20px 16px var(--preview-color),
-      24px 16px var(--preview-color), 28px 16px var(--preview-color), 32px 16px var(--preview-color),
-      36px 16px var(--preview-color), 40px 16px var(--preview-color),
-      8px 24px var(--preview-color), 16px 24px var(--preview-color),
-      24px 24px var(--preview-color), 32px 24px var(--preview-color);
-  }
-  50% {
-    box-shadow:
-      4px 0 var(--preview-color), 8px 0 var(--preview-color),
-      32px 0 var(--preview-color), 36px 0 var(--preview-color),
-      8px 4px var(--preview-color), 12px 4px var(--preview-color), 16px 4px var(--preview-color),
-      20px 4px var(--preview-color), 24px 4px var(--preview-color), 28px 4px var(--preview-color), 32px 4px var(--preview-color),
-      8px 8px var(--preview-color), 12px 8px #111, 16px 8px var(--preview-color),
-      20px 8px var(--preview-color), 24px 8px var(--preview-color), 28px 8px #111, 32px 8px var(--preview-color),
-      8px 12px var(--preview-color), 12px 12px var(--preview-color), 16px 12px var(--preview-color),
-      20px 12px var(--preview-color), 24px 12px var(--preview-color), 28px 12px var(--preview-color), 32px 12px var(--preview-color),
-      0 16px var(--preview-color), 4px 16px var(--preview-color), 8px 16px var(--preview-color),
-      12px 16px var(--preview-color), 16px 16px var(--preview-color), 20px 16px var(--preview-color),
-      24px 16px var(--preview-color), 28px 16px var(--preview-color), 32px 16px var(--preview-color),
-      36px 16px var(--preview-color), 40px 16px var(--preview-color),
-      4px 24px var(--preview-color), 12px 24px var(--preview-color),
-      28px 24px var(--preview-color), 36px 24px var(--preview-color);
-  }
 }
 
 .brand {
@@ -907,6 +815,118 @@ input[type="color"] {
   font-size: 9px;
   line-height: 1.4;
   text-align: center;
+}
+
+/* ---- ESTÚDIO DE PIXEL-ART v3.2 ---- */
+.model-grid,
+.face-style-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.pixel-custom-card,
+.face-style-card,
+.skin-art-card {
+  display: flex;
+  min-width: 0;
+  min-height: 76px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 8px 3px 7px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background:
+    linear-gradient(rgba(255,255,255,.025), transparent),
+    var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.pixel-custom-card:hover,
+.face-style-card:hover,
+.skin-art-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.pixel-custom-card.active,
+.face-style-card.active,
+.skin-art-card.active {
+  border-color: var(--accent2);
+  background: rgba(255,71,87,.12);
+  color: var(--text);
+  box-shadow: 0 0 12px rgba(255,71,87,.16);
+}
+.pixel-custom-card > span:last-child,
+.face-style-card > span:last-child {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pixel-custom-card > span:last-child b,
+.face-style-card > span:last-child b {
+  color: var(--accent2);
+  font-family: monospace;
+  font-size: 7px;
+}
+.model-art-preview,
+.face-art-preview { margin: 6px 0 1px; transform: scale(.73); }
+.customization-description {
+  min-height: 14px;
+  margin: 6px 2px 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+  text-align: center;
+}
+.eye-color-row small {
+  color: var(--muted);
+  font-size: 9px;
+  white-space: nowrap;
+}
+.skin-art-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.skin-art-card { min-height: 82px; }
+.skin-art-card > span:last-child { font-size: 9px; font-weight: 700; }
+.skin-art-preview { margin: 9px 0 2px; transform: scale(.78); }
+
+/* Os cards mostram a própria camada CSS do acessório, não um emoji substituto. */
+.accessory-card { min-height: 88px; justify-content: flex-end; overflow: hidden; }
+.accessory-art-preview { margin: 12px 0 -1px; transform: scale(.66); }
+.remove-accessory-mark {
+  position: absolute;
+  top: -2px;
+  left: 20px;
+  z-index: 8;
+  width: 3px;
+  height: 42px;
+  border-radius: 2px;
+  background: #ff4757;
+  box-shadow: 0 0 0 1px rgba(8,8,14,.7);
+  transform: rotate(45deg);
+}
+.accessory-card .acc-name {
+  display: -webkit-box;
+  overflow: hidden;
+  max-width: 100%;
+  min-height: 19px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-custom-card,
+  .face-style-card,
+  .skin-art-card { transition: none; }
 }
 
 /* ---- LOJA ---- */

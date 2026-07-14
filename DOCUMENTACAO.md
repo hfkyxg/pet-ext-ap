@@ -7,7 +7,7 @@
 
 ## 1. Visão Geral
 
-O **Claw'd** é uma extensão Chrome (Manifest V3) que injeta um mascote pixel-art interativo em qualquer página. Não usa frameworks nem dependências externas: é 100% Vanilla JS + CSS. O renderizador padrão usa células de 4×4px em `box-shadow`; o modo liso ativa uma segunda silhueta CSS angular e contínua, sem grade ou textura. Ambos compartilham estados, emoções, acessórios e animações com keyframes isolados pelo prefixo `clawd-`.
+O **Claw'd** é uma extensão Chrome (Manifest V3) que injeta um mascote pixel-art interativo em qualquer página. Não usa frameworks nem dependências externas: é 100% Vanilla JS + CSS. O renderizador padrão usa células de 4×4px em `box-shadow`, oferece quatro modelos de corpo e quatro rostos; o modo liso ativa uma segunda silhueta CSS angular e contínua, sem grade ou textura. Ambos compartilham cor independente dos olhos, estados, emoções, acessórios e animações com keyframes isolados pelo prefixo `clawd-`.
 
 **Princípios de design:**
 
@@ -82,8 +82,11 @@ Antes e durante esse ciclo, todas as chamadas a `chrome.runtime`, `chrome.storag
   <div class="speech-bubble">          <!-- balão de fala -->
   <div class="pet-body">
     <div class="sprite-stack">         <!-- flip horizontal acontece aqui -->
-      <div class="pixel-sprite">       <!-- renderizador pixel em box-shadow -->
+      <div class="pixel-sprite">       <!-- corpo pixel-art sempre estático -->
+      <div class="pixel-legs">         <!-- pernas; animam apenas ao mover/chutar -->
       <div class="smooth-sprite">      <!-- renderizador angular contínuo -->
+      <div class="pet-eyes">           <!-- olhos com cor independente -->
+      <div class="face-detail">        <!-- brilho, foco ou sono -->
       <div class="accessory">          <!-- camada cosmética compartilhada -->
       <div class="emotion-face">       <!-- piscada e boca em camada própria -->
     </div>
@@ -94,7 +97,7 @@ Antes e durante esse ciclo, todas as chamadas a `chrome.runtime`, `chrome.storag
 </div>
 ```
 
-A separação `node` (posição) → `sprite-stack` (flip) → renderizador visual (animação) evita conflito de `transform` entre camadas. O nó recebe `data-clawd-owned="true"` e `all: initial`; seletores críticos são escopados em `#aic-clawd-node` para impedir que estilos genéricos da página, como `.pixel-sprite` ou `.name-tag`, contaminem a extensão.
+A separação `node` (posição) → `sprite-stack` (flip) → corpo/pernas/rosto/acessórios evita conflito de `transform` entre camadas. O corpo não troca de frame ao caminhar: somente `.pixel-legs` recebe o ciclo de passos. O nó recebe `data-clawd-owned="true"` e `all: initial`; seletores críticos são escopados em `#aic-clawd-node` para impedir que estilos genéricos da página, como `.pixel-sprite` ou `.name-tag`, contaminem a extensão.
 
 **Máquina de estados (`setState`):**
 
@@ -138,9 +141,11 @@ O estado é uma classe no `#aic-clawd-node`; o CSS resolve a animação correspo
 
 ### 3.3 Estilo — `style.css`
 
-- **Pixel-art**: o corpo é um único elemento com dezenas de `box-shadow` de 4×4px; a cor principal vem da CSS var `--agent-color`;
+- **Pixel-art em camadas**: corpo e pernas usam `box-shadow` de 4×4px; a cor principal vem de `--agent-color` e os olhos de `--agent-eye-color`;
+- **Quatro modelos**: `classic` reproduz a referência compacta, `mini` reduz o centro de massa, `claws` amplia as pinças e `guardian` cria uma silhueta mais robusta;
+- **Quatro rostos**: `classic`, `sparkle`, `focused` e `sleepy`, combináveis com qualquer modelo, skin, cor e acessório;
 - **Renderização adaptativa**: deslocamento e sub-pet usam `requestAnimationFrame`; o content script mede a cadência real em 30 frames e registra `data-refresh-rate`, sem impor 60 Hz artificialmente;
-- **Walk cycle**: o frame padrão é estático e reproduz o modelo compacto vermelho; `clawd-pixel-walk` só é ativado em `walking`/`running` e `clawd-pixel-keepy` durante a embaixadinha;
+- **Walk cycle localizado**: o corpo permanece estático; `clawd-pixel-leg-cycle` só anima as pernas em `walking`/`running`, e `clawd-pixel-leg-kick` é reservado ao chute/embaixadinha;
 - **Emoções em camadas**: o corpo base não é substituído; `emotion-face` desenha piscada/boca, `emotion-badge` exibe o emoji e `.mouth-hidden` remove somente a boca;
 - **Escala**: `--agent-scale` compõe com todos os keyframes (evita sobrescrever `transform`);
 - **Modificadores**: `.smooth` alterna para a silhueta contínua; `.outlined` aplica contorno; `[data-acc-head]`/`[data-acc-face]` desenham 14 acessórios com variantes pixel-art e lisas;
@@ -150,7 +155,7 @@ O estado é uma classe no `#aic-clawd-node`; o CSS resolve a animação correspo
 
 ### 3.4 Popup — `popup.html/js/css`
 
-UI dark com header (preview do pet, status, barra de XP) e 8 abas: **Aparência**, **Profissão**, **Comportamento**, **Ações**, **Pets**, **Loja**, **Conquistas** e **Configurações**. A aba Conquistas também exibe a missão diária, progresso e resgate.
+UI dark com header (preview do pet, status, barra de XP) e 8 abas: **Aparência**, **Profissão**, **Comportamento**, **Ações**, **Pets**, **Loja**, **Conquistas** e **Configurações**. A aba Aparência funciona como um estúdio: miniaturas CSS reais escolhem modelo, rosto, skin, cor dos olhos e dois slots de acessórios; o provador combina tudo antes de fechar o popup. A aba Conquistas também exibe a missão diária, progresso e resgate.
 
 - Cada controle chama `sendToTab({ action, key, value })` → `chrome.tabs.sendMessage` para a aba ativa;
 - Ações do popup usam `{ action: 'triggerAction', value: 'wave'|'dance'|… }`;
@@ -186,8 +191,13 @@ Tudo vive numa única chave `clawdState`:
 
 ```javascript
 {
+  schemaVersion: 4,         // migrador incremental atual
   name: "Claw'd",          // nome exibido no name-tag
   color: '#c71515',        // cor principal (--agent-color)
+  eyeColor: '#08080b',     // cor independente dos olhos
+  model: 'classic',        // classic | mini | claws | guardian
+  faceStyle: 'classic',    // classic | sparkle | focused | sleepy
+  skin: 'normal',          // normal | droopy | robot
   scale: 1.5,              // 0.8–3.0 (--agent-scale)
   animSpeed: 1,            // 0.5–3.0
   showSpeech: true,        // balões de fala
@@ -211,9 +221,9 @@ Tudo vive numa única chave `clawdState`:
 }
 ```
 
-O estado inicial mantém o sprite compacto vermelho de referência (`color: #c71515`, `skin: normal`, `smooth: false`, `accessoryHead/Face: none`). O sistema não fixa 60 FPS: animações CSS e `requestAnimationFrame` acompanham a cadência do navegador e o modo de baixo refresh desliga apenas efeitos decorativos.
+O estado inicial mantém o sprite compacto vermelho de referência (`color: #c71515`, `eyeColor: #08080b`, `model: classic`, `faceStyle: classic`, `skin: normal`, `smooth: false`, `accessoryHead/Face: none`). O sistema não fixa 60 FPS: animações CSS e `requestAnimationFrame` acompanham a cadência do navegador e o modo de baixo refresh desliga apenas efeitos decorativos.
 
-Escrita incremental via `save()`/`persist()` (read-modify-write). O schema ganha `schemaVersion`, `stats`, `game`, `favorites`, `subpets` e `daily` — com migrador incremental. A missão diária é derivada da data, tem progresso limitado ao alvo e recompensa idempotente.
+Escrita incremental via `save()`/`persist()` (read-modify-write). O schema v4 inclui `model`, `faceStyle` e `eyeColor`, além de `stats`, `game`, `favorites`, `subpets` e `daily`; o migrador normaliza saves antigos ou valores desconhecidos sem perder progresso. A missão diária é derivada da data, tem progresso limitado ao alvo e recompensa idempotente.
 
 Sub-pets têm `subpets.names`, `subpets.colors` e `subpets.eyeColors` indexados pela espécie. A classe `SubPet` deriva automaticamente uma cor de sombra do corpo para manter profundidade e aplica os olhos como canal `K` independente. O popup envia `setSubpetColor` e `setSubpetEyeColor` para atualização ao vivo; saves antigos recebem `eyeColors: {}` pela migração sem perder os demais dados.
 
@@ -221,7 +231,7 @@ O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `
 
 Cada espécie implementa `special`: cachorro late/busca, gato pode ignorar, pássaro rodopia, coelho salta, dinossauro corre, dragão solta fogo, fantasma desaparece e slime se divide. As animações preservam o flip horizontal por variável CSS e respeitam `prefers-reduced-motion`.
 
-No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite` assume o mesmo desenho angular com uma cabeça contínua, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os 14 acessórios e as skins especiais também têm variantes contínuas. Os 7 chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. A `sprite-stack` mantém contenção de layout/estilo, mas não de pintura: isso permite que cartolas, coroas, toucas, hélices, abas e mochilas ultrapassem a caixa de 44×36px sem recorte. Fones usam uma camada atrás do chapéu, e a faixa ninja fica na testa sem cobrir os olhos.
+No modo liso, `pixel-sprite` e `pixel-legs` ficam ocultos e sem `box-shadow`; o `smooth-sprite` assume uma variante contínua de cada um dos quatro modelos, com cabeça, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os 14 acessórios e as skins especiais também têm variantes contínuas. Os 7 chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. A `sprite-stack` mantém contenção de layout/estilo, mas não de pintura: isso permite que cartolas, coroas, toucas, hélices, abas e mochilas ultrapassem a caixa de 44×36px sem recorte. Fones usam uma camada atrás do chapéu, e a faixa ninja fica na testa sem cobrir os olhos.
 
 `clawdEffectiveAccessories(state)` separa seleção pessoal e traje profissional. O DOM recebe o item efetivo e a origem (`personal` ou `profession`), mas `accessoryHead`/`accessoryFace` continuam intactos no storage; ao voltar para Livre, o visual pessoal reaparece. O popup reutiliza `style.css` em um provador real que combina os dois slots e reflete pixel/liso, skin, cor, contorno e camisa. O Pescador cria lago, vara/linha e janela de fisgada; cancelamento limpa timers/cena sem conceder peixe, enquanto a captura completa incrementa o contador.
 
@@ -307,7 +317,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **32 testes** cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, os 7 chapéus refinados sem recorte, composição das camadas, trajes profissionais temporários, sprite e pernas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida os dois renderizadores, todos os acessórios, o provador pixel/liso, boca, movimento dos chapéus, restauração do visual pessoal, modo desempenho, 8 profissões, estado de 14/14 ações, cancelamento e conclusão da pesca, clique físico, popup, subpet com apelido/cor/olhos/seis interações e três reloads sem erros ou duplicação. A inspeção da vitrine em navegador cobre desktop e 375 px, player, capítulos, modo liso, subpet, catálogos e console. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
+Os **35 testes** cobrem estado padrão, schema v4 e migração de saves legados, quatro modelos, quatro rostos, cor independente dos olhos, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, os 7 chapéus refinados sem recorte, composição das camadas, trajes profissionais temporários, corpo estático e pernas isoladas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida 4/4 modelos nos dois renderizadores, 4/4 rostos, todos os acessórios, o estúdio pixel/liso, boca, movimento exclusivo das pernas/chapéus, restauração do visual pessoal, modo desempenho, 8 profissões, estado de 14/14 ações, cancelamento e conclusão da pesca, clique físico, popup, subpet com apelido/cor/olhos/seis interações e três reloads sem erros ou duplicação. A inspeção da vitrine em navegador cobre desktop e 375 px, player, capítulos, modo liso, subpet, catálogos e console. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
 
 ---
 

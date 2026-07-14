@@ -3,6 +3,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {
   CLAWD_ACCESSORIES,
+  CLAWD_MODELS,
+  CLAWD_FACE_STYLES,
+  CLAWD_SKINS,
   CLAWD_PROFESSIONS,
   CLAWD_ACTIONS,
   CLAWD_SUBPET_ACTIONS,
@@ -46,11 +49,35 @@ test('progresso diário acumula, limita no alvo e troca no novo dia', () => {
 
 test('migração preserva saves antigos e adiciona missão sem corromper sub-pets', () => {
   const state = clawdMigrateState({ schemaVersion: 2, xp: 500, accessory: 'cap', subpets: { active: 'dog' } });
-  assert.equal(state.schemaVersion, 3);
+  assert.equal(state.schemaVersion, 4);
   assert.equal(state.accessoryHead, 'cap');
   assert.equal(state.subpets.active, 'dog');
   assert.deepEqual(state.subpets.eyeColors, {});
+  assert.equal(state.model, 'classic');
+  assert.equal(state.faceStyle, 'classic');
+  assert.equal(state.eyeColor, '#08080b');
   assert.ok(state.daily.date);
+});
+
+test('modelos, rostos e cor dos olhos são versionados e validados', () => {
+  assert.deepEqual(Object.keys(CLAWD_MODELS), ['classic', 'mini', 'claws', 'guardian']);
+  assert.deepEqual(Object.keys(CLAWD_FACE_STYLES), ['classic', 'sparkle', 'focused', 'sleepy']);
+  assert.deepEqual(Object.keys(CLAWD_SKINS), ['normal', 'droopy', 'robot']);
+  const defaults = clawdDefaultState();
+  assert.deepEqual(
+    { model: defaults.model, faceStyle: defaults.faceStyle, eyeColor: defaults.eyeColor },
+    { model: 'classic', faceStyle: 'classic', eyeColor: '#08080b' }
+  );
+  const customized = clawdMigrateState({ schemaVersion: 4, model: 'claws', faceStyle: 'sparkle', eyeColor: '#33AAFF' });
+  assert.deepEqual(
+    { model: customized.model, faceStyle: customized.faceStyle, eyeColor: customized.eyeColor },
+    { model: 'claws', faceStyle: 'sparkle', eyeColor: '#33aaff' }
+  );
+  const invalid = clawdMigrateState({ schemaVersion: 4, model: 'blob', faceStyle: 'unknown', eyeColor: 'red', skin: 'slime' });
+  assert.deepEqual(
+    { model: invalid.model, faceStyle: invalid.faceStyle, eyeColor: invalid.eyeColor, skin: invalid.skin },
+    { model: 'classic', faceStyle: 'classic', eyeColor: '#08080b', skin: 'normal' }
+  );
 });
 
 test('preferência de boca é persistente, retrocompatível e aplicada ao vivo', () => {
@@ -177,15 +204,36 @@ test('sub-pet e deslocamentos não usam timer fixo para renderizar frames', () =
 });
 
 test('sprite padrão é estático e pernas só animam durante deslocamento', () => {
-  assert.match(styleSource, /@keyframes clawd-pixel-walk/);
+  assert.match(styleSource, /@keyframes clawd-pixel-leg-cycle/);
+  assert.match(styleSource, /@keyframes clawd-pixel-leg-kick/);
   assert.doesNotMatch(styleSource, /@keyframes walk\s*\{/);
   assert.match(styleSource, /#aic-clawd-node\[data-clawd-owned="true"\]\s*\{[\s\S]*all:\s*initial;[\s\S]*animation:\s*none !important;/);
-  assert.match(styleSource, /#aic-clawd-node \.pixel-sprite\s*\{[\s\S]*animation:\s*none !important;/);
-  assert.match(styleSource, /#aic-clawd-node\.walking \.pixel-sprite/);
-  assert.match(styleSource, /#aic-clawd-node\.running \.pixel-sprite/);
+  assert.match(contentSource, /class="pixel-legs" id="aic-pixel-legs"/);
+  assert.match(styleSource, /#aic-clawd-node\[data-clawd-owned="true"\] \.pixel-sprite,[\s\S]{0,120}animation:\s*none !important;/);
+  assert.match(styleSource, /#aic-clawd-node\.walking \.pixel-legs/);
+  assert.match(styleSource, /#aic-clawd-node\.running \.pixel-legs/);
+  assert.match(styleSource, /#aic-clawd-node\.keepy-uppy \.pixel-legs/);
+  assert.match(styleSource, /:not\(\.walking\):not\(\.running\):not\(\.keepy-uppy\) \.pixel-legs[\s\S]{0,120}animation:\s*none !important;/);
   assert.match(contentSource, /startGlide\(velocityX, velocityY\)/);
   assert.match(contentSource, /this\.isDragging[\s\S]{0,1500}this\.setState\('walking'\)/);
   assert.match(contentSource, /Math\.hypot\(velocityX, velocityY\) < 0\.35[\s\S]{0,160}this\.setState\('idle'\)/);
+});
+
+test('cada modelo possui silhueta pixel, pernas próprias e variante lisa', () => {
+  for (const id of Object.keys(CLAWD_MODELS)) {
+    assert.match(styleSource, new RegExp(`data-model="${id}"`), `modelo sem CSS: ${id}`);
+  }
+  assert.match(styleSource, /data-model="classic"[\s\S]*--clawd-pixel-body:/);
+  assert.match(styleSource, /data-model="mini"[\s\S]*--clawd-legs-idle:/);
+  assert.match(styleSource, /data-model="claws"[\s\S]*--clawd-legs-kick:/);
+  assert.match(styleSource, /data-model="guardian"[\s\S]*--clawd-legs-step-a:/);
+  assert.match(styleSource, /data-model="mini"\] \.smooth-core/);
+  assert.match(styleSource, /data-model="claws"\] \.smooth-core::after/);
+  assert.match(styleSource, /data-model="guardian"\] \.smooth-core/);
+  assert.match(styleSource, /\.pet-eyes[\s\S]{0,260}var\(--agent-eye-color\)/);
+  for (const id of Object.keys(CLAWD_FACE_STYLES).filter(id => id !== 'classic')) {
+    assert.match(styleSource, new RegExp(`data-face-style="${id}"`), `rosto sem CSS: ${id}`);
+  }
 });
 
 test('keyframes internos são isolados do CSS das páginas visitadas', () => {
@@ -222,12 +270,31 @@ test('modo liso troca a grade por uma silhueta contínua do mesmo pet', () => {
   assert.doesNotMatch(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[^}]*blur\(/);
   assert.match(styleSource, /#aic-clawd-node\.smooth,[\s\S]*background-color:\s*transparent !important;[\s\S]*background-image:\s*none !important;/);
   assert.match(contentSource, /class="smooth-sprite" id="aic-smooth-sprite"/);
+  assert.match(styleSource, /#aic-clawd-node\.smooth \.pixel-legs\s*\{[\s\S]*display:\s*none !important;[\s\S]*box-shadow:\s*none !important;/);
   assert.match(styleSource, /#aic-clawd-node\.smooth \.pixel-sprite\s*\{[\s\S]*display:\s*none !important;[\s\S]*box-shadow:\s*none !important;/);
   assert.match(styleSource, /#aic-clawd-node\.smooth \.smooth-sprite\s*\{\s*display:\s*block;/);
   assert.match(styleSource, /\.smooth-core\s*\{[\s\S]*width:\s*28px;[\s\S]*height:\s*24px;[\s\S]*background:\s*var\(--agent-color\);[\s\S]*border-radius:\s*0;/);
   assert.match(styleSource, /\.smooth-leg\s*\{[\s\S]*top:\s*24px;[\s\S]*height:\s*8px;[\s\S]*border-radius:\s*0;/);
   assert.match(styleSource, /\.smooth\.walking \.smooth-leg/);
   assert.match(styleSource, /\.smooth:not\(\.walking\):not\(\.running\) \.smooth-leg\s*\{\s*animation:\s*none;/);
+});
+
+test('popup oferece estúdio visual com miniaturas da arte real', () => {
+  assert.match(popupHtml, /id="model-grid"/);
+  assert.match(popupHtml, /id="face-style-grid"/);
+  assert.match(popupHtml, /id="input-eye-color"/);
+  assert.match(popupHtml, /class="pixel-legs"/);
+  assert.match(popupHtml, /class="pet-eyes"/);
+  assert.match(popupHtml, /class="clawd-model-preview header-model-preview"/);
+  assert.match(popupSource, /function createPetArtPreview\(/);
+  assert.match(popupSource, /function syncHeaderPetPreview\(/);
+  assert.match(popupSource, /function renderModels\(\)/);
+  assert.match(popupSource, /function renderFaceStyles\(\)/);
+  assert.match(popupSource, /function renderSkins\(\)/);
+  assert.match(popupSource, /setConfig\('eyeColor', color\)/);
+  assert.match(popupSource, /className: 'accessory-art-preview'/);
+  assert.match(popupStyle, /\.model-grid/);
+  assert.match(popupStyle, /\.accessory-art-preview/);
 });
 
 test('pescador tem lago interativo e personalização de sub-pet ao vivo', () => {

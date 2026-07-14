@@ -95,7 +95,7 @@
           </div>
         </div>
         <div class="evidence-badges" id="validation-snapshot" aria-label="Resumo da última validação">
-          <span class="passed"><i></i><b>32/32</b> contratos automatizados</span>
+          <span class="passed"><i></i><b>35/35</b> contratos automatizados</span>
           <span class="passed"><i></i><b>8/8</b> scripts verificados</span>
           <span><b id="evidence-catalog-counts">8 profissões · 14 acessórios · 14 ações</b></span>
           <span><b id="evidence-subpet-counts">8 subpets · 6 ações</b></span>
@@ -173,16 +173,18 @@
       <div class="section-heading centered reveal">
         <div class="eyebrow"><span></span> laboratório interativo</div>
         <h2>Monte o seu Claw'd.</h2>
-        <p>Teste o corpo padrão, o visual liso contínuo, a boca opcional e acessórios sem sair da documentação.</p>
+        <p>Teste quatro modelos pixel-art, quatro rostos, olhos independentes, o visual liso contínuo, a boca opcional e acessórios sem sair da documentação.</p>
       </div>
 
       <div class="lab-panel reveal">
         <div class="lab-stage" id="lab-stage">
           <div class="stage-grid" aria-hidden="true"></div>
           <div class="lab-emotion" id="lab-emotion" aria-live="polite">✨</div>
-          <div class="doc-main-pet" id="doc-main-pet" role="img" aria-label="Prévia do Claw'd vermelho">
+          <div class="doc-main-pet" id="doc-main-pet" data-model="classic" data-face-style="classic" role="img" aria-label="Prévia do Claw'd vermelho">
             <span class="doc-accessory" id="doc-accessory" aria-hidden="true"></span>
-            <span class="doc-pixel-seed" aria-hidden="true"></span>
+            <span class="doc-pixel-art clawd-model-preview" id="doc-pixel-art" data-model="classic" data-face-style="classic" aria-hidden="true">
+              <i class="pixel-sprite"></i><i class="pixel-legs"></i><i class="pet-eyes"></i><i class="face-detail"></i>
+            </span>
             <span class="doc-smooth-pet" aria-hidden="true">
               <i class="smooth-head"></i><i class="smooth-arm left"></i><i class="smooth-arm right"></i>
               <i class="smooth-leg left"></i><i class="smooth-leg right"></i>
@@ -196,7 +198,10 @@
 
         <form class="lab-controls" id="main-pet-controls">
           <div class="control-heading"><span>01</span><div><b>Aparência</b><small>alterações em tempo real</small></div></div>
+          <label class="control-row" for="lab-model"><span>Modelo<small>silhueta na grade de 4 px</small></span><select id="lab-model"></select></label>
+          <label class="control-row" for="lab-face-style"><span>Rosto<small>expressão base independente</small></span><select id="lab-face-style"></select></label>
           <label class="control-row" for="lab-body-color"><span>Cor do corpo<small>identidade principal</small></span><input id="lab-body-color" type="color" value="#c71515"></label>
+          <label class="control-row" for="lab-eye-color"><span>Cor dos olhos<small>paleta independente</small></span><input id="lab-eye-color" type="color" value="#08080b"></label>
           <label class="control-row" for="lab-render-mode"><span>Renderização<small>pixel ou contínua</small></span><select id="lab-render-mode"><option value="pixel">Pixel-art</option><option value="smooth">Liso, sem grade</option></select></label>
           <label class="control-row" for="lab-accessory"><span>Acessório<small>prévia cosmética</small></span><select id="lab-accessory"><option value="none">Nenhum</option><option value="cap">🧢 Boné</option><option value="fishhat">🎣 Chapéu pescador</option><option value="crown">👑 Coroa</option><option value="sunglasses">🕶️ Óculos de sol</option><option value="headphones">🎧 Fones</option></select></label>
           <label class="toggle-control" for="lab-mouth"><span><b>Exibir boca</b><small>olhos e emoções continuam independentes</small></span><input id="lab-mouth" type="checkbox" checked><i aria-hidden="true"></i></label>

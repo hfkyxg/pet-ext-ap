@@ -12,6 +12,9 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const {
   CLAWD_ACCESSORIES,
+  CLAWD_MODELS,
+  CLAWD_FACE_STYLES,
+  CLAWD_SKINS,
   CLAWD_PROFESSIONS,
   CLAWD_ACTIONS,
   CLAWD_SUBPETS,
@@ -161,11 +164,24 @@ async function validatePopupRuntime(port, worker) {
           tabs: document.querySelectorAll('.tabs .tab').length,
           professions: document.querySelector('#profession-grid')?.children.length || 0,
           actions: document.querySelector('#actions-grid')?.children.length || 0,
+          models: document.querySelector('#model-grid')?.children.length || 0,
+          faceStyles: document.querySelector('#face-style-grid')?.children.length || 0,
+          skins: document.querySelector('#skin-grid')?.children.length || 0,
           headAccessories: document.querySelector('#acc-head-grid')?.children.length || 0,
           faceAccessories: document.querySelector('#acc-face-grid')?.children.length || 0,
           subpets: document.querySelector('#subpet-grid')?.children.length || 0,
           subpetActions: document.querySelector('#subpet-action-grid')?.children.length || 0,
           subpetEyeColorInput: !!document.querySelector('#input-subpet-eye-color'),
+          mainEyeColorInput: !!document.querySelector('#input-eye-color'),
+          accessoryArtPreviews: document.querySelectorAll('.accessory-art-preview').length,
+          headerPreview: (() => {
+            const preview = document.querySelector('#mini-sprite.header-model-preview');
+            return preview ? {
+              model: preview.dataset.model,
+              faceStyle: preview.dataset.faceStyle,
+              bodyPaint: getComputedStyle(preview.querySelector('.pixel-sprite')).boxShadow
+            } : null;
+          })(),
           shopItems: document.querySelector('#shop-grid')?.children.length || 0,
           achievements: document.querySelector('#ach-list')?.children.length || 0,
           mouthToggleChecked: document.querySelector('#toggle-mouth')?.checked ?? null,
@@ -184,11 +200,19 @@ async function validatePopupRuntime(port, worker) {
     }, 8_000, 100);
 
     assert.equal(snapshot.tabs, 8, 'O popup deve renderizar as oito abas.');
+    assert.equal(snapshot.models, Object.keys(CLAWD_MODELS).length, 'Catálogo de modelos incompleto no popup.');
+    assert.equal(snapshot.faceStyles, Object.keys(CLAWD_FACE_STYLES).length, 'Catálogo de rostos incompleto no popup.');
+    assert.equal(snapshot.skins, Object.keys(CLAWD_SKINS).length, 'Catálogo de skins incompleto no popup.');
     assert.equal(snapshot.headAccessories, expectedHead, 'Catálogo de acessórios de cabeça incompleto no popup.');
     assert.equal(snapshot.faceAccessories, expectedFace, 'Catálogo de acessórios de rosto incompleto no popup.');
     assert.equal(snapshot.subpets, Object.keys(CLAWD_SUBPETS).length, 'Catálogo de sub-pets incompleto no popup.');
     assert.equal(snapshot.subpetActions, Object.keys(CLAWD_SUBPET_ACTIONS).length, 'Ações do sub-pet incompletas no popup.');
     assert.equal(snapshot.subpetEyeColorInput, true, 'O popup deve oferecer cor independente para os olhos do sub-pet.');
+    assert.equal(snapshot.mainEyeColorInput, true, 'O popup deve oferecer cor independente para os olhos do pet principal.');
+    assert.equal(snapshot.accessoryArtPreviews, expectedHead + expectedFace, 'Cada card de acessório deve usar uma miniatura da arte real.');
+    assert.equal(snapshot.headerPreview?.model, 'classic', 'O cabeçalho deve usar o modelo clássico real, não a sprite legada.');
+    assert.equal(snapshot.headerPreview?.faceStyle, 'classic', 'O rosto do cabeçalho deve seguir o catálogo atual.');
+    assert.notEqual(snapshot.headerPreview?.bodyPaint, 'none', 'A miniatura do cabeçalho precisa pintar a arte compartilhada.');
     assert.equal(snapshot.shopItems, Object.keys(CLAWD_SHOP).length, 'Loja incompleta no popup.');
     assert.equal(snapshot.achievements, Object.keys(CLAWD_ACHIEVEMENTS).length, 'Conquistas incompletas no popup.');
     assert.equal(snapshot.mouthToggleChecked, true, 'A opção de boca deve iniciar ativada.');
@@ -197,6 +221,30 @@ async function validatePopupRuntime(port, worker) {
     assert.equal(snapshot.outfitFace, 'none', 'O provador deve refletir o slot de rosto inicial.');
     assert.match(snapshot.outfitDetail, /dois slots combináveis/i);
     assert.deepEqual(snapshot.duplicateIds, [], `IDs duplicados no popup: ${snapshot.duplicateIds.join(', ')}`);
+
+    await popup.evaluate(`document.querySelector('[data-model-id="claws"]').click(); true`);
+    await popup.evaluate(`document.querySelector('[data-face-style-id="sparkle"]').click(); true`);
+    await popup.evaluate(`(() => {
+      const input = document.querySelector('#input-eye-color');
+      input.value = '#33aaff';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    })()`);
+    const customizedModel = await retry(async () => {
+      const value = await popup.evaluate(`(() => {
+        const preview = document.querySelector('#aic-clawd-node.popup-outfit-pet');
+        const eyes = preview?.querySelector('.pet-eyes');
+        return {
+          model: preview?.dataset.model,
+          faceStyle: preview?.dataset.faceStyle,
+          eyeColor: eyes ? getComputedStyle(eyes).backgroundColor : null
+        };
+      })()`);
+      return value.model === 'claws' && value.faceStyle === 'sparkle' && value.eyeColor === 'rgb(51, 170, 255)'
+        ? value
+        : null;
+    }, 2_000, 50);
+    snapshot.customizedModel = customizedModel;
 
     await popup.evaluate(`document.querySelector('[data-accessory-id="cap"][data-accessory-slot="head"]').click(); true`);
     await popup.evaluate(`document.querySelector('[data-accessory-id="sunglasses"][data-accessory-slot="face"]').click(); true`);
@@ -254,7 +302,27 @@ async function validatePopupRuntime(port, worker) {
       const value = await worker.evaluate(`(async () => (await chrome.storage.local.get('clawdState')).clawdState?.showMouth)()`);
       return value === true;
     }, 3_000, 80);
+    await popup.evaluate(`document.querySelector('[data-model-id="classic"]').click(); true`);
+    await popup.evaluate(`document.querySelector('[data-face-style-id="classic"]').click(); true`);
+    await popup.evaluate(`(() => {
+      const input = document.querySelector('#input-eye-color');
+      input.value = '#08080b';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    })()`);
     await delay(150);
+    if (process.env.CLAWD_POPUP_SCREENSHOT) {
+      await popup.send('Page.enable');
+      const metrics = await popup.send('Page.getLayoutMetrics');
+      const size = metrics.cssContentSize || metrics.contentSize;
+      const capture = await popup.send('Page.captureScreenshot', {
+        format: 'png',
+        captureBeyondViewport: true,
+        clip: { x: 0, y: 0, width: Math.ceil(size.width), height: Math.ceil(size.height), scale: 1.5 }
+      });
+      snapshot.screenshot = resolve(process.env.CLAWD_POPUP_SCREENSHOT);
+      await writeFile(snapshot.screenshot, Buffer.from(capture.data, 'base64'));
+    }
     assert.deepEqual(runtimeErrors(popup), [], 'O popup gerou erro em runtime real.');
     return snapshot;
   } finally {
@@ -359,6 +427,7 @@ async function petSnapshot(page) {
     const pets = [...document.querySelectorAll('#aic-clawd-node')];
     const pet = pets[0];
     const sprite = pet?.querySelector('.pixel-sprite');
+    const legs = pet?.querySelector('.pixel-legs');
     const emotion = pet?.querySelector('.emotion-badge');
     return {
       count: pets.length,
@@ -367,6 +436,9 @@ async function petSnapshot(page) {
       emotion: pet?.getAttribute('data-emotion') || null,
       emotionLayer: !!emotion,
       spriteAnimation: sprite ? getComputedStyle(sprite).animationName : null,
+      legsAnimation: legs ? getComputedStyle(legs).animationName : null,
+      model: pet?.dataset.model || null,
+      faceStyle: pet?.dataset.faceStyle || null,
       visible: pet ? getComputedStyle(pet).display !== 'none' : false
     };
   })()`);
@@ -378,22 +450,40 @@ async function visualSnapshot(page) {
     const pixel = pet?.querySelector('.pixel-sprite');
     const smooth = pet?.querySelector('.smooth-sprite');
     const core = pet?.querySelector('.smooth-core');
+    const legs = pet?.querySelector('.pixel-legs');
+    const eyes = pet?.querySelector('.pet-eyes');
+    const faceDetail = pet?.querySelector('.face-detail');
     const mouth = pet?.querySelector('.emotion-mouth');
     const transparent = value => value === 'rgba(0, 0, 0, 0)' || value === 'transparent';
     const style = element => element ? getComputedStyle(element) : null;
     const pixelStyle = style(pixel);
     const smoothStyle = style(smooth);
     const coreStyle = style(core);
+    const legsStyle = style(legs);
+    const eyeStyle = style(eyes);
+    const faceDetailBefore = faceDetail ? getComputedStyle(faceDetail, '::before') : null;
+    const coreAfter = core ? getComputedStyle(core, '::after') : null;
     const mouthStyle = style(mouth);
     const mouthAfter = mouth ? getComputedStyle(mouth, '::after') : null;
     return {
       smoothClass: !!pet?.classList.contains('smooth'),
+      model: pet?.dataset.model || null,
+      faceStyle: pet?.dataset.faceStyle || null,
       pixelDisplay: pixelStyle?.display || null,
       pixelBoxShadow: pixelStyle?.boxShadow || null,
+      pixelAnimation: pixelStyle?.animationName || null,
+      legsDisplay: legsStyle?.display || null,
+      legsBoxShadow: legsStyle?.boxShadow || null,
+      legsAnimation: legsStyle?.animationName || null,
       smoothDisplay: smoothStyle?.display || null,
       smoothBackgroundImage: smoothStyle?.backgroundImage || null,
       coreColor: coreStyle?.backgroundColor || null,
+      coreWidth: coreStyle?.width || null,
+      coreAfterBackground: coreAfter?.backgroundImage || null,
       coreIsTransparent: !coreStyle || transparent(coreStyle.backgroundColor),
+      eyeColor: eyeStyle?.backgroundColor || null,
+      eyeHeight: eyeStyle?.height || null,
+      faceDetailPaint: faceDetailBefore?.backgroundColor || null,
       mouthDisplay: mouthStyle?.display || null,
       mouthBackground: mouthStyle?.backgroundColor || null,
       mouthBorderBottom: mouthStyle?.borderBottomWidth || null,
@@ -483,7 +573,9 @@ async function clickPet(page) {
   await page.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...coords, button: 'left', buttons: 0, clickCount: 1 });
 }
 
-async function capturePetScreenshot(page, outputPath, { head = 'none', face = 'none' } = {}) {
+async function capturePetScreenshot(page, outputPath, {
+  head = 'none', face = 'none', smooth = true, model = 'classic', faceStyle = 'classic', eyeColor = '#08080b'
+} = {}) {
   await page.send('Page.enable');
   await page.evaluate(`(() => {
     let proofStyle = document.querySelector('#clawd-visual-proof-style');
@@ -508,13 +600,18 @@ async function capturePetScreenshot(page, outputPath, { head = 'none', face = 'n
 
     pet.setAttribute('data-acc-head', ${JSON.stringify(head)});
     pet.setAttribute('data-acc-face', ${JSON.stringify(face)});
+    pet.setAttribute('data-model', ${JSON.stringify(model)});
+    pet.setAttribute('data-face-style', ${JSON.stringify(faceStyle)});
+    pet.style.setProperty('--agent-eye-color', ${JSON.stringify(eyeColor)});
     pet.setAttribute('data-emotion', 'joyful');
     pet.classList.remove(
       'shiny', 'walking', 'running', 'keepy-uppy', 'sleeping', 'excited', 'waving',
       'celebrate', 'dance-1', 'dance-2', 'dance-3', 'jumping', 'roaring', 'highfive',
       'eating', 'yawning', 'shy', 'tantrum', 'bathing', 'fishing', 'reeling', 'stretching'
     );
-    pet.classList.add('smooth', 'happy');
+    pet.classList.remove('smooth', 'happy');
+    pet.classList.add('happy');
+    if (${JSON.stringify(smooth)}) pet.classList.add('smooth');
 
     const hide = selector => {
       const element = pet.querySelector(selector);
@@ -632,15 +729,65 @@ async function main() {
     assert.equal(
       initial.spriteAnimation,
       'none',
-      `As pernas devem permanecer paradas em repouso (classes: ${initial.state}).`
+      `O corpo deve permanecer estático em repouso (classes: ${initial.state}).`
     );
+    assert.equal(initial.legsAnimation, 'none', 'As pernas devem permanecer paradas em repouso.');
+    assert.equal(initial.model, 'classic', 'O modelo clássico da referência deve ser o padrão.');
+    assert.equal(initial.faceStyle, 'classic', 'O rosto clássico deve ser o padrão.');
     assert.equal(initial.emotionLayer, true, 'A camada visual de emoções deve existir.');
 
     controlWorker = await new CdpClient((await findWorkerTarget(port)).webSocketDebuggerUrl).connect();
     const popupRuntime = await validatePopupRuntime(port, controlWorker);
     const subpetRuntime = await validateSubpetRuntime(controlWorker, page);
 
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: false });
+    const pixelModels = {};
+    for (const id of Object.keys(CLAWD_MODELS)) {
+      await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'model', value: id });
+      const modelVisual = await retry(async () => {
+        const snapshot = await visualSnapshot(page);
+        return snapshot.model === id && snapshot.pixelDisplay !== 'none' ? snapshot : null;
+      }, 2_000, 50);
+      assert.notEqual(modelVisual.pixelBoxShadow, 'none', `Silhueta pixel invisível: ${id}`);
+      assert.notEqual(modelVisual.legsBoxShadow, 'none', `Pernas pixel invisíveis: ${id}`);
+      assert.equal(modelVisual.pixelAnimation, 'none', `O corpo do modelo ${id} não pode morphar durante o ciclo.`);
+      assert.equal(modelVisual.legsAnimation, 'none', `O modelo ${id} deve ficar com as pernas imóveis em repouso.`);
+      pixelModels[id] = modelVisual.pixelBoxShadow;
+    }
+    assert.equal(new Set(Object.values(pixelModels)).size, Object.keys(CLAWD_MODELS).length, 'Os quatro modelos precisam ter silhuetas distintas.');
+
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'eyeColor', value: '#33aaff' });
+    const faceStyles = {};
+    for (const id of Object.keys(CLAWD_FACE_STYLES)) {
+      await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'faceStyle', value: id });
+      const faceVisual = await retry(async () => {
+        const snapshot = await visualSnapshot(page);
+        return snapshot.faceStyle === id && snapshot.eyeColor === 'rgb(51, 170, 255)' ? snapshot : null;
+      }, 2_000, 50);
+      faceStyles[id] = { eyeHeight: faceVisual.eyeHeight, detail: faceVisual.faceDetailPaint };
+    }
+    assert.equal(faceStyles.sleepy.eyeHeight, '1px', 'O rosto sonolento deve trocar os olhos por traços pixelados.');
+    assert.notEqual(faceStyles.sparkle.detail, 'rgba(0, 0, 0, 0)', 'O rosto Brilho precisa pintar reflexos nos olhos.');
+    assert.notEqual(faceStyles.focused.detail, 'rgba(0, 0, 0, 0)', 'O rosto Focado precisa pintar sobrancelhas.');
+
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: true });
+    const smoothModelWidths = { classic: '28px', mini: '20px', claws: '28px', guardian: '36px' };
+    const smoothModels = {};
+    for (const id of Object.keys(CLAWD_MODELS)) {
+      await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'model', value: id });
+      const modelVisual = await retry(async () => {
+        const snapshot = await visualSnapshot(page);
+        return snapshot.model === id && snapshot.smoothDisplay === 'block' ? snapshot : null;
+      }, 2_000, 50);
+      assert.equal(modelVisual.coreWidth, smoothModelWidths[id], `Largura lisa incorreta: ${id}`);
+      assert.equal(modelVisual.legsDisplay, 'none', `O modelo liso ${id} não pode exibir pernas em box-shadow.`);
+      smoothModels[id] = modelVisual.coreWidth;
+      if (id === 'claws') assert.notEqual(modelVisual.coreAfterBackground, 'none', 'O modelo Pinças liso precisa desenhar as pinças.');
+    }
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'model', value: 'classic' });
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'faceStyle', value: 'classic' });
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'eyeColor', value: '#08080b' });
+
     const smoothVisual = await retry(async () => {
       const snapshot = await visualSnapshot(page);
       return snapshot.smoothClass && snapshot.smoothDisplay === 'block' && snapshot.pixelDisplay === 'none'
@@ -650,6 +797,7 @@ async function main() {
     assert.equal(smoothVisual.pixelBoxShadow, 'none', 'O modo liso não pode preservar a grade de box-shadow.');
     assert.equal(smoothVisual.smoothBackgroundImage, 'none', 'A silhueta lisa não pode ter textura de grade.');
     assert.equal(smoothVisual.coreIsTransparent, false, 'A silhueta contínua precisa estar visível.');
+    assert.equal(smoothVisual.eyeColor, 'rgb(8, 8, 11)', 'A cor padrão dos olhos deve ser restaurada.');
 
     const smoothAccessories = [];
     for (const [id, definition] of Object.entries(CLAWD_ACCESSORIES)) {
@@ -845,21 +993,32 @@ async function main() {
     }, 3_000, 80);
     assert.equal(restoredMouth.mouthBorderBottom, '2px', 'Reativar a boca deve restaurar o sorriso atual.');
 
+    await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: false });
+    await retry(async () => !(await visualSnapshot(page)).smoothClass, 2_000, 50);
     const headwearMotion = await page.evaluate(`(() => {
       const pet = document.querySelector('#aic-clawd-node');
       const headwear = pet?.querySelector('.acc-head');
+      const body = pet?.querySelector('.pixel-sprite');
+      const legs = pet?.querySelector('.pixel-legs');
       pet?.classList.remove('walking', 'running');
       pet?.classList.add('walking');
       const moving = headwear ? getComputedStyle(headwear).animationName : null;
+      const movingBody = body ? getComputedStyle(body).animationName : null;
+      const movingLegs = legs ? getComputedStyle(legs).animationName : null;
       pet?.classList.remove('walking', 'running');
       const idle = headwear ? getComputedStyle(headwear).animationName : null;
-      return { moving, idle };
+      const idleLegs = legs ? getComputedStyle(legs).animationName : null;
+      return { moving, idle, movingBody, movingLegs, idleLegs };
     })()`);
     assert.match(headwearMotion.moving || '', /clawd-headwear-step/, 'O chapéu deve acompanhar o passo do pet.');
     assert.equal(headwearMotion.idle, 'none', 'O chapéu deve permanecer assentado quando o pet está parado.');
+    assert.equal(headwearMotion.movingBody, 'none', 'A caminhada não pode trocar ou deformar a silhueta do corpo.');
+    assert.equal(headwearMotion.movingLegs, 'clawd-pixel-leg-cycle', 'Somente a camada das pernas deve entrar no walk cycle.');
+    assert.equal(headwearMotion.idleLegs, 'none', 'As pernas devem parar imediatamente ao fim do deslocamento.');
 
     let screenshot = null;
     let accessoryScreenshot = null;
+    let pixelScreenshot = null;
     if (process.env.CLAWD_SCREENSHOT) {
       screenshot = await capturePetScreenshot(page, process.env.CLAWD_SCREENSHOT);
     }
@@ -867,6 +1026,14 @@ async function main() {
       accessoryScreenshot = await capturePetScreenshot(page, process.env.CLAWD_ACCESSORY_SCREENSHOT, {
         head: 'cap',
         face: 'sunglasses'
+      });
+    }
+    if (process.env.CLAWD_PIXEL_SCREENSHOT) {
+      pixelScreenshot = await capturePetScreenshot(page, process.env.CLAWD_PIXEL_SCREENSHOT, {
+        smooth: false,
+        model: 'claws',
+        faceStyle: 'sparkle',
+        eyeColor: '#33aaff'
       });
     }
 
@@ -926,6 +1093,8 @@ async function main() {
       initial,
       affection: affectionate.state,
       smooth: smoothVisual,
+      models: { pixel: Object.keys(pixelModels), smooth: smoothModels },
+      faceStyles,
       mouth: mouthVisual,
       mouthToggle: { hidden: hiddenMouth.mouthDisplay, restored: restoredMouth.mouthDisplay },
       headwearMotion,
@@ -940,6 +1109,7 @@ async function main() {
       subpet: subpetRuntime,
       screenshot,
       accessoryScreenshot,
+      pixelScreenshot,
       reloads: reloadSnapshots.map(snapshot => snapshot.count),
       invalidContextErrors: invalidContextErrors.length,
       runtimeErrors: errors.length,

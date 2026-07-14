@@ -36,7 +36,8 @@ function setConfig(key, value) {
   S[key] = value;
   sendMsg({ action: 'updateConfig', key, value });
   persist(st => { st[key] = value; });
-  if (['color', 'smooth', 'outline', 'skin', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace'].includes(key)) {
+  if (['color', 'eyeColor', 'model', 'faceStyle', 'smooth', 'outline', 'skin', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace'].includes(key)) {
+    syncHeaderPetPreview();
     renderOutfitPreview();
   }
 }
@@ -92,8 +93,22 @@ function renderHeader() {
   setTimeout(() => { $('xp-fill').style.width = `${Math.min(100, (into / next) * 100)}%`; }, 120);
   renderStats(S.stats);
   if (S.color) applyHeaderColor(S.color);
-  $('mini-sprite').classList.toggle('smooth', !!S.smooth);
+  syncHeaderPetPreview();
   renderOutfitPreview();
+}
+
+function syncHeaderPetPreview() {
+  const preview = $('mini-sprite');
+  if (!preview) return;
+  const effective = clawdEffectiveAccessories(S);
+  preview.dataset.model = S.model || 'classic';
+  preview.dataset.faceStyle = S.faceStyle || 'classic';
+  preview.dataset.skin = S.skin || 'normal';
+  preview.dataset.accHead = effective.head || 'none';
+  preview.dataset.accFace = effective.face || 'none';
+  preview.style.setProperty('--agent-color', S.color || '#c71515');
+  preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+  preview.setAttribute('aria-label', `${CLAWD_MODELS[S.model]?.label || 'Clássico'}, ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'}`);
 }
 
 function renderStats(stats) {
@@ -110,8 +125,34 @@ function applyHeaderColor(color) {
   $('color-hex').textContent = color;
   document.querySelector('.header-pet').style.borderColor = color;
   document.querySelector('.header-pet').style.boxShadow = `0 0 16px ${color}55`;
-  $('mini-sprite').style.setProperty('--preview-color', color);
+  $('mini-sprite').style.setProperty('--agent-color', color);
   $('aic-clawd-node')?.style.setProperty('--agent-color', color);
+  document.querySelectorAll('.clawd-model-preview').forEach(preview => {
+    preview.style.setProperty('--agent-color', color);
+  });
+}
+
+function createPetArtPreview({ model, faceStyle, skin, head = 'none', face = 'none', className = '' } = {}) {
+  const preview = document.createElement('span');
+  preview.className = `clawd-model-preview ${className}`.trim();
+  preview.dataset.model = model || S.model || 'classic';
+  preview.dataset.faceStyle = faceStyle || S.faceStyle || 'classic';
+  preview.dataset.skin = skin || S.skin || 'normal';
+  preview.dataset.accHead = head;
+  preview.dataset.accFace = face;
+  preview.style.setProperty('--agent-color', S.color || '#c71515');
+  preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+  preview.innerHTML = `
+    <i class="pixel-sprite"></i><i class="pixel-legs"></i><i class="pet-eyes"></i><i class="face-detail"></i>
+    <i class="skin-mod"></i><i class="accessory acc-head"></i><i class="accessory acc-face"></i>`;
+  return preview;
+}
+
+function updatePreviewPalette() {
+  document.querySelectorAll('.clawd-model-preview').forEach(preview => {
+    preview.style.setProperty('--agent-color', S.color || '#c71515');
+    preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+  });
 }
 
 function renderOutfitPreview() {
@@ -128,12 +169,15 @@ function renderOutfitPreview() {
 
   preview.dataset.accHead = effective.head;
   preview.dataset.accFace = effective.face;
+  preview.dataset.model = S.model || 'classic';
+  preview.dataset.faceStyle = S.faceStyle || 'classic';
   preview.dataset.skin = S.skin || 'normal';
   preview.dataset.profession = effective.profession;
   preview.classList.toggle('smooth', !!S.smooth);
   preview.classList.toggle('outlined', !!S.outline);
   preview.classList.toggle('has-jersey', effective.profession === 'footballer');
   preview.style.setProperty('--agent-color', S.color || '#c71515');
+  preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
   preview.style.setProperty('--jersey-color', S.jerseyColor || '#e74c3c');
   preview.setAttribute('aria-label', equipped.length
     ? `Prévia do pet com ${equipped.join(' e ')}`
@@ -141,7 +185,7 @@ function renderOutfitPreview() {
   $('outfit-preview-title').textContent = equipped.length ? equipped.join(' + ') : 'Visual sem acessórios';
   $('outfit-preview-detail').textContent = automatic.length
     ? `${automatic.join(' + ')} temporário da profissão; sua escolha pessoal está salva.`
-    : `${S.smooth ? 'Liso sem grade' : 'Pixel-art'} · dois slots combináveis`;
+    : `${CLAWD_MODELS[S.model]?.label || 'Clássico'} · ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'} · ${S.smooth ? 'liso sem grade' : 'pixel-art'} · dois slots combináveis`;
 }
 
 /* Busca stats ao vivo do content script */
@@ -270,6 +314,79 @@ function updateColorStar() {
   btn.classList.toggle('favorited', fav);
 }
 
+function renderModels() {
+  const grid = $('model-grid');
+  grid.innerHTML = '';
+  Object.entries(CLAWD_MODELS).forEach(([id, def]) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'pixel-custom-card' + (S.model === id ? ' active' : '');
+    card.dataset.modelId = id;
+    card.setAttribute('aria-pressed', String(S.model === id));
+    card.title = def.desc;
+    card.appendChild(createPetArtPreview({ model: id, className: 'model-art-preview' }));
+    const label = document.createElement('span');
+    label.innerHTML = `<b>${def.badge}</b>${def.label}`;
+    card.appendChild(label);
+    card.addEventListener('click', () => {
+      setConfig('model', id);
+      renderModels();
+      renderFaceStyles();
+      renderSkins();
+      renderAccessories();
+    });
+    grid.appendChild(card);
+  });
+  $('model-description').textContent = CLAWD_MODELS[S.model]?.desc || CLAWD_MODELS.classic.desc;
+}
+
+function renderFaceStyles() {
+  const grid = $('face-style-grid');
+  grid.innerHTML = '';
+  Object.entries(CLAWD_FACE_STYLES).forEach(([id, def]) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'face-style-card' + (S.faceStyle === id ? ' active' : '');
+    card.dataset.faceStyleId = id;
+    card.setAttribute('aria-pressed', String(S.faceStyle === id));
+    card.title = def.desc;
+    card.appendChild(createPetArtPreview({ faceStyle: id, className: 'face-art-preview' }));
+    const label = document.createElement('span');
+    label.innerHTML = `<b>${def.badge}</b>${def.label}`;
+    card.appendChild(label);
+    card.addEventListener('click', () => {
+      setConfig('faceStyle', id);
+      renderFaceStyles();
+      renderAccessories();
+    });
+    grid.appendChild(card);
+  });
+  $('face-style-description').textContent = CLAWD_FACE_STYLES[S.faceStyle]?.desc || CLAWD_FACE_STYLES.classic.desc;
+}
+
+function renderSkins() {
+  const grid = $('skin-grid');
+  grid.innerHTML = '';
+  Object.entries(CLAWD_SKINS).forEach(([id, def]) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'skin-art-card' + (S.skin === id ? ' active' : '');
+    card.dataset.skin = id;
+    card.setAttribute('aria-pressed', String(S.skin === id));
+    card.title = def.desc;
+    card.appendChild(createPetArtPreview({ skin: id, className: 'skin-art-preview' }));
+    const label = document.createElement('span');
+    label.textContent = def.label;
+    card.appendChild(label);
+    card.addEventListener('click', () => {
+      setConfig('skin', id);
+      renderSkins();
+      renderAccessories();
+    });
+    grid.appendChild(card);
+  });
+}
+
 function accessoryUnlocked(id) {
   const def = CLAWD_ACCESSORIES[id];
   if (!def) return false;
@@ -295,7 +412,14 @@ function renderAccessories() {
     noneCard.className = 'accessory-card' + (current === 'none' ? ' active' : '');
     noneCard.dataset.accessoryId = 'none';
     noneCard.dataset.accessorySlot = slot;
-    noneCard.innerHTML = `<span class="acc-icon">🚫</span><span class="acc-name">Nenhum</span>`;
+    const noneArt = createPetArtPreview({ className: 'accessory-art-preview no-accessory-art' });
+    const removeMark = document.createElement('i');
+    removeMark.className = 'remove-accessory-mark';
+    noneArt.appendChild(removeMark);
+    const noneName = document.createElement('span');
+    noneName.className = 'acc-name';
+    noneName.textContent = 'Nenhum';
+    noneCard.append(noneArt, noneName);
     noneCard.title = `Remover acessório de ${slot === 'head' ? 'cabeça' : 'rosto e corpo'}`;
     noneCard.setAttribute('aria-label', noneCard.title);
     noneCard.setAttribute('aria-pressed', String(current === 'none'));
@@ -314,8 +438,21 @@ function renderAccessories() {
         + (autoId === id ? ' profession-equipped' : '')
         + (isFav('accessories', id) ? ' favorited' : '')
         + (unlocked ? '' : ' locked');
-      card.innerHTML = `<span class="acc-icon">${def.emoji}</span><span class="acc-name">${def.label}</span>`
-        + (unlocked ? '' : `<span class="lock-badge">${def.unlock.type === 'level' ? `🔒 Lv.${def.unlock.level}` : '🔒 Loja'}</span>`);
+      card.appendChild(createPetArtPreview({
+        head: slot === 'head' ? id : 'none',
+        face: slot === 'face' ? id : 'none',
+        className: 'accessory-art-preview'
+      }));
+      const name = document.createElement('span');
+      name.className = 'acc-name';
+      name.textContent = def.label;
+      card.appendChild(name);
+      if (!unlocked) {
+        const lock = document.createElement('span');
+        lock.className = 'lock-badge';
+        lock.textContent = def.unlock.type === 'level' ? `🔒 Lv.${def.unlock.level}` : '🔒 Loja';
+        card.appendChild(lock);
+      }
       card.setAttribute('aria-pressed', String(current === id));
       if (autoId === id) {
         const badge = document.createElement('span');
@@ -738,6 +875,12 @@ function bindStatic() {
     setConfig('color', e.target.value);
     updateColorStar();
   });
+  $('input-eye-color').addEventListener('input', (e) => {
+    const color = e.target.value;
+    $('eye-color-hex').textContent = color;
+    setConfig('eyeColor', color);
+    updatePreviewPalette();
+  });
   $('color-star').addEventListener('click', () => {
     toggleFavorite('colors', $('input-color').value);
     setTimeout(renderColors, 150);
@@ -757,7 +900,6 @@ function bindStatic() {
 
   // Estilo visual
   $('toggle-smooth').addEventListener('change', e => {
-    $('mini-sprite').classList.toggle('smooth', e.target.checked);
     setConfig('smooth', e.target.checked);
   });
   $('toggle-outline').addEventListener('change', e => setConfig('outline', e.target.checked));
@@ -815,6 +957,9 @@ function renderAll() {
   renderHeader();
   renderNameArea();
   renderColors();
+  renderModels();
+  renderFaceStyles();
+  renderSkins();
   renderAccessories();
   renderProfessions();
   renderActions();
@@ -824,6 +969,8 @@ function renderAll() {
   renderConfig();
 
   $('input-color').value = S.color || '#c71515';
+  $('input-eye-color').value = S.eyeColor || '#08080b';
+  $('eye-color-hex').textContent = S.eyeColor || '#08080b';
   $('range-scale').value = S.scale ?? 1.5;
   $('scale-badge').textContent = `${parseFloat(S.scale ?? 1.5).toFixed(1)}×`;
   $('range-speed').value = S.animSpeed ?? 1;

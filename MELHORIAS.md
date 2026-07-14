@@ -1,9 +1,11 @@
-# 🚀 Claw'd — Registro de Melhorias e Implementações (v3.1)
+# 🚀 Claw'd — Registro de Melhorias e Implementações (v3.2)
 
-> Especificação técnica que orientou a evolução até a v3.1.
-> Os seis blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção e futuras expansões.
+> Especificação técnica que orientou a evolução até a v3.2.
+> Os nove blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção e futuras expansões.
 
 **Base atual:** `content.js` (classes `ClawdCompanion` e `SubPet`), `popup.js/html/css`, `background.js` (service worker MV3), catálogo compartilhado, persistência via `chrome.storage.local` (chave `clawdState`) e [vitrine interativa](./docs/index.html).
+
+**Marco v3.2 — Estúdio pixel-art:** quatro silhuetas (`classic`, `mini`, `claws`, `guardian`) × quatro rostos, olhos independentes e skins combináveis. O corpo virou uma camada estática; apenas as pernas mudam de frame quando o pet realmente se desloca ou chuta. Popup, runtime, modo liso e documentação usam o mesmo catálogo visual.
 
 ---
 
@@ -347,6 +349,8 @@ O `background.js` (service worker) vira o **coordenador central de presença**:
 Nova aba **⚙️ Config** no popup, consolidando:
 
 ### Personalização
+- **Modelos pixel-art**: Clássico fiel à referência, Mini, Pinças e Guardião;
+- **Rostos e olhos**: Clássico, Brilho, Focado e Sonolento, com canal de cor independente;
 - **Skins de corpo**: além de cor, formatos alternativos (orelhas caídas, rabo longo, robô);
 - **Temas do name-tag**: claro / escuro / neon / invisível;
 - **Sons** (opcional, off por padrão): bipes 8-bit sutis em ações (Web Audio API, volume ajustável);
@@ -378,14 +382,15 @@ Nova aba **⚙️ Config** no popup, consolidando:
 | **5** | Sub-Pets | Classe `SubPet`, catálogo, apelidos, cores e interações | ✅ Concluída |
 | **6** | Cross-Tab | PresenceManager, viagens e reconciliação de reload | ✅ Concluída |
 | **7** | Showcase + Sub-Pets 2.0 | Documentação interativa, olhos customizáveis e seis ações | ✅ Concluída |
+| **8** | Estúdio Pixel-art v3.2 | 4 modelos, 4 rostos, olhos independentes e pernas em camada própria | ✅ Concluída |
 
 ### Diretrizes gerais
 - Manter **zero dependências externas** — tudo em Vanilla JS + CSS puro;
 - Toda feature nova atrás de config com padrão sensato (nada intrusivo por default);
 - Sprites permanecem em `box-shadow` pixel-art para consistência visual;
 - `z-index` máximo (`2147483647`) e `pointer-events` cuidadosos para nunca bloquear a página;
-- Migração de dados: versionar o storage (`clawdState.schemaVersion = 3`) com migrador incremental.
+- Migração de dados: versionar o storage (`clawdState.schemaVersion = 4`) com migrador incremental.
 
 ---
 
-*Registro de implementação — Claw'd v3.1 · 2026*
+*Registro de implementação — Claw'd v3.2 · 2026*

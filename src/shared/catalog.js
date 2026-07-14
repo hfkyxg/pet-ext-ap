@@ -4,7 +4,7 @@
    Zero dependências — apenas globais.
    =================================================== */
 
-var CLAWD_SCHEMA_VERSION = 3;
+var CLAWD_SCHEMA_VERSION = 4;
 
 var CLAWD_DAILY_QUESTS = [
   { type: 'pets', target: 3, label: 'Dê carinho ao Claw\'d 3 vezes', rewardXp: 18, rewardCoins: 4 },
@@ -72,6 +72,28 @@ var CLAWD_ACCESSORIES = {
   scarf:      { slot: 'face', emoji: '🧣', label: 'Cachecol',        desc: 'Cachecol vermelho com ponta animada', unlock: { type: 'shop', price: 30 } },
   backpack:   { slot: 'face', emoji: '🎒', label: 'Mochilinha',      desc: 'Mochila compacta com bolso e fivela', unlock: { type: 'shop', price: 30 } },
   medal:      { slot: 'face', emoji: '🏅', label: 'Medalha',         desc: 'Medalha dourada presa por fita', unlock: { type: 'level', level: 10 } }
+};
+
+/* ---- Modelos do pet (silhuetas na mesma grade 4 px) ---- */
+var CLAWD_MODELS = {
+  classic:  { label: 'Clássico',  badge: '01', desc: 'O modelo compacto vermelho da referência original.' },
+  mini:     { label: 'Mini',      badge: '02', desc: 'Corpo menor e ágil, sem perder o alinhamento dos acessórios.' },
+  claws:    { label: 'Pinças',    badge: '03', desc: 'Braços elevados com pinças laterais mais expressivas.' },
+  guardian: { label: 'Guardião',  badge: '04', desc: 'Silhueta larga, firme e com pernas robustas.' }
+};
+
+/* ---- Rostos independentes da silhueta e das emoções ---- */
+var CLAWD_FACE_STYLES = {
+  classic: { label: 'Clássico',  badge: '•', desc: 'Olhos quadrados fiéis ao sprite original.' },
+  sparkle: { label: 'Brilho',    badge: '✦', desc: 'Reflexos pixelados que deixam o olhar mais vivo.' },
+  focused: { label: 'Focado',    badge: '⌁', desc: 'Sobrancelhas angulares para uma expressão determinada.' },
+  sleepy:  { label: 'Sonolento', badge: '–', desc: 'Olhos em traço, calmos mesmo durante o repouso.' }
+};
+
+var CLAWD_SKINS = {
+  normal: { label: 'Normal', desc: 'Silhueta limpa, sem detalhes adicionais.' },
+  droopy: { label: 'Orelhas', desc: 'Detalhes laterais caídos em pixel-art.' },
+  robot:  { label: 'Robô', desc: 'Antena, luz de status e parafusos metálicos.' }
 };
 
 /* ---- Profissões ---- */
@@ -188,13 +210,16 @@ var CLAWD_COLORS = ['#c71515', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b5
 /* ---- Cores de camisa (Jogador) ---- */
 var CLAWD_JERSEYS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#ffffff', '#111111', '#9b59b6', '#e67e22'];
 
-/* ---- Estado padrão v3 ---- */
+/* ---- Estado padrão v4 ---- */
 function clawdDefaultState() {
   return {
     schemaVersion: CLAWD_SCHEMA_VERSION,
     position: { x: null, y: null },
     name: "Claw'd",
     color: '#c71515',
+    eyeColor: '#08080b',
+    model: 'classic',
+    faceStyle: 'classic',
     scale: 1.5,
     showSpeech: true,
     showMouth: true,
@@ -269,6 +294,18 @@ function clawdMigrateState(raw) {
     delete merged.accessory;
     merged.xp = raw.xp || 0;
   }
+  merged.model = Object.prototype.hasOwnProperty.call(CLAWD_MODELS, raw.model)
+    ? raw.model
+    : def.model;
+  merged.faceStyle = Object.prototype.hasOwnProperty.call(CLAWD_FACE_STYLES, raw.faceStyle)
+    ? raw.faceStyle
+    : def.faceStyle;
+  merged.skin = Object.prototype.hasOwnProperty.call(CLAWD_SKINS, raw.skin)
+    ? raw.skin
+    : def.skin;
+  merged.eyeColor = typeof raw.eyeColor === 'string' && /^#[0-9a-f]{6}$/i.test(raw.eyeColor)
+    ? raw.eyeColor.toLowerCase()
+    : def.eyeColor;
   merged.schemaVersion = CLAWD_SCHEMA_VERSION;
   return merged;
 }
@@ -324,6 +361,9 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     CLAWD_DAILY_QUESTS,
     CLAWD_ACCESSORIES,
+    CLAWD_MODELS,
+    CLAWD_FACE_STYLES,
+    CLAWD_SKINS,
     CLAWD_PROFESSIONS,
     CLAWD_ACTIONS,
     CLAWD_SUBPETS,

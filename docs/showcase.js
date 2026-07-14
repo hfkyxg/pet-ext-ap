@@ -3,6 +3,8 @@
 
   const professions = globalThis.CLAWD_PROFESSIONS || {};
   const accessories = globalThis.CLAWD_ACCESSORIES || {};
+  const models = globalThis.CLAWD_MODELS || {};
+  const faceStyles = globalThis.CLAWD_FACE_STYLES || {};
   const actions = globalThis.CLAWD_ACTIONS || {};
   const subpets = globalThis.CLAWD_SUBPETS || {};
   const subpetActions = globalThis.CLAWD_SUBPET_ACTIONS || {};
@@ -358,13 +360,30 @@
 
   function setupMainPetLab() {
     const pet = $('doc-main-pet');
+    const pixelArt = $('doc-pixel-art');
     const emotion = $('lab-emotion');
     const accessory = $('doc-accessory');
     const bodyColor = $('lab-body-color');
+    const eyeColor = $('lab-eye-color');
+    const modelSelect = $('lab-model');
+    const faceStyleSelect = $('lab-face-style');
     const renderMode = $('lab-render-mode');
     const mouth = $('lab-mouth');
     const accessorySelect = $('lab-accessory');
     let moodTimer = null;
+
+    Object.entries(models).forEach(([id, item]) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = item.label;
+      modelSelect.appendChild(option);
+    });
+    Object.entries(faceStyles).forEach(([id, item]) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = item.label;
+      faceStyleSelect.appendChild(option);
+    });
 
     accessorySelect.replaceChildren();
     const noneOption = document.createElement('option');
@@ -380,12 +399,26 @@
 
     bodyColor.addEventListener('input', () => {
       pet.style.setProperty('--agent-color', bodyColor.value);
+      pixelArt.style.setProperty('--agent-color', bodyColor.value);
       pet.setAttribute('aria-label', `Prévia do Claw'd na cor ${bodyColor.value}`);
+    });
+    eyeColor.addEventListener('input', () => {
+      pet.style.setProperty('--agent-eye-color', eyeColor.value);
+      pixelArt.style.setProperty('--agent-eye-color', eyeColor.value);
+    });
+    modelSelect.addEventListener('change', () => {
+      pet.dataset.model = modelSelect.value;
+      pixelArt.dataset.model = modelSelect.value;
+      $('lab-mode-label').textContent = `${renderMode.value === 'smooth' ? 'LISO' : 'PIXEL'} · ${models[modelSelect.value]?.label?.toUpperCase() || 'CLÁSSICO'}`;
+    });
+    faceStyleSelect.addEventListener('change', () => {
+      pet.dataset.faceStyle = faceStyleSelect.value;
+      pixelArt.dataset.faceStyle = faceStyleSelect.value;
     });
     renderMode.addEventListener('change', () => {
       const smooth = renderMode.value === 'smooth';
       pet.classList.toggle('smooth', smooth);
-      $('lab-mode-label').textContent = smooth ? 'LISO · SEM GRADE' : 'PIXEL';
+      $('lab-mode-label').textContent = `${smooth ? 'LISO · SEM GRADE' : 'PIXEL'} · ${models[modelSelect.value]?.label?.toUpperCase() || 'CLÁSSICO'}`;
     });
     mouth.addEventListener('change', () => pet.classList.toggle('mouth-off', !mouth.checked));
     accessorySelect.addEventListener('change', () => {

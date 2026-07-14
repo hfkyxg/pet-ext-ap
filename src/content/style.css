@@ -1,5 +1,5 @@
 /* ===================================================
-   CLAW'D — COMPANION STYLES v3.1
+   CLAW'D — COMPANION STYLES v3.2
    Pixel-art mascot injected into every page
    =================================================== */
 
@@ -2217,4 +2217,258 @@
   #aic-clawd-node .accessory,
   #aic-clawd-node .accessory::before,
   #aic-clawd-node .accessory::after { animation: none !important; }
+}
+
+/* ============================================================
+   MODELOS v3.2 — SILHUETA, ROSTO E PERNAS EM CAMADAS
+   O clássico reproduz exatamente a referência. Os demais modelos
+   permanecem na grade de 4 px para compartilhar chapéus e óculos.
+   ============================================================ */
+:is(#aic-clawd-node, .clawd-model-preview) {
+  --agent-color: #c71515;
+  --agent-eye-color: #08080b;
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="classic"] {
+  --clawd-pixel-body:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color),
+    8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color);
+  --clawd-legs-idle:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    4px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 36px 24px var(--agent-color),
+    0 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    8px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-kick:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="mini"] {
+  --clawd-pixel-body:
+    12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color),
+    12px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px var(--agent-color),
+    12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color),
+    4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color),
+    4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color),
+    12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color);
+  --clawd-legs-idle:
+    12px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 24px var(--agent-color),
+    12px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 28px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    12px 24px var(--agent-color), 20px 24px var(--agent-color), 20px 28px var(--agent-color), 28px 24px var(--agent-color),
+    12px 28px var(--agent-color), 20px 28px var(--agent-color), 28px 28px var(--agent-color);
+  --clawd-legs-kick:
+    12px 24px var(--agent-color), 16px 24px var(--agent-color), 12px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 28px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="claws"] {
+  --clawd-pixel-body:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    0 4px var(--agent-color), 4px 4px var(--agent-color), 8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color), 36px 4px var(--agent-color), 40px 4px var(--agent-color),
+    0 8px var(--agent-color), 4px 8px var(--agent-color), 8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color), 36px 8px var(--agent-color), 40px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color);
+  --clawd-legs-idle:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    4px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 36px 24px var(--agent-color),
+    0 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    8px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-kick:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="guardian"] {
+  --clawd-pixel-body:
+    4px 0 var(--agent-color), 8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color), 36px 0 var(--agent-color),
+    4px 4px var(--agent-color), 8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color), 36px 4px var(--agent-color),
+    4px 8px var(--agent-color), 8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color), 36px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    4px 20px var(--agent-color), 8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color), 36px 20px var(--agent-color);
+  --clawd-legs-idle:
+    4px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 36px 24px var(--agent-color),
+    4px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 36px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    0 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 40px 24px var(--agent-color),
+    0 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    4px 24px var(--agent-color), 8px 24px var(--agent-color), 32px 24px var(--agent-color), 36px 24px var(--agent-color),
+    4px 28px var(--agent-color), 8px 28px var(--agent-color), 32px 28px var(--agent-color), 36px 28px var(--agent-color);
+  --clawd-legs-kick:
+    4px 24px var(--agent-color), 12px 24px var(--agent-color), 4px 28px var(--agent-color), 12px 28px var(--agent-color),
+    28px 20px var(--agent-color), 32px 20px var(--agent-color), 28px 24px var(--agent-color), 36px 28px var(--agent-color);
+}
+
+@keyframes clawd-pixel-leg-cycle {
+  0%, 50%, 100% { box-shadow: var(--clawd-legs-idle); }
+  25% { box-shadow: var(--clawd-legs-step-a); }
+  75% { box-shadow: var(--clawd-legs-step-b); }
+}
+@keyframes clawd-pixel-leg-kick {
+  0%, 100% { box-shadow: var(--clawd-legs-idle); }
+  50% { box-shadow: var(--clawd-legs-kick); }
+}
+
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-sprite,
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  image-rendering: pixelated;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-sprite {
+  box-shadow: var(--clawd-pixel-body) !important;
+  animation: none !important;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs {
+  z-index: 0;
+  box-shadow: var(--clawd-legs-idle);
+  animation: none;
+}
+#aic-clawd-node.walking .pixel-legs {
+  animation: clawd-pixel-leg-cycle var(--clawd-step-duration, .42s) steps(1) infinite;
+}
+#aic-clawd-node.running .pixel-legs {
+  animation: clawd-pixel-leg-cycle var(--clawd-run-duration, .18s) steps(1) infinite;
+}
+#aic-clawd-node.keepy-uppy .pixel-legs {
+  animation: clawd-pixel-leg-kick var(--clawd-step-duration, .42s) steps(1) infinite;
+}
+#aic-clawd-node:not(.walking):not(.running):not(.keepy-uppy) .pixel-legs {
+  animation: none !important;
+  box-shadow: var(--clawd-legs-idle);
+}
+#aic-clawd-node[data-clawd-owned="true"] .pixel-sprite,
+#aic-clawd-node.popup-outfit-pet .pixel-sprite { animation: none !important; }
+
+/* Olhos e estilos faciais compartilham a mesma âncora em todos os modelos. */
+:is(#aic-clawd-node, .clawd-model-preview) .pet-eyes,
+:is(#aic-clawd-node, .clawd-model-preview) .face-detail {
+  position: absolute;
+  pointer-events: none;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pet-eyes {
+  left: 12px;
+  top: 4px;
+  z-index: 2;
+  width: 4px;
+  height: 4px;
+  background: var(--agent-eye-color);
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+:is(#aic-clawd-node, .clawd-model-preview) .face-detail {
+  inset: 0;
+  z-index: 2;
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="sparkle"] .face-detail::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 4px;
+  width: 1px;
+  height: 1px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 16px 0 rgba(255,255,255,.92), 2px 2px rgba(255,255,255,.45), 18px 2px rgba(255,255,255,.45);
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::before,
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  width: 6px;
+  height: 2px;
+  background: var(--agent-eye-color);
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::before { left: 11px; transform: rotate(12deg); }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::after { left: 27px; transform: rotate(-12deg); }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="sleepy"] .pet-eyes {
+  left: 11px;
+  top: 6px;
+  width: 6px;
+  height: 1px;
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+#aic-clawd-node .blink-line {
+  background: var(--agent-eye-color);
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+
+/* O renderizador contínuo mantém cada silhueta sem células ou textura. */
+#aic-clawd-node .smooth-core::after { content: none; }
+#aic-clawd-node.smooth .pixel-legs {
+  display: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+#aic-clawd-node[data-model="mini"] .smooth-core { left: 12px; width: 20px; }
+#aic-clawd-node[data-model="mini"] .smooth-core::before { left: -8px; width: 36px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-1 { left: 12px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-2 { left: 16px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-3 { left: 24px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-4 { left: 28px; }
+#aic-clawd-node[data-model="claws"] .smooth-core::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 4px;
+  width: 44px;
+  height: 12px;
+  background:
+    linear-gradient(var(--agent-color) 0 0) left top / 8px 12px no-repeat,
+    linear-gradient(var(--agent-color) 0 0) right top / 8px 12px no-repeat;
+}
+#aic-clawd-node[data-model="guardian"] .smooth-core { left: 4px; width: 36px; }
+#aic-clawd-node[data-model="guardian"] .smooth-core::before { left: -4px; width: 44px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-1 { left: 4px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-2 { left: 12px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-3 { left: 28px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-4 { left: 36px; }
+
+/* Miniaturas reais usadas pelo popup; a arte vem do mesmo CSS do runtime. */
+.clawd-model-preview {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 36px;
+  flex: 0 0 44px;
+  overflow: visible;
+  transform-origin: center;
+}
+.clawd-model-preview .accessory,
+.clawd-model-preview .skin-mod {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+}
+.clawd-model-preview .skin-mod { z-index: 1; }
+.clawd-model-preview .acc-head { z-index: 4; }
+.clawd-model-preview .acc-face { z-index: 5; }
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .pixel-legs { animation-duration: 4s !important; animation-iteration-count: 1 !important; }
 }

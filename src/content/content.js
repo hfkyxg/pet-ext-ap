@@ -1,5 +1,5 @@
 /* ===================================================
-   CLAW'D v3.1 — CONTENT SCRIPT
+   CLAW'D v3.2 — CONTENT SCRIPT
    Pet interativo: stats/emoções, gamificação, favoritos,
    sub-pets, profissões 2.0, pescador, passeio entre abas.
    Requer: src/shared/catalog.js (carregado antes).
@@ -581,6 +581,7 @@ class ClawdCompanion {
       <div class="pet-body" id="aic-pet-body">
         <div class="sprite-stack" id="aic-stack">
           <div class="pixel-sprite" id="aic-sprite"></div>
+          <div class="pixel-legs" id="aic-pixel-legs" aria-hidden="true"></div>
           <div class="smooth-sprite" id="aic-smooth-sprite" aria-hidden="true">
             <span class="smooth-core"></span>
             <span class="smooth-leg smooth-leg-1"></span>
@@ -588,6 +589,8 @@ class ClawdCompanion {
             <span class="smooth-leg smooth-leg-3"></span>
             <span class="smooth-leg smooth-leg-4"></span>
           </div>
+          <div class="pet-eyes" id="aic-pet-eyes" aria-hidden="true"></div>
+          <div class="face-detail" id="aic-face-detail" aria-hidden="true"></div>
           <div class="emotion-face" id="aic-emotion-face">
             <span class="blink-cover"></span><span class="blink-line"></span><span class="emotion-mouth"></span>
           </div>
@@ -608,6 +611,7 @@ class ClawdCompanion {
     this.nameNode    = this.node.querySelector('#aic-name-tag');
     this.speechNode  = this.node.querySelector('#aic-speech');
     this.spriteNode  = this.node.querySelector('#aic-sprite');
+    this.legsNode    = this.node.querySelector('#aic-pixel-legs');
     this.shadowNode  = this.node.querySelector('#aic-shadow');
     this.ballNode    = this.node.querySelector('#aic-ball');
     this.emotionNode = this.node.querySelector('#aic-emotion');
@@ -633,16 +637,18 @@ class ClawdCompanion {
     const animationSpeed = Math.max(0.5, parseFloat(S.animSpeed) || 1);
     this.nameNode.innerText = S.name;
     this.node.style.setProperty('--agent-color', S.color);
+    this.node.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
     this.node.style.setProperty('--agent-scale', parseFloat(S.scale));
     this.node.style.setProperty('--jersey-color', S.jerseyColor);
     this.node.style.setProperty('--clawd-step-duration', `${(0.42 / animationSpeed).toFixed(3)}s`);
     this.node.style.setProperty('--clawd-run-duration', `${(0.18 / animationSpeed).toFixed(3)}s`);
-    this.spriteNode.style.animationDuration = `${(0.55 / animationSpeed).toFixed(2)}s`;
     this.node.classList.toggle('smooth', !!S.smooth);
     this.node.classList.toggle('outlined', !!S.outline);
     this.node.classList.toggle('mouth-hidden', S.showMouth === false);
     this.node.classList.toggle('aic-nofx', !!S.settings.performanceMode);
     this.node.dataset.state = this.state;
+    this.node.setAttribute('data-model', S.model || 'classic');
+    this.node.setAttribute('data-face-style', S.faceStyle || 'classic');
     this.node.setAttribute('data-skin', S.skin || 'normal');
     this.node.setAttribute('data-tag-theme', S.tagTheme || 'light');
     this.node.setAttribute('data-ball-skin', S.ballSkin || 'classic');
@@ -703,11 +709,31 @@ class ClawdCompanion {
       this.S.settings = fresh.settings;
       this.S.game.inventory = fresh.game.inventory;
       this.S.game.coins = fresh.game.coins;
-      this.S.jerseyColor = fresh.jerseyColor;
-      this.S.ballSkin = fresh.ballSkin;
+      const visualKeys = [
+        'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
+        'smooth', 'outline', 'showMouth', 'showSpeech', 'autoWalk', 'sleepEnabled',
+        'skin', 'tagTheme', 'jerseyColor', 'ballSkin', 'accessoryHead',
+        'accessoryFace', 'profession'
+      ];
+      visualKeys.forEach(key => { this.S[key] = fresh[key]; });
+      const animationSpeed = Math.max(0.5, parseFloat(fresh.animSpeed) || 1);
+      this.nameNode.innerText = fresh.name || "Claw'd";
+      this.node.style.setProperty('--agent-color', fresh.color || '#c71515');
+      this.node.style.setProperty('--agent-eye-color', fresh.eyeColor || '#08080b');
+      this.node.style.setProperty('--agent-scale', parseFloat(fresh.scale) || 1.5);
       this.node.style.setProperty('--jersey-color', fresh.jerseyColor);
+      this.node.style.setProperty('--clawd-step-duration', `${(0.42 / animationSpeed).toFixed(3)}s`);
+      this.node.style.setProperty('--clawd-run-duration', `${(0.18 / animationSpeed).toFixed(3)}s`);
+      this.node.classList.toggle('smooth', !!fresh.smooth);
+      this.node.classList.toggle('outlined', !!fresh.outline);
+      this.node.classList.toggle('mouth-hidden', fresh.showMouth === false);
+      this.node.setAttribute('data-model', fresh.model || 'classic');
+      this.node.setAttribute('data-face-style', fresh.faceStyle || 'classic');
+      this.node.setAttribute('data-skin', fresh.skin || 'normal');
+      this.node.setAttribute('data-tag-theme', fresh.tagTheme || 'light');
       this.node.setAttribute('data-ball-skin', fresh.ballSkin || 'classic');
       this.node.classList.toggle('aic-nofx', !!fresh.settings.performanceMode);
+      this._applyProfessionVisuals();
       // Reconciliamos o objeto inteiro: desbloqueios, apelidos, cores e pet ativo
       // podem mudar juntos pelo popup. Atualizações parciais deixavam a lista de
       // desbloqueios antiga e impediam a criação do sub-pet recém-selecionado.
@@ -729,6 +755,9 @@ class ClawdCompanion {
         }
         break;
       case 'color':   this.node.style.setProperty('--agent-color', value); break;
+      case 'eyeColor': this.node.style.setProperty('--agent-eye-color', value); break;
+      case 'model': this.node.setAttribute('data-model', value); break;
+      case 'faceStyle': this.node.setAttribute('data-face-style', value); break;
       case 'scale':
         this.node.style.setProperty('--agent-scale', parseFloat(value));
         if (this.subpet) this.subpet.node.style.setProperty('--subpet-scale', Math.max(0.9, parseFloat(value) * 0.6));
@@ -738,7 +767,6 @@ class ClawdCompanion {
           const animationSpeed = Math.max(0.5, parseFloat(value) || 1);
           this.node.style.setProperty('--clawd-step-duration', `${(0.42 / animationSpeed).toFixed(3)}s`);
           this.node.style.setProperty('--clawd-run-duration', `${(0.18 / animationSpeed).toFixed(3)}s`);
-          this.spriteNode.style.animationDuration = `${(0.55 / animationSpeed).toFixed(2)}s`;
         }
         break;
       case 'smooth':  this.node.classList.toggle('smooth', !!value); break;

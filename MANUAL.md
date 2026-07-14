@@ -49,14 +49,17 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 ### 🎨 Aba Aparência
 
 - **Nome do pet** — digite e o name-tag muda na hora;
+- **Modelo do pet** — escolha entre Clássico, Mini, Pinças e Guardião; o Clássico preserva exatamente a silhueta compacta original;
 - **Cor principal** — 8 cores prontas ou o seletor para qualquer cor;
+- **Rosto e olhos** — combine Clássico, Brilho, Focado ou Sonolento e escolha uma cor de olhos independente do corpo;
 - **Tamanho** — de 0.8× (mini) a 3× (gigante);
 - **Velocidade da animação** — deixe-o zen (0.5×) ou hiperativo (3×);
 - **Visual liso** — conserva a geometria angular do pet, mas usa superfícies contínuas no lugar das células quadradas; não exibe grade ou textura e não transforma o Claw'd em slime;
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
 - **Exibir boca** — desligue para remover somente a boca; olhos, piscadas e balões de emoji continuam ativos;
-- **Provador ao vivo** — mostra a mesma arte do pet e combina cabeça + rosto/corpo antes de você fechar o popup;
-- **Acessórios** — 14 opções em dois slots, incluindo 7 chapéus redesenhados e sem recorte. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
+- **Skin do corpo** — Normal, Orelhas ou Robô, combinável com qualquer modelo e rosto;
+- **Provador ao vivo** — mostra a mesma arte CSS do pet e combina modelo + rosto + skin + cabeça + rosto/corpo antes de você fechar o popup;
+- **Acessórios** — 14 opções em dois slots, com miniaturas pixel-art reais, incluindo 7 chapéus redesenhados e sem recorte. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
 
 ### 💼 Aba Profissão
 
@@ -135,7 +138,7 @@ O Claw'd evolui com carinho:
 Abra o menu → aba Ações → **🔄 Resgatar pet**. Ele volta ao canto da tela.
 
 **Apareceu mais de um pet depois de atualizar a extensão.**
-Na v3.1, basta clicar em **Recarregar** em `chrome://extensions`: a extensão remove automaticamente instâncias antigas de todas as abas e recria somente o pet principal na aba ativa.
+Na v3.2, basta clicar em **Recarregar** em `chrome://extensions`: a extensão remove automaticamente instâncias antigas de todas as abas e recria somente o pet principal na aba ativa.
 
 **Ele não aparece em uma página.**
 Algumas páginas internas do navegador (chrome://, loja de extensões, PDFs) não aceitam extensões — é limitação do Chrome, não do pet.
@@ -159,7 +162,7 @@ Ainda não — por enquanto Chrome, Edge e Brave. Suporte a Firefox está nas id
 
 ## 7. Recursos avançados já disponíveis
 
-O Claw'd já inclui **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com olhos customizáveis e seis ações, **status e emoções** estilo Tamagotchi, balões de emoji, piscadas e expressões, embaixadinhas ⚽, **óculos de sol 🕶️**, lojinha com PixelCoins, conquistas, missão diária e o pet **passeando entre suas abas abertas**. Novas ideias e melhorias futuras estão no [MELHORIAS.md](./MELHORIAS.md).
+O Claw'd já inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com olhos customizáveis e seis ações, **status e emoções** estilo Tamagotchi, balões de emoji, piscadas e expressões, embaixadinhas ⚽, **óculos de sol 🕶️**, lojinha com PixelCoins, conquistas, missão diária e o pet **passeando entre suas abas abertas**. Novas ideias e melhorias futuras estão no [MELHORIAS.md](./MELHORIAS.md).
 
 ---
 

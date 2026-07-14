@@ -5,7 +5,7 @@
 <br/>
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-red?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Version](https://img.shields.io/badge/version-3.1-ff4757?style=for-the-badge)](./manifest.json)
+[![Version](https://img.shields.io/badge/version-3.2-ff4757?style=for-the-badge)](./manifest.json)
 [![License](https://img.shields.io/badge/license-MIT-2ecc71?style=for-the-badge)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f1c40f?style=for-the-badge&logo=javascript&logoColor=black)](./src/)
 
@@ -14,7 +14,7 @@ Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus pró
 
 [Instalar](#-instalação) · [Funcionalidades](#-funcionalidades) · [Personalização](#-personalização) · [Validação](#-validação) · [Contribuir](#-contribuição)
 
-🌐 **Explore:** [Documentação Interativa](./docs/index.html) · [Documentação Técnica](./DOCUMENTACAO.md) · [Manual de Instruções](./MANUAL.md) · [Relatório de Validação](./VALIDACAO.md) · [Registro de Melhorias v3.1](./MELHORIAS.md)
+🌐 **Explore:** [Documentação Interativa](./docs/index.html) · [Documentação Técnica](./DOCUMENTACAO.md) · [Manual de Instruções](./MANUAL.md) · [Relatório de Validação](./VALIDACAO.md) · [Registro de Melhorias v3.2](./MELHORIAS.md)
 
 </div>
 
@@ -24,14 +24,14 @@ Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus pró
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
 
-A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css`, portanto os 14 acessórios exibidos são os mesmos do runtime, sem depender de fontes de emoji. Os selos do topo refletem a validação atual: **32/32 contratos**, **8/8 scripts**, **8 profissões**, **14 acessórios**, **14 ações**, **6 ações do subpet**, **3/3 reloads limpos** e **0 erros de runtime**.
+A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css`, portanto os modelos e os 14 acessórios exibidos são os mesmos do runtime, sem depender de imagens raster. Os selos do topo refletem a validação atual: **35/35 contratos**, **8/8 scripts**, **4 modelos**, **4 rostos**, **8 profissões**, **14 acessórios**, **14 ações**, **6 ações do subpet**, **3/3 reloads limpos** e **0 erros de runtime**.
 
 ---
 
-## 🐾 Estados do Mascote
+## 🐾 Modelos e Expressões do Mascote
 
 <div align="center">
-<img src="src/assets/pet-states.svg" width="100%" alt="Estados: Idle, Happy, Sleeping, Excited, Waving" />
+<img src="src/assets/pet-states.svg" width="100%" alt="Modelos pixel-art Clássico, Mini, Pinças e Guardião" />
 </div>
 
 O Claw'd combina **estados de movimento, ações e emoções** que mudam conforme você interage com a página:
@@ -57,7 +57,9 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 
 ### 🎨 Animações Fluidas
 - Sprite padrão fiel ao modelo compacto vermelho de referência
-- **Pernas estáticas em repouso** e walk cycle só durante movimento
+- **4 modelos pixel-art**: Clássico, Mini, Pinças e Guardião, todos na grade de 4 px
+- **Pernas em camada própria**: estáticas em repouso e em ciclo somente durante movimento
+- **4 rostos e olhos com cor independente**: Clássico, Brilho, Focado e Sonolento
 - Piscada independente, expressões faciais e **balão de emojis**
 - Efeito **3D perspective** ao seguir o cursor
 - **Partículas** de ❤️ ✨ ⭐ ao receber carinho
@@ -90,7 +92,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - Pescador monta um **lago interativo**, lança a vara, fisga e captura peixes
 - Jogador faz embaixadinhas; Tutor cria desafios; Dev digita; Músico toca riffs
 - **14 acessórios** em dois slots e nos dois renderizadores; os 7 chapéus têm detalhes, profundidade, área externa sem recorte e movimento sincronizado ao passo
-- **Provador ao vivo no popup** usa a mesma arte do pet em pixel/liso e mostra os dois slots combinados
+- **Provador e cards ao vivo no popup** usam a arte CSS real do pet — inclusive modelos, skins, chapéus e óculos — e mostram os dois slots combinados
 - Trajes de profissão são temporários: entram automaticamente sem apagar o boné, chapéu ou acessório pessoal salvo
 
 </td>
@@ -142,15 +144,18 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 
 ```
 ┌─────────────────────────────────┐
-│  [🐾]  Claw'd v3.1  🪙 120       │
+│  [🐾]  Claw'd v3.2  🪙 120       │
 ├──────────┬────────────┬──────────┤
 │ 🎨 💼 🧠 ⚡ 🐕 🛍️ 🏆 ⚙️       │
 ├──────────┴────────────┴──────────┤
 │                                  │
 │  Nome do pet: [_____________]    │
 │                                  │
+│  Modelo:  [01] [02] [03] [04]   │
+│  Rosto:   [•]  [✦]  [⌁]  [–]    │
+│                                  │
 │  Cor:  ● ● ● ● ● ● ● ●          │
-│        [#c71515  ▼]              │
+│  Olhos: [#08080b  ▼]             │
 │                                  │
 │  Tamanho:   ──●───  1.5×         │
 │  Velocidade: ──●───  1.0×        │
@@ -162,13 +167,16 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 
 ### Aba Aparência
 - **Nome** — renomeia o pet (atualiza em tempo real)
+- **Modelo** — alterna entre Clássico, Mini, Pinças e Guardião sem desalinhamento dos acessórios
+- **Rosto** — escolhe Clássico, Brilho, Focado ou Sonolento
+- **Cor dos olhos** — picker independente da cor do corpo
 - **Cor** — 8 cores predefinidas + picker customizado
 - **Tamanho** — slider de 0.8× a 3.0×
 - **Velocidade** — controla a velocidade da animação
 - **Visual liso** — suaviza os pixels sem transformar ou redesenhar o pet
 - **Contorno** — adiciona borda escura ao redor do mascote
 - **Exibir boca** — mostra ou remove o sorriso e as expressões da boca sem alterar a sprite
-- **Acessórios** — 14 opções em slots separados, com descrição visível do item, dicas ao passar o cursor e estados selecionados acessíveis
+- **Acessórios** — 14 opções em slots separados, cada uma com miniatura pixel-art real, descrição, dica e estado selecionado acessível
 
 ### Aba Profissão
 - **⚽ Jogador** — bola de futebol jogável ao lado do pet
@@ -214,7 +222,7 @@ pet-ext-ap/
 │   │   └── background.js      # Service worker (inicialização)
 │   └── assets/
 │       ├── pet-banner.svg     # Banner animado
-│       └── pet-states.svg     # Showcase de estados
+│       └── pet-states.svg     # Showcase de modelos e rostos
 ├── tests/
 │   ├── catalog.test.js        # Regras, sprites, emoções e ciclo de vida
 │   ├── extension.test.js      # Manifest, popup, documentação e reload seguro
@@ -248,18 +256,19 @@ setState('idle')     // → respiração/piscada, sem mexer as pernas
 ### Pixel-Art via CSS (style.css)
 
 ```css
-/* A geometria padrão continua sendo o mesmo box-shadow de pixels de 4×4px. */
+/* Corpo e pernas são camadas independentes na mesma grade de 4×4px. */
 #aic-clawd-node .pixel-sprite {
-  animation: none !important; /* pernas imóveis em repouso */
+  box-shadow: var(--clawd-pixel-body);
+  animation: none !important; /* a silhueta nunca troca de desenho */
 }
 
-#aic-clawd-node.walking .pixel-sprite,
-#aic-clawd-node.running .pixel-sprite {
-  animation: clawd-pixel-walk var(--clawd-step-duration) steps(1) infinite !important;
+#aic-clawd-node.walking .pixel-legs,
+#aic-clawd-node.running .pixel-legs {
+  animation: clawd-pixel-leg-cycle var(--clawd-step-duration) steps(1) infinite;
 }
 
 /* O modo liso remove as células e ativa a silhueta angular contínua. */
-#aic-clawd-node.smooth .pixel-sprite { display: none; box-shadow: none; }
+#aic-clawd-node.smooth :is(.pixel-sprite, .pixel-legs) { display: none; box-shadow: none; }
 #aic-clawd-node.smooth .smooth-sprite { display: block; }
 ```
 
@@ -299,6 +308,9 @@ chrome.storage.local.set({
   clawdState: {
     name:         "Claw'd",
     color:        "#c71515",
+    eyeColor:     "#08080b",
+    model:        "classic",
+    faceStyle:    "classic",
     scale:        1.5,
     animSpeed:    1,
     showSpeech:   true,
@@ -319,13 +331,14 @@ chrome.storage.local.set({
 
 ## 🗺️ Estado atual e próximos passos
 
-O núcleo da v3.1 está implementado e validado: favoritos, sub-pets, profissões contextuais, dois slots de acessórios, pixel art em camadas, stats, cross-tab, loja, conquistas e missão diária. O plano detalhado e as ideias de expansão estão em [MELHORIAS.md](./MELHORIAS.md):
+O núcleo da v3.2 está implementado e validado: quatro silhuetas, quatro rostos, olhos independentes, favoritos, sub-pets, profissões contextuais, dois slots de acessórios, pixel art em camadas, stats, cross-tab, loja, conquistas e missão diária. O plano detalhado e as ideias de expansão estão em [MELHORIAS.md](./MELHORIAS.md):
 
 | Área | Destaques |
 |------|-----------|
 | ⭐ **Favoritos** | Favorite ações, profissões, acessórios, cores e apelidos — favoritos ganham prioridade |
 | 🐕 **Sub-Pets** | Oito espécies com apelido, corpo/olhos customizáveis, sprites pixel-art, seis ações ao vivo e habilidades próprias |
-| 🎬 **Animações & Acessórios** | Novas ações, 2 slots e 7 chapéus refinados em pixel-art e superfícies contínuas |
+| 🎬 **Animações & Acessórios** | Corpo/pernas separados, 2 slots e 7 chapéus refinados em pixel-art e superfícies contínuas |
+| 🧬 **Modelos & Rostos** | 4 silhuetas × 4 rostos, cor de olhos independente e Clássico fiel à referência |
 | 😊 **Status & Emoções** | Felicidade, fome, energia e higiene estilo Tamagotchi, com emoções derivadas |
 | 💼 **Profissões 2.0** | Embaixadinhas com contador e recorde, desafios do Tutor, digitação do Dev + novas profissões |
 | 🎮 **Gamificação** | Curva de XP progressiva, PixelCoins, lojinha, conquistas, streak e missão diária resgatável |
@@ -349,11 +362,11 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **32 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, o provador pixel/liso do popup, o controle persistente da boca, o movimento dos chapéus, 8 profissões e os estados esperados das 14 ações. Também prova restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas 6 interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **35 testes automatizados** validam catálogos, schema v4, quatro modelos, quatro rostos, cor dos olhos, missões, sprite padrão, separação corpo/pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real **4/4 modelos e 4/4 rostos**, os 14 acessórios nos dois renderizadores, o provador pixel/liso do popup, a cor dos olhos, o controle persistente da boca, o movimento dos chapéus, 8 profissões e os estados esperados das 14 ações. Também prova que o corpo não morpha e apenas as pernas caminham, restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas 6 interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 A vitrine também foi inspecionada em navegador real nos layouts desktop e móvel: player funcional, avanço automático, seleção direta das etapas lisa/subpet, 14 acessórios no laboratório, **zero logs de erro** e nenhuma rolagem horizontal em 375 px.
 
-O visual inicial é o sprite compacto vermelho de referência: pixels nítidos, sem blur, com escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
+O visual inicial continua exatamente o sprite compacto vermelho de referência: modelo Clássico, rosto Clássico, olhos `#08080b`, pixels nítidos, sem blur, escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
 
 Ao arrastar e soltar com velocidade, o Claw'd desliza sobre o conteúdo da página com inércia, rebate suavemente nas bordas e mantém o ciclo das pernas ativo apenas durante o movimento.
 

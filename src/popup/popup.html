@@ -12,14 +12,14 @@
   <!-- HEADER -->
   <header class="header">
     <div class="header-pet" id="header-pet-preview">
-      <div class="mini-sprite" id="mini-sprite">
-        <span class="mini-leg mini-leg-1"></span><span class="mini-leg mini-leg-2"></span>
-        <span class="mini-leg mini-leg-3"></span><span class="mini-leg mini-leg-4"></span>
-      </div>
+      <span class="clawd-model-preview header-model-preview" id="mini-sprite" data-model="classic" data-face-style="classic" data-skin="normal" data-acc-head="none" data-acc-face="none" role="img" aria-label="Miniatura pixel-art do pet">
+        <i class="pixel-sprite"></i><i class="pixel-legs"></i><i class="pet-eyes"></i><i class="face-detail"></i>
+        <i class="skin-mod"></i><i class="accessory acc-head"></i><i class="accessory acc-face"></i>
+      </span>
     </div>
     <div class="header-info">
       <div class="header-top">
-        <h1 class="brand">Claw'd <span class="version">v3.1</span></h1>
+        <h1 class="brand">Claw'd <span class="version">v3.2</span></h1>
         <span class="coins-pill" id="coins-pill" title="PixelCoins">🪙 <span id="coins-count">0</span></span>
       </div>
       <div class="xp-area">
@@ -63,15 +63,19 @@
         <small id="outfit-preview-detail">Dois slots combináveis</small>
       </div>
       <div class="outfit-preview-stage">
-        <div class="popup-outfit-pet" id="aic-clawd-node" data-acc-head="none" data-acc-face="none" data-skin="normal" role="img" aria-label="Prévia do visual do pet">
+        <div class="popup-outfit-pet" id="aic-clawd-node" data-model="classic" data-face-style="classic" data-acc-head="none" data-acc-face="none" data-skin="normal" role="img" aria-label="Prévia do visual do pet">
           <div class="pet-body">
             <div class="sprite-stack">
               <div class="pixel-sprite"></div>
+              <div class="pixel-legs" aria-hidden="true"></div>
               <div class="smooth-sprite" aria-hidden="true">
                 <span class="smooth-core"></span>
                 <span class="smooth-leg smooth-leg-1"></span><span class="smooth-leg smooth-leg-2"></span>
                 <span class="smooth-leg smooth-leg-3"></span><span class="smooth-leg smooth-leg-4"></span>
               </div>
+              <div class="pet-eyes" aria-hidden="true"></div>
+              <div class="face-detail" aria-hidden="true"></div>
+              <div class="emotion-face" aria-hidden="true"><span class="blink-cover"></span><span class="blink-line"></span><span class="emotion-mouth"></span></div>
               <div class="jersey"></div><div class="skin-mod"></div>
               <div class="accessory acc-head"></div><div class="accessory acc-face"></div>
             </div>
@@ -90,6 +94,12 @@
     </div>
 
     <div class="control-group">
+      <label>Modelo do pet</label>
+      <div class="model-grid" id="model-grid"></div>
+      <p class="customization-description" id="model-description"></p>
+    </div>
+
+    <div class="control-group">
       <label>Cor principal</label>
       <div class="color-grid" id="fav-color-row" style="display:none"></div>
       <div class="color-grid" id="color-grid"></div>
@@ -97,6 +107,17 @@
         <input type="color" id="input-color" value="#c71515" title="Cor customizada">
         <span class="color-label" id="color-hex">#c71515</span>
         <button class="fav-star" id="color-star" title="Favoritar esta cor">☆</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Rosto e olhos</label>
+      <div class="face-style-grid" id="face-style-grid"></div>
+      <p class="customization-description" id="face-style-description"></p>
+      <div class="input-row color-row eye-color-row">
+        <input type="color" id="input-eye-color" value="#08080b" title="Cor dos olhos do pet">
+        <span class="color-label" id="eye-color-hex">#08080b</span>
+        <small>Cor independente</small>
       </div>
     </div>
 
@@ -137,11 +158,7 @@
 
     <div class="control-group">
       <label>Skin do corpo</label>
-      <div class="mini-grid" id="skin-grid">
-        <button class="mini-card active" data-skin="normal"><span>🐾</span>Normal</button>
-        <button class="mini-card" data-skin="droopy"><span>🐶</span>Orelha caída</button>
-        <button class="mini-card" data-skin="robot"><span>🤖</span>Robô</button>
-      </div>
+      <div class="skin-art-grid" id="skin-grid"></div>
     </div>
 
     <div class="control-group">
