@@ -440,6 +440,10 @@ class ClawdCompanion {
     this._yawned = false;
     this._lastTantrum = 0;
     this._keepy = null;
+    this._juggleActive = false;   // sessão interativa de embaixadinhas
+    this._juggleDrop = null;      // watchdog: bola cai se o jogador demorar
+    this._juggleCombo = 1;
+    this._juggleIdleTimer = null; // volta ao idle após parar de tocar
     this._challengeShown = 0;
     this._port = null;
     this._audioCtx = null;
@@ -603,7 +607,7 @@ class ClawdCompanion {
         </div>
         <div class="name-tag" id="aic-name-tag"></div>
       </div>
-      <div class="pet-ball" id="aic-ball" title="Chuta a bola!"></div>
+      <div class="pet-ball" id="aic-ball" title="Toque para embaixadinhas • duplo-clique para chutar a gol"></div>
       <div class="ground-shadow" id="aic-shadow"></div>
     `;
     document.body.appendChild(this.node);
@@ -983,7 +987,10 @@ class ClawdCompanion {
       }
     }, { signal });
     this.ballNode.addEventListener('mousedown', (e) => e.stopPropagation(), { signal });
-    this.ballNode.addEventListener('click', (e) => { e.stopPropagation(); this.kickBall(); }, { signal });
+    // Cada clique é um toque de embaixadinha imediato (resposta sem atraso).
+    // Duplo-clique finaliza a sequência com um chute a gol (bônus de combo).
+    this.ballNode.addEventListener('click', (e) => { e.stopPropagation(); this.juggleTouch(); }, { signal });
+    this.ballNode.addEventListener('dblclick', (e) => { e.stopPropagation(); this.kickBall(); }, { signal });
 
     this.node.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
@@ -1710,14 +1717,25 @@ class ClawdCompanion {
     this._motionRaf = requestAnimationFrame(step);
   }
 
-  /* ---------- BOLA / FUTEBOL ---------- */
+  /* ---------- BOLA / FUTEBOL ----------
+     Interação: toque simples na bola = embaixadinha (mantém no ar);
+     duplo-clique = finaliza com um chute a gol. Quanto mais alto o
+     combo, mais valioso o golaço. */
   kickBall() {
     if (this.ballNode.classList.contains('kicked')) return;
-    this.stopKeepyUppy();
+    if (this.S.profession && this.S.profession !== 'footballer') return;
+    // Finalização: se vinha embaixadinhando, o chute vale a sequência + bônus.
+    const streak = this._keepyCount || 0;
+    const combo = this._juggleCombo || 1;
+    if (streak > 0) this._recordKeepy(streak, combo);
+    this._resetJuggle();
+    this.ballNode.classList.remove('rolling');
     this.ballNode.classList.add('kicked');
     this.setStateFor('celebrate', 2200);
-    this.showSpeech('Gooool! ⚽🥅', 2500);
+    const bonus = streak >= 10 ? ` (+${streak} embaixadinhas!)` : '';
+    this.showSpeech(streak >= 5 ? `Golaço! ⚽🔥${bonus}` : 'Gooool! ⚽🥅', 2500);
     this.beep(830, 0.14);
+    setTimeout(() => this.beep(990, 0.12), 90);
     // trave pixel-art aparece na lateral
     const goal = document.createElement('div');
     goal.className = 'aic-goalpost';
@@ -1725,20 +1743,143 @@ class ClawdCompanion {
     document.body.appendChild(goal);
     setTimeout(() => goal.classList.add('visible'), 50);
     setTimeout(() => { goal.classList.remove('visible'); setTimeout(() => goal.remove(), 500); }, 1800);
-    this.spawnParticles(['🎉', '⚽', '🏆']);
-    this.addXp(10);
+    this.spawnParticles(streak >= 10 ? ['🎉', '⚽', '🏆', '🔥'] : ['🎉', '⚽', '🏆']);
+    this.addXp(10 + Math.min(20, Math.round(streak * combo * 0.3)));
     const c = this.S.game.counters;
     c.goals = (c.goals || 0) + 1;
     this.registerDaily('goals');
     this.checkAchievements();
+    this.save();
     if (this.subpet && this.subpet.species === 'dog') {
       this.subpet.fetchBall(this.ballNode.getBoundingClientRect());
     }
     setTimeout(() => this.ballNode.classList.remove('kicked'), 1400);
   }
 
+  /* Um toque de embaixadinha (jogador clicou na bola). */
+  juggleTouch() {
+    if (this.S.profession !== 'footballer') { this.kickBall(); return; }
+    if (this.ballNode.classList.contains('kicked')) return;
+    if (this.state === 'sleeping') this.wakeUp();
+    // interrompe embaixadinha automática para dar controle ao jogador
+    if (this._keepy) { clearTimeout(this._keepy); this._keepy = null; }
+    if (this._juggleIdleTimer) { clearTimeout(this._juggleIdleTimer); this._juggleIdleTimer = null; }
+
+    if (!this._juggleActive) {
+      this._juggleActive = true;
+      this._keepyCount = 0;
+      this._juggleCombo = 1;
+      this.node.classList.add('keepy');
+      this.setState('keepy-uppy');
+    }
+
+    this._keepyCount++;
+    // reinicia a animação de arco a cada toque para dar resposta imediata
+    this.ballNode.classList.remove('rolling');
+    void this.ballNode.offsetWidth;
+    this.ballNode.classList.add('keepy-pop');
+    setTimeout(() => this.ballNode.classList.remove('keepy-pop'), 260);
+
+    // som sobe de tom conforme o combo; bolha flutuante com a contagem
+    this.beep(600 + Math.min(600, this._keepyCount * 12), 0.05);
+    this._showJuggleCount(this._keepyCount);
+
+    // marcos de combo a cada 10 toques
+    if (this._keepyCount % 10 === 0) {
+      this._juggleCombo = Math.min(5, Math.floor(this._keepyCount / 10) + 1);
+      const msg = this._keepyCount >= 50 ? `x${this._juggleCombo} LENDÁRIO! 🔥` :
+                  this._keepyCount >= 30 ? `x${this._juggleCombo} COMBO! 🔥🔥` :
+                  this._keepyCount >= 20 ? `${this._keepyCount}! 🔥` :
+                  `${this._keepyCount}! ⚽`;
+      this.showSpeech(msg, 1400);
+      this.spawnParticles(['⚽', '✨']);
+    }
+
+    // watchdog: se o jogador demorar para o próximo toque, a bola cai.
+    // A janela encolhe com o combo — fica mais difícil (e emocionante).
+    const dropWindow = Math.max(650, 1500 - this._keepyCount * 22);
+    if (this._juggleDrop) clearTimeout(this._juggleDrop);
+    this._juggleDrop = setTimeout(() => this._dropBall(), dropWindow);
+  }
+
+  /* A bola caiu — encerra a sequência com a penalidade divertida. */
+  _dropBall() {
+    if (!this._juggleActive) return;
+    const finalCount = this._keepyCount;
+    const combo = this._juggleCombo;
+    this._recordKeepy(finalCount, combo);
+    this._resetJuggle();
+    // bola rola, pet corre atrás
+    this.ballNode.classList.remove('kicked');
+    this.ballNode.classList.add('rolling');
+    this.showSpeech(finalCount >= 10 ? `Ufa! ${finalCount} embaixadinhas! 😅` : 'Ops! 😅', 1600);
+    this.beep(240, 0.14);
+    const rect = this.node.getBoundingClientRect();
+    const dir = Math.random() < 0.5 ? -120 : 120;
+    setTimeout(() => {
+      this.startRun(Math.max(10, rect.left + dir));
+      setTimeout(() => this.ballNode.classList.remove('rolling'), 1200);
+    }, 500);
+  }
+
+  /* Guarda recorde, dá XP e dispara conquistas a partir de uma sequência. */
+  _recordKeepy(finalCount, combo = 1) {
+    if (!finalCount || finalCount < 1) return;
+    const c = this.S.game.counters;
+    c.keepyTotal = (c.keepyTotal || 0) + finalCount;
+    const rec = c.keepyRecord || 0;
+    if (finalCount > rec) {
+      c.keepyRecord = finalCount;
+      const rarity = finalCount >= 50 ? 'legendary' : finalCount >= 30 ? 'epic' :
+                     finalCount >= 15 ? 'rare' : 'common';
+      this.toast('', {
+        rarity,
+        icon: '⚽',
+        title: `Novo Recorde: ${finalCount}!`,
+        desc: `${finalCount} embaixadinhas seguidas!`
+      });
+    }
+    this.addXp(Math.round(finalCount * combo * 0.4));
+    this.checkAchievements();
+    this.save();
+  }
+
+  /* Bolha flutuante mostrando a contagem ao vivo sobre a bola. */
+  _showJuggleCount(n) {
+    if (!this.ballNode) return;
+    let bubble = this._juggleBubble;
+    if (!bubble || !bubble.isConnected) {
+      bubble = document.createElement('div');
+      bubble.className = 'aic-juggle-count';
+      this.node.appendChild(bubble);
+      this._juggleBubble = bubble;
+    }
+    bubble.textContent = String(n);
+    bubble.classList.toggle('hot', n >= 20);
+    bubble.classList.remove('bump');
+    void bubble.offsetWidth;
+    bubble.classList.add('bump');
+  }
+
+  _resetJuggle() {
+    this._juggleActive = false;
+    this._keepyCount = 0;
+    this._juggleCombo = 1;
+    if (this._juggleDrop) { clearTimeout(this._juggleDrop); this._juggleDrop = null; }
+    if (this._juggleIdleTimer) { clearTimeout(this._juggleIdleTimer); this._juggleIdleTimer = null; }
+    this.node.classList.remove('keepy');
+    if (this._juggleBubble) {
+      const b = this._juggleBubble; this._juggleBubble = null;
+      b.classList.add('fade');
+      setTimeout(() => b.remove(), 400);
+    }
+    if (this.state === 'keepy-uppy') this.setState('idle');
+  }
+
+  /* Embaixadinha AUTÔNOMA — o pet joga sozinho quando ocioso. */
   startKeepyUppy() {
-    if (this._keepy || this.S.profession !== 'footballer' || this.state !== 'idle') return;
+    if (this._keepy || this._juggleActive) return;
+    if (this.S.profession !== 'footballer' || this.state !== 'idle') return;
     if (this.ballNode.classList.contains('kicked')) return;
     this.node.classList.add('keepy');
     this.setState('keepy-uppy');
@@ -1747,7 +1888,6 @@ class ClawdCompanion {
 
     const tick = () => {
       this._keepyCount++;
-      // Combo multiplier: x1 → x2 a cada 10, x3 a cada 20, x5 a cada 30
       if (this._keepyCount % 10 === 0) {
         comboMultiplier = Math.min(5, Math.floor(this._keepyCount / 10) + 1);
         const msg = this._keepyCount >= 30 ? `x${comboMultiplier} COMBO! 🔥` :
@@ -1757,33 +1897,16 @@ class ClawdCompanion {
         this.beep(700 + this._keepyCount * 4, 0.06);
         this.spawnParticles(['⚽']);
       }
-      // Aumenta velocidade progressiva
       const speed = Math.max(0.3, 0.7 - this._keepyCount * 0.005);
       if (this._keepy) {
         clearTimeout(this._keepy);
         this._keepy = setTimeout(tick, speed * 1000);
       }
-
-      // Chance de errar: começa em 8%, aumenta após 40 toques, cap em 60
       const errChance = Math.min(0.25, 0.08 + Math.max(0, this._keepyCount - 40) * 0.005);
       if (Math.random() < errChance || this._keepyCount >= 60) {
         const finalCount = this._keepyCount;
         this.stopKeepyUppy();
-        const rec = this.S.game.counters.keepyRecord || 0;
-        if (finalCount > rec) {
-          this.S.game.counters.keepyRecord = finalCount;
-          const rarity = finalCount >= 50 ? 'legendary' : finalCount >= 30 ? 'epic' : 'rare';
-          this.toast('', {
-            rarity,
-            icon: '⚽',
-            title: `Novo Recorde: ${finalCount}!`,
-            desc: `${finalCount} embaixadinhas seguidas!`
-          });
-          this.addXp(Math.round(finalCount * comboMultiplier * 0.4));
-          this.checkAchievements();
-        }
-        this.save();
-        // bola rola, pet corre atrás
+        this._recordKeepy(finalCount, comboMultiplier);
         this.ballNode.classList.add('rolling');
         this.showSpeech('Ops! 😅', 1500);
         const rect = this.node.getBoundingClientRect();
@@ -1799,9 +1922,7 @@ class ClawdCompanion {
 
   stopKeepyUppy() {
     if (this._keepy) { clearTimeout(this._keepy); this._keepy = null; }
-    this.node.classList.remove('keepy');
-    if (this.state === 'keepy-uppy') this.setState('idle');
-    this._keepyCount = 0;
+    this._resetJuggle();
   }
 
   /* ---------- PESCARIA ---------- */
@@ -2448,7 +2569,7 @@ class ClawdCompanion {
     [
       '_speechTimer', '_stateTimer', '_saveTimer', '_clickTimer', '_holdTimer',
       '_wakeStretchTimer', '_fishTimer', '_fishBiteTimer', '_fishCatchTimer',
-      '_emotionTimer', '_shinyTimer', '_keepy'
+      '_emotionTimer', '_shinyTimer', '_keepy', '_juggleDrop', '_juggleIdleTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;

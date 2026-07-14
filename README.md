@@ -102,7 +102,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - **Sistema de XP e níveis** — carinho dá +5 XP, gol dá +10 XP
 - **PixelCoins, loja, conquistas, streak e missão diária**
 - **Barra de progresso** animada no popup
-- **Bola jogável** — clique na bola e veja o Claw'd marcar um golaço ⚽🥅
+- **Embaixadinhas interativas** — toque na bola para mantê-la no ar (contador ao vivo, combos e recorde); **duplo-clique finaliza com um golaço** ⚽🥅 e quanto maior a sequência, maior o bônus de XP
 - **8 sub-pets** com apelido, cores independentes de corpo/olhos, sono, despertar, 6 ações manuais e habilidade por espécie
 - Progresso salvo entre sessões
 

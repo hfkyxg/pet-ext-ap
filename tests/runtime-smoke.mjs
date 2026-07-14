@@ -696,9 +696,14 @@ async function main() {
     }
 
     const port = await freePort();
+    const extraFlags = (process.env.CLAWD_BROWSER_FLAGS || '')
+      .split(' ')
+      .map(flag => flag.trim())
+      .filter(Boolean);
     browserProcess = spawn(edgePath, [
       '--headless=new',
       '--disable-gpu',
+      ...extraFlags,
       '--no-first-run',
       '--no-default-browser-check',
       '--disable-background-networking',

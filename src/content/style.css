@@ -720,6 +720,44 @@
 }
 #aic-clawd-node .pet-ball.kicked  { animation: clawd-ball-kick 1.3s cubic-bezier(0.3, 0, 0.4, 1) forwards !important; }
 #aic-clawd-node .pet-ball.rolling { animation: clawd-ball-roll 1.1s ease-out forwards !important; }
+/* Toque interativo de embaixadinha: bola sobe num arco vivo a cada clique */
+@keyframes clawd-ball-pop {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  45%  { transform: translate(2px, -46px) rotate(200deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+#aic-clawd-node .pet-ball.keepy-pop {
+  animation: clawd-ball-pop 0.42s cubic-bezier(0.33, 0, 0.3, 1) both !important;
+}
+
+/* Contador flutuante de embaixadinhas ao vivo */
+.aic-juggle-count {
+  position: absolute;
+  left: -30px;
+  bottom: 44px;
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2ecc71, #27ae60);
+  color: #fff;
+  font: 800 13px/1 system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  pointer-events: none;
+  z-index: 8;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.aic-juggle-count.hot {
+  background: linear-gradient(180deg, #f39c12, #e74c3c);
+  box-shadow: 0 0 10px rgba(231,76,60,0.7);
+}
+.aic-juggle-count.bump { animation: clawd-count-bump 0.26s ease-out; }
+.aic-juggle-count.fade { opacity: 0; transform: translateY(-8px) scale(0.8); }
+@keyframes clawd-count-bump {
+  0%   { transform: scale(0.7); }
+  55%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
 
 /* Skins da bola */
 [data-ball-skin="ball_gold"] .pet-ball {

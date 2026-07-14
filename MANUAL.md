@@ -68,7 +68,7 @@ A profissão muda o comportamento do pet:
 | Profissão | O que ele faz |
 |-----------|---------------|
 | 🐾 **Livre** | Modo padrão, sem profissão |
-| ⚽ **Jogador** | Ganha boné + uma **bola jogável** ao lado dele. Clique na bola para ele marcar um golaço (+10 XP!). Em sites de esporte (ge, ESPN…), ele comemora sozinho |
+| ⚽ **Jogador** | Ganha boné + uma **bola jogável** ao lado dele. **Toque na bola** para fazer embaixadinhas (contador ao vivo e combos!) e **dê duplo-clique para chutar a gol** — quanto maior a sequência, maior o golaço (+XP). Em sites de esporte (ge, ESPN…), ele treina embaixadinhas sozinho |
 | 📚 **Tutor** | Veste óculos e fica de olho: em redes sociais, ele lembra você de focar nos estudos |
 | 💻 **Dev** | Coloca os fones e reage a GitHub, Stack Overflow e documentações |
 | 🎸 **Músico** | Toca riffs, dança e reage em sites de música |

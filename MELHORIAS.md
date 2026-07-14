@@ -226,10 +226,11 @@ stats: {
 
 ## 5. 💼 Melhoria das Profissões e Interações
 
-### 5.1 ⚽ Jogador — Embaixadinhas
-- **Nova animação idle da profissão**: o pet faz **embaixadinhas** — a bola sobe e desce em arco (keyframe `clawd-keepy-uppy`) sincronizada com o movimento da perna do sprite; contador de embaixadinhas no balão a cada 10 ("10! 🔥", "20!! ⚽").
-- Sequência: a cada ciclo há 8% de chance de **errar** a embaixadinha — a bola rola, o pet corre atrás (usa animação de corrida) e recomeça. Recorde de embaixadinhas salvo e exibido na aba Profissão (+XP por recorde batido).
-- Chute da bola melhorado: trajetória em parábola com rotação, e a "trave" pixel-art aparece na lateral no momento do gol.
+### 5.1 ⚽ Jogador — Embaixadinhas interativas
+- **Embaixadinha jogável**: cada **toque na bola** dá um toque de embaixadinha imediato (`juggleTouch`), com a bola subindo em arco (`clawd-ball-pop`), som que sobe de tom e uma **bolha de contador ao vivo** sobre a bola. É um minijogo de ritmo: um *watchdog* derruba a bola se você demorar para o próximo toque, e a janela **encolhe conforme o combo cresce** — fica mais difícil e emocionante.
+- **Combos e marcos** a cada 10 toques ("10! ⚽", "x2 COMBO! 🔥", "x5 LENDÁRIO! 🔥") com multiplicador de XP. Se a bola cair, ela rola e o pet corre atrás; o **recorde de embaixadinhas** é salvo (`_recordKeepy`) e vira conquista (Malabarista, Rei do Combo).
+- **Duplo-clique = finalização**: chuta a gol encerrando a sequência atual como um **golaço** com bônus de XP proporcional ao combo. Trajetória em parábola com rotação e a "trave" pixel-art aparece na lateral.
+- **Embaixadinha autônoma**: quando ocioso, o Jogador ainda treina sozinho (`startKeepyUppy`) — as duas modalidades nunca rodam ao mesmo tempo.
 - Camisa de time: seletor de 8 cores de camisa (CSS var `--jersey-color`) na aba Profissão.
 
 ### 5.2 📚 Tutor — Desafios reais

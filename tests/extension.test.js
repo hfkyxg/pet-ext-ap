@@ -68,6 +68,23 @@ test('movimento visual usa requestAnimationFrame e não fixa FPS por intervalo',
   assert.doesNotMatch(contentSource, /setInterval\([^)]*16(?:\.6+)?/);
 });
 
+test('embaixadinha é interativa: toque mantém no ar, duplo-clique chuta a gol', () => {
+  // Handlers de clique/duplo-clique distintos na bola
+  assert.match(contentSource, /ballNode\.addEventListener\('click'/);
+  assert.match(contentSource, /ballNode\.addEventListener\('dblclick'/);
+  // Toque interativo de embaixadinha com watchdog que derruba a bola
+  assert.match(contentSource, /juggleTouch\(\)/);
+  assert.match(contentSource, /_dropBall\(\)/);
+  assert.match(contentSource, /_juggleDrop = setTimeout/);
+  // Contagem ao vivo e registro de recorde compartilhado
+  assert.match(contentSource, /_showJuggleCount\(/);
+  assert.match(contentSource, /_recordKeepy\(/);
+  // Finalização: chute após embaixadinhas rende bônus de XP
+  assert.match(contentSource, /Golaço!/);
+  // Autônoma e interativa não rodam ao mesmo tempo
+  assert.match(contentSource, /if \(this\._keepy \|\| this\._juggleActive\) return;/);
+});
+
 test('README e documentação identificam a versão e o ano atuais', () => {
   const readme = read('README.md');
   const docs = `${read('DOCUMENTACAO.md')}\n${read('MANUAL.md')}`;
