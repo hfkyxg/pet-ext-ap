@@ -5,7 +5,7 @@
 <br/>
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-red?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Version](https://img.shields.io/badge/version-2.0-ff4757?style=for-the-badge)](./manifest.json)
+[![Version](https://img.shields.io/badge/version-2.1-ff4757?style=for-the-badge)](./manifest.json)
 [![License](https://img.shields.io/badge/license-MIT-2ecc71?style=for-the-badge)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f1c40f?style=for-the-badge&logo=javascript&logoColor=black)](./src/)
 
@@ -49,8 +49,8 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 - **Partículas** de ❤️ ✨ ⭐ ao receber carinho
 - **Pop-in** animado ao carregar a página
 - **Sombra no chão** sincronizada com o movimento
-- **Modo liso** — suaviza os pixels da arte
-- **Contorno** — borda escura ao redor do pet
+- **Modo liso** — funde os pixels num preenchimento sólido, sem grade
+- **Contorno** — borda escura ao redor do pet (combina com o modo liso)
 
 </td>
 <td width="50%">
@@ -145,7 +145,7 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **Cor** — 8 cores predefinidas + picker customizado
 - **Tamanho** — slider de 0.8× a 3.0×
 - **Velocidade** — controla a velocidade da animação
-- **Visual liso** — desativa o look pixelado, suavizando a arte
+- **Visual liso** — funde os pixels num visual sólido, sem exibir a grade
 - **Contorno** — adiciona borda escura ao redor do mascote
 - **Acessórios** — boné, óculos, laço ou fones de ouvido
 
@@ -176,6 +176,8 @@ Dispare ações imediatas:
 pet-ext-ap/
 ├── manifest.json              # Configuração da extensão (MV3)
 ├── src/
+│   ├── common/
+│   │   └── core.js            # Núcleo compartilhado: ClawdStore, níveis e profissões
 │   ├── content/
 │   │   ├── content.js         # Motor do mascote + sistema de estados
 │   │   └── style.css          # Pixel-art CSS + keyframes de animação
@@ -184,12 +186,22 @@ pet-ext-ap/
 │   │   ├── popup.css          # Dark UI design system
 │   │   └── popup.js           # Controles e preview ao vivo
 │   ├── background/
-│   │   └── background.js      # Service worker (inicialização)
+│   │   └── background.js      # Service worker (estado inicial não-destrutivo)
 │   └── assets/
 │       ├── pet-banner.svg     # Banner animado
 │       └── pet-states.svg     # Showcase de estados
 └── README.md
 ```
+
+### Arquitetura (v2.1)
+
+- **`ClawdStore`** (`src/common/core.js`) — fonte única do estado persistido. Cache em
+  memória + gravação *debounced* no `chrome.storage.local` e sincronização entre abas
+  via `chrome.storage.onChanged` (padrão **Observer**).
+- **Profissões** são um catálogo declarativo (padrão **Strategy**): cada uma descreve
+  acessório automático, palavras-chave de contexto e mensagens — o motor só consome os dados.
+- **Mensagens do popup** são despachadas por um mapa de comandos (padrão **Command**);
+  a configuração flui num sentido único: `popup → storage → todas as abas`.
 
 ---
 

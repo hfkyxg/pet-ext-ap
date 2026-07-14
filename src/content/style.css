@@ -172,10 +172,13 @@
   z-index: 2147483647;
   cursor: grab;
   user-select: none;
+  touch-action: none; /* permite arrastar por toque sem rolar a página */
   width: 50px;
   height: 50px;
 
-  --agent-color: #c71515;
+  /* A cor do usuário entra por --agent-base-color (inline); assim a
+     regra do estado .happy ainda consegue sobrescrever --agent-color */
+  --agent-color: var(--agent-base-color, #c71515);
   --agent-scale: 1.5;
 
   transition: transform 0.08s ease-out;
@@ -269,24 +272,18 @@
    MODO LISO x PIXELADO / CONTORNO
    ============================ */
 
-/* Liso: suaviza os quadrados dos pixels */
-#aic-clawd-node.smooth .sprite-stack {
-  filter: blur(1.15px) saturate(1.08);
+/* Liso: cada "pixel" (tile de box-shadow) cresce levemente e se
+   sobrepõe ao vizinho, fundindo a arte num preenchimento sólido —
+   sem a grade de frestas entre os tiles e sem borrar a silhueta. */
+#aic-clawd-node.smooth .pixel-sprite {
+  width: 4.6px;
+  height: 4.6px;
+  image-rendering: auto;
 }
 
-/* Contorno: traça uma borda escura em volta do pet */
+/* Contorno: traça uma borda escura em volta do pet (compõe com o liso) */
 #aic-clawd-node.outlined .sprite-stack {
   filter:
-    drop-shadow(2px 0 0 var(--outline-color, #16161f))
-    drop-shadow(-2px 0 0 var(--outline-color, #16161f))
-    drop-shadow(0 2px 0 var(--outline-color, #16161f))
-    drop-shadow(0 -2px 0 var(--outline-color, #16161f));
-}
-
-/* Liso + Contorno combinados */
-#aic-clawd-node.smooth.outlined .sprite-stack {
-  filter:
-    blur(1.15px) saturate(1.08)
     drop-shadow(2px 0 0 var(--outline-color, #16161f))
     drop-shadow(-2px 0 0 var(--outline-color, #16161f))
     drop-shadow(0 2px 0 var(--outline-color, #16161f))
@@ -482,4 +479,13 @@
 /* WALKING (auto-walk) */
 #aic-clawd-node.walking .pixel-sprite {
   animation: walk 0.35s steps(1) infinite !important;
+}
+
+/* Acessibilidade: menos vai-e-vem para quem prefere movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .pet-body,
+  #aic-clawd-node .ground-shadow,
+  #aic-clawd-node .pet-ball {
+    animation: none !important;
+  }
 }
