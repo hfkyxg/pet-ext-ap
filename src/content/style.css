@@ -38,6 +38,24 @@
   30%  { opacity: 1; }
   100% { opacity: 0; transform: translate(18px,-25px) scale(1.1); }
 }
+@keyframes clawd-flip {
+  0%   { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
+  45%  { transform: scale(var(--agent-scale, 1.5)) translateY(-42px) rotate(200deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(360deg); }
+}
+@keyframes clawd-eat {
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1) scaleX(1); }
+  50%      { transform: scale(var(--agent-scale, 1.5)) scaleY(0.88) scaleX(1.08); }
+}
+@keyframes clawd-quiz-pop {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.7); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes clawd-quiz-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px); }
+}
 
 /* ---- PIXEL-ART WALK FRAMES ---- */
 @keyframes walk {
@@ -172,10 +190,13 @@
   z-index: 2147483647;
   cursor: grab;
   user-select: none;
+  touch-action: none; /* permite arrastar por toque sem rolar a página */
   width: 50px;
   height: 50px;
 
-  --agent-color: #c71515;
+  /* A cor do usuário entra por --agent-base-color (inline); assim a
+     regra do estado .happy ainda consegue sobrescrever --agent-color */
+  --agent-color: var(--agent-base-color, #c71515);
   --agent-scale: 1.5;
 
   transition: transform 0.08s ease-out;
@@ -256,7 +277,7 @@
     28px -4px #fd79a8, 32px -4px #e84393, 36px -4px #fd79a8;
 }
 
-/* Fones de ouvido (Dev) */
+/* Fones de ouvido (Dev / DJ) */
 #aic-clawd-node[data-accessory="headphones"] .accessory {
   box-shadow:
     12px -6px #2d3436, 16px -6px #2d3436, 20px -6px #2d3436, 24px -6px #2d3436, 28px -6px #2d3436,
@@ -265,28 +286,56 @@
     36px 4px #2d3436, 36px 8px #636e72, 36px 12px #2d3436;
 }
 
+/* Coroa (realeza) */
+#aic-clawd-node[data-accessory="crown"] .accessory {
+  box-shadow:
+    12px -8px #f6c344, 20px -8px #f6c344, 28px -8px #f6c344,
+    12px -4px #f6c344, 16px -4px #e74c3c, 20px -4px #f6c344,
+    24px -4px #3498db, 28px -4px #f6c344;
+}
+
+/* Chapéu de chef (toque) */
+#aic-clawd-node[data-accessory="chefhat"] .accessory {
+  box-shadow:
+    16px -12px #f5f6fa, 20px -12px #f5f6fa, 24px -12px #f5f6fa,
+    12px -8px #f5f6fa, 16px -8px #ffffff, 20px -8px #ffffff, 24px -8px #ffffff, 28px -8px #f5f6fa,
+    12px -4px #dfe4ea, 16px -4px #dfe4ea, 20px -4px #dfe4ea, 24px -4px #dfe4ea, 28px -4px #dfe4ea;
+}
+
+/* Óculos escuros (Gamer) */
+#aic-clawd-node[data-accessory="sunglasses"] .accessory {
+  box-shadow:
+    4px 8px #16161f,
+    8px 8px #16161f, 12px 8px #16161f, 16px 8px #16161f,
+    20px 8px #16161f,
+    24px 8px #16161f, 28px 8px #16161f, 32px 8px #16161f,
+    36px 8px #16161f;
+}
+
+/* Cachecol (aconchego) */
+#aic-clawd-node[data-accessory="scarf"] .accessory {
+  box-shadow:
+    8px 13px #d63031, 12px 13px #e17055, 16px 13px #d63031,
+    20px 13px #e17055, 24px 13px #d63031, 28px 13px #e17055, 32px 13px #d63031,
+    28px 17px #d63031, 28px 21px #e17055;
+}
+
 /* ============================
    MODO LISO x PIXELADO / CONTORNO
    ============================ */
 
-/* Liso: suaviza os quadrados dos pixels */
-#aic-clawd-node.smooth .sprite-stack {
-  filter: blur(1.15px) saturate(1.08);
+/* Liso: cada "pixel" (tile de box-shadow) cresce levemente e se
+   sobrepõe ao vizinho, fundindo a arte num preenchimento sólido —
+   sem a grade de frestas entre os tiles e sem borrar a silhueta. */
+#aic-clawd-node.smooth .pixel-sprite {
+  width: 4.6px;
+  height: 4.6px;
+  image-rendering: auto;
 }
 
-/* Contorno: traça uma borda escura em volta do pet */
+/* Contorno: traça uma borda escura em volta do pet (compõe com o liso) */
 #aic-clawd-node.outlined .sprite-stack {
   filter:
-    drop-shadow(2px 0 0 var(--outline-color, #16161f))
-    drop-shadow(-2px 0 0 var(--outline-color, #16161f))
-    drop-shadow(0 2px 0 var(--outline-color, #16161f))
-    drop-shadow(0 -2px 0 var(--outline-color, #16161f));
-}
-
-/* Liso + Contorno combinados */
-#aic-clawd-node.smooth.outlined .sprite-stack {
-  filter:
-    blur(1.15px) saturate(1.08)
     drop-shadow(2px 0 0 var(--outline-color, #16161f))
     drop-shadow(-2px 0 0 var(--outline-color, #16161f))
     drop-shadow(0 2px 0 var(--outline-color, #16161f))
@@ -482,4 +531,102 @@
 /* WALKING (auto-walk) */
 #aic-clawd-node.walking .pixel-sprite {
   animation: walk 0.35s steps(1) infinite !important;
+}
+
+/* FLIPPING: salto mortal 360° */
+#aic-clawd-node.flipping .pet-body {
+  animation: clawd-flip 0.85s cubic-bezier(0.34, 1.2, 0.5, 1) forwards !important;
+}
+
+/* EATING: mastiga com squash & stretch */
+#aic-clawd-node.eating .pet-body {
+  animation: clawd-eat 0.28s ease-in-out 5 !important;
+}
+#aic-clawd-node.eating .pixel-sprite {
+  filter: brightness(1.15) saturate(1.2);
+}
+
+/* ============================
+   DESAFIO DO TUTOR (quiz)
+   ============================ */
+.quiz-card {
+  position: absolute;
+  bottom: 105px;
+  right: -12px;
+  min-width: 185px;
+  background: #fff;
+  border: 2px solid var(--agent-color);
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-family: 'Courier New', monospace;
+  color: #1a1a2e;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  z-index: 11;
+  animation: clawd-quiz-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  cursor: default;
+}
+.quiz-card.wrong {
+  animation: clawd-quiz-shake 0.3s ease both;
+}
+.quiz-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #7a7a9a;
+  margin-bottom: 4px;
+}
+.quiz-question {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.quiz-options {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.quiz-options button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border: 1.5px solid #d5d5e2;
+  border-radius: 8px;
+  background: #f4f4f8;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.quiz-options button:hover {
+  border-color: var(--agent-color);
+  background: #fff;
+  transform: translateY(-1px);
+}
+.quiz-options button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+.quiz-close {
+  position: absolute;
+  top: 2px;
+  right: 7px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: #aab;
+  cursor: pointer;
+  padding: 2px;
+}
+.quiz-close:hover { color: #1a1a2e; }
+
+/* Acessibilidade: menos vai-e-vem para quem prefere movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .pet-body,
+  #aic-clawd-node .ground-shadow,
+  #aic-clawd-node .pet-ball {
+    animation: none !important;
+  }
 }

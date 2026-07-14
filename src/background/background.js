@@ -1,11 +1,16 @@
+/* ===================================================
+   CLAW'D — SERVICE WORKER v2.1
+   Garante o estado inicial apenas na primeira instalação.
+   Importante: onInstalled também dispara em atualizações
+   da extensão — por isso NUNCA sobrescreve um estado já
+   existente (preserva configurações e XP do usuário).
+   =================================================== */
+
+importScripts('../common/core.js');
+
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Claw'd instalado e estrutura refatorada com sucesso!");
-  
-  chrome.storage.local.set({
-    clawdState: {
-      position: { x: null, y: null },
-      profession: "idle",
-      emotion: "happy"
-    }
+  chrome.storage.local.get([CLAWD.STORAGE_KEY], (result) => {
+    if (result[CLAWD.STORAGE_KEY]) return; // estado existente: preserva
+    chrome.storage.local.set({ [CLAWD.STORAGE_KEY]: { ...CLAWD.DEFAULT_STATE } });
   });
 });

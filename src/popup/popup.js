@@ -1,204 +1,204 @@
-// popup.js — Claw'd v2.0
+/* ===================================================
+   CLAW'D POPUP v2.1
+   A configuração flui num sentido único:
+   popup → ClawdStore (chrome.storage) → todas as abas
+   reagem via Observer. Ações imediatas (acenar, dançar,
+   mostrar/ocultar…) continuam indo por mensagem à aba
+   ativa. O ping na abertura valida a conexão.
+   =================================================== */
 
-function sendMsg(message) {
+'use strict';
+
+const { PROFESSIONS, levelForXp, levelProgress, ClawdStore } = CLAWD;
+const store = new ClawdStore();
+
+const $ = (id) => document.getElementById(id);
+
+/* ---- Status / mensagens à aba ativa ---- */
+
+function setStatus(connected) {
+  $('status-pill').classList.toggle('error', !connected);
+  $('status-text').textContent = connected ? 'Conectado' : 'Abra em um site real!';
+}
+
+function sendToActiveTab(message) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]) return;
-    chrome.tabs.sendMessage(tabs[0].id, message).catch(() => {
-      const pill = document.getElementById('status-pill');
-      pill.classList.add('error');
-      document.getElementById('status-text').textContent = 'Abra em um site real!';
-    });
+    if (!tabs[0]?.id) { setStatus(false); return; }
+    chrome.tabs.sendMessage(tabs[0].id, message)
+      .then((response) => {
+        if (message.action === 'ping') setStatus(!!response?.ok);
+      })
+      .catch(() => setStatus(false));
   });
 }
 
-// ---- Carregar estado salvo ----
-chrome.storage.local.get(['clawdState'], (result) => {
-  const s = result.clawdState || {};
+function setConfig(key, value) {
+  store.set(key, value); // as abas aplicam via storage.onChanged
+}
 
-  if (s.name)  document.getElementById('input-name').value = s.name;
+/* ---- Renderização ---- */
 
-  if (s.color) {
-    document.getElementById('input-color').value = s.color;
-    document.getElementById('color-hex').textContent = s.color;
-    document.querySelector('.header-pet').style.borderColor = s.color;
-    document.querySelector('.header-pet').style.boxShadow = `0 0 16px ${s.color}55`;
-    document.getElementById('mini-sprite').style.setProperty('--preview-color', s.color);
-    // Marca o swatch correspondente
-    document.querySelectorAll('.color-swatch').forEach(sw => {
-      if (sw.dataset.color === s.color) sw.classList.add('selected');
-    });
-  }
+function renderColor(color) {
+  $('input-color').value = color;
+  $('color-hex').textContent = color;
+  const headerPet = document.querySelector('.header-pet');
+  headerPet.style.borderColor = color;
+  headerPet.style.boxShadow = `0 0 16px ${color}55`;
+  $('mini-sprite').style.setProperty('--preview-color', color);
+  document.querySelectorAll('.color-swatch').forEach((sw) => {
+    sw.classList.toggle('selected', sw.dataset.color === color);
+  });
+}
 
-  if (s.scale !== undefined) {
-    document.getElementById('range-scale').value = s.scale;
-    document.getElementById('scale-badge').textContent = `${parseFloat(s.scale).toFixed(1)}×`;
-  }
+function renderXp(xp) {
+  $('xp-level').textContent = `Lv. ${levelForXp(xp)}`;
+  $('xp-count').textContent = `${xp || 0} XP`;
+  $('xp-fill').style.width = `${levelProgress(xp) * 100}%`;
+}
 
-  if (s.animSpeed !== undefined) {
-    document.getElementById('range-speed').value = s.animSpeed;
-    document.getElementById('speed-badge').textContent = `${parseFloat(s.animSpeed).toFixed(2)}×`;
-  }
+function renderAccessory(accessory) {
+  document.querySelectorAll('.accessory-card').forEach((card) => {
+    card.classList.toggle('active', card.dataset.accessory === (accessory || 'none'));
+  });
+}
 
-  if (s.showSpeech !== undefined)
-    document.getElementById('toggle-speech').checked = !!s.showSpeech;
+function renderStats(stats) {
+  const s = { pets: 0, goals: 0, feeds: 0, quizzes: 0, ...(stats || {}) };
+  $('stat-pets').textContent = s.pets;
+  $('stat-goals').textContent = s.goals;
+  $('stat-feeds').textContent = s.feeds;
+  $('stat-quizzes').textContent = s.quizzes;
+}
 
-  if (s.autoWalk !== undefined)
-    document.getElementById('toggle-walk').checked = !!s.autoWalk;
+function renderProfession(profession) {
+  document.querySelectorAll('.profession-card').forEach((card) => {
+    card.classList.toggle('active', card.dataset.profession === profession);
+  });
+  const prof = PROFESSIONS[profession] || PROFESSIONS.idle;
+  document.querySelector('.prof-status-icon').textContent = prof.icon;
+  $('prof-status-text').textContent = prof.status;
+}
 
-  if (s.sleepEnabled !== undefined)
-    document.getElementById('toggle-sleep').checked = !!s.sleepEnabled;
+function renderAll(state) {
+  $('input-name').value = state.name;
+  renderColor(state.color);
+  $('range-scale').value = state.scale;
+  $('scale-badge').textContent = `${Number(state.scale).toFixed(1)}×`;
+  $('range-speed').value = state.animSpeed;
+  $('speed-badge').textContent = `${Number(state.animSpeed).toFixed(2)}×`;
+  $('toggle-speech').checked = !!state.showSpeech;
+  $('toggle-walk').checked = !!state.autoWalk;
+  $('toggle-sleep').checked = !!state.sleepEnabled;
+  $('toggle-smooth').checked = !!state.smooth;
+  $('toggle-outline').checked = !!state.outline;
+  renderAccessory(state.accessory);
+  renderProfession(state.profession);
+  renderXp(state.xp);
+  renderStats(state.stats);
+}
 
-  if (s.smooth !== undefined)
-    document.getElementById('toggle-smooth').checked = !!s.smooth;
+/* ---- Boot ---- */
 
-  if (s.outline !== undefined)
-    document.getElementById('toggle-outline').checked = !!s.outline;
-
-  if (s.accessory) {
-    document.querySelectorAll('.accessory-card').forEach(c => {
-      c.classList.toggle('active', c.dataset.accessory === s.accessory);
-    });
-  }
-
-  // Gamificação: barra de XP e nível
-  const xp = s.xp || 0;
-  const level = Math.floor(xp / 50) + 1;
-  const progress = ((xp % 50) / 50) * 100;
-  document.getElementById('xp-level').textContent = `Lv. ${level}`;
-  document.getElementById('xp-count').textContent = `${xp} XP`;
-  setTimeout(() => {
-    document.getElementById('xp-fill').style.width = `${progress}%`;
-  }, 150);
+store.load().then((state) => {
+  renderAll(state);
+  // Barra de XP anima a partir de 0 na abertura
+  $('xp-fill').style.width = '0%';
+  setTimeout(() => renderXp(store.get('xp')), 150);
+  sendToActiveTab({ action: 'ping' });
 });
 
-// ---- TABS ----
-document.querySelectorAll('.tab').forEach(tab => {
+// Live-update enquanto o popup está aberto (XP ganho na página, etc.)
+store.subscribe((key) => {
+  if (key === 'xp') renderXp(store.get('xp'));
+  else if (key === 'accessory') renderAccessory(store.get('accessory'));
+  else if (key === 'stats') renderStats(store.get('stats'));
+});
+
+// Garante que a última mudança não se perca ao fechar o popup
+window.addEventListener('pagehide', () => store.flushNow());
+
+/* ---- Tabs ---- */
+
+document.querySelectorAll('.tab').forEach((tab) => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t === tab));
+    document.querySelectorAll('.tab-panel').forEach((p) => {
+      p.classList.toggle('active', p.id === `tab-${tab.dataset.tab}`);
+    });
   });
 });
 
-// ---- APARÊNCIA ----
+/* ---- Aparência ---- */
 
-// Nome
-document.getElementById('input-name').addEventListener('input', (e) => {
-  const val = e.target.value || "Claw'd";
-  sendMsg({ action: 'updateConfig', key: 'name', value: val });
+$('input-name').addEventListener('input', (e) => {
+  setConfig('name', e.target.value.trim() || "Claw'd");
 });
 
-// Swatches de cor predefinidos
-document.querySelectorAll('.color-swatch').forEach(sw => {
+document.querySelectorAll('.color-swatch').forEach((sw) => {
   sw.addEventListener('click', () => {
-    const color = sw.dataset.color;
-    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-    sw.classList.add('selected');
-    document.getElementById('input-color').value = color;
-    applyColor(color);
+    renderColor(sw.dataset.color);
+    setConfig('color', sw.dataset.color);
   });
 });
 
-// Input de cor customizada
-document.getElementById('input-color').addEventListener('input', (e) => {
-  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-  applyColor(e.target.value);
+$('input-color').addEventListener('input', (e) => {
+  renderColor(e.target.value);
+  setConfig('color', e.target.value);
 });
 
-function applyColor(color) {
-  document.getElementById('color-hex').textContent = color;
-  document.querySelector('.header-pet').style.borderColor = color;
-  document.querySelector('.header-pet').style.boxShadow = `0 0 16px ${color}55`;
-  document.getElementById('mini-sprite').style.setProperty('--preview-color', color);
-  sendMsg({ action: 'updateConfig', key: 'color', value: color });
-}
-
-// Escala
-document.getElementById('range-scale').addEventListener('input', (e) => {
-  const val = parseFloat(e.target.value);
-  document.getElementById('scale-badge').textContent = `${val.toFixed(1)}×`;
-  sendMsg({ action: 'updateConfig', key: 'scale', value: val });
+$('range-scale').addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  $('scale-badge').textContent = `${value.toFixed(1)}×`;
+  setConfig('scale', value);
 });
 
-// Velocidade
-document.getElementById('range-speed').addEventListener('input', (e) => {
-  const val = parseFloat(e.target.value);
-  document.getElementById('speed-badge').textContent = `${val.toFixed(2)}×`;
-  sendMsg({ action: 'updateConfig', key: 'animSpeed', value: val });
+$('range-speed').addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  $('speed-badge').textContent = `${value.toFixed(2)}×`;
+  setConfig('animSpeed', value);
 });
 
-// Estilo visual: liso e contorno
-document.getElementById('toggle-smooth').addEventListener('change', (e) => {
-  sendMsg({ action: 'updateConfig', key: 'smooth', value: e.target.checked });
-});
-document.getElementById('toggle-outline').addEventListener('change', (e) => {
-  sendMsg({ action: 'updateConfig', key: 'outline', value: e.target.checked });
-});
+$('toggle-smooth').addEventListener('change', (e) => setConfig('smooth', e.target.checked));
+$('toggle-outline').addEventListener('change', (e) => setConfig('outline', e.target.checked));
 
-// Acessórios / roupas
-document.querySelectorAll('.accessory-card').forEach(card => {
+document.querySelectorAll('.accessory-card').forEach((card) => {
   card.addEventListener('click', () => {
-    document.querySelectorAll('.accessory-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    sendMsg({ action: 'updateConfig', key: 'accessory', value: card.dataset.accessory });
+    renderAccessory(card.dataset.accessory);
+    setConfig('accessory', card.dataset.accessory);
   });
 });
 
-// ---- COMPORTAMENTO ----
+/* ---- Comportamento ---- */
 
-document.getElementById('toggle-speech').addEventListener('change', (e) => {
-  sendMsg({ action: 'updateConfig', key: 'showSpeech', value: e.target.checked });
-});
-document.getElementById('toggle-walk').addEventListener('change', (e) => {
-  sendMsg({ action: 'updateConfig', key: 'autoWalk', value: e.target.checked });
-});
-document.getElementById('toggle-sleep').addEventListener('change', (e) => {
-  sendMsg({ action: 'updateConfig', key: 'sleepEnabled', value: e.target.checked });
-});
+$('toggle-speech').addEventListener('change', (e) => setConfig('showSpeech', e.target.checked));
+$('toggle-walk').addEventListener('change', (e) => setConfig('autoWalk', e.target.checked));
+$('toggle-sleep').addEventListener('change', (e) => setConfig('sleepEnabled', e.target.checked));
 
-// ---- PROFISSÃO ----
+/* ---- Profissão ---- */
 
-const profLabels = {
-  idle:       { icon: '🐾', text: 'Modo livre — sem profissão ativa' },
-  footballer: { icon: '⚽', text: 'Jogador ativo — celebra em sites esportivos' },
-  tutor:      { icon: '📚', text: 'Tutor ativo — monitorando foco de estudo' },
-  engineer:   { icon: '💻', text: 'Dev ativo — reagindo a repositórios e docs' }
-};
-
-function applyProfession(profession) {
-  document.querySelectorAll('.profession-card').forEach(c => c.classList.remove('active'));
-  const card = document.querySelector(`.profession-card[data-profession="${profession}"]`);
-  if (card) card.classList.add('active');
-  const label = profLabels[profession] || profLabels.idle;
-  document.querySelector('.prof-status-icon').textContent = label.icon;
-  document.getElementById('prof-status-text').textContent = label.text;
-  sendMsg({ action: 'updateConfig', key: 'profession', value: profession });
-}
-
-// Carregar profissão salva
-chrome.storage.local.get(['clawdState'], (r) => {
-  const prof = (r.clawdState || {}).profession || 'idle';
-  applyProfession(prof);
+document.querySelectorAll('.profession-card').forEach((card) => {
+  card.addEventListener('click', () => {
+    const profession = card.dataset.profession;
+    renderProfession(profession);
+    setConfig('profession', profession);
+    // Regra de negócio: a profissão pode trazer um acessório automático
+    const autoAccessory = PROFESSIONS[profession]?.accessory;
+    if (autoAccessory) {
+      renderAccessory(autoAccessory);
+      setConfig('accessory', autoAccessory);
+    }
+  });
 });
 
-document.querySelectorAll('.profession-card').forEach(card => {
-  card.addEventListener('click', () => applyProfession(card.dataset.profession));
-});
+/* ---- Ações ---- */
 
-// ---- AÇÕES ----
-
-document.querySelectorAll('.action-btn').forEach(btn => {
+document.querySelectorAll('.action-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
-    sendMsg({ action: 'triggerAction', value: btn.dataset.action });
+    sendToActiveTab({ action: 'triggerAction', value: btn.dataset.action });
     btn.style.transform = 'scale(0.93)';
-    setTimeout(() => btn.style.transform = '', 200);
+    setTimeout(() => { btn.style.transform = ''; }, 200);
   });
 });
 
-document.getElementById('btn-toggle').addEventListener('click', () => {
-  sendMsg({ action: 'toggleVisibility' });
-});
-document.getElementById('btn-reset').addEventListener('click', () => {
-  sendMsg({ action: 'resetPosition' });
-});
+$('btn-toggle').addEventListener('click', () => sendToActiveTab({ action: 'toggleVisibility' }));
+$('btn-reset').addEventListener('click', () => sendToActiveTab({ action: 'resetPosition' }));

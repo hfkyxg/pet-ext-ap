@@ -5,7 +5,7 @@
 <br/>
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-red?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Version](https://img.shields.io/badge/version-2.0-ff4757?style=for-the-badge)](./manifest.json)
+[![Version](https://img.shields.io/badge/version-2.1-ff4757?style=for-the-badge)](./manifest.json)
 [![License](https://img.shields.io/badge/license-MIT-2ecc71?style=for-the-badge)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f1c40f?style=for-the-badge&logo=javascript&logoColor=black)](./src/)
 
@@ -49,8 +49,8 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 - **Partículas** de ❤️ ✨ ⭐ ao receber carinho
 - **Pop-in** animado ao carregar a página
 - **Sombra no chão** sincronizada com o movimento
-- **Modo liso** — suaviza os pixels da arte
-- **Contorno** — borda escura ao redor do pet
+- **Modo liso** — funde os pixels num preenchimento sólido, sem grade
+- **Contorno** — borda escura ao redor do pet (combina com o modo liso)
 
 </td>
 <td width="50%">
@@ -70,19 +70,24 @@ O Claw'd tem **5 estados animados** que mudam automaticamente conforme você int
 
 ### 💼 Profissões & Roupas
 - **⚽ Jogador** — ganha boné + bola de futebol jogável; celebra em sites esportivos
-- **📚 Tutor** — veste óculos; monitora foco em redes sociais
+- **📚 Tutor** — veste óculos; lança **desafios de lógica** em sites de distração
 - **💻 Dev** — usa fones; reage a GitHub, docs e Stack Overflow
-- **Acessórios manuais**: 🧢 boné · 👓 óculos · 🎀 laço · 🎧 fones
+- **🎵 DJ** — vibra com partículas musicais em sites de música
+- **🍳 Chef** — chapéu de chef; fareja sites de receitas
+- **🎮 Gamer** — óculos escuros; comemora em sites de jogos
+- **Acessórios**: 🧢 boné · 👓 óculos · 🎀 laço · 🎧 fones · 👑 coroa · 🍳 chef · 🕶️ escuros · 🧣 cachecol
 
 </td>
 <td width="50%">
 
 ### 🎮 Gamificação
-- **Sistema de XP e níveis** — carinho dá +5 XP, gol dá +10 XP
+- **Sistema de XP e níveis** — carinho +5, petisco +5, gol +10, desafio +15
+- **Combo de carinho** — 3 carinhos seguidos rendem +5 XP bônus 🥰
+- **Hat-trick** — 3 gols na janela rendem +20 XP bônus 🎩⚽
+- **Desafio do Tutor** — quiz de matemática direto na página 🧠
 - **Level up** com festa de partículas 🎖️
-- **Barra de progresso** animada no popup
-- **Bola jogável** — clique na bola e veja o Claw'd marcar um golaço ⚽🥅
-- Progresso salvo entre sessões
+- **Estatísticas persistentes** — carinhos, gols, petiscos e desafios no popup
+- Progresso salvo entre sessões e sincronizado entre abas
 
 </td>
 </tr>
@@ -145,14 +150,17 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **Cor** — 8 cores predefinidas + picker customizado
 - **Tamanho** — slider de 0.8× a 3.0×
 - **Velocidade** — controla a velocidade da animação
-- **Visual liso** — desativa o look pixelado, suavizando a arte
+- **Visual liso** — funde os pixels num visual sólido, sem exibir a grade
 - **Contorno** — adiciona borda escura ao redor do mascote
 - **Acessórios** — boné, óculos, laço ou fones de ouvido
 
 ### Aba Profissão
 - **⚽ Jogador** — bola de futebol jogável ao lado do pet
-- **📚 Tutor** — óculos automáticos + foco de estudo
+- **📚 Tutor** — óculos automáticos + desafios anti-procrastinação
 - **💻 Dev** — fones automáticos + reações a sites de código
+- **🎵 DJ** — celebra com notas musicais em sites de música
+- **🍳 Chef** — chapéu de chef + reações a sites de receitas
+- **🎮 Gamer** — óculos escuros + comemorações em sites de jogos
 - **🐾 Livre** — modo padrão sem profissão
 
 ### Aba Comportamento
@@ -165,8 +173,13 @@ Dispare ações imediatas:
 - 👋 **Acenar** — anima o gesto de tchauzinho
 - 🕺 **Dançar** — tremida animada com partículas
 - ❤️ **Carinho** — pulo feliz com corações
+- 🍖 **Alimentar** — mastiga com squash & stretch + petiscos voando
+- 🤸 **Salto** — salto mortal com giro de 360°
+- 🧠 **Desafio** — quiz de matemática do Tutor (+15 XP se acertar)
 - 😴 **Dormir** — coloca o pet para dormir
 - ☀️ **Acordar** — acorda imediatamente
+
+A aba também exibe as **estatísticas do pet**: ❤️ carinhos · ⚽ gols · 🍖 petiscos · 🧠 desafios.
 
 ---
 
@@ -176,6 +189,8 @@ Dispare ações imediatas:
 pet-ext-ap/
 ├── manifest.json              # Configuração da extensão (MV3)
 ├── src/
+│   ├── common/
+│   │   └── core.js            # Núcleo compartilhado: ClawdStore, níveis e profissões
 │   ├── content/
 │   │   ├── content.js         # Motor do mascote + sistema de estados
 │   │   └── style.css          # Pixel-art CSS + keyframes de animação
@@ -184,12 +199,22 @@ pet-ext-ap/
 │   │   ├── popup.css          # Dark UI design system
 │   │   └── popup.js           # Controles e preview ao vivo
 │   ├── background/
-│   │   └── background.js      # Service worker (inicialização)
+│   │   └── background.js      # Service worker (estado inicial não-destrutivo)
 │   └── assets/
 │       ├── pet-banner.svg     # Banner animado
 │       └── pet-states.svg     # Showcase de estados
 └── README.md
 ```
+
+### Arquitetura (v2.1)
+
+- **`ClawdStore`** (`src/common/core.js`) — fonte única do estado persistido. Cache em
+  memória + gravação *debounced* no `chrome.storage.local` e sincronização entre abas
+  via `chrome.storage.onChanged` (padrão **Observer**).
+- **Profissões** são um catálogo declarativo (padrão **Strategy**): cada uma descreve
+  acessório automático, palavras-chave de contexto e mensagens — o motor só consome os dados.
+- **Mensagens do popup** são despachadas por um mapa de comandos (padrão **Command**);
+  a configuração flui num sentido único: `popup → storage → todas as abas`.
 
 ---
 
