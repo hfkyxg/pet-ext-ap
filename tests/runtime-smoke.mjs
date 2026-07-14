@@ -672,6 +672,9 @@ async function waitForReadyIdlePet(page) {
   }, 15_000, 200);
 }
 
+const SMOKE_VERBOSE = !!process.env.CLAWD_SMOKE_VERBOSE;
+function phase(label) { if (SMOKE_VERBOSE) console.error(`[smoke] ${label}`); }
+
 async function main() {
   assert.ok(existsSync(edgePath), `Edge não encontrado: ${edgePath}`);
 
@@ -715,6 +718,7 @@ async function main() {
       targetUrl
     ], { stdio: 'ignore', windowsHide: true });
 
+    phase('browser spawned, waiting for targets');
     const targets = await retry(() => listTargets(port), 20_000);
     const pageTarget = await retry(async () => {
       const current = await listTargets(port);
@@ -722,6 +726,7 @@ async function main() {
     }, 20_000);
     assert.ok(targets.length > 0 && pageTarget, 'A página local não abriu no Chromium isolado.');
 
+    phase('page target found, connecting CDP');
     page = await new CdpClient(pageTarget.webSocketDebuggerUrl).connect();
     await page.send('Runtime.enable');
     await page.send('Log.enable');
@@ -729,6 +734,7 @@ async function main() {
     // O service worker faz uma reconciliação inicial e reinjeta o content script.
     // Aguarda essa troca terminar para interagir com a instância definitiva.
     await delay(800);
+    phase('waiting for initial idle pet');
     const initial = await waitForReadyIdlePet(page);
     assert.equal(initial.count, 1);
     assert.equal(
@@ -741,11 +747,15 @@ async function main() {
     assert.equal(initial.faceStyle, 'classic', 'O rosto clássico deve ser o padrão.');
     assert.equal(initial.emotionLayer, true, 'A camada visual de emoções deve existir.');
 
+    phase('initial pet OK; connecting service worker');
     controlWorker = await new CdpClient((await findWorkerTarget(port)).webSocketDebuggerUrl).connect();
+    phase('validating popup runtime');
     const popupRuntime = await validatePopupRuntime(port, controlWorker);
+    phase('validating subpet runtime');
     const subpetRuntime = await validateSubpetRuntime(controlWorker, page);
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: false });
+    phase('validating pixel models');
     const pixelModels = {};
     for (const id of Object.keys(CLAWD_MODELS)) {
       await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'model', value: id });
@@ -762,6 +772,7 @@ async function main() {
     assert.equal(new Set(Object.values(pixelModels)).size, Object.keys(CLAWD_MODELS).length, 'Os quatro modelos precisam ter silhuetas distintas.');
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'eyeColor', value: '#33aaff' });
+    phase('validating face styles');
     const faceStyles = {};
     for (const id of Object.keys(CLAWD_FACE_STYLES)) {
       await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'faceStyle', value: id });
@@ -777,6 +788,7 @@ async function main() {
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: true });
     const smoothModelWidths = { classic: '28px', mini: '20px', claws: '28px', guardian: '36px' };
+    phase('validating smooth models');
     const smoothModels = {};
     for (const id of Object.keys(CLAWD_MODELS)) {
       await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'model', value: id });
@@ -804,6 +816,7 @@ async function main() {
     assert.equal(smoothVisual.coreIsTransparent, false, 'A silhueta contínua precisa estar visível.');
     assert.equal(smoothVisual.eyeColor, 'rgb(8, 8, 11)', 'A cor padrão dos olhos deve ser restaurada.');
 
+    phase('validating smooth accessories');
     const smoothAccessories = [];
     for (const [id, definition] of Object.entries(CLAWD_ACCESSORIES)) {
       const key = definition.slot === 'head' ? 'accessoryHead' : 'accessoryFace';
@@ -815,6 +828,7 @@ async function main() {
     }
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: false });
+    phase('validating pixel accessories');
     const pixelAccessories = [];
     for (const [id, definition] of Object.entries(CLAWD_ACCESSORIES)) {
       const key = definition.slot === 'head' ? 'accessoryHead' : 'accessoryFace';
@@ -859,6 +873,7 @@ async function main() {
     assert.deepEqual(storedGear, { head: 'cap', face: 'sunglasses' }, 'A profissão sobrescreveu o visual salvo.');
     const professionGear = { chef: chefGear, tutor: tutorGear, restored: restoredGear, stored: storedGear };
 
+    phase('validating professions');
     const professions = [];
     for (const profession of Object.keys(CLAWD_PROFESSIONS)) {
       await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: profession });
@@ -872,6 +887,7 @@ async function main() {
       bath: 'bathing', sleep: 'sleeping', wake: 'idle', fish: 'fishing',
       jump: 'jumping', stretch: 'stretching', roar: 'roaring'
     };
+    phase('validating actions');
     const actions = [];
     for (const action of Object.keys(CLAWD_ACTIONS)) {
       await sendToActivePet(controlWorker, { action: 'triggerAction', value: action });
@@ -1045,6 +1061,7 @@ async function main() {
     controlWorker.close();
     controlWorker = null;
 
+    phase('validating reloads');
     const reloadSnapshots = [];
     for (let cycle = 1; cycle <= 3; cycle++) {
       const workerTarget = await findWorkerTarget(port);

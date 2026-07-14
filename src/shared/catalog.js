@@ -241,7 +241,7 @@ function clawdDefaultState() {
       coins: 0, coinFrac: 0,
       streak: { days: 0, lastDay: '' },
       achievements: {},
-      counters: { pets: 0, goals: 0, keepyRecord: 0, sleeps: 0, tabsToday: 0, tabsDay: '', tabsSeen: [], subpetsUnlocked: 0, accessoriesUsed: [], fish: 0, rareFish: 0, walks: 0, dances: 0 },
+      counters: { pets: 0, goals: 0, keepyRecord: 0, keepyTotal: 0, sleeps: 0, tabsToday: 0, tabsDay: '', tabsSeen: [], subpetsUnlocked: 0, accessoriesUsed: [], fish: 0, rareFish: 0, walks: 0, dances: 0 },
       inventory: []
     },
     favorites: { actions: [], professions: [], accessories: [], colors: [], nicknames: [], subpets: [] },

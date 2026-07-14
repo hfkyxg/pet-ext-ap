@@ -6,7 +6,7 @@
 ## Resultado
 
 - Verificações de sintaxe: **8/8 aprovadas** (fontes, testes, showcase e smoke harness);
-- Suíte `node:test`: **35/35 testes aprovados**;
+- Suíte `node:test`: **51/51 testes aprovados** (28 de catálogo, 8 de extensão/documentação e 15 de integridade/harmonia cruzada);
 - `git diff --check`: **sem erros de whitespace**;
 - Smoke test em navegador Chromium real: **aprovado**;
 - Reload MV3 em página `file://`, três ciclos consecutivos: **0 erros e 1 pet por ciclo**;
