@@ -5,12 +5,13 @@
 
 ## Resultado
 
-- Verificações de sintaxe: **4/4 aprovadas**;
-- Suíte `node:test`: **23/23 testes aprovados**;
+- Verificações de sintaxe: **5/5 aprovadas** (incluindo o smoke harness);
+- Suíte `node:test`: **26/26 testes aprovados**;
 - `git diff --check`: **sem erros de whitespace**;
 - Smoke test em navegador Chromium real: **aprovado**;
 - Reload MV3 em página `file://`, três ciclos consecutivos: **0 erros e 1 pet por ciclo**;
-- Popup e service worker em runtime real: **aprovados**.
+- Popup, service worker e sub-pet em runtime real: **aprovados**;
+- Catálogo exercitado em runtime: **14/14 acessórios em cada modo, 8/8 profissões e 14/14 ações**.
 
 ## Comandos reproduzíveis
 
@@ -19,6 +20,7 @@ node --check src/shared/catalog.js
 node --check src/content/content.js
 node --check src/popup/popup.js
 node --check src/background/background.js
+node --check tests/runtime-smoke.mjs
 node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 git diff --check
@@ -26,7 +28,7 @@ git diff --check
 
 ## Cobertura automatizada
 
-A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso, emoções, pesca, sub-pets, ciclo de vida, manifest, referências e IDs do popup, ano/versão da documentação, contexto MV3 invalidado e reconciliação após reload.
+A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios nos dois renderizadores, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso angular, boca/emoções, pesca, sincronização e inicialização de sub-pets, ciclo de vida, manifest, referências e IDs do popup, namespace dos keyframes, ano/versão da documentação, contexto MV3 invalidado e reconciliação após reload.
 
 ## Smoke test no navegador
 
@@ -36,19 +38,23 @@ Uma instância unpacked foi carregada em perfil isolado e inspecionada pelo Chro
 |---------|---------------------|
 | Boot da página | `#aic-clawd-node`: 1 instância |
 | Repouso | `animation-name: none` na sprite |
-| Arraste | classe `walking` e `animation-name: walk` |
-| Carinho | estado `happy` e balão de emoji visível |
-| Modo liso | vermelho nítido, `box-shadow` preservado e fundos `transparent`/`none` no nó, corpo, stack e sprite |
-| Reload da página | 1 instância após novo carregamento |
+| Boca e carinho | estado `happy`; fundo da boca transparente; sorriso em borda curva de 2px |
+| Modo liso | pixel oculto, `box-shadow: none`, silhueta contínua visível e `background-image: none` |
+| Acessórios | 14 variantes lisas pintadas e 14 variantes pixel-art com arte própria |
+| Profissões e ações | 8 profissões aplicadas e 14 ações disparadas; Pescador criou lago interativo |
+| Popup real | 8 abas, 8 profissões, 14 ações, 16 opções cosméticas, 8 sub-pets, 10 itens e 12 conquistas; nenhum ID duplicado |
+| Sub-pet real | 1 instância “Rex”, cor `#4a90e2`, interação `cuddling` e remoção limpa |
 | Reload da extensão | 3 ciclos consecutivos, sempre 1 instância, sem `Extension context invalidated` |
-| Emoções | `emotion-face` e `emotion-badge` presentes |
+| Console/runtime | 0 exceções, 0 erros e 0 contextos MV3 inválidos |
 
 ## Popup e service worker
 
 - Manifest/runtime: `3.1.0`;
-- Marcador `clawdRuntimeReconciled` + healthcheck da instância ativa: ativos;
-- Popup: 8 abas, 8 profissões, 14 ações, 8 sub-pets, 16 cards de acessórios (14 itens + opção “nenhum” por slot), 10 itens de loja, 12 conquistas e missão diária renderizada.
+- Marcador `clawdRuntimeReconciled`, healthcheck duplo com DOM conectado, fallback para aba elegível recente e até três tentativas de injeção: ativos;
+- Popup: catálogo completo renderizado e inspecionado em uma aba `chrome-extension://` real, sem exceções;
+- Sub-pets: corrigida a corrida de storage que podia perder desbloqueios/apelidos/cores e o acesso prematuro ao sprite durante a construção;
+- CSS da extensão: nó raiz isolado e todos os keyframes prefixados com `clawd-`, inclusive na página de reprodução que define `.pixel-sprite`, `.name-tag` e `@keyframes walk` próprios.
 
 ## Limite do teste
 
-Páginas internas protegidas (`chrome://`, loja de extensões e alguns visualizadores) não aceitam content scripts. O smoke test padrão gera uma página `file://` temporária; também foi executado diretamente em `Novo Documento de Texto.html`, a página local que originou o erro reportado.
+Páginas internas protegidas (`chrome://`, loja de extensões e alguns visualizadores) não aceitam content scripts. O smoke test padrão gera uma página `file://` temporária; também foi executado diretamente em `Novo Documento de Texto.html`, a página local que originou o erro reportado. Gestos físicos de touch e viagem cross-tab entre janelas continuam como validação manual complementar, pois dependem de entrada/disposição reais do usuário.

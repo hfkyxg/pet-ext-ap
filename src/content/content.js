@@ -165,7 +165,7 @@ class SubPet {
   setColor(color) {
     this.color = /^#[\da-f]{6}$/i.test(color || '') ? color : this.sprite.colors.B;
     this.colors = subPetPalette(this.sprite, this.color);
-    this._paint();
+    if (this.spriteNode) this._paint();
   }
 
   sleep() {
@@ -335,7 +335,6 @@ class ClawdCompanion {
     this._lastTantrum = 0;
     this._keepy = null;
     this._challengeShown = 0;
-    this._writing = false;
     this._port = null;
     this._audioCtx = null;
     this._clickCount = 0;
@@ -474,6 +473,13 @@ class ClawdCompanion {
       <div class="pet-body" id="aic-pet-body">
         <div class="sprite-stack" id="aic-stack">
           <div class="pixel-sprite" id="aic-sprite"></div>
+          <div class="smooth-sprite" id="aic-smooth-sprite" aria-hidden="true">
+            <span class="smooth-core"></span>
+            <span class="smooth-leg smooth-leg-1"></span>
+            <span class="smooth-leg smooth-leg-2"></span>
+            <span class="smooth-leg smooth-leg-3"></span>
+            <span class="smooth-leg smooth-leg-4"></span>
+          </div>
           <div class="emotion-face" id="aic-emotion-face">
             <span class="blink-cover"></span><span class="blink-line"></span><span class="emotion-mouth"></span>
           </div>
@@ -516,11 +522,14 @@ class ClawdCompanion {
 
   applyAll() {
     const S = this.S;
+    const animationSpeed = Math.max(0.5, parseFloat(S.animSpeed) || 1);
     this.nameNode.innerText = S.name;
     this.node.style.setProperty('--agent-color', S.color);
     this.node.style.setProperty('--agent-scale', parseFloat(S.scale));
     this.node.style.setProperty('--jersey-color', S.jerseyColor);
-    this.spriteNode.style.animationDuration = `${(0.55 / parseFloat(S.animSpeed)).toFixed(2)}s`;
+    this.node.style.setProperty('--clawd-step-duration', `${(0.42 / animationSpeed).toFixed(3)}s`);
+    this.node.style.setProperty('--clawd-run-duration', `${(0.18 / animationSpeed).toFixed(3)}s`);
+    this.spriteNode.style.animationDuration = `${(0.55 / animationSpeed).toFixed(2)}s`;
     this.node.classList.toggle('smooth', !!S.smooth);
     this.node.classList.toggle('outlined', !!S.outline);
     this.node.classList.toggle('aic-nofx', !!S.settings.performanceMode);
@@ -569,13 +578,9 @@ class ClawdCompanion {
         // popup é dono destes campos — mantém a versão do storage
         this.S.favorites = stored.favorites;
         this.S.settings = Object.assign({}, this.S.settings, stored.settings);
-        this.S.subpets.active = stored.subpets.active;
+        this.S.subpets = stored.subpets;
         this.S.game.inventory = stored.game.inventory;
-        this._writing = true;
-        const onSaved = this._guardChromeCallback(() => {
-          setTimeout(() => { this._writing = false; }, 50);
-        });
-        this._safeChrome(() => chrome.storage.local.set({ clawdState: this.S }, onSaved));
+        this._safeChrome(() => chrome.storage.local.set({ clawdState: this.S }));
       });
       this._safeChrome(() => chrome.storage.local.get(['clawdState'], onState));
     }, 350);
@@ -583,7 +588,7 @@ class ClawdCompanion {
 
   listenToStorage() {
     this._storageListener = this._guardChromeCallback((changes, area) => {
-      if (area !== 'local' || !changes.clawdState || this._writing) return;
+      if (area !== 'local' || !changes.clawdState) return;
       const fresh = clawdMigrateState(changes.clawdState.newValue);
       // Sincroniza campos que o popup controla
       this.S.favorites = fresh.favorites;
@@ -595,14 +600,11 @@ class ClawdCompanion {
       this.node.style.setProperty('--jersey-color', fresh.jerseyColor);
       this.node.setAttribute('data-ball-skin', fresh.ballSkin || 'classic');
       this.node.classList.toggle('aic-nofx', !!fresh.settings.performanceMode);
-      if (fresh.subpets.active !== this.S.subpets.active) {
-        this.S.subpets = fresh.subpets;
-        this.refreshSubpet();
-      } else {
-        this.S.subpets.names = fresh.subpets.names;
-        this.S.subpets.colors = fresh.subpets.colors;
-        if (this.subpet) this.subpet.setColor(this.S.subpets.colors[this.subpet.species]);
-      }
+      // Reconciliamos o objeto inteiro: desbloqueios, apelidos, cores e pet ativo
+      // podem mudar juntos pelo popup. Atualizações parciais deixavam a lista de
+      // desbloqueios antiga e impediam a criação do sub-pet recém-selecionado.
+      this.S.subpets = fresh.subpets;
+      this.refreshSubpet();
     });
     this._safeChrome(() => chrome.storage.onChanged.addListener(this._storageListener));
   }
@@ -624,7 +626,12 @@ class ClawdCompanion {
         if (this.subpet) this.subpet.node.style.setProperty('--subpet-scale', Math.max(0.9, parseFloat(value) * 0.6));
         break;
       case 'animSpeed':
-        this.spriteNode.style.animationDuration = `${(0.55 / parseFloat(value)).toFixed(2)}s`;
+        {
+          const animationSpeed = Math.max(0.5, parseFloat(value) || 1);
+          this.node.style.setProperty('--clawd-step-duration', `${(0.42 / animationSpeed).toFixed(3)}s`);
+          this.node.style.setProperty('--clawd-run-duration', `${(0.18 / animationSpeed).toFixed(3)}s`);
+          this.spriteNode.style.animationDuration = `${(0.55 / animationSpeed).toFixed(2)}s`;
+        }
         break;
       case 'smooth':  this.node.classList.toggle('smooth', !!value); break;
       case 'outline': this.node.classList.toggle('outlined', !!value); break;
@@ -2129,7 +2136,14 @@ class ClawdCompanion {
       if (this._destroyed) return false;
       switch (request.action) {
         case 'healthcheck':
-          sendResponse({ alive: true, bootId: window.__clawdBootId || 0 });
+          sendResponse({
+            alive: !!(
+              this.node?.isConnected
+              && this.node.dataset.clawdOwned === 'true'
+              && document.getElementById('aic-clawd-node') === this.node
+            ),
+            bootId: window.__clawdBootId || 0
+          });
           break;
         case 'toggleVisibility':
           this.isVisible = !this.isVisible;

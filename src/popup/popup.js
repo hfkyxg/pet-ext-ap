@@ -89,6 +89,7 @@ function renderHeader() {
   setTimeout(() => { $('xp-fill').style.width = `${Math.min(100, (into / next) * 100)}%`; }, 120);
   renderStats(S.stats);
   if (S.color) applyHeaderColor(S.color);
+  $('mini-sprite').classList.toggle('smooth', !!S.smooth);
 }
 
 function renderStats(stats) {
@@ -642,7 +643,10 @@ function bindStatic() {
   });
 
   // Estilo visual
-  $('toggle-smooth').addEventListener('change', e => setConfig('smooth', e.target.checked));
+  $('toggle-smooth').addEventListener('change', e => {
+    $('mini-sprite').classList.toggle('smooth', e.target.checked);
+    setConfig('smooth', e.target.checked);
+  });
   $('toggle-outline').addEventListener('change', e => setConfig('outline', e.target.checked));
 
   // Comportamento

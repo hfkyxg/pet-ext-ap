@@ -64,6 +64,53 @@ body {
   animation: mini-walk 0.55s steps(1) infinite;
   --preview-color: #c71515;
 }
+.mini-leg { display: none; }
+.mini-sprite.smooth {
+  position: relative;
+  width: 28px;
+  height: 24px;
+  margin: 0 0 8px;
+  transform: scale(.9);
+  transform-origin: center;
+  border-radius: 0;
+  background: var(--preview-color);
+  box-shadow: none;
+  animation: none;
+}
+.mini-sprite.smooth::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 12px;
+  width: 44px;
+  height: 8px;
+  border-radius: 0;
+  background: var(--preview-color);
+}
+.mini-sprite.smooth::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
+  background: #08080b;
+  box-shadow: 16px 0 #08080b;
+}
+.mini-sprite.smooth .mini-leg {
+  display: block;
+  position: absolute;
+  top: 24px;
+  width: 4px;
+  height: 8px;
+  border-radius: 0;
+  background: var(--preview-color);
+}
+.mini-sprite.smooth .mini-leg-1 { left: 0; }
+.mini-sprite.smooth .mini-leg-2 { left: 8px; }
+.mini-sprite.smooth .mini-leg-3 { left: 16px; }
+.mini-sprite.smooth .mini-leg-4 { left: 24px; }
 
 @keyframes mini-walk {
   0%,100% {

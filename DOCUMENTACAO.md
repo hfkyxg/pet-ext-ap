@@ -7,7 +7,7 @@
 
 ## 1. Visão Geral
 
-O **Claw'd** é uma extensão Chrome (Manifest V3) que injeta um mascote pixel-art interativo em qualquer página. Não usa frameworks nem dependências externas: é 100% Vanilla JS + CSS. O sprite é desenhado inteiramente com `box-shadow` — cada "pixel" é uma sombra de 4×4px — e animado por keyframes CSS.
+O **Claw'd** é uma extensão Chrome (Manifest V3) que injeta um mascote pixel-art interativo em qualquer página. Não usa frameworks nem dependências externas: é 100% Vanilla JS + CSS. O renderizador padrão usa células de 4×4px em `box-shadow`; o modo liso ativa uma segunda silhueta CSS angular e contínua, sem grade ou textura. Ambos compartilham estados, emoções, acessórios e animações com keyframes isolados pelo prefixo `clawd-`.
 
 **Princípios de design:**
 
@@ -40,7 +40,8 @@ clawd-extension/
 ├── DOCUMENTACAO.md            # Este arquivo
 ├── MANUAL.md                  # Manual do usuário
 └── MELHORIAS.md               # Especificação das melhorias v3
-└── tests/catalog.test.js      # Testes de migração, níveis e missão diária
+├── tests/catalog.test.js      # Testes unitários e estruturais do ecossistema
+└── tests/runtime-smoke.mjs    # Smoke real em Edge/Chromium + reload MV3
 ```
 
 ---
@@ -73,8 +74,10 @@ Antes e durante esse ciclo, todas as chamadas a `chrome.runtime`, `chrome.storag
   <div class="speech-bubble">          <!-- balão de fala -->
   <div class="pet-body">
     <div class="sprite-stack">         <!-- flip horizontal acontece aqui -->
-      <div class="pixel-sprite">       <!-- corpo em box-shadow, keyframes -->
-      <div class="accessory">          <!-- camada de acessório -->
+      <div class="pixel-sprite">       <!-- renderizador pixel em box-shadow -->
+      <div class="smooth-sprite">      <!-- renderizador angular contínuo -->
+      <div class="accessory">          <!-- camada cosmética compartilhada -->
+      <div class="emotion-face">       <!-- piscada e boca em camada própria -->
     </div>
     <div class="name-tag">             <!-- nome do pet -->
   </div>
@@ -83,7 +86,7 @@ Antes e durante esse ciclo, todas as chamadas a `chrome.runtime`, `chrome.storag
 </div>
 ```
 
-A separação `node` (posição) → `sprite-stack` (flip) → `pixel-sprite` (animação) evita conflito de `transform` entre camadas.
+A separação `node` (posição) → `sprite-stack` (flip) → renderizador visual (animação) evita conflito de `transform` entre camadas. O nó recebe `data-clawd-owned="true"` e `all: initial`; seletores críticos são escopados em `#aic-clawd-node` para impedir que estilos genéricos da página, como `.pixel-sprite` ou `.name-tag`, contaminem a extensão.
 
 **Máquina de estados (`setState`):**
 
@@ -129,11 +132,12 @@ O estado é uma classe no `#aic-clawd-node`; o CSS resolve a animação correspo
 
 - **Pixel-art**: o corpo é um único elemento com dezenas de `box-shadow` de 4×4px; a cor principal vem da CSS var `--agent-color`;
 - **Renderização adaptativa**: deslocamento e sub-pet usam `requestAnimationFrame`; o content script mede a cadência real em 30 frames e registra `data-refresh-rate`, sem impor 60 Hz artificialmente;
-- **Walk cycle**: o frame padrão é estático e reproduz o modelo compacto vermelho; `clawd-walk` só é ativado em `walking`/`running` e `walk-keepy` durante a embaixadinha;
+- **Walk cycle**: o frame padrão é estático e reproduz o modelo compacto vermelho; `clawd-pixel-walk` só é ativado em `walking`/`running` e `clawd-pixel-keepy` durante a embaixadinha;
 - **Emoções em camadas**: o corpo base não é substituído; `emotion-face` desenha piscada/boca e `emotion-badge` exibe o emoji correspondente ao estado;
 - **Escala**: `--agent-scale` compõe com todos os keyframes (evita sobrescrever `transform`);
-- **Modificadores**: `.smooth` (suavização leve opcional), `.outlined` (contorno via drop-shadow), `[data-acc-head]`/`[data-acc-face]` (desenham acessórios em camadas pixel-art);
-- Velocidade de animação ajustada via `animationDuration` inline (`0.55 / animSpeed`).
+- **Modificadores**: `.smooth` alterna para a silhueta contínua; `.outlined` aplica contorno; `[data-acc-head]`/`[data-acc-face]` desenham 14 acessórios com variantes pixel-art e lisas;
+- **Isolamento**: todos os keyframes usam namespace `clawd-`, evitando colisões com `walk`, `sleep`, `fish` e outras animações comuns do site;
+- Velocidade de animação ajustada pelas variáveis `--clawd-step-duration` e `--clawd-run-duration`, derivadas de `animSpeed`.
 
 ### 3.4 Popup — `popup.html/js/css`
 
@@ -145,7 +149,7 @@ UI dark com header (preview do pet, status, barra de XP) e 8 abas: **Aparência*
 
 ### 3.5 Service Worker — `background.js`
 
-Coordena a **presença cross-tab**, escolhe a aba anfitriã e persiste o host em `chrome.storage.session`. Na primeira execução de cada runtime, remove DOM órfão das abas elegíveis e reinjeta os scripts somente na aba ativa da janela focada. Reinícios normais do service worker não repetem a limpeza graças ao marcador de sessão.
+Coordena a **presença cross-tab**, escolhe a aba anfitriã e persiste o host em `chrome.storage.session`. Na primeira execução de cada runtime, remove DOM órfão das abas elegíveis e reinjeta os scripts somente na aba principal. O healthcheck só é aceito quando o nó pertencente à extensão está conectado e responde em duas verificações separadas; isso diferencia um service worker apenas reativado de um contexto antigo ainda expirando após `chrome.runtime.reload()`. Se a aba ativa for interna (`chrome://`/`edge://`), usa a aba web/file acessada mais recentemente, e a injeção tem até três tentativas verificadas.
 
 ---
 
@@ -193,7 +197,7 @@ Sub-pets têm `subpets.names` e `subpets.colors` indexados pela espécie. A clas
 
 O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `playing`, `cuddling` e `racing`. `sleep()` e `wakeUp()` cancelam timers opostos; o clique e teclado no próprio sub-pet fazem carinho ou despertam, e o despertar do Claw'd principal chama o despertar sincronizado do sub-pet.
 
-No modo liso, o `pixel-sprite` mantém o mesmo `box-shadow`, proporções e sprite do modo padrão; `image-rendering: auto` suaviza a rasterização sem borrar o vermelho ou os olhos. O nó, corpo, stack e camadas cosméticas têm fundo explicitamente transparente e sem `background-image`, impedindo grade ou textura atrás da silhueta. A camada de emoção continua desenhando piscadas e boca sobre a arte, sem transformá-la em slime. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
+No modo liso, o `pixel-sprite` fica oculto e sem `box-shadow`; o `smooth-sprite` assume o mesmo desenho angular com uma cabeça contínua, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto. Os 14 acessórios e as skins especiais também têm variantes contínuas. O Pescador cria um lago interativo, uma vara/linha e uma janela de fisgada: o clique no lago captura antes do fallback automático.
 
 ---
 
@@ -201,7 +205,7 @@ No modo liso, o `pixel-sprite` mantém o mesmo `box-shadow`, proporções e spri
 
 | Decisão | Motivo |
 |---------|--------|
-| Sprite em `box-shadow` CSS | Zero assets binários, cor dinâmica via CSS var, escala sem perda |
+| Renderizador CSS duplo | Pixel-art fiel no padrão e modo liso sem grade, ambos sem assets binários |
 | Estado = classe CSS | Anima via GPU, sem JS por frame (exceto auto-walk) |
 | CSS vars para cor/escala | Mudança instantânea sem reflow nem re-render |
 | Storage único (`clawdState`) | Leitura atômica no boot da página, simples de migrar |
@@ -209,7 +213,7 @@ No modo liso, o `pixel-sprite` mantém o mesmo `box-shadow`, proporções e spri
 | `z-index: 2147483647` | Garante o pet acima de qualquer layout |
 | `destroy()` + boot token | Evita listeners, timers e instâncias duplicadas após reinjeção |
 | Guardas de contexto MV3 | Encerram a instância antiga sem exceções após reload da extensão |
-| Reconciliação com healthcheck | Preserva uma instância viva; limpa órfãos e reinjeta apenas a principal quando ela não responde |
+| Reconciliação com healthcheck estável | Exige DOM conectado, tolera aba interna ativa e repete injeções transitórias sem duplicar o pet |
 
 **Limitações conhecidas:**
 
@@ -259,4 +263,4 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os testes cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS de acessórios, sprite e pernas, modo liso, emoções, pesca, sub-pets, referências do popup, manifest, invalidação do contexto MV3 e reconciliação de reload. O smoke test executa o Edge/Chromium em perfil isolado e valida boot, repouso, carinho e três reloads da extensão sem erros ou duplicação. A validação manual deve incluir clique/arraste/inércia, duplo e triplo clique, acessórios em ambos os slots, cada profissão, embaixadinhas, pesca, sub-pets, loja, export/import e cross-tab.
+Os 26 testes cobrem estado padrão, migração de saves legados, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, sprite e pernas, modo liso, boca/emoções, pesca, sub-pets, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3 e reconciliação de reload. O smoke test executa o Edge/Chromium em perfil isolado e valida em runtime os dois renderizadores, todos os acessórios, as 8 profissões, as 14 ações, popup (8 abas, loja e conquistas), sub-pet customizado e três reloads sem erros ou duplicação. A validação manual complementar deve incluir gestos de arraste/touch, export/import e viagem cross-tab entre janelas reais.

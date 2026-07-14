@@ -13,6 +13,24 @@ let travelDebounce = null;
 /* ---- Reload seguro: remove instâncias órfãs e reinjeta só na aba ativa ---- */
 const RUNTIME_RECONCILE_KEY = 'clawdRuntimeReconciled';
 const RUNTIME_ELIGIBLE_URL = /^(https?|file):/i;
+const RUNTIME_CONTEXT_SETTLE_MS = 900;
+
+function waitForContextSettlement() {
+  return new Promise(resolve => setTimeout(resolve, RUNTIME_CONTEXT_SETTLE_MS));
+}
+
+function pingLiveContent(tabId) {
+  return chrome.tabs.sendMessage(tabId, { action: 'healthcheck' })
+    .then(response => response?.alive === true)
+    .catch(() => false);
+}
+
+async function hasStableLiveContent(tabId) {
+  await waitForContextSettlement();
+  if (!await pingLiveContent(tabId)) return false;
+  await waitForContextSettlement();
+  return pingLiveContent(tabId);
+}
 
 function removeClawdDom() {
   const selectors = [
@@ -23,20 +41,46 @@ function removeClawdDom() {
   document.querySelectorAll(selectors).forEach(el => el.remove());
 }
 
+async function injectClawdIntoTab(tabId) {
+  await chrome.scripting.insertCSS({
+    target: { tabId },
+    files: ['src/content/style.css']
+  }).catch(() => null);
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 250));
+    const injected = await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['src/shared/catalog.js', 'src/content/content.js']
+    }).then(() => true).catch(() => false);
+    if (!injected) continue;
+    await new Promise(resolve => setTimeout(resolve, 250));
+    if (await pingLiveContent(tabId)) return true;
+    await chrome.scripting.executeScript({ target: { tabId }, func: removeClawdDom }).catch(() => null);
+  }
+  return false;
+}
+
 async function reconcileRuntimeAfterReload() {
   const tabs = await chrome.tabs.query({});
   const eligibleTabs = tabs.filter(tab => tab.id != null && RUNTIME_ELIGIBLE_URL.test(tab.url || ''));
   const [focusedActive] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  const mostRecentEligible = eligibleTabs.reduce((latest, tab) => {
+    if (!latest) return tab;
+    return (tab.lastAccessed || 0) > (latest.lastAccessed || 0) ? tab : latest;
+  }, null);
   const active = eligibleTabs.find(tab => tab.id === focusedActive?.id)
     || eligibleTabs.find(tab => tab.active)
+    || mostRecentEligible
     || null;
   if (!active) return;
 
   const session = await chrome.storage.session.get([RUNTIME_RECONCILE_KEY]);
   if (session[RUNTIME_RECONCILE_KEY]) {
-    const live = await chrome.tabs.sendMessage(active.id, { action: 'healthcheck' })
-      .then(response => response?.alive === true)
-      .catch(() => false);
+    // Após chrome.runtime.reload(), o content script antigo pode responder por
+    // alguns milissegundos antes de perceber que seu contexto expirou. Esperar
+    // o heartbeat evita aceitar esse falso positivo e ficar sem pet em seguida.
+    const live = await hasStableLiveContent(active.id);
     if (live) return;
   }
   await chrome.storage.session.set({ [RUNTIME_RECONCILE_KEY]: true });
@@ -45,14 +89,7 @@ async function reconcileRuntimeAfterReload() {
     chrome.scripting.executeScript({ target: { tabId: tab.id }, func: removeClawdDom }).catch(() => null)
   ));
 
-  await chrome.scripting.insertCSS({
-    target: { tabId: active.id },
-    files: ['src/content/style.css']
-  }).catch(() => null);
-  await chrome.scripting.executeScript({
-    target: { tabId: active.id },
-    files: ['src/shared/catalog.js', 'src/content/content.js']
-  }).catch(() => null);
+  await injectClawdIntoTab(active.id);
 }
 
 reconcileRuntimeAfterReload().catch(() => {});

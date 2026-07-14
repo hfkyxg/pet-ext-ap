@@ -55,7 +55,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - **Partículas** de ❤️ ✨ ⭐ ao receber carinho
 - **Pop-in** animado ao carregar a página
 - **Sombra no chão** sincronizada com o movimento
-- **Modo liso** — funde as bordas dos pixels sem alterar a silhueta
+- **Modo liso real** — mantém a silhueta angular do modelo, mas troca as células por blocos contínuos, sem grade, textura ou efeito de slime
 - **Contorno** — borda escura ao redor do pet
 
 </td>
@@ -235,13 +235,12 @@ setState('idle')     // → respiração/piscada, sem mexer as pernas
 
 #aic-clawd-node.walking .pixel-sprite,
 #aic-clawd-node.running .pixel-sprite {
-  animation: clawd-walk 0.55s steps(1) infinite !important;
+  animation: clawd-pixel-walk var(--clawd-step-duration) steps(1) infinite !important;
 }
 
-/* O modo liso preserva o box-shadow e funde somente as bordas. */
-#aic-clawd-node.smooth .sprite-stack {
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,.18));
-}
+/* O modo liso remove as células e ativa a silhueta angular contínua. */
+#aic-clawd-node.smooth .pixel-sprite { display: none; box-shadow: none; }
+#aic-clawd-node.smooth .smooth-sprite { display: block; }
 ```
 
 ### Personalização em Tempo Real
@@ -328,7 +327,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os testes validam catálogos, migração, missões, sprite padrão, pernas, modo liso, emoções, sub-pets, pesca, manifest, referências do popup, movimento adaptativo, contexto MV3 invalidado e reconciliação após reload. O smoke test abre o Edge/Chromium com um perfil isolado, testa carinho e emoções, recarrega a extensão três vezes e exige exatamente um pet sem erros de runtime. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **26 testes automatizados** validam catálogos, migração, missões, sprite padrão, pernas, modo liso, boca/emoções, sub-pets, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado e reconciliação após reload. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real os 14 acessórios nos dois renderizadores, 8 profissões, 14 ações, popup completo, sub-pet com apelido/cor/interação e três reloads consecutivos, sempre com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 O visual inicial é o sprite compacto vermelho de referência: pixels nítidos, sem blur, com escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
 
