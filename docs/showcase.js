@@ -28,6 +28,35 @@
     ['🧹', 'Reload seguro', 'Destruição idempotente, token de boot e reconciliação de órfãos.']
   ];
 
+  const DEMO_STEP_MS = 2500;
+  const DEMO_STEPS = [
+    { scene: 'popin', group: 'presence', title: 'Pop-in e boas-vindas', detail: 'O pet entra com animação, anuncia sua presença e permanece fora do fluxo do documento.', speech: 'Aqui para ajudar! 👋', emoji: '✨', featured: true },
+    { scene: 'perspective', group: 'presence', title: 'Perspectiva 3D', detail: 'A inclinação acompanha o cursor com suavidade sem deslocar o conteúdo da página.', speech: 'Estou de olho no cursor 👀', emoji: '↔' },
+    { scene: 'affection', group: 'presence', title: 'Carinho e emoção', detail: 'Clique, touch ou teclado ativam felicidade, balão de emoji, partículas e progressão.', speech: 'Yay! +5 XP 💖', emoji: '💖' },
+    { scene: 'wave', group: 'states', title: 'Acenar', detail: 'Uma ação imediata muda a pose do corpo sem iniciar o ciclo de caminhada das pernas.', speech: 'Oi! 👋', emoji: '👋' },
+    { scene: 'dance', group: 'states', title: 'Dançar', detail: 'Sequências curtas combinam balanço, partículas e fala sem bloquear novas interações.', speech: 'Vem dançar! 🕺', emoji: '🎵' },
+    { scene: 'scroll', group: 'states', title: 'Reação ao scroll', detail: 'A rolagem deixa o pet animado por um instante e o estado volta ao normal sozinho.', speech: 'Uhuu, página nova!', emoji: '⚡' },
+    { scene: 'walk', group: 'states', title: 'Passeio autônomo', detail: 'O pet escolhe um destino, vira para o lado correto e só move as pernas durante o deslocamento.', speech: 'Vou dar uma volta 🐾', emoji: '🐾' },
+    { scene: 'glide', group: 'states', title: 'Arrastar e deslizar', detail: 'Pointer Events reposicionam o pet; ao soltar com velocidade, a inércia desacelera e respeita as bordas.', speech: 'Wheee! 🛝', emoji: '💨' },
+    { scene: 'sleep', group: 'states', title: 'Dormir', detail: 'Inatividade fecha os olhos, reduz a intensidade visual e exibe o balão de sono.', speech: 'ZzzZ... 💤', emoji: '💤' },
+    { scene: 'wake', group: 'states', title: 'Acordar e esticar', detail: 'Uma interação acorda o pet ou subpet primeiro e executa uma animação de alongamento.', speech: 'Bom dia! ☀️', emoji: '☀️' },
+    { scene: 'fisher', group: 'professions', title: 'Profissão Pescador', detail: 'Chapéu, vara e lago formam uma cena própria; a linha permanece ativa enquanto ele espera.', speech: 'Silêncio... está mordendo 🎣', emoji: '🎣', accessory: 'fishhat', accessoryEmoji: '🎣', featured: true },
+    { scene: 'catch', group: 'professions', title: 'Fisgada e captura', detail: 'A fisgada manual ou automática lança o peixe, registra a raridade e recompensa a brincadeira.', speech: 'Peguei um peixe raro! 🐟', emoji: '🐟' },
+    { scene: 'football', group: 'professions', title: 'Bola jogável', detail: 'Na profissão Jogador, a bola responde ao clique, gira, viaja até o gol e concede XP.', speech: 'Chuta essa! ⚽', emoji: '⚽', prop: '⚽', accessory: 'cap', accessoryEmoji: '🧢' },
+    { scene: 'hattrick', group: 'professions', title: 'Hat-trick e level up', detail: 'Combos de gols acionam bônus, partículas e celebrações de progressão sem duplicar recompensas.', speech: 'HAT-TRICK! +20 XP 🏆', emoji: '🏆', prop: '⚽ ⭐' },
+    { scene: 'tutor', group: 'professions', title: 'Desafio do Tutor', detail: 'O Tutor cria um desafio curto na página, aceita resposta e devolve feedback com recompensa.', speech: 'Quanto é 7 × 3?', emoji: '🧠', prop: '7 × 3 = ?', accessory: 'glasses', accessoryEmoji: '👓' },
+    { scene: 'accessory', group: 'customization', title: 'Acessórios em camadas', detail: 'Quatorze itens ocupam slots de cabeça ou rosto e acompanham pose, escala e movimento.', speech: 'Meu visual, minhas regras ✨', emoji: '👑', accessory: 'crown', accessoryEmoji: '👑', featured: true },
+    { scene: 'smooth', group: 'customization', title: 'Modo liso real', detail: 'A grade de pixels some e dá lugar à mesma silhueta em superfícies contínuas, sem transformar o pet em slime.', speech: 'Liso, mas ainda sou eu!', emoji: '◉', smooth: true },
+    { scene: 'subpet', group: 'customization', title: 'Subpet acordado e especial', detail: 'Apelido, corpo e olhos são independentes; carinho, brincadeira e habilidade especial acordam o companheiro.', speech: 'Rex: pronto para brincar! 🐶', emoji: '✨', subpet: true }
+  ];
+
+  const EVIDENCE_SECTIONS = [
+    { id: 'presence', label: 'Presença na página', title: 'Entrada, perspectiva e carinho', text: 'Primeiro contato claro, responsivo e sem interferir no layout.' },
+    { id: 'states', label: 'Estados', title: 'Reações e comportamento autônomo', text: 'Ações manuais e decisões do pet com início, feedback e retorno ao repouso.' },
+    { id: 'professions', label: 'Profissões e gamificação', title: 'Pesca, futebol, desafios e progresso', text: 'Cenas próprias transformam cada profissão em uma atividade reconhecível.' },
+    { id: 'customization', label: 'Personalização', title: 'Acessórios, modo liso e subpets', text: 'Camadas independentes preservam identidade, legibilidade e liberdade de escolha.' }
+  ];
+
   const subpetSprites = {
     dog:    { body: '#8d5a2b', shade: '#5b3a1a', extra: { W: '#f5e9dc' }, frame: ['D......D', 'DBBBBBBD', 'BKBBBBKB', 'BBBWWBBB', '.B..B.B.'] },
     cat:    { body: '#7f8c8d', shade: '#525c5d', extra: { P: '#e8a0bf' }, frame: ['D..D....', 'DBBBBBB.', 'BKBBKBB.', 'BBPBBBBD', '.B..B...'] },
@@ -93,11 +122,25 @@
     const grid = $('accessory-grid');
     Object.entries(accessories).forEach(([id, item]) => {
       const card = makeElement('article', 'accessory-card');
+      const preview = makeElement('div', 'accessory-catalog-preview');
+      const previewPet = $('demo-pet').cloneNode(true);
+      const previewAccessory = previewPet.querySelector('.scene-accessory');
+      previewPet.removeAttribute('id');
+      previewPet.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+      previewPet.className = 'scene-pet accessory-catalog-pet';
+      previewPet.removeAttribute('role');
+      previewPet.setAttribute('aria-hidden', 'true');
+      previewPet.dataset.accHead = item.slot === 'head' ? id : 'none';
+      previewPet.dataset.accFace = item.slot === 'face' ? id : 'none';
+      previewAccessory.textContent = '';
+      previewAccessory.className = `accessory ${item.slot === 'head' ? 'acc-head' : 'acc-face'}`;
+      previewAccessory.removeAttribute('data-item');
+      preview.appendChild(previewPet);
       card.dataset.slot = item.slot;
       card.dataset.accessory = id;
       card.append(
         makeElement('small', '', item.slot === 'head' ? 'cabeça' : 'rosto'),
-        makeElement('span', 'catalog-emoji', item.emoji),
+        preview,
         makeElement('h4', '', item.label),
         makeElement('p', '', item.desc)
       );
@@ -136,6 +179,183 @@
     });
   }
 
+  function formatDemoTime(milliseconds) {
+    const seconds = Math.round(milliseconds / 1000);
+    return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+  }
+
+  function applyDemoScene(container, step, restartAnimation = false) {
+    const pet = container.querySelector('.scene-pet');
+    const speech = container.querySelector('.scene-speech');
+    const emoji = container.querySelector('.scene-emoji');
+    const accessory = container.querySelector('.scene-accessory');
+    const prop = container.querySelector('.scene-prop');
+    const subpet = container.querySelector('.scene-subpet');
+
+    if (restartAnimation) {
+      container.removeAttribute('data-scene');
+      void container.offsetWidth;
+    }
+    container.dataset.scene = step.scene;
+    pet.classList.toggle('is-smooth', Boolean(step.smooth));
+    pet.setAttribute('aria-label', `Claw'd — ${step.title}`);
+    speech.textContent = step.speech || '';
+    speech.hidden = !step.speech;
+    emoji.textContent = step.emoji || '';
+    emoji.hidden = !step.emoji;
+    emoji.classList.toggle('visible', Boolean(step.emoji));
+    accessory.textContent = step.accessoryEmoji || '';
+    accessory.dataset.item = step.accessory || 'none';
+    accessory.hidden = !step.accessory;
+    prop.textContent = step.prop || '';
+    prop.hidden = !step.prop && step.scene !== 'fisher' && step.scene !== 'catch';
+    subpet.hidden = !step.subpet;
+  }
+
+  function renderEvidenceStoryboard() {
+    const root = $('evidence-groups');
+    const template = $('demo-stage');
+
+    EVIDENCE_SECTIONS.forEach(section => {
+      const group = makeElement('section', 'evidence-group reveal');
+      const heading = makeElement('div', 'evidence-group-header');
+      const grid = makeElement('div', 'evidence-card-grid');
+      heading.append(
+        makeElement('small', '', section.label),
+        makeElement('h4', '', section.title),
+        makeElement('p', '', section.text)
+      );
+
+      DEMO_STEPS.forEach((step, index) => {
+        if (step.group !== section.id) return;
+        const number = String(index + 1).padStart(2, '0');
+        const card = document.createElement('figure');
+        card.className = `evidence-card${step.featured ? ' featured' : ''}`;
+        const shot = template.cloneNode(true);
+        shot.className = 'evidence-shot';
+        shot.removeAttribute('id');
+        shot.removeAttribute('tabindex');
+        shot.setAttribute('aria-label', `Demonstração visual: ${step.title}`);
+        shot.querySelector('.demo-browser-chrome')?.remove();
+        shot.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+        shot.querySelectorAll('[aria-live]').forEach(node => node.removeAttribute('aria-live'));
+        const pill = makeElement('span', 'evidence-step-pill', `${number} · ${step.title}`);
+        shot.prepend(pill);
+        applyDemoScene(shot, step);
+
+        const caption = document.createElement('figcaption');
+        caption.append(
+          makeElement('span', '', `${number} · `),
+          makeElement('b', '', step.title),
+          document.createTextNode(` — ${step.detail}`)
+        );
+        card.append(shot, caption);
+        grid.appendChild(card);
+      });
+
+      group.append(heading, grid);
+      root.appendChild(group);
+    });
+  }
+
+  function setupDemoEvidence() {
+    const stage = $('demo-stage');
+    const progress = $('demo-progress');
+    const toggle = $('demo-toggle');
+    const nav = $('demo-step-nav');
+    const totalDuration = DEMO_STEPS.length * DEMO_STEP_MS;
+    let currentIndex = 0;
+    let timer = null;
+
+    progress.max = String(DEMO_STEPS.length - 1);
+
+    DEMO_STEPS.forEach((step, index) => {
+      const button = makeElement('button', '', String(index + 1).padStart(2, '0'));
+      button.type = 'button';
+      button.role = 'tab';
+      button.dataset.step = String(index);
+      button.title = step.title;
+      button.setAttribute('aria-controls', 'demo-stage');
+      button.setAttribute('aria-label', `Etapa ${index + 1}: ${step.title}`);
+      nav.appendChild(button);
+    });
+
+    function syncPlaybackButton() {
+      const playing = timer !== null;
+      toggle.setAttribute('aria-pressed', String(playing));
+      $('demo-toggle-icon').textContent = playing ? 'Ⅱ' : '▶';
+      $('demo-toggle-label').textContent = playing ? 'Pausar' : 'Reproduzir';
+    }
+
+    function pause() {
+      if (timer !== null) clearInterval(timer);
+      timer = null;
+      syncPlaybackButton();
+    }
+
+    function renderStep(index, restartAnimation = true) {
+      currentIndex = Math.min(DEMO_STEPS.length - 1, Math.max(0, index));
+      const step = DEMO_STEPS[currentIndex];
+      const number = String(currentIndex + 1).padStart(2, '0');
+      applyDemoScene(stage, step, restartAnimation);
+      $('demo-step-pill').textContent = `${number} · ${step.title.toUpperCase()}`;
+      $('demo-step-counter').textContent = `ETAPA ${number} / ${DEMO_STEPS.length}`;
+      $('demo-step-title').textContent = step.title;
+      $('demo-step-detail').textContent = step.detail;
+      progress.value = String(currentIndex);
+      const elapsed = currentIndex === DEMO_STEPS.length - 1 ? totalDuration : currentIndex * DEMO_STEP_MS;
+      $('demo-time').textContent = `${formatDemoTime(elapsed)} / ${formatDemoTime(totalDuration)}`;
+      nav.querySelectorAll('button[data-step]').forEach((button, buttonIndex) => {
+        const active = buttonIndex === currentIndex;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
+      });
+    }
+
+    function play() {
+      if (timer !== null) return;
+      if (currentIndex === DEMO_STEPS.length - 1) renderStep(0);
+      timer = setInterval(() => {
+        if (currentIndex >= DEMO_STEPS.length - 1) {
+          pause();
+          return;
+        }
+        renderStep(currentIndex + 1);
+      }, DEMO_STEP_MS);
+      syncPlaybackButton();
+    }
+
+    function chooseStep(index) {
+      pause();
+      renderStep(index);
+    }
+
+    $('demo-prev').addEventListener('click', () => chooseStep(currentIndex - 1));
+    $('demo-next').addEventListener('click', () => chooseStep(currentIndex + 1));
+    toggle.addEventListener('click', () => timer === null ? play() : pause());
+    progress.addEventListener('input', event => chooseStep(Number(event.target.value)));
+    nav.addEventListener('click', event => {
+      const button = event.target.closest('button[data-step]');
+      if (button) chooseStep(Number(button.dataset.step));
+    });
+    stage.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft') chooseStep(currentIndex - 1);
+      else if (event.key === 'ArrowRight') chooseStep(currentIndex + 1);
+      else if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        timer === null ? play() : pause();
+      } else return;
+      event.preventDefault();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) pause();
+    });
+
+    renderStep(0, false);
+    renderEvidenceStoryboard();
+  }
+
   function setupMainPetLab() {
     const pet = $('doc-main-pet');
     const emotion = $('lab-emotion');
@@ -145,7 +365,18 @@
     const mouth = $('lab-mouth');
     const accessorySelect = $('lab-accessory');
     let moodTimer = null;
-    const accessoryEmoji = { none: '', cap: '🧢', fishhat: '🎣', crown: '👑', sunglasses: '🕶️', headphones: '🎧' };
+
+    accessorySelect.replaceChildren();
+    const noneOption = document.createElement('option');
+    noneOption.value = 'none';
+    noneOption.textContent = 'Nenhum';
+    accessorySelect.appendChild(noneOption);
+    Object.entries(accessories).forEach(([id, item]) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = `${item.emoji} ${item.label}`;
+      accessorySelect.appendChild(option);
+    });
 
     bodyColor.addEventListener('input', () => {
       pet.style.setProperty('--agent-color', bodyColor.value);
@@ -158,7 +389,7 @@
     });
     mouth.addEventListener('change', () => pet.classList.toggle('mouth-off', !mouth.checked));
     accessorySelect.addEventListener('change', () => {
-      accessory.textContent = accessoryEmoji[accessorySelect.value] || '';
+      accessory.textContent = accessories[accessorySelect.value]?.emoji || '';
       accessory.dataset.item = accessorySelect.value;
     });
 
@@ -318,6 +549,8 @@
     document.querySelectorAll('.metrics strong').forEach((node, index) => {
       if (counts[index]) node.textContent = counts[index];
     });
+    $('evidence-catalog-counts').textContent = `${counts[2]} profissões · ${counts[1]} acessórios · ${counts[0]} ações`;
+    $('evidence-subpet-counts').textContent = `${counts[3]} subpets · ${counts[4]} ações`;
   }
 
   renderCapabilities();
@@ -325,6 +558,7 @@
   renderAccessories();
   renderActions();
   renderFeatureLedger();
+  setupDemoEvidence();
   setupMainPetLab();
   setupSubpetLab();
   syncMetrics();

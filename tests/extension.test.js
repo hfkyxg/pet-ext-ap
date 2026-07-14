@@ -79,12 +79,17 @@ test('README e documentação identificam a versão e o ano atuais', () => {
 
 test('documentação interativa é local, completa e ligada aos catálogos reais', () => {
   assert.match(showcaseHtml, /<title>Claw'd — Documentação interativa<\/title>/);
+  assert.match(showcaseHtml, /id="demonstracao"/);
+  assert.match(showcaseHtml, /id="demo-player"/);
+  assert.match(showcaseHtml, /id="demo-step-nav"/);
+  assert.match(showcaseHtml, /id="evidence-groups"/);
   assert.match(showcaseHtml, /id="laboratorio"/);
   assert.match(showcaseHtml, /id="ecossistema"/);
   assert.match(showcaseHtml, /id="arquitetura"/);
   assert.match(showcaseHtml, /id="validacao"/);
   assert.match(showcaseHtml, /id="subpet-eye-color"/);
   assert.match(showcaseHtml, /src="\.\.\/src\/shared\/catalog\.js"/);
+  assert.match(showcaseHtml, /href="\.\.\/src\/content\/style\.css"/);
   assert.match(showcaseHtml, /src="\.\/showcase\.js"/);
   assert.match(showcaseHtml, /href="\.\/showcase\.css"/);
   assert.doesNotMatch(showcaseHtml, /<(?:script|link)[^>]+(?:src|href)="https?:\/\//i);
@@ -97,6 +102,18 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.match(showcaseJs, /globalThis\.CLAWD_ACCESSORIES/);
   assert.match(showcaseJs, /globalThis\.CLAWD_SUBPET_ACTIONS/);
   assert.match(showcaseJs, /speciesColors\[select\.value\]\.eyes/);
+  const demoStepsSource = showcaseJs.slice(showcaseJs.indexOf('const DEMO_STEPS'), showcaseJs.indexOf('const EVIDENCE_SECTIONS'));
+  assert.equal([...demoStepsSource.matchAll(/scene:\s*'/g)].length, 18, 'A demonstração deve manter as 18 etapas documentadas.');
+  assert.match(showcaseJs, /renderEvidenceStoryboard\(\)/);
+  assert.match(showcaseJs, /previewPet\.dataset\.accHead/);
+  assert.match(showcaseJs, /previewPet\.dataset\.accFace/);
+  assert.match(showcaseJs, /accessorySelect\.replaceChildren\(\)/);
+  assert.match(showcaseJs, /Object\.entries\(accessories\)\.forEach/);
+  assert.match(showcaseHtml, /30\/30<\/b> contratos automatizados/);
+  assert.match(showcaseHtml, /não é um vídeo pré-gravado/);
+  assert.doesNotMatch(showcaseHtml, /<video\b/i);
+  assert.match(showcaseCss, /\.evidence-card-grid/);
+  assert.match(showcaseCss, /clawd-doc-demo-glide/);
   assert.match(showcaseCss, /@media \(max-width: 520px\)/);
   assert.match(showcaseCss, /@media \(prefers-reduced-motion: reduce\)/);
 });

@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#090b12">
   <meta name="description" content="Documentação interativa do Claw'd, o companheiro pixel-art para navegador.">
   <title>Claw'd — Documentação interativa</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090b12'/%3E%3Cpath fill='%23e3262e' d='M17 18h30v9h8v17h-8v8h-8v-8H25v8h-8v-8H9V27h8z'/%3E%3Cpath fill='%23090b12' d='M23 24h5v5h-5zm13 0h5v5h-5z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../src/content/style.css">
   <link rel="stylesheet" href="./showcase.css">
 </head>
 <body>
@@ -18,6 +20,7 @@
       <span><b>CLAW'D</b><small>PROJECT FIELD GUIDE · 2026</small></span>
     </a>
     <nav aria-label="Navegação principal">
+      <a href="#demonstracao">Demonstração</a>
       <a href="#laboratorio">Laboratório</a>
       <a href="#ecossistema">Ecossistema</a>
       <a href="#arquitetura">Arquitetura</a>
@@ -33,7 +36,7 @@
         <h1>Um pequeno pet.<br><em>Um ecossistema inteiro.</em></h1>
         <p class="hero-lead">Claw'd transforma qualquer página em um espaço vivo: acompanha a navegação, reage ao usuário, assume profissões, evolui e cuida de oito sub-pets — sem servidor e sem telemetria.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#laboratorio">Experimentar ao vivo <span aria-hidden="true">↓</span></a>
+          <a class="button primary" href="#demonstracao">Ver tudo em ação <span aria-hidden="true">↓</span></a>
           <a class="button ghost" href="#instalacao">Ver instalação</a>
         </div>
         <ul class="hero-proof" aria-label="Destaques técnicos">
@@ -79,6 +82,91 @@
 
     <section class="capability-band" aria-label="Capacidades centrais">
       <div class="section-shell capability-grid" id="capability-grid"></div>
+    </section>
+
+    <section class="section-shell live-evidence" id="demonstracao">
+      <div class="evidence-masthead reveal">
+        <div class="evidence-title-row">
+          <span class="evidence-pet-mark" aria-hidden="true"><i></i><i></i></span>
+          <div>
+            <div class="eyebrow"><span></span> demonstração validada · 14/07/2026</div>
+            <h2>Claw'd rodando ao vivo — todo o ecossistema.</h2>
+            <p>Um roteiro executável reproduz as mecânicas dentro desta página. Os contadores combinam os catálogos carregados com a última execução completa da suíte e do smoke test em Chromium.</p>
+          </div>
+        </div>
+        <div class="evidence-badges" id="validation-snapshot" aria-label="Resumo da última validação">
+          <span class="passed"><i></i><b>30/30</b> contratos automatizados</span>
+          <span class="passed"><i></i><b>8/8</b> scripts verificados</span>
+          <span><b id="evidence-catalog-counts">8 profissões · 14 acessórios · 14 ações</b></span>
+          <span><b id="evidence-subpet-counts">8 subpets · 6 ações</b></span>
+          <span class="passed"><i></i><b>3/3</b> reloads limpos</span>
+          <span class="passed"><i></i><b>0</b> erros de runtime</span>
+        </div>
+      </div>
+
+      <div class="demo-intro reveal">
+        <div>
+          <div class="eyebrow"><span></span> sessão guiada</div>
+          <h3>Da entrada ao subpet especial.</h3>
+        </div>
+        <p>Use reproduzir, avance pelos capítulos ou escolha qualquer etapa. Esta demonstração não é um vídeo pré-gravado: cada estado abaixo é renderizado e animado localmente, com suporte a teclado e movimento reduzido.</p>
+      </div>
+
+      <article class="demo-player reveal" id="demo-player" aria-label="Demonstração interativa das mecânicas">
+        <div class="demo-player-topbar">
+          <span class="demo-live"><i></i> DEMO LOCAL</span>
+          <span id="demo-step-pill">01 · POP-IN E BOAS-VINDAS</span>
+          <span>MV3 · SEM REDE</span>
+        </div>
+
+        <div class="demo-browser-stage" id="demo-stage" data-scene="popin" tabindex="0" aria-label="Cena atual da demonstração. Use as setas para navegar e espaço para reproduzir ou pausar.">
+          <div class="demo-browser-chrome" aria-hidden="true"><i></i><i></i><i></i><span>exemplo.local / conteúdo</span></div>
+          <div class="demo-page-copy" aria-hidden="true">
+            <small>UMA PÁGINA DE EXEMPLO QUALQUER</small>
+            <h4>Conteúdo que ganha companhia.</h4>
+            <p>O Claw'd convive com a página, reage ao contexto e preserva o layout.</p>
+            <div class="demo-content-card"><b>Seção de conteúdo</b><span></span><span></span><span></span></div>
+            <div class="demo-content-card secondary"><b>Outra seção</b><span></span><span></span></div>
+          </div>
+          <div class="scene-speech" id="demo-speech" aria-live="polite">Aqui para ajudar! 👋</div>
+          <div class="scene-emoji" id="demo-emoji" aria-hidden="true">✨</div>
+          <div class="scene-pet" id="demo-pet" role="img" aria-label="Claw'd entrando na página">
+            <span class="scene-accessory" id="demo-accessory" aria-hidden="true"></span>
+            <span class="scene-pixel-seed" aria-hidden="true"></span>
+            <span class="scene-smooth-pet" aria-hidden="true">
+              <i class="smooth-head"></i><i class="smooth-arm left"></i><i class="smooth-arm right"></i>
+              <i class="smooth-leg left"></i><i class="smooth-leg right"></i>
+              <i class="smooth-eye left"></i><i class="smooth-eye right"></i>
+            </span>
+            <span class="scene-mouth" aria-hidden="true"></span>
+          </div>
+          <div class="scene-prop" id="demo-prop" aria-hidden="true"></div>
+          <div class="scene-subpet" id="demo-subpet" aria-hidden="true"><i></i><i></i></div>
+        </div>
+
+        <div class="demo-player-controls">
+          <div class="demo-buttons">
+            <button id="demo-prev" type="button" aria-label="Etapa anterior">←</button>
+            <button class="demo-toggle" id="demo-toggle" type="button" aria-pressed="false"><span id="demo-toggle-icon" aria-hidden="true">▶</span><b id="demo-toggle-label">Reproduzir</b></button>
+            <button id="demo-next" type="button" aria-label="Próxima etapa">→</button>
+          </div>
+          <label class="demo-scrubber" for="demo-progress"><span id="demo-time">00:00 / 00:45</span><input id="demo-progress" type="range" min="0" max="17" step="1" value="0" aria-label="Escolher etapa da demonstração"></label>
+        </div>
+
+        <div class="demo-current-copy" aria-live="polite">
+          <span id="demo-step-counter">ETAPA 01 / 18</span>
+          <div><b id="demo-step-title">Pop-in e boas-vindas</b><p id="demo-step-detail">O pet entra com animação, anuncia sua presença e permanece fora do fluxo do documento.</p></div>
+        </div>
+      </article>
+
+      <div class="demo-step-nav reveal" id="demo-step-nav" role="tablist" aria-label="Capítulos da demonstração"></div>
+
+      <div class="storyboard-heading reveal">
+        <div class="eyebrow"><span></span> quadro a quadro</div>
+        <h3>18 mecânicas, com contexto e resultado.</h3>
+        <p>As cenas usam o mesmo sprite padrão, os catálogos reais e estados equivalentes aos do runtime para tornar cada recurso fácil de descobrir.</p>
+      </div>
+      <div class="evidence-groups" id="evidence-groups"></div>
     </section>
 
     <section class="section-shell live-lab" id="laboratorio">

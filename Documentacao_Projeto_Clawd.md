@@ -51,7 +51,7 @@ O projeto não usa IA remota nem lê o conteúdo de formulários. As reações c
 
 A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, modo liso, sub-pets, documentação, pesca, manifest, popup e reload seguro. Em 14/07/2026, **30/30 contratos** passaram; o smoke test em Chromium confirmou 14 acessórios em cada renderizador, 8 profissões, 14 ações principais, 6 ações do subpet, cor independente dos olhos, três reloads com uma única instância e zero erros de runtime.
 
-A vitrine em `docs/index.html` documenta visualmente o produto, carrega os catálogos reais e oferece laboratórios interativos do Claw'd e dos sub-pets. Ela não depende de CDN, build ou servidor.
+A vitrine em `docs/index.html` documenta visualmente o produto, carrega os catálogos reais e oferece laboratórios interativos do Claw'd e dos sub-pets. O painel de demonstração executa um roteiro de 45 segundos com 18 capítulos e gera 18 evidências quadro a quadro para presença, estados, profissões, gamificação e personalização. Os controles aceitam mouse, teclado e seleção direta; o layout foi verificado em desktop e 375 px, sem overflow ou logs de erro. Ela não depende de CDN, build ou servidor de aplicação.
 
 ---
 

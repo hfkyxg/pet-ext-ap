@@ -38,6 +38,8 @@ Pronto — o Claw'd aparece no canto inferior direito de qualquer site que você
 
 No celular/tablet, toque e arraste funcionam do mesmo jeito.
 
+Para ensaiar tudo antes de usar a extensão, abra a [Demonstração Executável](./docs/index.html#demonstracao): são 18 capítulos com reprodução, pausa, seleção direta e explicação quadro a quadro, do pop-in ao subpet especial.
+
 ---
 
 ## 4. O Menu (popup)

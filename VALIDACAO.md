@@ -12,6 +12,7 @@
 - Reload MV3 em página `file://`, três ciclos consecutivos: **0 erros e 1 pet por ciclo**;
 - Popup, service worker e subpet em runtime real: **aprovados**;
 - Catálogo exercitado em runtime: **14/14 acessórios em cada modo, 8/8 profissões, 14/14 ações principais e 6/6 ações do subpet**.
+- Documentação executável em navegador real: **18/18 etapas, 18/18 evidências, desktop e 375 px, sem overflow e sem logs de erro**.
 
 ## Comandos reproduzíveis
 
@@ -31,7 +32,7 @@ git diff --check
 
 ## Cobertura automatizada
 
-A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios nos dois renderizadores, descrições e arte dos 7 chapéus, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso angular, preferência persistente da boca, emoções, pesca, sincronização e inicialização de subpets, ciclo de vida, cor independente dos olhos, seis interações, manifest, referências e IDs do popup, documentação interativa local, namespace dos keyframes, ano/versão, contexto MV3 invalidado e reconciliação após reload.
+A suíte verifica estado padrão e migração, missões diárias, curva de nível, catálogo/CSS de acessórios nos dois renderizadores, descrições e arte dos 7 chapéus, sprite base, pernas estáticas, movimento por `requestAnimationFrame`, modo liso angular, preferência persistente da boca, emoções, pesca, sincronização e inicialização de subpets, ciclo de vida, cor independente dos olhos, seis interações, manifest, referências e IDs do popup, documentação interativa local com 18 etapas, namespace dos keyframes, ano/versão, contexto MV3 invalidado e reconciliação após reload.
 
 ## Smoke test no navegador
 
@@ -61,7 +62,9 @@ Uma instância unpacked foi carregada em perfil isolado e inspecionada pelo Chro
 
 ## Documentação interativa
 
-`docs/index.html` não usa CDN, servidor ou build. Um contrato automatizado valida seções, IDs consumidos pelo JavaScript, referências locais, integração com `CLAWD_ACCESSORIES`/`CLAWD_SUBPET_ACTIONS`, personalização dos olhos e breakpoints/redução de movimento. A abertura visual pela superfície interna do Codex não foi executada porque essa superfície bloqueia URLs `file://`; isso não afeta a extensão nem o arquivo, que pode ser aberto diretamente pelo usuário no navegador.
+`docs/index.html` não usa CDN, mídia remota ou build. Um contrato automatizado valida seções, IDs consumidos pelo JavaScript, referências locais, integração com `CLAWD_ACCESSORIES`/`CLAWD_SUBPET_ACTIONS`, 18 definições de cena, personalização dos olhos, breakpoints e redução de movimento.
+
+A página foi servida localmente apenas para inspeção visual. Em viewport desktop, renderizou 18 capítulos, 18 cartões de evidência, 14 acessórios, 8 profissões e 6 ações do subpet, sem overflow. As 14 prévias de acessórios possuíam `box-shadow` pintado pelas próprias camadas de `src/content/style.css` e nenhum texto de emoji. O player iniciou, avançou automaticamente, pausou, permitiu seleção direta do modo liso e do subpet; no modo liso, a camada pixel ficou com `display: none` e `box-shadow: none`. Em viewport móvel efetiva de 375 px, os selos viraram coluna, as evidências ficaram em uma coluna, o player permaneceu utilizável e `scrollWidth === clientWidth`. O console de documentação retornou zero avisos e zero erros.
 
 ## Limite do teste
 
