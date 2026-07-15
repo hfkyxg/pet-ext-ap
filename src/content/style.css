@@ -1,0 +1,3204 @@
+/* ===================================================
+   CLAW'D — COMPANION STYLES v3.2
+   Pixel-art mascot injected into every page
+   =================================================== */
+
+/* --- KEYFRAMES GLOBAIS --- */
+@keyframes clawd-float-up {
+  0%   { opacity: 1; transform: translateY(0)   scale(1)   rotate(-5deg); }
+  100% { opacity: 0; transform: translateY(-65px) scale(1.4) rotate(15deg); }
+}
+@keyframes clawd-pop-in {
+  0%   { opacity: 0; transform: scale(0.4) translateY(12px); }
+  70%  { transform: scale(1.1) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes clawd-spin-bounce {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
+  30%     { transform: scale(calc(var(--agent-scale, 1.5) * 1.15)) translateY(-18px) rotate(-10deg); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateY(-10px) rotate(8deg); }
+}
+@keyframes clawd-shake {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateX(0); }
+  20%     { transform: scale(var(--agent-scale, 1.5)) translateX(-5px); }
+  40%     { transform: scale(var(--agent-scale, 1.5)) translateX(5px); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateX(-3px); }
+  80%     { transform: scale(var(--agent-scale, 1.5)) translateX(3px); }
+}
+@keyframes clawd-breathe {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
+  50%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.96); }
+}
+@keyframes clawd-shadow-pulse {
+  0%,100% { opacity: 0.35; transform: scaleX(1); }
+  50%     { opacity: 0.2;  transform: scaleX(0.85); }
+}
+/* Cambalhota: 360° com squash & stretch */
+@keyframes clawd-somersault {
+  0%   { transform: scale(var(--agent-scale, 1.5)) rotate(0deg)   translateY(0); }
+  20%  { transform: scale(calc(var(--agent-scale, 1.5) * 0.9))  rotate(40deg)  translateY(-8px); }
+  50%  { transform: scale(calc(var(--agent-scale, 1.5) * 1.05)) rotate(200deg) translateY(-30px); }
+  80%  { transform: scale(calc(var(--agent-scale, 1.5) * 0.92)) rotate(330deg) translateY(-6px); }
+  100% { transform: scale(var(--agent-scale, 1.5)) rotate(360deg) translateY(0); }
+}
+/* Comer: mastigação */
+@keyframes clawd-chew {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
+  25%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.92) translateY(2px); }
+  50%     { transform: scale(var(--agent-scale, 1.5)) scaleY(1.02); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.94) translateY(1px); }
+}
+/* Comemorar: pulos rápidos */
+@keyframes clawd-celebrate {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0)    rotate(0deg); }
+  25%     { transform: scale(var(--agent-scale, 1.5)) translateY(-22px) rotate(-8deg); }
+  50%     { transform: scale(var(--agent-scale, 1.5)) translateY(0)    rotate(0deg); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) translateY(-16px) rotate(8deg); }
+}
+/* Bocejo: estica devagar */
+@keyframes clawd-yawn {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
+  40%     { transform: scale(var(--agent-scale, 1.5)) scaleY(1.12) translateY(-4px); }
+  70%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.9); }
+}
+/* Tímido: encolhe e vira de lado */
+@keyframes clawd-shy {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  50%     { transform: scale(calc(var(--agent-scale, 1.5) * 0.88)) rotate(-12deg) translateX(-4px); }
+}
+/* Birra: bate o pé */
+@keyframes clawd-tantrum {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+  15%     { transform: scale(var(--agent-scale, 1.5)) translateY(-8px) rotate(-4deg); }
+  30%     { transform: scale(var(--agent-scale, 1.5)) translateY(0)    rotate(0deg); }
+  45%     { transform: scale(var(--agent-scale, 1.5)) translateY(-8px) rotate(4deg); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+}
+/* Dança passo 2: giro */
+@keyframes clawd-dance-spin {
+  0%   { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) rotate(360deg); }
+}
+/* Dança passo 3: quica lateral */
+@keyframes clawd-dance-bounce {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translate(0,0); }
+  25%     { transform: scale(var(--agent-scale, 1.5)) translate(-8px,-12px) rotate(-6deg); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) translate(8px,-12px)  rotate(6deg); }
+}
+/* Pose: congela com brilho */
+@keyframes clawd-pose-sparkle {
+  0%,100% { filter: drop-shadow(0 5px 8px rgba(0,0,0,0.45)) brightness(1); }
+  50%     { filter: drop-shadow(0 5px 14px rgba(255,215,0,0.6)) brightness(1.25); }
+}
+@keyframes clawd-zzz {
+  0%   { opacity: 0; transform: translate(0,0) scale(0.6); }
+  30%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(18px,-25px) scale(1.1); }
+}
+/* Poeirinha da corrida */
+@keyframes clawd-dust {
+  0%   { opacity: 0.7; transform: scale(0.5); }
+  100% { opacity: 0;   transform: scale(1.6) translateY(-6px); }
+}
+/* Bolinha de brincar */
+@keyframes clawd-toyball {
+  0%   { transform: translate(0,0); }
+  30%  { transform: translate(60px,-70px); }
+  55%  { transform: translate(110px,0); }
+  75%  { transform: translate(140px,-30px); }
+  100% { transform: translate(160px,0); opacity: 0; }
+}
+/* Pulo alto */
+@keyframes clawd-jump {
+  0%   { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+  15%  { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(0.82); }
+  45%  { transform: scale(var(--agent-scale, 1.5)) translateY(-38px) scaleY(1.12); }
+  75%  { transform: scale(var(--agent-scale, 1.5)) translateY(-28px) scaleY(1.05); }
+  90%  { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(0.78); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+}
+/* Esticar ao acordar */
+@keyframes clawd-stretch {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)); }
+  20%  { transform: scale(var(--agent-scale, 1.5)) scaleX(1.18) scaleY(0.82); }
+  50%  { transform: scale(var(--agent-scale, 1.5)) scaleX(0.88) scaleY(1.22) translateY(-6px); }
+  80%  { transform: scale(var(--agent-scale, 1.5)) scaleX(1.05) scaleY(0.95); }
+}
+/* Rugido: inclinação para frente */
+@keyframes clawd-roar {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  25%  { transform: scale(calc(var(--agent-scale, 1.5)*1.2)) rotate(-8deg) translateY(-10px); }
+  50%  { transform: scale(calc(var(--agent-scale, 1.5)*1.25)) rotate(0deg) translateY(-14px); }
+  75%  { transform: scale(calc(var(--agent-scale, 1.5)*1.15)) rotate(8deg) translateY(-8px); }
+}
+/* Pescaria: leve balanço enquanto segura a vara */
+@keyframes clawd-fishing {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) rotate(-2deg) translateY(0); }
+  35%     { transform: scale(var(--agent-scale, 1.5)) rotate(3deg) translateY(-3px); }
+  70%     { transform: scale(var(--agent-scale, 1.5)) rotate(-1deg) translateY(1px); }
+}
+/* Puxar peixe: encolhimento de esforço */
+@keyframes clawd-reel {
+  0%,100% { transform: scale(var(--agent-scale, 1.5)); }
+  30%     { transform: scale(calc(var(--agent-scale, 1.5)*0.92)) translateX(-4px) rotate(-5deg); }
+  60%     { transform: scale(calc(var(--agent-scale, 1.5)*1.08)) translateX(2px) rotate(3deg); }
+}
+/* High-five: salto e parada */
+@keyframes clawd-highfive {
+  0%   { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
+  40%  { transform: scale(calc(var(--agent-scale, 1.5)*1.12)) translateY(-20px) rotate(-15deg); }
+  60%  { transform: scale(calc(var(--agent-scale, 1.5)*1.05)) translateY(-12px) rotate(10deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
+}
+
+/* ---- PIXEL-ART WALK FRAMES (nova skin esbelto — modelo do usuário) ---- */
+@keyframes clawd-pixel-walk {
+  0%,100% {
+    box-shadow:
+      /* Linha 0 (Topo da cabeça — orelhas) */
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      /* orelhas laterais */
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      /* Linha 1 (olhos abertos) */
+      8px 4px var(--agent-color),  12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color),
+      28px 4px #111,               32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      /* Linha 2 (Focinho/boca) */
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      /* nariz */
+      18px 8px #111, 22px 8px #111,
+      /* Linha 3 (Braços + Corpo) */
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      /* Linha 4 (Braços inferior) */
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      /* Linha 5 (Base do corpo) */
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* Linha 6 (Pernas — Frame A: retas) */
+      8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+      /* Linha 7 (Pés — Frame A: retos) */
+      8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  }
+  33% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      8px 4px var(--agent-color),  12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color),
+      28px 4px #111,               32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* Frame B: pernas alternadas */
+      4px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 36px 24px var(--agent-color),
+      0px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 40px 28px var(--agent-color);
+  }
+  66% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      /* PISCAR: olhos fechados em linha */
+      8px 4px var(--agent-color), 4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      10px 5px #111, 12px 5px #111, 14px 5px #111,
+      26px 5px #111, 28px 5px #111, 30px 5px #111,
+      16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* Frame A novamente (sincroniza com olho piscando) */
+      8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+      8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  }
+}
+
+/* ---- FRAME EMBAIXADINHA — perna levantada ---- */
+@keyframes clawd-pixel-keepy {
+  0%,100% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      8px 4px var(--agent-color), 12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px #111, 32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      /* braço esquerdo levantado (cima) para o toque */
+      -4px 8px var(--agent-color), -4px 12px var(--agent-color),
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* perna direita levantada (embaixadinha) */
+      8px 24px var(--agent-color),
+      24px 20px var(--agent-color), 28px 20px var(--agent-color),
+      24px 24px var(--agent-color),
+      /* perna esq reta */
+      8px 28px var(--agent-color), 16px 28px var(--agent-color),
+      24px 28px var(--agent-color);
+  }
+  50% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      8px 4px var(--agent-color), 12px 4px #111, 16px 4px var(--agent-color),
+      20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px #111, 32px 4px var(--agent-color),
+      4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      18px 8px #111, 22px 8px #111,
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* perna esquerda levantada */
+      32px 24px var(--agent-color),
+      28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* perna dir reta */
+      24px 24px var(--agent-color), 32px 28px var(--agent-color),
+      8px 24px var(--agent-color), 8px 28px var(--agent-color);
+  }
+}
+
+/* ---- SLEEP FRAME ---- */
+@keyframes clawd-pixel-sleep {
+  0%,100% {
+    box-shadow:
+      8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color),
+      24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+      4px 0 var(--agent-color), 36px 0 var(--agent-color),
+      /* olhos bem fechados */
+      8px 4px var(--agent-color), 4px 4px var(--agent-color), 36px 4px var(--agent-color),
+      10px 5px #111, 12px 5px #111, 14px 5px #111,
+      26px 5px #111, 28px 5px #111, 30px 5px #111,
+      16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color),
+      8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color),
+      20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+      0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color),
+      12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color),
+      24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color),
+      36px 12px var(--agent-color), 40px 12px var(--agent-color),
+      0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color),
+      12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color),
+      24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color),
+      36px 16px var(--agent-color), 40px 16px var(--agent-color),
+      8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color),
+      20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+      /* pernas dobradas dormindo */
+      8px 24px var(--agent-color), 12px 24px var(--agent-color),
+      28px 24px var(--agent-color), 32px 24px var(--agent-color);
+  }
+}
+
+/* --- O NÓ DO AGENTE --- */
+#aic-clawd-node[data-clawd-owned="true"] {
+  all: initial;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  pointer-events: auto;
+  width: 50px;
+  height: 50px;
+  display: block !important;
+  animation: none !important;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+
+  --agent-color: #c71515;
+  --agent-scale: 1.5;
+  --jersey-color: #e74c3c;
+  --clawd-refresh-rate: 60;
+
+  transition: transform 0.14s cubic-bezier(.22,.61,.36,1), opacity 0.35s ease;
+  will-change: transform, left, top;
+}
+#aic-clawd-node[data-clawd-owned="true"].dragging,
+#aic-clawd-node[data-clawd-owned="true"].pressing {
+  transition: opacity 0.35s ease;
+}
+#aic-clawd-node[data-clawd-owned="true"]:active { cursor: grabbing; }
+#aic-clawd-node[data-clawd-owned="true"],
+#aic-clawd-node[data-clawd-owned="true"] *,
+#aic-clawd-node[data-clawd-owned="true"] *::before,
+#aic-clawd-node[data-clawd-owned="true"] *::after { box-sizing: border-box; }
+
+/* --- CONTAINER INTERNO --- */
+#aic-clawd-node .pet-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transform: scale(var(--agent-scale, 1.5));
+  transform-origin: bottom center;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0px 5px 8px rgba(0,0,0,0.45));
+}
+
+/* --- STACK: sprite + camadas (acessórios acompanham todos os frames) --- */
+#aic-clawd-node .sprite-stack {
+  position: relative;
+  width: 44px;
+  height: 36px;
+  transition: filter 0.3s ease;
+  /* paint containment recortava cartolas, coroas, hélices e mochilas que
+     ultrapassam a caixa de 44×36px. Mantemos isolamento de layout/estilo. */
+  contain: layout style;
+  overflow: visible;
+  isolation: isolate;
+  transform: translateZ(0);
+}
+
+#aic-clawd-node .pixel-sprite {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  animation: none;
+  transform-origin: top left;
+  transition: filter 0.3s ease;
+  image-rendering: pixelated;
+  backface-visibility: hidden;
+}
+
+/* --- CAMADAS SOBRE O SPRITE (herdam squash do .pet-body) --- */
+#aic-clawd-node .accessory,
+#aic-clawd-node .jersey,
+#aic-clawd-node .skin-mod,
+#aic-clawd-node .laptop,
+#aic-clawd-node .fishing-rod-layer,
+#aic-clawd-node .balloon-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+}
+#aic-clawd-node .accessory { z-index: 3; }
+#aic-clawd-node .acc-head  { z-index: 4; }
+#aic-clawd-node .acc-face  { z-index: 5; }
+#aic-clawd-node .jersey    { z-index: 2; }
+#aic-clawd-node .skin-mod  { z-index: 1; }
+#aic-clawd-node .laptop    { z-index: 4; display: none; }
+#aic-clawd-node .fishing-rod-layer { z-index: 5; display: none; }
+#aic-clawd-node .balloon-layer { z-index: 6; display: none; pointer-events: none; }
+
+/* ===== ACESSÓRIOS — SLOT ROSTO/CORPO ===== */
+[data-acc-face="glasses"] .acc-face {
+  box-shadow:
+    4px 8px rgba(25,25,40,0.9),
+    8px 8px rgba(25,25,40,0.55), 12px 8px rgba(25,25,40,0.55), 16px 8px rgba(25,25,40,0.55),
+    20px 8px rgba(25,25,40,0.9),
+    24px 8px rgba(25,25,40,0.55), 28px 8px rgba(25,25,40,0.55), 32px 8px rgba(25,25,40,0.55),
+    36px 8px rgba(25,25,40,0.9);
+}
+/* Óculos de sol: lentes escuras + ponte + brilho */
+[data-acc-face="sunglasses"] .acc-face {
+  box-shadow:
+    8px 4px 0 #111,  12px 4px 0 #111,
+    24px 4px 0 #111, 28px 4px 0 #111,
+    16px 4px 0 #333, 20px 4px 0 #333,
+    9px 5px 0 rgba(255,255,255,0.55),
+    25px 5px 0 rgba(255,255,255,0.35);
+}
+/* Pose "cool" com óculos de sol: idle mais lento e confiante */
+[data-acc-face="sunglasses"] .pet-body { animation-duration: 3.8s !important; }
+
+[data-acc-face="bow"] .acc-face {
+  box-shadow:
+    28px -8px #e84393, 36px -8px #e84393,
+    28px -4px #fd79a8, 32px -4px #e84393, 36px -4px #fd79a8;
+}
+[data-acc-face="headphones"] .acc-face {
+  z-index: 3;
+  box-shadow:
+    12px -6px #2d3436, 16px -6px #2d3436, 20px -6px #2d3436, 24px -6px #2d3436, 28px -6px #2d3436,
+    8px -2px #2d3436, 32px -2px #2d3436,
+    4px 4px #2d3436, 4px 8px #636e72, 4px 12px #2d3436,
+    36px 4px #2d3436, 36px 8px #636e72, 36px 12px #2d3436;
+}
+/* Cachecol: balança no walk com física mais realista */
+@keyframes clawd-scarf-wave {
+  0%    { transform: translateX(0) rotate(0deg); }
+  25%   { transform: translateX(1px) rotate(1.5deg); }
+  50%   { transform: translateX(3px) rotate(3deg); }
+  75%   { transform: translateX(1px) rotate(1.5deg); }
+  100%  { transform: translateX(0) rotate(0deg); }
+}
+[data-acc-face="scarf"] .acc-face {
+  box-shadow:
+    8px 14px var(--acc-color, #c0392b), 12px 14px var(--acc-color, #c0392b), 16px 14px var(--acc-color, #c0392b),
+    20px 14px var(--acc-color, #e74c3c), 24px 14px var(--acc-color, #c0392b), 28px 14px var(--acc-color, #c0392b),
+    32px 14px var(--acc-color, #c0392b),
+    /* ponta pendurada */
+    32px 18px var(--acc-color, #e74c3c), 32px 22px var(--acc-color, #c0392b), 32px 26px var(--acc-color, #e74c3c);
+  animation: clawd-scarf-wave 0.55s ease-in-out infinite;
+}
+[data-acc-face="backpack"] .acc-face {
+  z-index: 2;
+  box-shadow:
+    /* mochila com mais detalhe: bolso e alças */
+    -4px 14px #7b5e42, -8px 14px #7b5e42,
+    -4px 16px #a0522d, -8px 16px #a0522d,
+    -4px 18px #a0522d, -8px 18px #a0522d,
+    -4px 20px #a0522d, -8px 20px #a0522d,
+    -4px 22px #8e6e3f, -8px 22px #8e6e3f,
+    /* bolso frontal */
+    -5px 18px #c8864a, -7px 18px #c8864a,
+    /* fivela */
+    -6px 14px #e0c070;
+}
+/* Medalha: pendurada no peito */
+[data-acc-face="medal"] .acc-face {
+  box-shadow:
+    20px 16px #f1c40f, 20px 20px #e67e22, 20px 24px #f1c40f,
+    18px 14px #bdc3c7, 22px 14px #bdc3c7;
+}
+
+/* ===== ACESSÓRIOS — SLOT CABEÇA ===== */
+[data-acc-head="cap"] .acc-head {
+  box-shadow:
+    /* botão, painéis, costura e aba projetada */
+    20px -12px #e74c3c,
+    8px -8px #26384d, 12px -8px #526a84, 16px -8px #455a72, 20px -8px #34495e,
+    24px -8px #3b5068, 28px -8px #34495e, 32px -8px #26384d,
+    4px -4px #223247, 8px -4px #34495e, 12px -4px #455a72, 16px -4px #455a72,
+    20px -4px #2c3e50, 24px -4px #3b5068, 28px -4px #34495e, 32px -4px #26384d,
+    28px 0 #1d2b3b, 32px 0 #223247, 36px 0 #223247, 40px 0 #172332;
+}
+[data-acc-head="tophat"] .acc-head {
+  box-shadow:
+    12px -20px #111118, 16px -20px #24242e, 20px -20px #2e2e39, 24px -20px #24242e, 28px -20px #111118,
+    12px -16px #111118, 16px -16px #30303a, 20px -16px #24242e, 24px -16px #1c1c24, 28px -16px #111118,
+    12px -12px #111118, 16px -12px #2c2c35, 20px -12px #24242e, 24px -12px #1c1c24, 28px -12px #111118,
+    12px -8px #552365, 16px -8px #8e44ad, 20px -8px #a45ac0, 24px -8px #8e44ad, 28px -8px #552365,
+    4px -4px #0d0d12, 8px -4px #15151c, 12px -4px #1d1d25, 16px -4px #24242e, 20px -4px #24242e,
+    24px -4px #24242e, 28px -4px #1d1d25, 32px -4px #15151c, 36px -4px #0d0d12;
+}
+[data-acc-head="crown"] .acc-head {
+  box-shadow:
+    /* três pontas, reflexos, joias e base sombreada */
+    8px -16px #f6d44b, 20px -20px #fff09a, 32px -16px #f6d44b,
+    8px -12px #d88912, 12px -12px #f1c40f, 16px -12px #f6d44b, 20px -12px #f1c40f,
+    24px -12px #f6d44b, 28px -12px #f1c40f, 32px -12px #d88912,
+    8px -8px #f1c40f, 12px -8px #e74c3c, 16px -8px #f1c40f, 20px -8px #3498db,
+    24px -8px #f1c40f, 28px -8px #27ae60, 32px -8px #d88912,
+    8px -4px #c67d0c, 12px -4px #e8a817, 16px -4px #f1c40f, 20px -4px #e8a817,
+    24px -4px #f1c40f, 28px -4px #e8a817, 32px -4px #b96f08;
+}
+[data-acc-head="chefhat"] .acc-head {
+  box-shadow:
+    /* gomos altos, dobras centrais e faixa inferior */
+    16px -20px #fff, 20px -20px #f8f9fa, 24px -20px #fff,
+    8px -16px #fff, 12px -16px #fff, 16px -16px #eef1f3, 20px -16px #fff,
+    24px -16px #eef1f3, 28px -16px #fff, 32px -16px #fff,
+    4px -12px #f7f8f9, 8px -12px #fff, 12px -12px #edf0f2, 16px -12px #fff, 20px -12px #e5e9ec,
+    24px -12px #fff, 28px -12px #edf0f2, 32px -12px #fff, 36px -12px #f7f8f9,
+    8px -8px #e9edef, 12px -8px #f8f9fa, 16px -8px #e1e6e9, 20px -8px #f8f9fa,
+    24px -8px #e1e6e9, 28px -8px #f8f9fa, 32px -8px #d8dee2,
+    8px -4px #cfd6da, 12px -4px #e7ebed, 16px -4px #d8dee2, 20px -4px #e7ebed,
+    24px -4px #d8dee2, 28px -4px #e7ebed, 32px -4px #c5cdd2;
+}
+[data-acc-head="ninjaband"] .acc-head {
+  box-shadow:
+    /* faixa assentada na testa: preserva os olhos da linha y=4 */
+    8px -4px #76171d, 12px -4px #8f1d24, 16px -4px #a8242e, 20px -4px #8f1d24,
+    24px -4px #a8242e, 28px -4px #8f1d24, 32px -4px #76171d,
+    8px 0 #8f1d24, 12px 0 #c52d39, 16px 0 #e05a63, 20px 0 #c52d39,
+    24px 0 #d94752, 28px 0 #c52d39, 32px 0 #8f1d24, 36px 0 #76171d,
+    /* nó e pontas atrás da cabeça */
+    40px -4px #a8242e, 44px -4px #8f1d24,
+    40px 4px #b52a35, 44px 8px #8f1d24,
+    40px 8px #a8242e, 44px 12px #76171d;
+}
+/* Chapéu de pescador: abas largas + faixa */
+[data-acc-head="fishhat"] .acc-head {
+  box-shadow:
+    /* copa com luz e costura */
+    12px -12px #8b6914, 16px -12px #c4982a, 20px -12px #d4ae4f, 24px -12px #b98a22, 28px -12px #7a5a10,
+    8px -8px #8b6914, 12px -8px #b18425, 16px -8px #c4982a, 20px -8px #b18425,
+    24px -8px #a07820, 28px -8px #d64545, 32px -8px #76550f,
+    /* faixa vermelha e emblema dourado */
+    8px -4px #8f2525, 12px -4px #d64545, 16px -4px #e65b55, 20px -4px #d64545,
+    24px -4px #e65b55, 28px -4px #f1c40f, 32px -4px #8f2525,
+    /* aba larga com lado iluminado e parte inferior */
+    0 0 #6f500e, 4px 0 #8b6914, 8px 0 #a8781b, 12px 0 #b18425, 16px 0 #b98a22,
+    20px 0 #b18425, 24px 0 #a8781b, 28px 0 #a07820, 32px 0 #8b6914, 36px 0 #76550f, 40px 0 #604409;
+}
+/* Hélice: botão de hélice giratória */
+@keyframes clawd-propeller-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+[data-acc-head="propeller"] .acc-head {
+  box-shadow:
+    /* capacete bipartido, borda, haste e cubo */
+    12px -8px #2f86c1, 16px -8px #55a9dd, 20px -8px #f1c40f, 24px -8px #ef6258, 28px -8px #d63d34,
+    8px -4px #246c9b, 12px -4px #3498db, 16px -4px #3498db, 20px -4px #8e7c38,
+    24px -4px #e74c3c, 28px -4px #e74c3c, 32px -4px #b72f29,
+    20px -12px #6f7780, 20px -16px #9aa2a8, 20px -20px #f1c40f;
+}
+/* Pá da hélice (pseudo) — gira sem trocar o capacete pixel */
+[data-acc-head="propeller"] .acc-head::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: -24px;
+  width: 4px;
+  height: 4px;
+  background: #f1c40f;
+  box-shadow:
+    -8px 0 #ef6258, -4px 0 #f1c40f, 4px 0 #f1c40f, 8px 0 #55a9dd,
+    0 -4px #9aa2a8, 0 4px #9aa2a8;
+  transform-origin: 2px 2px;
+  animation: clawd-propeller-spin 0.45s steps(4) infinite;
+}
+
+/* ===== CAMISA DE TIME (Jogador) ===== */
+#aic-clawd-node.has-jersey .jersey {
+  box-shadow:
+    4px 12px var(--jersey-color), 8px 12px var(--jersey-color),
+    12px 12px var(--jersey-color), 16px 12px var(--jersey-color),
+    20px 12px var(--jersey-color), 24px 12px var(--jersey-color),
+    28px 12px var(--jersey-color), 32px 12px var(--jersey-color), 36px 12px var(--jersey-color),
+    4px 16px var(--jersey-color), 8px 16px var(--jersey-color),
+    16px 16px #fff, 20px 16px #fff, 24px 16px #fff,
+    28px 16px var(--jersey-color), 32px 16px var(--jersey-color), 36px 16px var(--jersey-color);
+  opacity: 0.85;
+}
+
+/* ===== VARA DE PESCAR (Pescador) ===== */
+#aic-clawd-node.fishing .fishing-rod-layer {
+  display: block;
+  box-shadow:
+    /* vara — longa e diagonal */
+    40px 8px  #8B6914, 44px 4px  #a07820, 48px 0   #8B6914, 52px -4px #c4982a,
+    56px -8px #8B6914, 60px -12px #a07820, 64px -16px #8B6914,
+    /* alça / grip */
+    36px 12px #5d3a1a, 36px 16px #5d3a1a, 36px 20px #5d3a1a,
+    /* linha de pesca (pontilhada) */
+    64px -16px #bdc3c7, 65px -12px rgba(189,195,199,0.7), 66px -8px rgba(189,195,199,0.5),
+    67px -4px rgba(189,195,199,0.7), 68px 0 rgba(189,195,199,0.5);
+}
+
+/* ===== SKINS DE CORPO ===== */
+[data-skin="droopy"] .skin-mod {
+  /* orelhas caídas */
+  box-shadow:
+    0px 2px var(--agent-color), 0px 6px var(--agent-color),
+    40px 2px var(--agent-color), 40px 6px var(--agent-color);
+}
+[data-skin="droopy"] .pixel-sprite { filter: none; }
+[data-skin="robot"] .skin-mod {
+  /* antena + parafusos */
+  box-shadow:
+    20px -8px #95a5a6, 20px -12px #7f8c8d, 20px -16px #e74c3c,
+    2px 18px #bdc3c7, 38px 18px #bdc3c7;
+}
+[data-skin="robot"] .pixel-sprite { filter: saturate(0.35) brightness(1.1); }
+
+/* ===== LAPTOP (Dev digitando) ===== */
+#aic-clawd-node.typing .laptop {
+  display: block;
+  box-shadow:
+    10px 30px #2c3e50, 14px 30px #34495e, 18px 30px #2c3e50, 22px 30px #34495e, 26px 30px #2c3e50,
+    10px 26px #85c1e9, 14px 26px #aed6f1, 18px 26px #85c1e9, 22px 26px #aed6f1, 26px 26px #85c1e9,
+    10px 22px #2c3e50, 26px 22px #2c3e50;
+}
+#aic-clawd-node.typing .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.05);
+}
+
+/* ============================
+   MODO LISO x PIXELADO / CONTORNO
+   ============================ */
+#aic-clawd-node.smooth .sprite-stack {
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.12));
+  transition: filter .2s ease, transform .18s cubic-bezier(.34, 1.4, .64, 1);
+}
+#aic-clawd-node.smooth:hover:not(.dragging):not(.walking):not(.running):not(.sleeping) .sprite-stack {
+  filter: drop-shadow(0 3px 2px rgba(0,0,0,.16));
+}
+#aic-clawd-node.smooth.dragging .sprite-stack {
+  filter: drop-shadow(0 6px 4px rgba(0,0,0,.22));
+  transform: scale(1.05);
+}
+#aic-clawd-node.smooth.pressing:not(.dragging) .smooth-sprite {
+  animation: none !important;
+  transform: scale(0.92, 1.06);
+  transition: transform .08s ease-out;
+}
+#aic-clawd-node.outlined .sprite-stack {
+  filter:
+    drop-shadow(2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(-2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(0 2px 0 var(--outline-color, #16161f))
+    drop-shadow(0 -2px 0 var(--outline-color, #16161f));
+}
+#aic-clawd-node.smooth.outlined .sprite-stack {
+  filter:
+    drop-shadow(2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(-2px 0 0 var(--outline-color, #16161f))
+    drop-shadow(0 2px 0 var(--outline-color, #16161f))
+    drop-shadow(0 -2px 0 var(--outline-color, #16161f));
+}
+
+/* Banho: pet brilhando */
+#aic-clawd-node.shiny .sprite-stack {
+  filter: brightness(1.15) saturate(1.15) drop-shadow(0 0 6px rgba(160,220,255,0.7));
+}
+
+/* ============================
+   BOLA (Jogador) + skins
+   ============================ */
+@keyframes clawd-ball-juggle {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50%     { transform: translateY(-26px) rotate(180deg); }
+}
+/* Embaixadinha: arco mais realista com variação lateral */
+@keyframes clawd-ball-keepy {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  20%  { transform: translate(3px,-40px) rotate(90deg); }
+  40%  { transform: translate(0,-52px) rotate(200deg); }
+  60%  { transform: translate(-4px,-38px) rotate(300deg); }
+  80%  { transform: translate(-2px,-18px) rotate(340deg); }
+  100% { transform: translate(0,0) rotate(360deg); }
+}
+/* Chute: parábola com rotação */
+@keyframes clawd-ball-kick {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  35%  { transform: translate(120px,-110px) rotate(380deg); }
+  60%  { transform: translate(210px,-40px) rotate(680deg); }
+  75%  { transform: translate(250px,15px) rotate(830deg); }
+  100% { transform: translate(0,0) rotate(1080deg); opacity: 1; }
+}
+/* Bola rolando (erro na embaixadinha) */
+@keyframes clawd-ball-roll {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  100% { transform: translate(-110px,4px) rotate(-720deg); }
+}
+
+#aic-clawd-node .pet-ball {
+  --ball-cell: 2px;
+  position: absolute;
+  bottom: -2px;
+  left: -28px;
+  width: 2px;
+  height: 2px;
+  border-radius: 0;
+  background: transparent;
+  /* Bola pixel-art clássica (grid 9×9 @ 2px) */
+  box-shadow: var(--clawd-ball-shadow,
+    4px 0 #111, 6px 0 #111, 8px 0 #111, 10px 0 #111, 12px 0 #111,
+    2px 2px #111, 4px 2px #f5f5f5, 6px 2px #f5f5f5, 8px 2px #1a1a2e, 10px 2px #f5f5f5, 12px 2px #f5f5f5, 14px 2px #111,
+    0 4px #111, 2px 4px #f5f5f5, 4px 4px #f5f5f5, 6px 4px #1a1a2e, 8px 4px #1a1a2e, 10px 4px #1a1a2e, 12px 4px #f5f5f5, 14px 4px #f5f5f5, 16px 4px #111,
+    0 6px #111, 2px 6px #f5f5f5, 4px 6px #1a1a2e, 6px 6px #f5f5f5, 8px 6px #f5f5f5, 10px 6px #f5f5f5, 12px 6px #1a1a2e, 14px 6px #f5f5f5, 16px 6px #111,
+    0 8px #111, 2px 8px #1a1a2e, 4px 8px #1a1a2e, 6px 8px #f5f5f5, 8px 8px #f5f5f5, 10px 8px #f5f5f5, 12px 8px #1a1a2e, 14px 8px #1a1a2e, 16px 8px #111,
+    0 10px #111, 2px 10px #f5f5f5, 4px 10px #1a1a2e, 6px 10px #f5f5f5, 8px 10px #f5f5f5, 10px 10px #f5f5f5, 12px 10px #1a1a2e, 14px 10px #f5f5f5, 16px 10px #111,
+    0 12px #111, 2px 12px #f5f5f5, 4px 12px #f5f5f5, 6px 12px #1a1a2e, 8px 12px #1a1a2e, 10px 12px #1a1a2e, 12px 12px #f5f5f5, 14px 12px #f5f5f5, 16px 12px #111,
+    2px 14px #111, 4px 14px #f5f5f5, 6px 14px #f5f5f5, 8px 14px #1a1a2e, 10px 14px #f5f5f5, 12px 14px #f5f5f5, 14px 14px #111,
+    4px 16px #111, 6px 16px #111, 8px 16px #111, 10px 16px #111, 12px 16px #111
+  );
+  image-rendering: pixelated;
+  cursor: pointer;
+  display: none;
+  animation: clawd-ball-juggle 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  z-index: 5;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.25));
+}
+#aic-clawd-node.has-ball .pet-ball { display: block; }
+/* Embaixadinha próxima à perna — bola miúda pixel (ref. Claude keepy) */
+#aic-clawd-node.smooth.has-ball .pet-ball {
+  left: -14px;
+  bottom: 6px;
+  transform-origin: center center;
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.3));
+  /* Bola compacta ~5×5 (mais fiel à referência) */
+  --clawd-ball-shadow:
+    2px 0 #111, 4px 0 #111, 6px 0 #111,
+    0 2px #111, 2px 2px #f5f5f5, 4px 2px #1a1a2e, 6px 2px #f5f5f5, 8px 2px #111,
+    0 4px #111, 2px 4px #1a1a2e, 4px 4px #f5f5f5, 6px 4px #1a1a2e, 8px 4px #111,
+    0 6px #111, 2px 6px #f5f5f5, 4px 6px #1a1a2e, 6px 6px #f5f5f5, 8px 6px #111,
+    2px 8px #111, 4px 8px #111, 6px 8px #111;
+}
+#aic-clawd-node.smooth.keepy .pet-ball,
+#aic-clawd-node.smooth.keepy-uppy .pet-ball {
+  animation: clawd-ball-keepy-foot 0.48s cubic-bezier(0.4, 0, 0.35, 1) infinite !important;
+}
+@keyframes clawd-ball-keepy-foot {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  30%  { transform: translate(-2px, -18px) rotate(90deg); }
+  55%  { transform: translate(1px, -26px) rotate(200deg); }
+  80%  { transform: translate(-1px, -10px) rotate(300deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+#aic-clawd-node.keepy .pet-ball {
+  animation: clawd-ball-keepy 0.55s cubic-bezier(0.4, 0, 0.5, 1) infinite !important;
+}
+#aic-clawd-node.freestyle-heel .pet-ball {
+  animation: clawd-ball-heel 0.48s cubic-bezier(0.33, 0, 0.3, 1) both !important;
+}
+#aic-clawd-node.freestyle-around .pet-ball {
+  animation: clawd-ball-around 0.62s cubic-bezier(0.4, 0, 0.3, 1) both !important;
+}
+#aic-clawd-node.freestyle-rabona .pet-ball {
+  animation: clawd-ball-rabona 0.5s cubic-bezier(0.33, 0, 0.3, 1) both !important;
+}
+#aic-clawd-node.freestyle-knee .pet-ball {
+  animation: clawd-ball-knee 0.44s cubic-bezier(0.34, 1.2, 0.4, 1) both !important;
+}
+#aic-clawd-node .pet-ball.kicked  { animation: clawd-ball-kick 1.3s cubic-bezier(0.3, 0, 0.4, 1) forwards !important; }
+#aic-clawd-node .pet-ball.rolling { animation: clawd-ball-roll 1.1s ease-out forwards !important; }
+@keyframes clawd-ball-pop {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  45%  { transform: translate(2px, -46px) rotate(200deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+@keyframes clawd-ball-heel {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  35%  { transform: translate(-16px, -22px) rotate(-140deg); }
+  70%  { transform: translate(-6px, -48px) rotate(-260deg); }
+  100% { transform: translate(0, 0) rotate(-360deg); }
+}
+@keyframes clawd-ball-around {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(20px, -18px) rotate(90deg); }
+  50%  { transform: translate(4px, -50px) rotate(180deg); }
+  75%  { transform: translate(-18px, -20px) rotate(270deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+@keyframes clawd-ball-rabona {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  40%  { transform: translate(14px, -12px) rotate(90deg); }
+  70%  { transform: translate(-10px, -40px) rotate(220deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+@keyframes clawd-ball-knee {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(1px, -28px) scale(1.05); }
+  70% { transform: translate(0, -10px) scale(0.96); }
+}
+#aic-clawd-node .pet-ball.keepy-pop {
+  animation: clawd-ball-pop 0.42s cubic-bezier(0.33, 0, 0.3, 1) both !important;
+}
+#aic-clawd-node.freestyle-heel .pet-body,
+#aic-clawd-node.freestyle-around .pet-body,
+#aic-clawd-node.freestyle-rabona .pet-body {
+  animation: clawd-freestyle-lean 0.45s ease-out both !important;
+}
+@keyframes clawd-freestyle-lean {
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  40% { transform: scale(var(--agent-scale, 1.5)) rotate(-8deg) translateY(-2px); }
+  70% { transform: scale(var(--agent-scale, 1.5)) rotate(6deg) translateY(-4px); }
+}
+
+/* Contador flutuante de embaixadinhas ao vivo */
+.aic-juggle-count {
+  position: absolute;
+  left: -30px;
+  bottom: 44px;
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #27ae60;
+  color: #fff;
+  font: 800 11px/1 'Courier New', monospace;
+  text-align: center;
+  box-shadow: 2px 2px 0 #145a32;
+  pointer-events: none;
+  z-index: 8;
+  image-rendering: pixelated;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.aic-juggle-count.hot {
+  background: #e67e22;
+  box-shadow: 2px 2px 0 #a04000;
+}
+.aic-juggle-count.bump { animation: clawd-count-bump 0.26s ease-out; }
+.aic-juggle-count.fade { opacity: 0; transform: translateY(-8px) scale(0.8); }
+@keyframes clawd-count-bump {
+  0%   { transform: scale(0.7); }
+  55%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* Skins da bola em pixel */
+[data-ball-skin="ball_gold"] .pet-ball {
+  --clawd-ball-shadow:
+    4px 0 #8a6a00, 6px 0 #8a6a00, 8px 0 #8a6a00, 10px 0 #8a6a00, 12px 0 #8a6a00,
+    2px 2px #8a6a00, 4px 2px #fff3a8, 6px 2px #f1c40f, 8px 2px #d4a017, 10px 2px #f1c40f, 12px 2px #fff3a8, 14px 2px #8a6a00,
+    0 4px #8a6a00, 2px 4px #f1c40f, 4px 4px #fff3a8, 6px 4px #d4a017, 8px 4px #d4a017, 10px 4px #d4a017, 12px 4px #fff3a8, 14px 4px #f1c40f, 16px 4px #8a6a00,
+    0 6px #8a6a00, 2px 6px #f1c40f, 4px 6px #d4a017, 6px 6px #fff3a8, 8px 6px #fff3a8, 10px 6px #fff3a8, 12px 6px #d4a017, 14px 6px #f1c40f, 16px 6px #8a6a00,
+    0 8px #8a6a00, 2px 8px #d4a017, 4px 8px #d4a017, 6px 8px #fff3a8, 8px 8px #fff3a8, 10px 8px #fff3a8, 12px 8px #d4a017, 14px 8px #d4a017, 16px 8px #8a6a00,
+    0 10px #8a6a00, 2px 10px #f1c40f, 4px 10px #d4a017, 6px 10px #fff3a8, 8px 10px #fff3a8, 10px 10px #fff3a8, 12px 10px #d4a017, 14px 10px #f1c40f, 16px 10px #8a6a00,
+    0 12px #8a6a00, 2px 12px #f1c40f, 4px 12px #fff3a8, 6px 12px #d4a017, 8px 12px #d4a017, 10px 12px #d4a017, 12px 12px #fff3a8, 14px 12px #f1c40f, 16px 12px #8a6a00,
+    2px 14px #8a6a00, 4px 14px #fff3a8, 6px 14px #f1c40f, 8px 14px #d4a017, 10px 14px #f1c40f, 12px 14px #fff3a8, 14px 14px #8a6a00,
+    4px 16px #8a6a00, 6px 16px #8a6a00, 8px 16px #8a6a00, 10px 16px #8a6a00, 12px 16px #8a6a00;
+  filter: drop-shadow(0 0 3px rgba(241,196,15,.55));
+}
+[data-ball-skin="ball_beach"] .pet-ball {
+  --clawd-ball-shadow:
+    4px 0 #111, 6px 0 #111, 8px 0 #111, 10px 0 #111, 12px 0 #111,
+    2px 2px #111, 4px 2px #e74c3c, 6px 2px #e74c3c, 8px 2px #fff, 10px 2px #3498db, 12px 2px #3498db, 14px 2px #111,
+    0 4px #111, 2px 4px #e74c3c, 4px 4px #e74c3c, 6px 4px #fff, 8px 4px #fff, 10px 4px #fff, 12px 4px #3498db, 14px 4px #3498db, 16px 4px #111,
+    0 6px #111, 2px 6px #fff, 4px 6px #fff, 6px 6px #f1c40f, 8px 6px #f1c40f, 10px 6px #f1c40f, 12px 6px #fff, 14px 6px #fff, 16px 6px #111,
+    0 8px #111, 2px 8px #3498db, 4px 8px #3498db, 6px 8px #f1c40f, 8px 8px #f1c40f, 10px 8px #f1c40f, 12px 8px #e74c3c, 14px 8px #e74c3c, 16px 8px #111,
+    0 10px #111, 2px 10px #3498db, 4px 10px #3498db, 6px 10px #fff, 8px 10px #fff, 10px 10px #fff, 12px 10px #e74c3c, 14px 10px #e74c3c, 16px 10px #111,
+    0 12px #111, 2px 12px #fff, 4px 12px #fff, 6px 12px #e74c3c, 8px 12px #e74c3c, 10px 12px #3498db, 12px 12px #fff, 14px 12px #fff, 16px 12px #111,
+    2px 14px #111, 4px 14px #f1c40f, 6px 14px #f1c40f, 8px 14px #fff, 10px 14px #3498db, 12px 14px #3498db, 14px 14px #111,
+    4px 16px #111, 6px 16px #111, 8px 16px #111, 10px 16px #111, 12px 16px #111;
+}
+
+/* Partículas pixel (sem emoji) */
+.aic-pixel-spark {
+  position: fixed;
+  z-index: 2147483647;
+  width: 2px;
+  height: 2px;
+  pointer-events: none;
+  image-rendering: pixelated;
+  animation: clawd-pixel-spark 0.9s ease-out forwards;
+}
+@keyframes clawd-pixel-spark {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)) scale(0.6); }
+}
+
+/* Trave pixel-art no gol */
+.aic-goalpost {
+  position: fixed;
+  right: 8px;
+  width: 60px;
+  height: 74px;
+  z-index: 2147483646;
+  border-top: 6px solid #ecf0f1;
+  border-left: 6px solid #ecf0f1;
+  border-right: 6px solid #ecf0f1;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, rgba(236,240,241,0.35) 6px 8px),
+    repeating-linear-gradient(-45deg, transparent 0 6px, rgba(236,240,241,0.35) 6px 8px);
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none;
+}
+.aic-goalpost.visible { opacity: 1; transform: translateX(0); }
+
+/* Bolinha genérica de brincar */
+.aic-toyball {
+  position: fixed;
+  width: 2px;
+  height: 2px;
+  border-radius: 0;
+  background: transparent;
+  /* Bolinha de brincar — pixel 7×7 @ 2px (verde) */
+  box-shadow:
+    2px 0 #145a32, 4px 0 #145a32, 6px 0 #145a32, 8px 0 #145a32, 10px 0 #145a32,
+    0 2px #145a32, 2px 2px #58d68d, 4px 2px #2ecc71, 6px 2px #27ae60, 8px 2px #1e8449, 10px 2px #145a32, 12px 2px #145a32,
+    0 4px #145a32, 2px 4px #2ecc71, 4px 4px #aef56e, 6px 4px #2ecc71, 8px 4px #27ae60, 10px 4px #1e8449, 12px 4px #145a32,
+    0 6px #145a32, 2px 6px #27ae60, 4px 6px #2ecc71, 6px 6px #1e8449, 8px 6px #145a32, 10px 6px #0e3d21, 12px 6px #145a32,
+    0 8px #145a32, 2px 8px #1e8449, 4px 8px #27ae60, 6px 8px #145a32, 8px 8px #0e3d21, 10px 8px #1e8449, 12px 8px #145a32,
+    2px 10px #145a32, 4px 10px #145a32, 6px 10px #145a32, 8px 10px #145a32, 10px 10px #145a32;
+  image-rendering: pixelated;
+  z-index: 2147483647;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.2));
+  animation: clawd-toyball 1.9s cubic-bezier(0.3,0,0.4,1) forwards;
+}
+
+/* Poeirinha da corrida (pixels) */
+.aic-dust {
+  position: fixed;
+  width: 3px;
+  height: 3px;
+  border-radius: 0;
+  background: #b8a99a;
+  box-shadow: 3px 1px #9a8b7c, -2px 2px #cfc4b8;
+  z-index: 2147483646;
+  pointer-events: none;
+  image-rendering: pixelated;
+  animation: clawd-dust 0.6s ease-out forwards;
+}
+
+/* --- SOMBRA NO CHÃO --- */
+#aic-clawd-node .ground-shadow {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-30%);
+  width: 56px;
+  height: 8px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 50%;
+  filter: blur(3px);
+  animation: clawd-shadow-pulse 0.55s steps(1) infinite;
+  pointer-events: none;
+}
+
+/* --- BADGE DE EMOÇÃO --- */
+#aic-clawd-node .emotion-badge {
+  position: absolute;
+  top: -62px;
+  left: -24px;
+  min-width: 28px;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 4px 6px;
+  font-size: 18px;
+  line-height: 1;
+  background: rgba(255,255,255,.96);
+  border: 2px solid var(--agent-color);
+  border-radius: 50% 50% 50% 12px;
+  box-shadow: 0 5px 14px rgba(0,0,0,.22);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+  opacity: 0;
+  transform: translateY(6px) scale(.65) rotate(-8deg);
+  transition: opacity .22s ease, transform .32s cubic-bezier(.34,1.56,.64,1);
+  z-index: 11;
+}
+#aic-clawd-node .emotion-badge.visible { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+#aic-clawd-node[data-emotion="joyful"] .emotion-badge.visible,
+#aic-clawd-node[data-emotion="ecstatic"] .emotion-badge.visible,
+#aic-clawd-node[data-emotion="peppy"] .emotion-badge.visible {
+  animation: clawd-emotion-bob 1.1s ease-in-out infinite;
+}
+#aic-clawd-node[data-emotion="sad"] .emotion-badge.visible,
+#aic-clawd-node[data-emotion="hungry"] .emotion-badge.visible,
+#aic-clawd-node[data-emotion="grubby"] .emotion-badge.visible {
+  animation: clawd-emotion-droop 1.6s ease-in-out infinite;
+}
+@keyframes clawd-emotion-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.06); }
+}
+@keyframes clawd-emotion-droop {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(2px) rotate(3deg); }
+}
+#aic-clawd-node.emotion-glow .pet-body {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--agent-color) 55%, transparent));
+}
+#aic-clawd-node[data-emotion="ecstatic"] .ground-shadow {
+  animation: clawd-shadow-pulse 0.55s steps(1) infinite;
+}
+#aic-clawd-node[data-emotion="sad"] .ground-shadow { opacity: .45; transform: scaleX(.85); }
+#aic-clawd-node[data-emotion="peppy"] .ground-shadow { opacity: .9; }
+#aic-clawd-node.page-dark .ground-shadow {
+  background: radial-gradient(ellipse, rgba(120,160,220,.35), transparent 70%);
+}
+#aic-clawd-node .emotion-badge::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border-right: 2px solid var(--agent-color);
+  border-bottom: 2px solid var(--agent-color);
+  transform: rotate(28deg);
+}
+
+/* Camada facial: pisca sem alterar a silhueta ou os acessórios. */
+#aic-clawd-node .emotion-face {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+#aic-clawd-node .blink-cover,
+#aic-clawd-node .blink-line,
+#aic-clawd-node .emotion-mouth { position: absolute; display: none; pointer-events: none; }
+
+/* Boca removida — silhueta Claude/Welcome sem mouth em todas as emoções */
+#aic-clawd-node .emotion-mouth,
+#aic-clawd-node .emotion-mouth::before,
+#aic-clawd-node .emotion-mouth::after {
+  display: none !important;
+  opacity: 0 !important;
+  animation: none !important;
+  border-width: 0 !important;
+}
+
+#aic-clawd-node .blink-cover {
+  left: 12px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  background: var(--agent-color);
+  box-shadow: 16px 0 var(--agent-color);
+  opacity: 0;
+  animation: clawd-eye-cover 5.2s steps(1) infinite;
+}
+#aic-clawd-node .blink-line {
+  left: 12px;
+  top: 6px;
+  width: 4px;
+  height: 1px;
+  background: #111;
+  box-shadow: 16px 0 #111;
+  opacity: 0;
+  animation: clawd-eye-line 5.2s steps(1) infinite;
+}
+#aic-clawd-node .emotion-mouth {
+  left: 18px;
+  top: 10px;
+  width: 8px;
+  height: 4px;
+  box-sizing: border-box;
+  background: transparent;
+  border: 0 solid #1a1216;
+  /* Idle Claude / Welcome: SEM boca. Só emoção / fala mostra o traço. */
+  border-bottom-width: 2px;
+  border-radius: 0 0 10px 10px;
+  opacity: 0;
+  transform-origin: center top;
+  transition:
+    opacity .18s ease,
+    transform .2s cubic-bezier(.34, 1.4, .64, 1),
+    border-radius .18s ease,
+    border-width .16s ease,
+    width .18s ease,
+    height .18s ease,
+    top .18s ease,
+    left .18s ease;
+  will-change: transform;
+}
+/* Idle content permanece sem boca (referência Welcome / Anthropic) */
+#aic-clawd-node:not(.talking):not(.eating):not(.yawning):not(.sleeping):not(.happy):not(.celebrate):not(.excited):not(.roaring):not(.tantrum):not(.shy)[data-emotion="content"] .emotion-mouth,
+#aic-clawd-node:not(.talking):not(.eating):not(.yawning):not(.sleeping):not(.happy):not(.celebrate):not(.excited):not(.roaring):not(.tantrum):not(.shy):not([data-emotion]) .emotion-mouth {
+  opacity: 0;
+  animation: none;
+}
+@keyframes clawd-mouth-idle {
+  0%, 100% { transform: scaleY(1) translateY(0); opacity: 0.88; }
+  50% { transform: scaleY(1.08) translateY(0.4px); opacity: 0.95; }
+}
+#aic-clawd-node .emotion-mouth::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 1px;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  transition: opacity .16s ease, width .16s ease, height .16s ease;
+}
+#aic-clawd-node .emotion-mouth::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 3px;
+  height: 2px;
+  border-radius: 0 0 3px 3px;
+  background: #e76578;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity .16s ease, width .16s ease, height .16s ease;
+}
+#aic-clawd-node.mouth-hidden .emotion-mouth,
+#aic-clawd-node.mouth-hidden .emotion-mouth::before,
+#aic-clawd-node.mouth-hidden .emotion-mouth::after {
+  display: none !important;
+}
+@keyframes clawd-eye-cover { 0%, 91%, 96%, 100% { opacity: 0; } 92%, 95% { opacity: 1; } }
+@keyframes clawd-eye-line  { 0%, 91%, 96%, 100% { opacity: 0; } 92%, 95% { opacity: 1; } }
+@keyframes clawd-mouth-talk {
+  0%, 100% { transform: scaleY(1) scaleX(1); }
+  35% { transform: scaleY(1.35) scaleX(0.92); }
+  70% { transform: scaleY(0.85) scaleX(1.06); }
+}
+@keyframes clawd-mouth-chew {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  40% { transform: scaleY(0.55) translateY(1px); }
+  75% { transform: scaleY(1.15) translateY(0); }
+}
+@keyframes clawd-mouth-yawn {
+  0% { transform: scale(0.7); opacity: .7; }
+  40% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: .95; }
+}
+#aic-clawd-node[data-emotion="sleepy"] .blink-cover,
+#aic-clawd-node[data-emotion="sleepy"] .blink-line { opacity: 1; animation: none; }
+
+/* ——— Expressões de boca ——— */
+#aic-clawd-node[data-emotion="sad"] .emotion-mouth {
+  top: 11px;
+  width: 8px;
+  height: 4px;
+  border-top-width: 2px;
+  border-bottom-width: 0;
+  border-radius: 9px 9px 0 0;
+  opacity: .9;
+}
+#aic-clawd-node[data-emotion="hungry"] .emotion-mouth {
+  left: 19px;
+  top: 9px;
+  width: 6px;
+  height: 5px;
+  border: 2px solid #1a1216;
+  border-radius: 45% 45% 55% 55%;
+  opacity: .92;
+  animation: clawd-mouth-chew 0.9s ease-in-out infinite;
+}
+#aic-clawd-node[data-emotion="sleepy"] .emotion-mouth,
+#aic-clawd-node.sleeping .emotion-mouth {
+  left: 19px;
+  top: 10px;
+  width: 5px;
+  height: 3px;
+  border: 0;
+  border-bottom-width: 2px;
+  border-radius: 0 0 6px 6px;
+  opacity: .75;
+  transform: scaleX(0.85);
+}
+#aic-clawd-node.yawning .emotion-mouth {
+  left: 18px;
+  top: 7px;
+  width: 8px;
+  height: 9px;
+  border: 2px solid #1a1216;
+  border-radius: 50%;
+  background: transparent;
+  opacity: .95;
+  animation: clawd-mouth-yawn 2s ease-in-out both;
+}
+#aic-clawd-node.yawning .emotion-mouth::before {
+  top: 2px;
+  width: 4px;
+  height: 1px;
+  background: #f2ebe6;
+  opacity: .9;
+  border-radius: 1px;
+}
+#aic-clawd-node.eating .emotion-mouth {
+  left: 19px;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border: 2px solid #1a1216;
+  border-radius: 50%;
+  opacity: .95;
+  animation: clawd-mouth-chew 0.38s ease-in-out infinite;
+}
+#aic-clawd-node[data-emotion="joyful"] .emotion-mouth,
+#aic-clawd-node.happy .emotion-mouth,
+#aic-clawd-node.celebrate .emotion-mouth,
+#aic-clawd-node.dance-1 .emotion-mouth,
+#aic-clawd-node.dance-3 .emotion-mouth {
+  left: 16px;
+  top: 8px;
+  width: 12px;
+  height: 6px;
+  border-bottom-width: 2.5px;
+  border-radius: 0 0 14px 14px;
+  opacity: 1;
+  transform: scale(1.08);
+}
+#aic-clawd-node[data-emotion="joyful"] .emotion-mouth::after,
+#aic-clawd-node.happy .emotion-mouth::after,
+#aic-clawd-node.celebrate .emotion-mouth::after {
+  opacity: .95;
+  width: 5px;
+  height: 3px;
+  bottom: -2px;
+  border-radius: 0 0 4px 4px;
+  background: #ef6b7c;
+}
+/* Blush nas bochechas quando feliz */
+#aic-clawd-node[data-emotion="joyful"] .emotion-mouth::before,
+#aic-clawd-node.happy .emotion-mouth::before,
+#aic-clawd-node.celebrate .emotion-mouth::before {
+  top: 2px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: -7px 0 rgba(255, 120, 130, .55), 7px 0 rgba(255, 120, 130, .55);
+  opacity: 1;
+}
+#aic-clawd-node.excited .emotion-mouth,
+#aic-clawd-node.roaring .emotion-mouth {
+  left: 18px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #1a1216;
+  border-radius: 40% 40% 50% 50%;
+  opacity: 1;
+}
+#aic-clawd-node.excited .emotion-mouth::after,
+#aic-clawd-node.roaring .emotion-mouth::after {
+  opacity: .9;
+  width: 4px;
+  height: 3px;
+  bottom: 0;
+  background: #c94a5a;
+}
+#aic-clawd-node.shy .emotion-mouth {
+  left: 20px;
+  top: 11px;
+  width: 5px;
+  height: 3px;
+  border-bottom-width: 2px;
+  border-radius: 0 0 8px 8px;
+  opacity: .8;
+  transform: rotate(-8deg) scale(0.9);
+}
+#aic-clawd-node.tantrum .emotion-mouth {
+  top: 11px;
+  width: 9px;
+  height: 3px;
+  border: 0;
+  border-top-width: 2px;
+  border-radius: 6px 6px 0 0;
+  opacity: 1;
+  transform: scaleX(1.05);
+}
+#aic-clawd-node.waving .emotion-mouth,
+#aic-clawd-node.highfive .emotion-mouth {
+  width: 9px;
+  height: 4px;
+  border-bottom-width: 2px;
+  border-radius: 0 0 11px 11px;
+  opacity: 1;
+}
+#aic-clawd-node.keepy-uppy .emotion-mouth,
+#aic-clawd-node.pose .emotion-mouth {
+  width: 10px;
+  top: 9px;
+  border-bottom-width: 2px;
+  border-radius: 0 0 12px 12px;
+  opacity: 1;
+}
+/* Boca falante — abre/fecha enquanto o balão está visível */
+#aic-clawd-node.talking:not(.eating):not(.yawning):not(.sleeping) .emotion-mouth {
+  top: 9px;
+  width: 7px;
+  height: 5px;
+  border: 2px solid #1a1216;
+  border-radius: 45%;
+  opacity: 1;
+  animation: clawd-mouth-talk 0.32s ease-in-out infinite;
+}
+#aic-clawd-node.talking:not(.eating):not(.yawning) .emotion-mouth::after {
+  opacity: .55;
+  width: 3px;
+  height: 2px;
+}
+
+/* Modo liso: boca Oculta no idle (referência Claude sem boca); só em ação/emoção */
+#aic-clawd-node.smooth .emotion-mouth {
+  left: 18px;
+  top: 12px;
+  width: 6px;
+  height: 3px;
+  border-bottom-width: 1.5px;
+  border-radius: 0 0 6px 6px;
+  opacity: 0;
+  filter: none;
+  transition: opacity .18s ease;
+}
+#aic-clawd-node.smooth.talking:not(.eating):not(.yawning):not(.sleeping) .emotion-mouth,
+#aic-clawd-node.smooth.happy .emotion-mouth,
+#aic-clawd-node.smooth.celebrate .emotion-mouth,
+#aic-clawd-node.smooth.excited .emotion-mouth,
+#aic-clawd-node.smooth.eating .emotion-mouth,
+#aic-clawd-node.smooth.yawning .emotion-mouth,
+#aic-clawd-node.smooth[data-emotion="joyful"] .emotion-mouth,
+#aic-clawd-node.smooth[data-emotion="hungry"] .emotion-mouth,
+#aic-clawd-node.smooth[data-emotion="sad"] .emotion-mouth {
+  opacity: 0.9;
+}
+#aic-clawd-node.smooth[data-emotion="joyful"] .emotion-mouth,
+#aic-clawd-node.smooth.happy .emotion-mouth,
+#aic-clawd-node.smooth.celebrate .emotion-mouth {
+  left: 16px;
+  width: 10px;
+  height: 5px;
+  border-bottom-width: 2px;
+  border-radius: 0 0 10px 10px;
+}
+#aic-clawd-node.smooth.talking:not(.eating):not(.yawning):not(.sleeping) .emotion-mouth {
+  border-radius: 40%;
+  width: 6px;
+  height: 5px;
+  border: 1.5px solid #1a1216;
+}
+
+/* Olhos = mesmos furos 4px do pixel clássico (Welcome) */
+#aic-clawd-node.smooth .pet-eyes {
+  left: 12px;
+  top: 4px;
+  border-radius: 0;
+  width: 4px;
+  height: 4px;
+  box-shadow: 16px 0 0 var(--agent-eye-color);
+  background: var(--agent-eye-color);
+}
+#aic-clawd-node.smooth .blink-cover {
+  border-radius: 0;
+  box-shadow: 16px 0 var(--agent-color);
+  left: 12px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+}
+#aic-clawd-node.smooth .blink-line {
+  border-radius: 0;
+  height: 1px;
+  top: 6px;
+  left: 12px;
+  width: 4px;
+  box-shadow: 16px 0 #111;
+}
+/* No liso, olhos felizes continuam quadrados (estilo Claude) */
+#aic-clawd-node.smooth.happy .pet-eyes,
+#aic-clawd-node.smooth[data-emotion="joyful"] .pet-eyes,
+#aic-clawd-node.smooth.celebrate .pet-eyes {
+  height: 4px;
+  width: 4px;
+  left: 12px;
+  top: 4px;
+  border: 0;
+  border-radius: 0;
+  background: var(--agent-eye-color);
+  box-shadow: 16px 0 0 var(--agent-eye-color);
+}
+#aic-clawd-node.smooth.happy .pet-eyes::after,
+#aic-clawd-node.smooth[data-emotion="joyful"] .pet-eyes::after,
+#aic-clawd-node.smooth.celebrate .pet-eyes::after {
+  display: none;
+}
+/* Olhinhos felizes (meia-lua) no carinho / alegria */
+#aic-clawd-node.happy .pet-eyes,
+#aic-clawd-node[data-emotion="joyful"] .pet-eyes,
+#aic-clawd-node.celebrate .pet-eyes {
+  height: 2px;
+  border-radius: 0 0 3px 3px;
+  background: transparent;
+  box-shadow: none;
+  border-bottom: 2px solid var(--agent-eye-color);
+  width: 5px;
+  left: 11px;
+}
+#aic-clawd-node.happy .pet-eyes::after,
+#aic-clawd-node[data-emotion="joyful"] .pet-eyes::after,
+#aic-clawd-node.celebrate .pet-eyes::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 0;
+  width: 5px;
+  height: 2px;
+  border-bottom: 2px solid var(--agent-eye-color);
+  border-radius: 0 0 3px 3px;
+}
+#aic-clawd-node.happy .blink-cover,
+#aic-clawd-node.happy .blink-line,
+#aic-clawd-node[data-emotion="joyful"] .blink-cover,
+#aic-clawd-node[data-emotion="joyful"] .blink-line,
+#aic-clawd-node.celebrate .blink-cover,
+#aic-clawd-node.celebrate .blink-line {
+  opacity: 0 !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node.talking .emotion-mouth,
+  #aic-clawd-node.eating .emotion-mouth,
+  #aic-clawd-node[data-emotion="hungry"] .emotion-mouth,
+  #aic-clawd-node.yawning .emotion-mouth,
+  #aic-clawd-node[data-emotion="content"] .emotion-mouth,
+  #aic-clawd-node.smooth .smooth-sprite,
+  #aic-clawd-node.smooth .smooth-leg {
+    animation: none !important;
+  }
+}
+
+/* --- ETIQUETA DE NOME (+ temas) --- */
+#aic-clawd-node .name-tag {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1a1a2e;
+  letter-spacing: -0.3px;
+  background: rgba(255, 255, 255, 0.93);
+  padding: 3px 10px 3px 8px;
+  border-radius: 20px;
+  border: 2px solid var(--agent-color);
+  margin-top: 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  transition: all 0.3s ease;
+}
+#aic-clawd-node[data-tag-theme="dark"] .name-tag {
+  background: rgba(20,20,32,0.92);
+  color: #e8e8f0;
+}
+#aic-clawd-node[data-tag-theme="neon"] .name-tag {
+  background: rgba(10,10,20,0.95);
+  color: #0ff;
+  border-color: #0ff;
+  text-shadow: 0 0 6px #0ff;
+  box-shadow: 0 0 12px rgba(0,255,255,0.5);
+}
+#aic-clawd-node[data-tag-theme="invisible"] .name-tag { display: none; }
+
+/* Cor do name-tag reage à emoção */
+#aic-clawd-node[data-emotion="joyful"] .name-tag { border-color: #f1c40f; }
+#aic-clawd-node[data-emotion="sad"]    .name-tag { border-color: #5d7a9c; }
+#aic-clawd-node[data-emotion="hungry"] .name-tag { border-color: #e67e22; }
+#aic-clawd-node[data-emotion="sleepy"] .name-tag { border-color: #8e7cc3; }
+#aic-clawd-node[data-emotion="ecstatic"] .name-tag { border-color: #e84393; }
+#aic-clawd-node[data-emotion="peppy"] .name-tag { border-color: #00cec9; }
+#aic-clawd-node[data-emotion="grubby"] .name-tag { border-color: #b2bec3; }
+
+/* --- BALÃO DE FALA --- */
+#aic-clawd-node .speech-bubble {
+  position: absolute;
+  bottom: 95px;
+  right: -8px;
+  min-width: 80px;
+  max-width: 190px;
+  background: #fff;
+  border: 2px solid var(--agent-color);
+  border-radius: 14px;
+  padding: 5px 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: #1a1a2e;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: translateY(10px) scale(0.7);
+  transform-origin: bottom right;
+  transition:
+    opacity 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease;
+  z-index: 10;
+}
+#aic-clawd-node .speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  right: 16px;
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 9px solid var(--agent-color);
+}
+#aic-clawd-node .speech-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  right: 18px;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid #fff;
+  z-index: 1;
+}
+#aic-clawd-node .speech-bubble.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+/* Balão interativo (desafio do Tutor) */
+#aic-clawd-node .speech-bubble.interactive {
+  pointer-events: auto;
+  white-space: normal;
+  max-width: 210px;
+  cursor: default;
+}
+.challenge-q { margin-bottom: 6px; font-size: 12px; }
+.challenge-opts { display: flex; gap: 5px; justify-content: center; }
+.challenge-opt {
+  border: 2px solid var(--agent-color);
+  background: #f7f7fb;
+  color: #1a1a2e;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 12px;
+  border-radius: 8px;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.challenge-opt:hover { background: var(--agent-color); color: #fff; transform: scale(1.1); }
+
+/* ============================
+   LAGO DE PESCA PIXEL-ART
+   ============================ */
+@keyframes clawd-lake-ripple {
+  0%,100% { box-shadow:
+    0 0 0 2px rgba(52,152,219,0.3),
+    0 0 0 5px rgba(52,152,219,0.1); }
+  50% { box-shadow:
+    0 0 0 4px rgba(52,152,219,0.4),
+    0 0 0 10px rgba(52,152,219,0.1); }
+}
+@keyframes clawd-fish-swim {
+  0%,100% { transform: translateX(0) scaleX(1); }
+  45%     { transform: translateX(30px) scaleX(1); }
+  50%     { transform: translateX(30px) scaleX(-1); }
+  95%     { transform: translateX(0) scaleX(-1); }
+}
+@keyframes clawd-fishing-line-sway {
+  0%,100% { transform: rotate(0deg); transform-origin: top left; }
+  40%     { transform: rotate(3deg); }
+  70%     { transform: rotate(-2deg); }
+}
+@keyframes clawd-fish-splash {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  50%  { opacity: 1; transform: translateY(-20px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-35px) scale(0.5); }
+}
+.aic-lake {
+  position: fixed;
+  bottom: 8px;
+  width: 120px;
+  height: 56px;
+  border-radius: 4px 4px 50% 50% / 8px 8px 28px 28px;
+  background:
+    linear-gradient(180deg, #4a9fd4 0%, #2a6fa0 55%, #1a4a6e 100%);
+  border: 2px solid #163952;
+  z-index: 2147483644;
+  pointer-events: auto;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: visible;
+  image-rendering: pixelated;
+  cursor: pointer;
+}
+.aic-lake.visible {
+  opacity: 1;
+  transform: scaleX(1);
+}
+.aic-lake.bite {
+  filter: brightness(1.2) saturate(1.4);
+  box-shadow: 0 0 0 2px #f1c40f, 0 0 12px rgba(241, 196, 15, 0.45);
+  animation: clawd-lake-bite-pulse 0.4s ease-in-out infinite;
+}
+@keyframes clawd-lake-bite-pulse {
+  0%, 100% { transform: scaleX(1) scaleY(1); }
+  50% { transform: scaleX(1.04) scaleY(0.96); }
+}
+.aic-lake-hint {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: #f1c40f;
+  color: #1a1a2e;
+  font: 800 9px/1.2 'Courier New', monospace;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+.aic-lake.bite .aic-lake-hint { opacity: 1; animation: clawd-hint-bob 0.45s ease-in-out infinite; }
+@keyframes clawd-hint-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-3px); }
+}
+/* brilho pixel */
+.aic-lake::before {
+  content: '';
+  position: absolute;
+  top: 8px; left: 14px;
+  width: 2px; height: 2px;
+  background: rgba(255,255,255,0.55);
+  box-shadow:
+    4px 0 rgba(255,255,255,0.35),
+    8px 2px rgba(255,255,255,0.25),
+    28px 4px rgba(255,255,255,0.2);
+  animation: clawd-lake-ripple 2s ease-in-out infinite;
+}
+/* nenúfar pixel (sem emoji) */
+.aic-lake::after {
+  content: '';
+  position: absolute;
+  bottom: 6px; right: 14px;
+  width: 2px; height: 2px;
+  background: #2ecc71;
+  box-shadow:
+    2px 0 #27ae60, 4px 0 #2ecc71,
+    0 2px #27ae60, 2px 2px #1e8449, 4px 2px #27ae60,
+    2px -2px #58d68d;
+  opacity: 0.9;
+}
+.aic-fish {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  /* peixe pixel 6×3 */
+  box-shadow:
+    2px 0 #f39c12, 4px 0 #e67e22, 6px 0 #f39c12, 8px 0 #d35400,
+    0 2px #e67e22, 2px 2px #f5b041, 4px 2px #e67e22, 6px 2px #d35400, 10px 2px #e67e22,
+    2px 4px #d35400, 4px 4px #e67e22, 6px 4px #d35400;
+  animation: clawd-fish-swim 2.4s ease-in-out infinite;
+  filter: none;
+}
+.aic-lake.bite .aic-fish {
+  animation: clawd-fish-bite 0.28s ease-in-out infinite;
+}
+@keyframes clawd-fish-bite {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(4px, -3px); }
+}
+.aic-fishing-line {
+  position: fixed;
+  width: 2px;
+  background: repeating-linear-gradient(
+    180deg,
+    #bdc3c7 0 3px,
+    #7f8c8d 3px 4px
+  );
+  transform-origin: top center;
+  z-index: 2147483645;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: clawd-fishing-line-sway 2s ease-in-out infinite;
+  image-rendering: pixelated;
+}
+.aic-fishing-line.visible { opacity: 1; }
+.aic-fishing-line.biting {
+  background: repeating-linear-gradient(180deg, #f1c40f 0 3px, #d4ac0d 3px 4px);
+  animation: clawd-fishing-line-tug 0.22s ease-in-out infinite;
+}
+@keyframes clawd-fishing-line-tug {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(3deg); }
+}
+.aic-fish-caught {
+  position: fixed;
+  width: 2px;
+  height: 2px;
+  z-index: 2147483647;
+  pointer-events: none;
+  background: transparent;
+  box-shadow:
+    2px 0 #f39c12, 4px 0 #e67e22, 6px 0 #f39c12, 8px 0 #d35400,
+    0 2px #e67e22, 2px 2px #f5b041, 4px 2px #e67e22, 6px 2px #d35400, 10px 2px #e67e22,
+    2px 4px #d35400, 4px 4px #e67e22, 6px 4px #d35400;
+  image-rendering: pixelated;
+  animation: clawd-fish-splash 1.2s cubic-bezier(0.3,0,0.4,1) forwards;
+}
+.aic-fish-caught.rare {
+  box-shadow:
+    2px 0 #9b59b6, 4px 0 #8e44ad, 6px 0 #9b59b6, 8px 0 #6c3483,
+    0 2px #8e44ad, 2px 2px #bb8fce, 4px 2px #8e44ad, 6px 2px #6c3483, 10px 2px #8e44ad,
+    2px 4px #6c3483, 4px 4px #8e44ad, 6px 4px #6c3483;
+  filter: drop-shadow(0 0 4px rgba(155, 89, 182, 0.7));
+}
+
+/* ============================
+   TOAST DE CONQUISTA — GAMIFICADO ÉPICO
+   ============================ */
+@keyframes clawd-toast-slide-in {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(80px) scale(0.7); }
+  60%  { transform: translateX(-50%) translateY(-8px) scale(1.04); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes clawd-toast-slide-out {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(60px) scale(0.8); }
+}
+@keyframes clawd-toast-shine {
+  0%   { left: -60%; }
+  100% { left: 130%; }
+}
+@keyframes clawd-toast-glow-pulse {
+  0%,100% { box-shadow: var(--toast-shadow, 4px 4px 0 rgba(0,0,0,0.4)); }
+  50%     { box-shadow: var(--toast-glow, 0 0 20px rgba(255,215,0,0.6)), 4px 4px 0 rgba(0,0,0,0.4); }
+}
+@keyframes clawd-toast-star-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.3); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes clawd-toast-progress {
+  0%   { width: 100%; }
+  100% { width: 0%; }
+}
+@keyframes clawd-rarity-flicker {
+  0%,90%,100% { opacity: 1; }
+  92%         { opacity: 0.6; }
+  96%         { opacity: 0.8; }
+}
+
+.aic-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  min-width: 280px;
+  max-width: 340px;
+  background: #0d0d1a;
+  border: 2px solid var(--toast-color, #ffe66d);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5), var(--toast-glow, 0 0 16px rgba(255,230,109,0.35));
+  font-family: 'Courier New', monospace;
+  z-index: 2147483647;
+  opacity: 0;
+  pointer-events: none;
+  image-rendering: pixelated;
+  overflow: hidden;
+  animation: clawd-toast-glow-pulse 2s ease-in-out infinite;
+}
+.aic-toast.visible {
+  animation: clawd-toast-slide-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both, clawd-toast-glow-pulse 2s 0.5s ease-in-out infinite;
+}
+.aic-toast.hiding {
+  animation: clawd-toast-slide-out 0.4s ease-in both !important;
+}
+/* Efeito de brilho que desliza */
+.aic-toast::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: clawd-toast-shine 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.aic-toast-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 14px;
+}
+.aic-toast-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px var(--toast-color, #ffe66d));
+  animation: clawd-toast-star-spin 3s linear infinite;
+}
+.aic-toast-text {
+  flex: 1;
+  min-width: 0;
+}
+.aic-toast-rarity {
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--toast-color, #ffe66d);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+  animation: clawd-rarity-flicker 3s ease-in-out infinite;
+}
+.aic-toast-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aic-toast-desc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aic-toast-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 10px;
+  margin-top: 3px;
+}
+.aic-toast-progress-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.aic-toast-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--toast-color, #ffe66d), rgba(255,255,255,0.8));
+  animation: clawd-toast-progress 3.5s linear forwards;
+  transform-origin: left;
+}
+/* Pixel corners decorativos */
+.aic-toast-corner {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--toast-color, #ffe66d);
+}
+.aic-toast-corner.tl { top: 0; left: 0; }
+.aic-toast-corner.tr { top: 0; right: 0; }
+.aic-toast-corner.bl { bottom: 3px; left: 0; }
+.aic-toast-corner.br { bottom: 3px; right: 0; }
+
+/* Pegadas nas abas sem pet (cross-tab) */
+#aic-footprints {
+  position: fixed;
+  bottom: 12px;
+  right: 16px;
+  font-size: 15px;
+  opacity: 0.35;
+  z-index: 2147483645;
+  pointer-events: none;
+  animation: clawd-breathe 4s ease-in-out infinite;
+}
+
+/* ============================
+   SUB-PET
+   ============================ */
+.aic-subpet {
+  --subpet-direction: 1;
+  position: fixed;
+  z-index: 2147483646;
+  width: 48px;
+  height: 36px;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 0.5s ease;
+}
+.aic-subpet .subpet-motion {
+  position: absolute;
+  inset: 0;
+  transform-origin: bottom center;
+  animation: clawd-subpet-idle 2.8s ease-in-out infinite;
+}
+.aic-subpet.moving .subpet-motion,
+.aic-subpet.playing .subpet-motion,
+.aic-subpet.racing .subpet-motion,
+.aic-subpet.exploring .subpet-motion,
+.aic-subpet.sleeping .subpet-motion,
+.aic-subpet.eating .subpet-motion,
+.aic-subpet.cheering .subpet-motion,
+.aic-subpet.owner-running .subpet-motion,
+.aic-subpet.flying .subpet-motion,
+.aic-subpet.summoning .subpet-motion {
+  animation: none;
+}
+.aic-subpet.flying .subpet-motion {
+  animation: clawd-subpet-fly 1.1s ease-in-out infinite;
+}
+.aic-subpet.summoning .subpet-motion {
+  animation: clawd-subpet-summon 0.65s cubic-bezier(.34,1.56,.64,1) both;
+}
+.aic-subpet .subpet-sprite {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction));
+  transform-origin: top left;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+  will-change: transform, filter;
+}
+.aic-subpet.flipped { --subpet-direction: -1; }
+.aic-subpet .subpet-bubble {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  background: #fff;
+  border: 2px solid #555;
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  color: #1a1a2e;
+  padding: 2px 7px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 2;
+}
+.aic-subpet .subpet-bubble.visible { opacity: 1; transform: scale(1); }
+
+@keyframes clawd-subpet-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes clawd-subpet-hop {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-10px); }
+}
+.aic-subpet.playing .subpet-sprite { animation: clawd-subpet-hop 0.4s ease-in-out infinite; }
+.aic-subpet.cuddling .subpet-sprite { animation: clawd-subpet-cuddle 0.32s ease-in-out 3; }
+.aic-subpet.racing .subpet-sprite,
+.aic-subpet.owner-running .subpet-sprite { animation: clawd-subpet-run 0.18s ease-in-out infinite; }
+.aic-subpet.owner-walking .subpet-sprite { animation: clawd-subpet-run 0.28s ease-in-out infinite; }
+.aic-subpet.eating .subpet-sprite { animation: clawd-subpet-eat 0.35s ease-in-out 5; }
+.aic-subpet.cheering .subpet-sprite { animation: clawd-subpet-celebrate 0.4s cubic-bezier(.34,1.56,.64,1) infinite; }
+.aic-subpet.waking .subpet-sprite { animation: clawd-subpet-wake 1s cubic-bezier(.34,1.56,.64,1); }
+.aic-subpet.spinning .subpet-sprite { animation: clawd-subpet-spin 0.62s cubic-bezier(.45,.05,.55,.95) 2; }
+.aic-subpet.celebrating .subpet-sprite { animation: clawd-subpet-celebrate 0.46s cubic-bezier(.34,1.56,.64,1) 4; }
+.aic-subpet.exploring .subpet-sprite { animation: clawd-subpet-explore 0.34s ease-in-out infinite; }
+.aic-subpet.vanishing .subpet-sprite { animation: clawd-subpet-vanish 1.9s ease-in-out both; }
+.aic-subpet.sleeping .subpet-sprite { filter: brightness(0.7) saturate(0.45) drop-shadow(0 3px 4px rgba(0,0,0,0.2)); }
+.aic-subpet.fire .subpet-sprite { filter: drop-shadow(0 0 10px rgba(231,76,60,0.95)) brightness(1.15); }
+.aic-subpet.perching .subpet-motion { animation: clawd-subpet-idle 1.6s ease-in-out infinite; }
+.aic-subpet-clone {
+  pointer-events: none !important;
+  opacity: 0.85;
+  animation: clawd-subpet-clone-fade 1.5s ease-out forwards;
+  z-index: 2147483645;
+}
+@keyframes clawd-subpet-clone-fade {
+  0% { opacity: 0.9; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(18px) scale(0.85); }
+}
+@keyframes clawd-subpet-split {
+  0%,100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
+  50%     { transform: scale(calc(var(--subpet-scale, 1) * 0.72)) scaleX(var(--subpet-direction)) translateX(6px); }
+}
+.aic-subpet.split .subpet-sprite { animation: clawd-subpet-split 0.5s ease-in-out 3; }
+@keyframes clawd-subpet-cuddle {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) rotate(-5deg); }
+}
+@keyframes clawd-subpet-eat {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+  35% { transform: scale(calc(var(--subpet-scale, 1) * 1.06)) scaleX(var(--subpet-direction)) translateY(2px); }
+  70% { transform: scale(calc(var(--subpet-scale, 1) * 0.94)) scaleX(var(--subpet-direction)) translateY(-1px); }
+}
+@keyframes clawd-subpet-run {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+  50% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px); }
+}
+@keyframes clawd-subpet-wake {
+  0% { transform: scale(calc(var(--subpet-scale, 1) * .65)) scaleX(var(--subpet-direction)) translateY(7px); filter: brightness(.55); }
+  55% { transform: scale(calc(var(--subpet-scale, 1) * 1.16)) scaleX(var(--subpet-direction)) translateY(-7px); filter: brightness(1.25); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); filter: none; }
+}
+@keyframes clawd-subpet-spin {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) rotate(180deg) translateY(-4px); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(360deg); }
+}
+@keyframes clawd-subpet-celebrate {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
+  45% { transform: scale(calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-10px) rotate(-7deg); }
+  70% { transform: scale(calc(var(--subpet-scale, 1) * .96)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(5deg); }
+}
+@keyframes clawd-subpet-explore {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(-2deg); filter: brightness(1); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px) rotate(2deg); filter: brightness(1.13); }
+}
+@keyframes clawd-subpet-vanish {
+  0%, 100% { opacity: 1; transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); filter: blur(0) brightness(1); }
+  45%, 62% { opacity: .08; transform: scale(calc(var(--subpet-scale, 1) * .68)) scaleX(var(--subpet-direction)) translateY(-8px); filter: blur(1px) brightness(1.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aic-subpet .subpet-motion,
+  .aic-subpet.playing .subpet-sprite,
+  .aic-subpet.racing .subpet-sprite,
+  .aic-subpet.exploring .subpet-sprite,
+  .aic-subpet.cuddling .subpet-sprite,
+  .aic-subpet.spinning .subpet-sprite,
+  .aic-subpet.celebrating .subpet-sprite,
+  .aic-subpet.eating .subpet-sprite,
+  .aic-subpet.cheering .subpet-sprite,
+  .aic-subpet.owner-walking .subpet-sprite,
+  .aic-subpet.owner-running .subpet-sprite {
+    animation: none !important;
+  }
+}
+
+/* ============================
+   ESTADOS DO MASCOTE
+   ============================ */
+
+/* IDLE: respiração suave */
+#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.walking):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.stretching):not(.roaring):not(.highfive) .pet-body {
+  animation: clawd-breathe 3s ease-in-out infinite;
+}
+
+/* HAPPY — corpo estático; brilho e bounce no .pet-body */
+#aic-clawd-node.happy .pet-body {
+  animation: clawd-spin-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+#aic-clawd-node.happy .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.4) saturate(1.6) hue-rotate(15deg);
+}
+#aic-clawd-node.happy .name-tag { transform: scale(1.15); }
+#aic-clawd-node.happy { --agent-color: #d97757; }
+
+/* SLEEPING — pernas/corpo sem ciclo de walk; só filtro e respiração */
+#aic-clawd-node.sleeping .pixel-sprite {
+  animation: none !important;
+  filter: brightness(0.55) saturate(0.25);
+}
+#aic-clawd-node.sleeping .pet-body {
+  animation: clawd-breathe 2.5s ease-in-out infinite !important;
+  filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.2));
+}
+#aic-clawd-node.sleeping .name-tag { opacity: 0.5; font-size: 11px; }
+#aic-clawd-node.sleeping .ground-shadow { opacity: 0.15; }
+
+/* EXCITED */
+#aic-clawd-node.excited .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.2) saturate(1.3);
+}
+#aic-clawd-node.excited .pet-body {
+  animation: clawd-shake 0.35s ease-in-out infinite !important;
+  filter: drop-shadow(0px 6px 10px rgba(0,0,0,0.5));
+}
+
+/* WAVING */
+#aic-clawd-node.waving .pixel-sprite { animation: none !important; }
+#aic-clawd-node.waving .pet-body { animation: clawd-breathe 0.8s ease-in-out infinite !important; }
+
+/* WALKING / RUNNING — pernas animam via .pixel-legs (v3.2); corpo estático */
+#aic-clawd-node.walking .pixel-sprite,
+#aic-clawd-node.running .pixel-sprite { animation: none !important; }
+#aic-clawd-node.running .pet-body { animation: clawd-walk-bob var(--clawd-run-duration, .18s) ease-in-out infinite !important; }
+
+/* SOMERSAULT (cambalhota) */
+#aic-clawd-node.somersault .pet-body {
+  animation: clawd-somersault 1s cubic-bezier(0.4, 0, 0.4, 1) forwards !important;
+}
+
+/* EATING */
+#aic-clawd-node.eating .pet-body { animation: clawd-chew 0.45s ease-in-out 4 !important; }
+
+/* CELEBRATE */
+#aic-clawd-node.celebrate .pet-body {
+  animation: clawd-celebrate 0.7s cubic-bezier(0.34,1.56,0.64,1) 3 !important;
+}
+#aic-clawd-node.celebrate .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.3) saturate(1.5);
+}
+
+/* YAWNING (bocejo pré-sono) */
+#aic-clawd-node.yawning .pet-body { animation: clawd-yawn 2s ease-in-out forwards !important; }
+#aic-clawd-node.yawning .pixel-sprite { filter: brightness(0.85); }
+
+/* SHY (tímido) */
+#aic-clawd-node.shy .pet-body { animation: clawd-shy 1.2s ease-in-out 2 !important; }
+#aic-clawd-node.shy .pixel-sprite { filter: saturate(1.3) hue-rotate(-10deg) brightness(1.05); }
+
+/* TANTRUM (birra) */
+#aic-clawd-node.tantrum .pet-body { animation: clawd-tantrum 0.8s ease-in-out 3 !important; }
+#aic-clawd-node.tantrum .pixel-sprite { filter: saturate(1.6) hue-rotate(-20deg); }
+
+/* DANÇA — 3 passos distintos */
+#aic-clawd-node.dance-1 .pet-body { animation: clawd-shake 0.3s ease-in-out infinite !important; }
+#aic-clawd-node.dance-2 .pet-body { animation: clawd-dance-spin 0.9s linear 1 !important; }
+#aic-clawd-node.dance-3 .pet-body { animation: clawd-dance-bounce 0.5s ease-in-out infinite !important; }
+#aic-clawd-node.dance-1 .pixel-sprite,
+#aic-clawd-node.dance-2 .pixel-sprite,
+#aic-clawd-node.dance-3 .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.2) saturate(1.4);
+}
+
+/* POSE (congela para foto) */
+#aic-clawd-node.pose .pixel-sprite { animation-play-state: paused !important; }
+#aic-clawd-node.pose .pet-body { animation: clawd-pose-sparkle 1s ease-in-out infinite !important; }
+
+/* BATHING */
+#aic-clawd-node.bathing .pet-body { animation: clawd-shake 0.5s ease-in-out infinite !important; }
+#aic-clawd-node.bathing .pixel-sprite { filter: brightness(1.2) saturate(0.8) hue-rotate(160deg); }
+
+/* KEEPY-UPPY (embaixadinhas) — chute via .pixel-legs */
+#aic-clawd-node.keepy-uppy .pixel-sprite {
+  animation: none !important;
+}
+#aic-clawd-node.keepy-uppy .pet-body { animation: clawd-breathe 0.7s ease-in-out infinite !important; }
+
+/* FISHING (pescando) */
+#aic-clawd-node.fishing .pixel-sprite { animation: none !important; }
+#aic-clawd-node.fishing .pet-body {
+  animation: clawd-fishing 1.8s ease-in-out infinite !important;
+}
+#aic-clawd-node.fishing .pixel-sprite { filter: brightness(0.95) saturate(0.85); }
+
+/* REELING (puxando peixe) */
+#aic-clawd-node.reeling .pet-body {
+  animation: clawd-reel 0.4s ease-in-out 3 !important;
+}
+
+/* JUMPING (pulo) */
+#aic-clawd-node.jumping .pet-body {
+  animation: clawd-jump 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards !important;
+}
+#aic-clawd-node.jumping .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.1) saturate(1.2);
+}
+
+/* STRETCHING (esticão) */
+#aic-clawd-node.stretching .pet-body {
+  animation: clawd-stretch 1.2s ease-in-out forwards !important;
+}
+#aic-clawd-node.stretching .pixel-sprite { filter: brightness(0.9); }
+
+/* ROARING (rugido) */
+#aic-clawd-node.roaring .pet-body {
+  animation: clawd-roar 0.8s cubic-bezier(0.34,1.56,0.64,1) 2 !important;
+}
+#aic-clawd-node.roaring .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.5) saturate(2) hue-rotate(-10deg);
+}
+
+/* HIGHFIVE */
+#aic-clawd-node.highfive .pet-body {
+  animation: clawd-highfive 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards !important;
+}
+#aic-clawd-node.highfive .pixel-sprite {
+  animation: none !important;
+  filter: brightness(1.3) saturate(1.4) hue-rotate(20deg);
+}
+
+/* Detalhes de acabamento: acessórios têm leitura própria sem trocar o sprite base. */
+@keyframes clawd-accessory-sparkle {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+  50% { filter: brightness(1.3) drop-shadow(0 0 4px rgba(255,215,80,.7)); }
+}
+[data-acc-face="medal"] .acc-face { animation: clawd-accessory-sparkle 2.4s steps(2) infinite; }
+[data-acc-face="bow"] .acc-face { animation: clawd-scarf-wave 1.1s steps(2) infinite; transform-origin: 32px 0; }
+[data-acc-face="glasses"] .acc-face,
+[data-acc-face="sunglasses"] .acc-face { filter: drop-shadow(0 1px 0 rgba(255,255,255,.25)); }
+[data-acc-head="cap"] .acc-head,
+[data-acc-head="tophat"] .acc-head,
+[data-acc-head="chefhat"] .acc-head,
+[data-acc-head="fishhat"] .acc-head { filter: drop-shadow(0 2px 0 rgba(10,15,25,.22)); }
+[data-acc-head="crown"] .acc-head { filter: drop-shadow(0 2px 1px rgba(93,54,0,.4)); }
+[data-acc-head="propeller"] .acc-head { filter: drop-shadow(0 1px 1px rgba(20,35,50,.35)); }
+
+/* Chapéus assentam na cabeça e acompanham o passo apenas quando o pet se move. */
+@keyframes clawd-headwear-step {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-1px) rotate(-1deg); }
+}
+#aic-clawd-node.walking .acc-head {
+  animation: clawd-headwear-step var(--clawd-step-duration, .42s) ease-in-out infinite;
+  transform-origin: 22px 4px;
+  will-change: transform;
+}
+#aic-clawd-node.running .acc-head {
+  animation: clawd-headwear-step var(--clawd-run-duration, .18s) ease-in-out infinite;
+  transform-origin: 22px 4px;
+  will-change: transform;
+}
+
+/* Fones ficam atrás do chapéu quando os dois slots são combinados. */
+#aic-clawd-node[data-acc-head]:not([data-acc-head="none"])[data-acc-face="headphones"] .acc-face {
+  z-index: 3;
+}
+
+/* O modo desempenho preserva a arte e corta somente animações cosméticas. */
+#aic-clawd-node.aic-nofx .acc-head,
+#aic-clawd-node.aic-nofx .acc-face,
+#aic-clawd-node.aic-nofx .acc-head::before,
+#aic-clawd-node.aic-nofx .acc-head::after,
+#aic-clawd-node.aic-nofx .acc-face::before,
+#aic-clawd-node.aic-nofx .acc-face::after {
+  animation: none !important;
+  will-change: auto !important;
+}
+
+/* HOLDING SIGN (Tutor com plaquinha) */
+#aic-clawd-node.holding-sign .pixel-sprite { animation-play-state: paused !important; }
+#aic-clawd-node.holding-sign .pet-body { animation: clawd-breathe 2s ease-in-out infinite !important; }
+
+/* ============================
+   MODO DESEMPENHO / ACESSIBILIDADE
+   ============================ */
+#aic-clawd-node.aic-nofx .pet-body { filter: none; }
+#aic-clawd-node.aic-nofx .sprite-stack { transition: none; }
+#aic-clawd-node.aic-nofx .ground-shadow { display: none; }
+#aic-clawd-node.aic-low-refresh .aic-dust,
+#aic-clawd-node.aic-low-refresh .aic-toast-progress-bar { display: none; }
+
+/* O modo padrão mantém a referência nítida; suavização é uma opção de baixa intensidade. */
+#aic-clawd-node:not(.smooth) .pixel-sprite,
+#aic-clawd-node:not(.smooth) .accessory,
+#aic-clawd-node:not(.smooth) .skin-mod,
+#aic-clawd-node:not(.smooth) .jersey { image-rendering: pixelated; }
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .pet-body,
+  #aic-clawd-node .pixel-sprite,
+  #aic-clawd-node .pet-ball,
+  #aic-clawd-node .ground-shadow,
+  .aic-subpet .subpet-sprite {
+    animation-duration: 4s !important;
+    animation-iteration-count: 1 !important;
+  }
+  #aic-clawd-node { transition: none; }
+}
+
+/* Modo liso preserva a mesma silhueta e funde as bordas dos pixels. */
+#aic-clawd-node.smooth,
+#aic-clawd-node.smooth .pet-body,
+#aic-clawd-node.smooth .sprite-stack,
+#aic-clawd-node.smooth .pixel-sprite {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* ============================================================
+   SPRITE PADRÃO — frame estático do modelo de referência
+   As pernas só entram no ciclo quando o pet está se deslocando.
+   ============================================================ */
+#aic-clawd-node .pixel-sprite {
+  animation: none !important;
+  box-shadow:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    8px 4px var(--agent-color), 12px 4px #000, 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px #000, 32px 4px var(--agent-color),
+    8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color) !important;
+}
+#aic-clawd-node.walking .pixel-sprite,
+#aic-clawd-node.running .pixel-sprite,
+#aic-clawd-node.keepy-uppy .pixel-sprite { animation: none !important; }
+
+/* Garantia global: corpo pixel nunca usa ciclo legado de walk. */
+#aic-clawd-node .pixel-sprite {
+  animation: none !important;
+}
+
+/* As ações mudam o corpo, não deixam as pernas caminhando no lugar. */
+#aic-clawd-node.happy .pixel-sprite,
+#aic-clawd-node.excited .pixel-sprite,
+#aic-clawd-node.waving .pixel-sprite,
+#aic-clawd-node.celebrate .pixel-sprite,
+#aic-clawd-node.dance-1 .pixel-sprite,
+#aic-clawd-node.dance-2 .pixel-sprite,
+#aic-clawd-node.dance-3 .pixel-sprite,
+#aic-clawd-node.jumping .pixel-sprite,
+#aic-clawd-node.roaring .pixel-sprite,
+#aic-clawd-node.highfive .pixel-sprite { animation: none !important; }
+
+/* Óculos de sol com armação, ponte, lentes, brilho e hastes laterais. */
+[data-acc-face="sunglasses"] .acc-face {
+  box-shadow:
+    4px 4px #141420, 8px 4px #141420, 12px 4px #141420, 16px 4px #141420,
+    24px 4px #141420, 28px 4px #141420, 32px 4px #141420, 36px 4px #141420,
+    4px 8px #141420, 8px 8px #24344a, 12px 8px #24344a, 16px 8px #141420,
+    24px 8px #141420, 28px 8px #24344a, 32px 8px #24344a, 36px 8px #141420,
+    8px 12px #141420, 12px 12px #141420, 28px 12px #141420, 32px 12px #141420,
+    8px 5px rgba(255,255,255,.85), 28px 5px rgba(255,255,255,.65),
+    0 6px #141420, 40px 6px #141420;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node.walking .pixel-sprite,
+  #aic-clawd-node.running .pixel-sprite,
+  #aic-clawd-node.keepy-uppy .pixel-sprite { animation-duration: 4s !important; }
+}
+
+/* ============================================================
+   MODO LISO — mascote Claude (Welcome, Claw'd / Anthropic)
+   Flat sólido · stubs laterais · 4 pernas finas · olhos quadrados · SEM boca idle
+   ============================================================ */
+#aic-clawd-node .smooth-sprite {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 44px;
+  height: 36px;
+  z-index: 0;
+  transform-origin: bottom center;
+}
+#aic-clawd-node.smooth .pixel-sprite {
+  display: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+#aic-clawd-node.smooth .smooth-sprite { display: block; }
+
+/* Geometria = mesma grade do pixel clássico (Welcome, Claw'd):
+   corpo 28×22 @ x8 · stubs 8×8 @ y10 · pernas 4×8 @ x8/16/24/32 · cantos 0 */
+#aic-clawd-node .smooth-core {
+  position: absolute;
+  left: 8px;
+  top: 0;
+  width: 28px;
+  height: 22px;
+  background: var(--agent-color);
+  border-radius: 0;
+  box-shadow: none;
+  image-rendering: crisp-edges;
+}
+#aic-clawd-node .smooth-core::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 10px;
+  width: 8px;
+  height: 8px;
+  background: var(--agent-color);
+  border-radius: 0;
+  box-shadow: 36px 0 0 var(--agent-color);
+}
+#aic-clawd-node .smooth-core::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
+  background: #08080b;
+  box-shadow: 16px 0 #08080b;
+  opacity: 0;
+}
+#aic-clawd-node .smooth-leg {
+  position: absolute;
+  top: 22px;
+  width: 4px;
+  height: 8px;
+  background: var(--agent-color);
+  border-radius: 0;
+  transform-origin: center top;
+  box-shadow: none;
+}
+#aic-clawd-node .smooth-leg-1 { left: 8px; }
+#aic-clawd-node .smooth-leg-2 { left: 16px; }
+#aic-clawd-node .smooth-leg-3 { left: 24px; }
+#aic-clawd-node .smooth-leg-4 { left: 32px; }
+
+@keyframes clawd-smooth-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes clawd-smooth-leg-a {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0, -2px); }
+}
+@keyframes clawd-smooth-leg-b {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0, 1px); }
+}
+@keyframes clawd-smooth-walk-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+@keyframes clawd-smooth-pop {
+  0% { transform: scale(0.94); }
+  55% { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+@keyframes clawd-smooth-chew {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.92) translateY(1px); }
+}
+
+#aic-clawd-node.smooth:not(.walking):not(.running):not(.keepy-uppy):not(.sleeping):not(.eating):not(.somersault):not(.jumping):not(.fishing):not(.reeling):not(.happy):not(.celebrate):not(.excited):not(.dance-1):not(.dance-2):not(.dance-3) .smooth-sprite {
+  animation: clawd-smooth-idle 2.6s ease-in-out infinite;
+}
+#aic-clawd-node.smooth.walking .smooth-sprite,
+#aic-clawd-node.smooth.running .smooth-sprite {
+  animation: clawd-smooth-walk-bob var(--clawd-step-duration, .42s) ease-in-out infinite;
+}
+#aic-clawd-node.smooth.walking .smooth-leg-1,
+#aic-clawd-node.smooth.walking .smooth-leg-3,
+#aic-clawd-node.smooth.running .smooth-leg-1,
+#aic-clawd-node.smooth.running .smooth-leg-3 {
+  animation: clawd-smooth-leg-a var(--clawd-step-duration, .42s) ease-in-out infinite;
+}
+#aic-clawd-node.smooth.walking .smooth-leg-2,
+#aic-clawd-node.smooth.walking .smooth-leg-4,
+#aic-clawd-node.smooth.running .smooth-leg-2,
+#aic-clawd-node.smooth.running .smooth-leg-4 {
+  animation: clawd-smooth-leg-b var(--clawd-step-duration, .42s) ease-in-out infinite;
+}
+#aic-clawd-node.smooth.running .smooth-leg,
+#aic-clawd-node.smooth.running .smooth-sprite {
+  animation-duration: var(--clawd-run-duration, .18s);
+}
+#aic-clawd-node.smooth.keepy-uppy .smooth-sprite { animation: none; }
+#aic-clawd-node.smooth.keepy-uppy .smooth-leg-1 {
+  transform: translate(-9px, -11px) rotate(-46deg);
+  height: 13px;
+  transition: transform .16s cubic-bezier(.34, 1.4, .64, 1);
+}
+#aic-clawd-node.smooth.keepy-uppy .smooth-leg-2 { transform: translate(-1px, 1px); }
+#aic-clawd-node.smooth.keepy-uppy .smooth-leg-3 { transform: translate(0, 0); }
+#aic-clawd-node.smooth.keepy-uppy .smooth-leg-4 { transform: translate(1px, 1px); }
+#aic-clawd-node.smooth.freestyle-heel .smooth-leg-1,
+#aic-clawd-node.smooth.freestyle-around .smooth-leg-1,
+#aic-clawd-node.smooth.freestyle-knee .smooth-leg-2,
+#aic-clawd-node.smooth.freestyle-rabona .smooth-leg-4 {
+  transform: translate(-8px, -10px) rotate(-40deg);
+  height: 13px;
+}
+#aic-clawd-node.smooth:not(.walking):not(.running):not(.keepy-uppy) .smooth-leg { animation: none; }
+
+#aic-clawd-node.smooth.happy .smooth-sprite,
+#aic-clawd-node.smooth.celebrate .smooth-sprite {
+  animation: clawd-smooth-pop .55s cubic-bezier(.34, 1.45, .64, 1) both;
+  filter: brightness(1.08);
+}
+#aic-clawd-node.smooth.happy .smooth-leg-1,
+#aic-clawd-node.smooth.happy .smooth-leg-4,
+#aic-clawd-node.smooth.celebrate .smooth-leg-1,
+#aic-clawd-node.smooth.celebrate .smooth-leg-4 {
+  animation: clawd-smooth-leg-a .35s ease-in-out 2;
+}
+#aic-clawd-node.smooth.happy .smooth-leg-2,
+#aic-clawd-node.smooth.happy .smooth-leg-3,
+#aic-clawd-node.smooth.celebrate .smooth-leg-2,
+#aic-clawd-node.smooth.celebrate .smooth-leg-3 {
+  animation: clawd-smooth-leg-b .35s ease-in-out 2;
+}
+#aic-clawd-node.smooth.somersault .smooth-sprite {
+  animation: clawd-smooth-flip .7s cubic-bezier(.4, .05, .2, 1) both;
+}
+@keyframes clawd-smooth-flip {
+  0% { transform: translateY(0) rotate(0deg); }
+  45% { transform: translateY(-18px) rotate(180deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+#aic-clawd-node.smooth.excited .smooth-sprite,
+#aic-clawd-node.smooth.dance-1 .smooth-sprite,
+#aic-clawd-node.smooth.dance-2 .smooth-sprite,
+#aic-clawd-node.smooth.dance-3 .smooth-sprite {
+  animation: clawd-smooth-idle .4s ease-in-out infinite;
+  filter: brightness(1.06) saturate(1.1);
+}
+#aic-clawd-node.smooth.sleeping .smooth-sprite {
+  animation: none;
+  transform: translateY(2px) scaleY(.94);
+  filter: brightness(0.78) saturate(0.6);
+}
+#aic-clawd-node.smooth.eating .smooth-core {
+  animation: clawd-smooth-chew 0.4s ease-in-out 4;
+}
+
+/* Camisa contínua no modo liso. */
+#aic-clawd-node.smooth.has-jersey .jersey {
+  left: 4px;
+  top: 12px;
+  width: 36px;
+  height: 10px;
+  border-radius: 8px 8px 6px 6px;
+  background:
+    linear-gradient(90deg, transparent 0 14px, rgba(255,255,255,.92) 14px 22px, transparent 22px),
+    var(--jersey-color);
+  box-shadow: inset 0 -2px rgba(0,0,0,.13) !important;
+  opacity: .94;
+}
+
+/* Modo liso: acessórios e skins permanecem em PIXEL-SPRITE (mesma arte do modo pixel).
+   Pseudos (::after da hélice, etc.) continuam ativos para micro-animações pixel. */
+#aic-clawd-node.smooth .accessory,
+#aic-clawd-node.smooth .skin-mod {
+  image-rendering: pixelated;
+  /* NÃO zerar box-shadow — a grade pixel-art deve permanecer */
+}
+
+#aic-clawd-node.aic-nofx .accessory,
+#aic-clawd-node.aic-nofx .accessory::before,
+#aic-clawd-node.aic-nofx .accessory::after { animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node.smooth .smooth-leg,
+  #aic-clawd-node .accessory,
+  #aic-clawd-node .accessory::before,
+  #aic-clawd-node .accessory::after { animation: none !important; }
+}
+
+/* ============================================================
+   MODELOS v3.2 — SILHUETA, ROSTO E PERNAS EM CAMADAS
+   O clássico reproduz exatamente a referência. Os demais modelos
+   permanecem na grade de 4 px para compartilhar chapéus e óculos.
+   ============================================================ */
+:is(#aic-clawd-node, .clawd-model-preview) {
+  --agent-color: #d97757;
+  --agent-eye-color: #08080b;
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="classic"] {
+  --clawd-pixel-body:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color),
+    8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color);
+  --clawd-legs-idle:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    4px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 36px 24px var(--agent-color),
+    0 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    8px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-kick:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="mini"] {
+  --clawd-pixel-body:
+    12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color),
+    12px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px var(--agent-color),
+    12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color),
+    4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color),
+    4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color),
+    12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color);
+  --clawd-legs-idle:
+    12px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 24px var(--agent-color),
+    12px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 28px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    12px 24px var(--agent-color), 20px 24px var(--agent-color), 20px 28px var(--agent-color), 28px 24px var(--agent-color),
+    12px 28px var(--agent-color), 20px 28px var(--agent-color), 28px 28px var(--agent-color);
+  --clawd-legs-kick:
+    12px 24px var(--agent-color), 16px 24px var(--agent-color), 12px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 28px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="claws"] {
+  --clawd-pixel-body:
+    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
+    0 4px var(--agent-color), 4px 4px var(--agent-color), 8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color), 36px 4px var(--agent-color), 40px 4px var(--agent-color),
+    0 8px var(--agent-color), 4px 8px var(--agent-color), 8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color), 36px 8px var(--agent-color), 40px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color),
+    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color);
+  --clawd-legs-idle:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    4px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 36px 24px var(--agent-color),
+    0 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    8px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 32px 24px var(--agent-color),
+    8px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-legs-kick:
+    8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
+    24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+}
+
+:is(#aic-clawd-node, .clawd-model-preview)[data-model="guardian"] {
+  --clawd-pixel-body:
+    4px 0 var(--agent-color), 8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color), 36px 0 var(--agent-color),
+    4px 4px var(--agent-color), 8px 4px var(--agent-color), 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 32px 4px var(--agent-color), 36px 4px var(--agent-color),
+    4px 8px var(--agent-color), 8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color), 36px 8px var(--agent-color),
+    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
+    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
+    4px 20px var(--agent-color), 8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color), 36px 20px var(--agent-color);
+  --clawd-legs-idle:
+    4px 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 36px 24px var(--agent-color),
+    4px 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 36px 28px var(--agent-color);
+  --clawd-legs-step-a:
+    0 24px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 40px 24px var(--agent-color),
+    0 28px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 40px 28px var(--agent-color);
+  --clawd-legs-step-b:
+    4px 24px var(--agent-color), 8px 24px var(--agent-color), 32px 24px var(--agent-color), 36px 24px var(--agent-color),
+    4px 28px var(--agent-color), 8px 28px var(--agent-color), 32px 28px var(--agent-color), 36px 28px var(--agent-color);
+  --clawd-legs-kick:
+    4px 24px var(--agent-color), 12px 24px var(--agent-color), 4px 28px var(--agent-color), 12px 28px var(--agent-color),
+    28px 20px var(--agent-color), 32px 20px var(--agent-color), 28px 24px var(--agent-color), 36px 28px var(--agent-color);
+}
+
+@keyframes clawd-pixel-leg-cycle {
+  0%, 50%, 100% { box-shadow: var(--clawd-legs-idle); }
+  25% { box-shadow: var(--clawd-legs-step-a); }
+  75% { box-shadow: var(--clawd-legs-step-b); }
+}
+@keyframes clawd-pixel-leg-kick {
+  0%, 100% { box-shadow: var(--clawd-legs-idle); }
+  50% { box-shadow: var(--clawd-legs-kick); }
+}
+
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-sprite,
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  image-rendering: pixelated;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-sprite {
+  box-shadow: var(--clawd-pixel-body) !important;
+  animation: none !important;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs {
+  z-index: 0;
+  box-shadow: var(--clawd-legs-idle);
+  animation: none;
+}
+#aic-clawd-node.walking .pixel-legs {
+  animation: clawd-pixel-leg-cycle var(--clawd-step-duration, .42s) steps(1) infinite;
+}
+#aic-clawd-node.running .pixel-legs {
+  animation: clawd-pixel-leg-cycle var(--clawd-run-duration, .18s) steps(1) infinite;
+}
+#aic-clawd-node.keepy-uppy .pixel-legs {
+  animation: clawd-pixel-leg-kick var(--clawd-step-duration, .42s) steps(1) infinite;
+}
+#aic-clawd-node:not(.walking):not(.running):not(.keepy-uppy) .pixel-legs {
+  animation: none !important;
+  box-shadow: var(--clawd-legs-idle);
+}
+#aic-clawd-node[data-clawd-owned="true"] .pixel-sprite,
+#aic-clawd-node.popup-outfit-pet .pixel-sprite { animation: none !important; }
+
+/* Olhos e estilos faciais compartilham a mesma âncora em todos os modelos. */
+:is(#aic-clawd-node, .clawd-model-preview) .pet-eyes,
+:is(#aic-clawd-node, .clawd-model-preview) .face-detail {
+  position: absolute;
+  pointer-events: none;
+}
+:is(#aic-clawd-node, .clawd-model-preview) .pet-eyes {
+  left: 12px;
+  top: 4px;
+  z-index: 2;
+  width: 4px;
+  height: 4px;
+  background: var(--agent-eye-color);
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+:is(#aic-clawd-node, .clawd-model-preview) .face-detail {
+  inset: 0;
+  z-index: 2;
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="sparkle"] .face-detail::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 4px;
+  width: 1px;
+  height: 1px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 16px 0 rgba(255,255,255,.92), 2px 2px rgba(255,255,255,.45), 18px 2px rgba(255,255,255,.45);
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::before,
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  width: 6px;
+  height: 2px;
+  background: var(--agent-eye-color);
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::before { left: 11px; transform: rotate(12deg); }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="focused"] .face-detail::after { left: 27px; transform: rotate(-12deg); }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="sleepy"] .pet-eyes {
+  left: 11px;
+  top: 6px;
+  width: 6px;
+  height: 1px;
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+#aic-clawd-node .blink-line {
+  background: var(--agent-eye-color);
+  box-shadow: 16px 0 var(--agent-eye-color);
+}
+
+/* O renderizador contínuo espelha a grade do pixel por modelo (Welcome geometry). */
+#aic-clawd-node .smooth-core::after { opacity: 0; }
+#aic-clawd-node.smooth .pixel-legs {
+  display: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+#aic-clawd-node[data-model="mini"] .smooth-core {
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 0;
+}
+#aic-clawd-node[data-model="mini"] .smooth-core::before {
+  left: -8px;
+  top: 10px;
+  width: 8px;
+  height: 8px;
+  box-shadow: 28px 0 0 var(--agent-color);
+}
+#aic-clawd-node[data-model="mini"] .smooth-leg { top: 20px; height: 8px; width: 4px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-1 { left: 12px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-2 { left: 16px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-3 { left: 24px; }
+#aic-clawd-node[data-model="mini"] .smooth-leg-4 { left: 28px; }
+#aic-clawd-node[data-model="claws"] .smooth-core::after {
+  content: '';
+  opacity: 1;
+  position: absolute;
+  left: -8px;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  background-color: transparent;
+  background-image: linear-gradient(var(--agent-color), var(--agent-color));
+  box-shadow: 36px 0 0 var(--agent-color);
+}
+#aic-clawd-node[data-model="guardian"] .smooth-core {
+  left: 4px;
+  width: 36px;
+  height: 22px;
+  border-radius: 0;
+}
+#aic-clawd-node[data-model="guardian"] .smooth-core::before {
+  left: -4px;
+  top: 10px;
+  width: 4px;
+  height: 8px;
+  box-shadow: 40px 0 0 var(--agent-color);
+}
+#aic-clawd-node[data-model="guardian"] .smooth-leg { top: 22px; width: 4px; height: 8px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-1 { left: 4px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-2 { left: 12px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-3 { left: 28px; }
+#aic-clawd-node[data-model="guardian"] .smooth-leg-4 { left: 36px; }
+
+/* Acessórios lisos: assento suave sobre a coroa arredondada */
+#aic-clawd-node.smooth .acc-head {
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.18));
+}
+#aic-clawd-node.smooth.profession-headwear .acc-head {
+  animation: clawd-gear-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+#aic-clawd-node.smooth.profession-facewear .acc-face {
+  animation: clawd-gear-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes clawd-gear-pop {
+  0% { transform: translateY(-4px) scale(0.86); opacity: 0.4; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ---- Props de profissão ---- */
+#aic-clawd-node .profession-prop {
+  position: absolute;
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+#aic-clawd-node[data-profession="chef"].cooking .prop-chef-pan,
+#aic-clawd-node[data-profession="chef"].cooking .prop-chef-steam,
+#aic-clawd-node[data-profession="musician"].jamming .prop-music-note,
+#aic-clawd-node[data-profession="ninja"].stealthing .prop-ninja-smoke,
+#aic-clawd-node[data-profession="tutor"].thinking .prop-tutor-glint {
+  opacity: 1;
+}
+.prop-chef-pan {
+  left: -10px;
+  top: 16px;
+  width: 14px;
+  height: 8px;
+  border-radius: 3px 3px 5px 5px;
+  background: linear-gradient(180deg, #7f8c8d, #2c3e50);
+  box-shadow: inset 0 1px rgba(255,255,255,.25), 10px 2px 0 -2px #34495e;
+}
+.prop-chef-steam {
+  left: -6px;
+  top: 6px;
+  width: 4px;
+  height: 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.55);
+  animation: clawd-steam 0.9s ease-in-out infinite;
+  box-shadow: 6px 0 rgba(255,255,255,.35);
+}
+@keyframes clawd-steam {
+  0%, 100% { transform: translateY(0) scaleY(1); opacity: .55; }
+  50% { transform: translateY(-5px) scaleY(1.2); opacity: .95; }
+}
+.prop-music-note {
+  left: 34px;
+  top: -8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50% 50% 50% 0;
+  background: #2c3e50;
+  animation: clawd-note-float 0.85s ease-in-out infinite;
+  box-shadow: 4px -6px 0 -2px #e74c3c;
+}
+@keyframes clawd-note-float {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-6px) rotate(10deg); }
+}
+.prop-ninja-smoke {
+  left: 8px;
+  top: 8px;
+  width: 28px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80, 80, 90, 0.55), transparent 70%);
+  animation: clawd-smoke-puff 1.2s ease-out both;
+}
+@keyframes clawd-smoke-puff {
+  0% { transform: scale(0.4); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+#aic-clawd-node.stealthing {
+  opacity: 0.22 !important;
+  transition: opacity 0.35s ease;
+}
+.prop-tutor-glint {
+  left: 14px;
+  top: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 16px 0 rgba(255, 255, 255, 0.65);
+  animation: clawd-glint 1.1s ease-in-out infinite;
+}
+@keyframes clawd-glint {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Laptop liso (Dev) */
+#aic-clawd-node.smooth.typing .laptop {
+  display: block;
+  left: 6px;
+  top: 20px;
+  width: 32px;
+  height: 14px;
+  border-radius: 3px 3px 2px 2px;
+  background:
+    linear-gradient(180deg, #85c1e9 0 55%, #2c3e50 55% 100%);
+  box-shadow:
+    0 2px 0 #1a252f,
+    inset 0 1px rgba(255,255,255,.35) !important;
+  animation: none !important;
+}
+
+/* Micro-bounce nas ações principais */
+#aic-clawd-node.waving .pet-body,
+#aic-clawd-node.highfive .pet-body {
+  transform-origin: bottom center;
+}
+#aic-clawd-node.jumping .smooth-sprite {
+  animation: clawd-smooth-hop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes clawd-smooth-hop {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-10px) scale(1.04, 0.96); }
+}
+
+/* Miniaturas reais usadas pelo popup; a arte vem do mesmo CSS do runtime. */
+.clawd-model-preview {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 36px;
+  flex: 0 0 44px;
+  overflow: visible;
+  transform-origin: center;
+}
+.clawd-model-preview .accessory,
+.clawd-model-preview .skin-mod {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+}
+.clawd-model-preview .skin-mod { z-index: 1; }
+.clawd-model-preview .acc-head { z-index: 4; }
+.clawd-model-preview .acc-face { z-index: 5; }
+
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node .pixel-legs { animation-duration: 4s !important; animation-iteration-count: 1 !important; }
+}
+
+
+/* ---- Novas ações do pet principal ---- */
+@keyframes clawd-spin-action {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes clawd-bounce-action {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-14px); }
+  70% { transform: translateY(-4px); }
+}
+@keyframes clawd-wink-cover {
+  0%, 55%, 100% { opacity: 0; }
+  60%, 90% { opacity: 1; }
+}
+@keyframes clawd-cheer-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.06); }
+}
+@keyframes clawd-sneak {
+  0%, 100% { transform: translateX(0) scaleY(0.92); }
+  50% { transform: translateX(6px) scaleY(0.88); }
+}
+@keyframes clawd-clap {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+@keyframes clawd-peek {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(8px); }
+  70% { transform: translateY(4px); }
+}
+@keyframes clawd-roll {
+  0% { transform: translateX(0) rotate(0deg); }
+  100% { transform: translateX(24px) rotate(360deg); }
+}
+#aic-clawd-node.spinning .pet-body,
+#aic-clawd-node.spinning .smooth-sprite {
+  animation: clawd-spin-action 0.7s cubic-bezier(.4,.05,.2,1) both;
+}
+#aic-clawd-node.bouncing .pet-body,
+#aic-clawd-node.bouncing .smooth-sprite {
+  animation: clawd-bounce-action 0.55s ease both;
+}
+#aic-clawd-node.winking .blink-cover {
+  opacity: 1;
+  animation: clawd-wink-cover 0.7s steps(1) both;
+}
+#aic-clawd-node.cheering .pet-body,
+#aic-clawd-node.cheering .smooth-sprite {
+  animation: clawd-cheer-hop 0.4s ease-in-out 3;
+}
+#aic-clawd-node.sneaking .pet-body,
+#aic-clawd-node.sneaking .smooth-sprite {
+  animation: clawd-sneak 0.5s ease-in-out 4;
+}
+#aic-clawd-node.clapping .pet-body,
+#aic-clawd-node.clapping .smooth-sprite {
+  animation: clawd-clap 0.22s ease-in-out 5;
+}
+#aic-clawd-node.peeking .pet-body,
+#aic-clawd-node.peeking .smooth-sprite {
+  animation: clawd-peek 0.7s ease both;
+}
+#aic-clawd-node.rolling .pet-body,
+#aic-clawd-node.rolling .smooth-sprite {
+  animation: clawd-roll 0.8s cubic-bezier(.4,.05,.2,1) both;
+}
+
+/* ===== BALÃO + ABRAÇO + BRINCADEIRAS ===== */
+#aic-clawd-node.holding-balloon .balloon-layer {
+  display: block;
+  pointer-events: auto;
+  cursor: pointer;
+  width: 4px;
+  height: 4px;
+  --balloon-color: #ff6b6b;
+  box-shadow:
+    40px -36px var(--balloon-color), 44px -36px var(--balloon-color), 48px -36px var(--balloon-color),
+    36px -32px var(--balloon-color), 40px -32px #fff8, 44px -32px var(--balloon-color), 48px -32px var(--balloon-color), 52px -32px var(--balloon-color),
+    36px -28px var(--balloon-color), 40px -28px var(--balloon-color), 44px -28px var(--balloon-color), 48px -28px var(--balloon-color), 52px -28px var(--balloon-color),
+    40px -24px var(--balloon-color), 44px -24px var(--balloon-color), 48px -24px var(--balloon-color),
+    44px -20px #5d4037, 44px -16px #8d6e63, 44px -12px #8d6e63, 44px -8px #8d6e63, 44px -4px #8d6e63, 44px 0 #6d4c41;
+  animation: clawd-balloon-float 2.8s cubic-bezier(.45,.05,.55,.95) infinite;
+  transform-origin: 44px 0;
+}
+@keyframes clawd-balloon-float {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(-5deg); }
+  25% { transform: translateY(-4px) translateX(2px) rotate(2deg); }
+  50% { transform: translateY(-7px) translateX(0) rotate(6deg); }
+  75% { transform: translateY(-3px) translateX(-2px) rotate(-1deg); }
+}
+#aic-clawd-node.holding-balloon .pet-body {
+  animation: clawd-balloon-hold 2.8s cubic-bezier(.45,.05,.55,.95) infinite;
+}
+@keyframes clawd-balloon-hold {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+#aic-clawd-node.balloon-pop .balloon-layer {
+  display: block;
+  pointer-events: none;
+  animation: clawd-balloon-burst 0.55s steps(3) forwards;
+  box-shadow:
+    36px -32px #fff, 52px -32px #fff, 40px -28px #fff, 48px -24px #fff,
+    32px -36px #ffec8b, 56px -20px #ffec8b, 44px -40px #fff;
+}
+@keyframes clawd-balloon-burst {
+  0% { transform: scale(1); opacity: 1; filter: brightness(1.4); }
+  40% { transform: scale(1.35); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+#aic-clawd-node.hugging .pet-body,
+#aic-clawd-node.hugging .smooth-sprite {
+  animation: clawd-hug-squash 0.55s ease-in-out 3;
+}
+@keyframes clawd-hug-squash {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.12, 0.9); }
+}
+#aic-clawd-node.dizzy .pet-body,
+#aic-clawd-node.dizzy .smooth-sprite {
+  animation: clawd-dizzy-spin 0.9s ease-in-out both;
+}
+@keyframes clawd-dizzy-spin {
+  0% { transform: rotate(0) translateY(0); }
+  30% { transform: rotate(18deg) translateY(-4px); }
+  60% { transform: rotate(-16deg) translateY(-2px); }
+  100% { transform: rotate(0) translateY(0); }
+}
+#aic-clawd-node.curious .pet-body,
+#aic-clawd-node.curious .smooth-sprite {
+  animation: clawd-peek 0.8s ease both;
+}
+.aic-subpet.watching-balloon { animation: clawd-cheer-hop 0.45s ease-in-out 3; }
+.aic-subpet.duo-hug {
+  animation: clawd-hug-squash 0.5s ease-in-out 3;
+  filter: drop-shadow(0 0 4px rgba(255,120,180,.55));
+}
+.aic-subpet.startled { animation: clawd-startle-jump 0.55s cubic-bezier(.34,1.4,.64,1) both; }
+@keyframes clawd-startle-jump {
+  0% { transform: translate(0, 0) scale(1); }
+  35% { transform: translate(-10px, -14px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+#aic-clawd-node.aic-nofx .balloon-layer,
+#aic-clawd-node.aic-nofx.holding-balloon .pet-body { animation: none !important; }
+
+/* ===== LOCOMOÇÃO PET + SUBPET FLIGHT / SUMMON ===== */
+@keyframes clawd-walk-bob {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  35% { transform: translateY(-2px) scaleY(1.02); }
+  70% { transform: translateY(-4px) scaleY(0.98); }
+}
+#aic-clawd-node.walking .pet-body {
+  animation: clawd-walk-bob var(--clawd-step-duration, .42s) cubic-bezier(.45,.05,.55,.95) infinite;
+}
+#aic-clawd-node.running .pet-body {
+  animation: clawd-walk-bob var(--clawd-run-duration, .18s) cubic-bezier(.45,.05,.55,.95) infinite;
+}
+#aic-clawd-node.walking.smooth .smooth-sprite,
+#aic-clawd-node.running.smooth .smooth-sprite {
+  animation: clawd-walk-bob var(--clawd-step-duration, .42s) cubic-bezier(.45,.05,.55,.95) infinite;
+}
+
+.aic-walk-dust {
+  position: fixed;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: rgba(140, 120, 90, 0.55);
+  box-shadow: 3px 0 rgba(110, 95, 70, 0.35), -2px 1px rgba(160, 140, 110, 0.3);
+  pointer-events: none;
+  z-index: 2147483645;
+  animation: clawd-dust 0.5s ease-out forwards;
+}
+
+.aic-subpet.flying .subpet-motion {
+  animation: clawd-subpet-fly 1.1s ease-in-out infinite !important;
+}
+@keyframes clawd-subpet-fly {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  33% { transform: translateY(-5px) rotate(1deg); }
+  66% { transform: translateY(-8px) rotate(4deg); }
+}
+.aic-subpet.flying .subpet-sprite {
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,0.28)) drop-shadow(0 0 6px rgba(195, 155, 211, 0.35));
+}
+.aic-subpet.fire.flying .subpet-sprite,
+.aic-subpet.fire .subpet-sprite {
+  filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.65)) brightness(1.15);
+}
+.aic-subpet.summoning .subpet-motion {
+  animation: clawd-subpet-summon 0.65s cubic-bezier(.34,1.56,.64,1) both !important;
+}
+@keyframes clawd-subpet-summon {
+  0% { transform: translateY(16px) scale(0.4); opacity: 0; }
+  70% { transform: translateY(-4px) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.aic-subpet.owner-walking .subpet-sprite,
+.aic-subpet.moving:not(.flying):not(.playing):not(.racing) .subpet-sprite {
+  animation: clawd-subpet-run 0.28s ease-in-out infinite;
+}
+.aic-subpet.flying .subpet-motion,
+.aic-subpet.summoning .subpet-motion {
+  /* keep custom anims above idle kill-list */
+}
+
+#aic-clawd-node.aic-nofx .pet-body,
+#aic-clawd-node.aic-nofx.walking .pet-body,
+#aic-clawd-node.aic-nofx.running .pet-body {
+  animation: none !important;
+}

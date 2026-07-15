@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claw'd — Menu</title>
+  <link rel="stylesheet" href="../content/style.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-pet" id="header-pet-preview">
+      <span class="clawd-model-preview header-model-preview" id="mini-sprite" data-model="classic" data-face-style="classic" data-skin="normal" data-acc-head="none" data-acc-face="none" role="img" aria-label="Miniatura pixel-art do pet">
+        <i class="pixel-sprite"></i><i class="pixel-legs"></i><i class="pet-eyes"></i><i class="face-detail"></i>
+        <i class="skin-mod"></i><i class="accessory acc-head"></i><i class="accessory acc-face"></i>
+      </span>
+    </div>
+    <div class="header-info">
+      <div class="header-top">
+        <h1 class="brand">Claw'd <span class="version">v3.2</span></h1>
+        <span class="coins-pill" id="coins-pill" title="PixelCoins">🪙 <span id="coins-count">0</span></span>
+      </div>
+      <div class="xp-area">
+        <span class="xp-level" id="xp-level">Lv. 1</span>
+        <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+        <span class="xp-count" id="xp-count">0 XP</span>
+      </div>
+      <!-- Medidores Tamagotchi -->
+      <div class="stats-row" id="stats-row">
+        <div class="stat" title="Felicidade"><span>❤️</span><div class="stat-bar"><div class="stat-fill" id="stat-happiness"></div></div></div>
+        <div class="stat" title="Saciedade"><span>🍖</span><div class="stat-bar"><div class="stat-fill" id="stat-hunger"></div></div></div>
+        <div class="stat" title="Energia"><span>⚡</span><div class="stat-bar"><div class="stat-fill" id="stat-energy"></div></div></div>
+        <div class="stat" title="Higiene"><span>🧼</span><div class="stat-bar"><div class="stat-fill" id="stat-hygiene"></div></div></div>
+      </div>
+    </div>
+  </header>
+
+  <span class="status-pill" id="status-pill" style="display:none">
+    <span id="status-text"></span>
+  </span>
+
+  <!-- TABS -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="appearance" title="Aparência">🎨</button>
+    <button class="tab" data-tab="profession" title="Profissão">💼</button>
+    <button class="tab" data-tab="behavior" title="Comportamento">🧠</button>
+    <button class="tab" data-tab="actions" title="Ações">⚡</button>
+    <button class="tab" data-tab="pets" title="Sub-Pets">🐕</button>
+    <button class="tab" data-tab="shop" title="Lojinha">🛍️</button>
+    <button class="tab" data-tab="achievements" title="Conquistas">🏆</button>
+    <button class="tab" data-tab="config" title="Configurações">⚙️</button>
+  </nav>
+
+  <!-- PAINEL APARÊNCIA -->
+  <div class="tab-panel active" id="tab-appearance">
+
+    <section class="outfit-preview-card" aria-labelledby="outfit-preview-title">
+      <div class="outfit-preview-copy">
+        <span class="outfit-preview-kicker">Provador ao vivo</span>
+        <strong id="outfit-preview-title">Seu visual atual</strong>
+        <small id="outfit-preview-detail">Dois slots combináveis</small>
+      </div>
+      <div class="outfit-preview-stage">
+        <div class="popup-outfit-pet" id="aic-clawd-node" data-model="classic" data-face-style="classic" data-acc-head="none" data-acc-face="none" data-skin="normal" role="img" aria-label="Prévia do visual do pet">
+          <div class="pet-body">
+            <div class="sprite-stack">
+              <div class="pixel-sprite"></div>
+              <div class="pixel-legs" aria-hidden="true"></div>
+              <div class="smooth-sprite" aria-hidden="true">
+                <span class="smooth-core"></span>
+                <span class="smooth-leg smooth-leg-1"></span><span class="smooth-leg smooth-leg-2"></span>
+                <span class="smooth-leg smooth-leg-3"></span><span class="smooth-leg smooth-leg-4"></span>
+              </div>
+              <div class="pet-eyes" aria-hidden="true"></div>
+              <div class="face-detail" aria-hidden="true"></div>
+              <div class="emotion-face" aria-hidden="true"><span class="blink-cover"></span><span class="blink-line"></span><span class="emotion-mouth"></span></div>
+              <div class="jersey"></div><div class="skin-mod"></div>
+              <div class="accessory acc-head"></div><div class="accessory acc-face"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="control-group">
+      <label for="input-name">Nome do pet <button class="fav-star name-star" id="name-star" title="Favoritar apelido">☆</button></label>
+      <div class="input-row">
+        <input type="text" id="input-name" list="name-history" placeholder="Ex: Claw'd" maxlength="20">
+        <datalist id="name-history"></datalist>
+      </div>
+      <div class="fav-nicks" id="fav-nicks"></div>
+    </div>
+
+    <div class="control-group">
+      <label>Modelo do pet</label>
+      <div class="model-grid" id="model-grid"></div>
+      <p class="customization-description" id="model-description"></p>
+    </div>
+
+    <div class="control-group">
+      <label>Cor principal</label>
+      <div class="color-grid" id="fav-color-row" style="display:none"></div>
+      <div class="color-grid" id="color-grid"></div>
+      <div class="input-row color-row">
+        <input type="color" id="input-color" value="#c71515" title="Cor customizada">
+        <span class="color-label" id="color-hex">#c71515</span>
+        <button class="fav-star" id="color-star" title="Favoritar esta cor">☆</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Rosto e olhos</label>
+      <div class="face-style-grid" id="face-style-grid"></div>
+      <p class="customization-description" id="face-style-description"></p>
+      <div class="input-row color-row eye-color-row">
+        <input type="color" id="input-eye-color" value="#08080b" title="Cor dos olhos do pet">
+        <span class="color-label" id="eye-color-hex">#08080b</span>
+        <small>Cor independente</small>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label for="range-scale">Tamanho <span class="value-badge" id="scale-badge">1.5×</span></label>
+      <input type="range" id="range-scale" min="0.8" max="3" step="0.1" value="1.5">
+    </div>
+
+    <div class="control-group">
+      <label for="range-speed">Velocidade da animação <span class="value-badge" id="speed-badge">1×</span></label>
+      <input type="range" id="range-speed" min="0.5" max="3" step="0.25" value="1">
+    </div>
+
+    <div class="control-group">
+      <label>Estilo visual</label>
+      <div class="toggle-row compact">
+        <div class="toggle-info">
+          <span class="toggle-label">Visual liso</span>
+          <span class="toggle-desc">Geometria angular contínua, sem células ou grade</span>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="toggle-smooth"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row compact">
+        <div class="toggle-info">
+          <span class="toggle-label">Contorno</span>
+          <span class="toggle-desc">Borda escura ao redor do pet</span>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="toggle-outline"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row compact">
+        <div class="toggle-info">
+          <span class="toggle-label">Exibir boca</span>
+          <span class="toggle-desc">Mostra o sorriso e as expressões da boca</span>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="toggle-mouth"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Skin do corpo</label>
+      <div class="skin-art-grid" id="skin-grid"></div>
+    </div>
+
+    <div class="control-group">
+      <label>Acessório — Cabeça</label>
+      <div class="accessory-grid" id="acc-head-grid"></div>
+      <p class="accessory-description" id="acc-head-description">Escolha um chapéu para ver os detalhes.</p>
+    </div>
+    <div class="control-group">
+      <label>Acessório — Rosto/Corpo</label>
+      <div class="accessory-grid" id="acc-face-grid"></div>
+      <p class="accessory-description" id="acc-face-description">Escolha um acessório para ver os detalhes.</p>
+    </div>
+
+  </div>
+
+  <!-- PAINEL PROFISSÃO -->
+  <div class="tab-panel" id="tab-profession">
+    <p class="section-hint">A profissão define o comportamento e as reações do pet ao contexto da página.</p>
+    <div class="profession-grid" id="profession-grid"></div>
+
+    <div class="control-group" id="jersey-group" style="display:none">
+      <label>Camisa do time</label>
+      <div class="color-grid" id="jersey-grid"></div>
+      <div class="keepy-record" id="keepy-record">⚽ Recorde de embaixadinhas: <b>0</b></div>
+    </div>
+
+    <div class="prof-status" id="prof-status">
+      <span class="prof-status-icon">🐾</span>
+      <span id="prof-status-text">Modo livre — sem profissão ativa</span>
+    </div>
+  </div>
+
+  <!-- PAINEL COMPORTAMENTO -->
+  <div class="tab-panel" id="tab-behavior">
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">Balão de fala</span>
+        <span class="toggle-desc">Mensagens aleatórias do pet</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-speech" checked><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">Andar automático</span>
+        <span class="toggle-desc">Pet passeia pela tela sozinho</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-walk" checked><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">Dormir quando ocioso</span>
+        <span class="toggle-desc">Boceja e adormece após ~30s parado</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-sleep" checked><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">🌐 Passear entre abas</span>
+        <span class="toggle-desc">Um único pet viaja pelas abas abertas</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-crosstab" checked><span class="slider"></span></label>
+    </div>
+    <div class="control-group indent">
+      <label for="select-travel">Frequência do passeio</label>
+      <select id="select-travel">
+        <option value="rarely">Raramente</option>
+        <option value="sometimes" selected>Às vezes</option>
+        <option value="always">Sempre que troco de aba</option>
+      </select>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">🐾 Pegadas</span>
+        <span class="toggle-desc">Mostra pegadas nas abas sem o pet</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-footprints"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <!-- PAINEL AÇÕES -->
+  <div class="tab-panel" id="tab-actions">
+    <div class="actions-grid" id="actions-grid"></div>
+    <div class="divider"></div>
+    <button id="btn-toggle" class="btn btn-outline"><span>👁️</span> Mostrar / Ocultar</button>
+    <button id="btn-reset" class="btn btn-outline"><span>🔄</span> Resgatar pet</button>
+  </div>
+
+  <!-- PAINEL SUB-PETS -->
+  <div class="tab-panel" id="tab-pets">
+    <p class="section-hint">O Claw'd também merece um pet! Desbloqueie subindo de nível. Só 1 ativo por vez.</p>
+    <div class="subpet-grid" id="subpet-grid"></div>
+    <div class="control-group" id="subpet-name-group" style="display:none">
+      <label for="input-subpet-name">Nome do sub-pet</label>
+      <input type="text" id="input-subpet-name" maxlength="16" placeholder="Ex: Rex">
+      <div class="input-row subpet-color-row">
+        <label for="input-subpet-color">Cor do sub-pet</label>
+        <input type="color" id="input-subpet-color" value="#8d5a2b" title="Cor principal do sub-pet">
+        <span class="color-label" id="subpet-color-hex">#8d5a2b</span>
+      </div>
+      <div class="input-row subpet-color-row">
+        <label for="input-subpet-eye-color">Cor dos olhos</label>
+        <input type="color" id="input-subpet-eye-color" value="#111111" title="Cor dos olhos do sub-pet">
+        <span class="color-label" id="subpet-eye-color-hex">#111111</span>
+      </div>
+    </div>
+    <section class="subpet-interactions" aria-labelledby="subpet-interactions-title">
+      <div class="subpet-interactions-head">
+        <span id="subpet-interactions-title">Interações ao vivo</span>
+        <small>acorda ao interagir</small>
+      </div>
+      <div class="subpet-action-grid" id="subpet-action-grid"></div>
+      <p class="subpet-action-status" id="subpet-action-status" aria-live="polite">Ative um sub-pet para brincar.</p>
+    </section>
+  </div>
+
+  <!-- PAINEL LOJA -->
+  <div class="tab-panel" id="tab-shop">
+    <p class="section-hint">Ganhe 🪙 PixelCoins navegando, brincando e completando desafios (≈1 coin a cada 5 XP).</p>
+    <div class="shop-grid" id="shop-grid"></div>
+  </div>
+
+  <!-- PAINEL CONQUISTAS -->
+  <div class="tab-panel" id="tab-achievements">
+    <div class="ach-summary" id="ach-summary">0 / 7 desbloqueadas</div>
+    <div class="daily-quest" id="daily-quest" aria-live="polite"></div>
+    <div class="ach-list" id="ach-list"></div>
+    <div class="divider"></div>
+    <div class="streak-box" id="streak-box">🔥 Streak: <b>0 dias</b></div>
+  </div>
+
+  <!-- PAINEL CONFIG -->
+  <div class="tab-panel" id="tab-config">
+
+    <div class="control-group">
+      <label>Tema do name-tag</label>
+      <div class="mini-grid" id="tag-theme-grid">
+        <button class="mini-card active" data-theme="light"><span>🔆</span>Claro</button>
+        <button class="mini-card" data-theme="dark"><span>🌙</span>Escuro</button>
+        <button class="mini-card" data-theme="neon"><span>💠</span>Neon</button>
+        <button class="mini-card" data-theme="invisible"><span>🫥</span>Oculto</button>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">🔊 Sons 8-bit</span>
+        <span class="toggle-desc">Bipes sutis nas ações (off por padrão)</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-sounds" checked><span class="slider"></span></label>
+    </div>
+    <div class="control-group indent">
+      <label for="range-volume">Volume <span class="value-badge" id="volume-badge">40%</span></label>
+      <input type="range" id="range-volume" min="0" max="1" step="0.1" value="0.4">
+    </div>
+
+    <div class="control-group">
+      <label>🤫 Horário de silêncio</label>
+      <div class="input-row">
+        <input type="time" id="quiet-start" title="Início">
+        <span class="muted">até</span>
+        <input type="time" id="quiet-end" title="Fim">
+        <button class="btn-mini" id="quiet-clear" title="Limpar">✖</button>
+      </div>
+      <span class="toggle-desc">O pet não fala nem anda nesse intervalo.</span>
+    </div>
+
+    <div class="control-group">
+      <label for="blocked-sites">🚫 Sites bloqueados</label>
+      <textarea id="blocked-sites" rows="3" placeholder="um domínio por linha&#10;ex: meubanco.com.br"></textarea>
+      <span class="toggle-desc">O pet não aparece nesses domínios.</span>
+    </div>
+
+    <div class="control-group">
+      <label for="select-corner">Posição inicial preferida</label>
+      <select id="select-corner">
+        <option value="br" selected>Canto inferior direito</option>
+        <option value="bl">Canto inferior esquerdo</option>
+        <option value="tr">Canto superior direito</option>
+        <option value="tl">Canto superior esquerdo</option>
+      </select>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">🚀 Modo desempenho</span>
+        <span class="toggle-desc">Desativa partículas, 3D e sub-pet</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-performance"><span class="slider"></span></label>
+    </div>
+
+    <div class="divider"></div>
+
+    <button id="btn-export" class="btn btn-outline"><span>📤</span> Exportar dados (JSON)</button>
+    <button id="btn-import" class="btn btn-outline"><span>📥</span> Importar dados</button>
+    <input type="file" id="import-file" accept=".json" style="display:none">
+    <button id="btn-reset-all" class="btn btn-danger"><span>🗑️</span> Resetar progresso</button>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span>Claw'd &mdash; Companheiro de Navegação</span>
+  </footer>
+
+  <script src="../shared/catalog.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

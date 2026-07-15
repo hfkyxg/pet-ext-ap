@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1130" height="260" viewBox="0 0 1130 260" role="img" aria-labelledby="title desc">
+  <title id="title">Claw'd — companheiro de navegação pixel-art</title>
+  <desc id="desc">Banner da versão 3.2 com o modelo clássico e miniaturas dos quatro modelos pixel-art.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141728"/>
+      <stop offset="1" stop-color="#080910"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff3d57"/>
+      <stop offset="1" stop-color="#c71515"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#ff3d57" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ff3d57" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="pet-shadow" x="-40%" y="-40%" width="180%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity=".45"/>
+    </filter>
+    <style>
+      text { font-family: "Courier New", monospace; }
+      .pixel { shape-rendering: crispEdges; }
+      .label { fill: #8f97bd; font-size: 11px; font-weight: 700; letter-spacing: .7px; }
+      .model-name { fill: #f7f8ff; font-size: 11px; font-weight: 800; letter-spacing: .5px; }
+      .model-card { fill: #171a2b; stroke: #2d3351; stroke-width: 1; }
+      @media (prefers-reduced-motion: no-preference) {
+        .hero-pet { animation: clawd-banner-float 2.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+        .hero-eyes { animation: clawd-banner-blink 5s steps(1, end) infinite; }
+        .pet-bob { animation: clawd-banner-float 3s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+        .pet-bob:nth-of-type(1) { animation-delay: -.4s; }
+        .pet-bob:nth-of-type(2) { animation-delay: -.8s; }
+        .pet-bob:nth-of-type(3) { animation-delay: -1.2s; }
+      }
+      @keyframes clawd-banner-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+      @keyframes clawd-banner-blink { 0%,92%,100% { opacity: 1; } 94%,97% { opacity: 0; } }
+    </style>
+  </defs>
+
+  <rect width="1130" height="260" rx="20" fill="url(#background)"/>
+  <ellipse cx="150" cy="120" rx="150" ry="120" fill="url(#glow)"/>
+  <path d="M20 0h1090a20 20 0 0 1 20 20v3H0v-3A20 20 0 0 1 20 0z" fill="url(#accent)"/>
+  <path d="M0 196h1130" stroke="#252941" stroke-width="1"/>
+
+  <g class="pixel" filter="url(#pet-shadow)" color="#e11920" transform="translate(56 44) scale(2.4)">
+    <g id="pet-classic" class="hero-pet"><path fill="currentColor" d="M0 4h8v4h-8zM48 4h8v4h-8zM0 8h8v4h-8zM48 8h8v4h-8zM4 12h8v4h-8zM44 12h8v4h-8z"/><path fill="currentColor" d="M16 8h24v4h-24zM16 12h24v4h-24zM16 16h24v4h-24zM8 20h40v4h-40zM8 24h4v4h-4zM20 24h16v4h-16zM44 24h4v4h-4zM8 28h4v4h-4zM20 28h16v4h-16zM44 28h4v4h-4zM8 32h16v4h-16zM32 32h16v4h-16zM8 36h40v4h-40zM16 40h24v4h-24z"/><path fill="#8f0f16" d="M8 40h8v4h-8zM40 40h8v4h-8z"/><path fill="#5c0a0e" d="M12 44h8v4h-8zM36 44h8v4h-8z"/><path fill="#7a0c12" d="M24 32h8v4h-8z"/><path fill="#ffffff" d="M12 24h8v4h-8zM36 24h8v4h-8zM12 28h4v4h-4zM36 28h4v4h-4z"/><path fill="#10121f" d="M16 28h4v4h-4zM40 28h4v4h-4z"/></g>
+  </g>
+  <rect x="70" y="168" width="112" height="28" rx="6" fill="#f7f8ff" stroke="#ff3d57" stroke-width="3"/>
+  <text x="126" y="186.5" text-anchor="middle" font-size="14" font-weight="900" fill="#171825">Claw'd</text>
+
+  <text x="230" y="72" fill="#ffffff" font-size="42" font-weight="900" letter-spacing="-2">Claw'd</text>
+  <text x="230" y="99" fill="#a3abd2" font-size="15">Seu companheiro de navegação pixel-art.</text>
+  <text x="230" y="126" fill="#ff566b" font-size="12" font-weight="800" letter-spacing="1.4">ESTÚDIO VISUAL v3.2</text>
+
+  <g transform="translate(230 142)">
+    <rect width="112" height="30" rx="7" fill="#201724" stroke="#7b2736"/>
+    <text x="56" y="19" text-anchor="middle" fill="#ff7183" font-size="11" font-weight="800">4 MODELOS</text>
+    <rect x="122" width="104" height="30" rx="7" fill="#161e29" stroke="#27445d"/>
+    <text x="174" y="19" text-anchor="middle" fill="#62c2ff" font-size="11" font-weight="800">4 ROSTOS</text>
+    <rect x="236" width="140" height="30" rx="7" fill="#19231f" stroke="#276044"/>
+    <text x="306" y="19" text-anchor="middle" fill="#65e6a4" font-size="11" font-weight="800">14 ACESSÓRIOS</text>
+  </g>
+
+  <g transform="translate(632 38)">
+    <text x="0" y="0" class="label">MODELOS COMBINÁVEIS</text>
+    <g transform="translate(0 14)">
+      <rect class="model-card" width="108" height="126" rx="10"/>
+      <g class="pixel pet-bob" color="#e11920" transform="translate(26 20)"><g><path fill="currentColor" d="M0 4h8v4h-8zM48 4h8v4h-8zM0 8h8v4h-8zM48 8h8v4h-8zM4 12h8v4h-8zM44 12h8v4h-8z"/><path fill="currentColor" d="M16 8h24v4h-24zM16 12h24v4h-24zM16 16h24v4h-24zM8 20h40v4h-40zM8 24h4v4h-4zM20 24h16v4h-16zM44 24h4v4h-4zM8 28h4v4h-4zM20 28h16v4h-16zM44 28h4v4h-4zM8 32h16v4h-16zM32 32h16v4h-16zM8 36h40v4h-40zM16 40h24v4h-24z"/><path fill="#8f0f16" d="M8 40h8v4h-8zM40 40h8v4h-8z"/><path fill="#5c0a0e" d="M12 44h8v4h-8zM36 44h8v4h-8z"/><path fill="#7a0c12" d="M24 32h8v4h-8z"/><path fill="#ffffff" d="M12 24h8v4h-8zM36 24h8v4h-8zM12 28h4v4h-4zM36 28h4v4h-4z"/><path fill="#10121f" d="M16 28h4v4h-4zM40 28h4v4h-4z"/></g></g>
+      <text x="54" y="112" text-anchor="middle" class="model-name">CLÁSSICO</text>
+    </g>
+    <g transform="translate(120 14)">
+      <rect class="model-card" width="108" height="126" rx="10"/>
+      <g class="pixel pet-bob" color="#ff9f43" transform="translate(26 20)"><g><path fill="currentColor" d="M0 4h8v4h-8zM48 4h8v4h-8zM0 8h8v4h-8zM48 8h8v4h-8zM4 12h8v4h-8zM44 12h8v4h-8z"/><path fill="currentColor" d="M16 8h24v4h-24zM16 12h24v4h-24zM16 16h24v4h-24zM12 20h32v4h-32zM20 24h16v4h-16zM20 28h16v4h-16zM12 32h12v4h-12zM32 32h12v4h-12zM12 36h32v4h-32zM16 40h24v4h-24z"/><path fill="#c9721f" d="M12 40h4v4h-4zM40 40h4v4h-4z"/><path fill="#7a3d0f" d="M12 44h8v4h-8zM36 44h8v4h-8z"/><path fill="#a35415" d="M24 32h8v4h-8z"/><path fill="#ffffff" d="M16 24h4v4h-4zM40 24h4v4h-4zM12 28h4v4h-4zM36 28h4v4h-4z"/><path fill="#10121f" d="M16 28h4v4h-4zM40 28h4v4h-4z"/><path fill="#fff3d6" d="M12 24h4v4h-4zM36 24h4v4h-4z"/></g></g>
+      <text x="54" y="112" text-anchor="middle" class="model-name">MINI</text>
+    </g>
+    <g transform="translate(240 14)">
+      <rect class="model-card" width="108" height="126" rx="10"/>
+      <g class="pixel pet-bob" color="#35a7ff" transform="translate(26 20)"><g><path fill="currentColor" d="M0 4h8v4h-8zM48 4h8v4h-8zM0 8h8v4h-8zM48 8h8v4h-8zM0 12h12v4h-12zM44 12h12v4h-12zM0 16h8v4h-8zM48 16h8v4h-8z"/><path fill="currentColor" d="M16 8h24v4h-24zM16 12h24v4h-24zM16 16h24v4h-24zM8 20h4v4h-4zM20 20h16v4h-16zM44 20h4v4h-4zM8 24h8v4h-8zM20 24h20v4h-20zM44 24h4v4h-4zM8 28h4v4h-4zM20 28h16v4h-16zM44 28h4v4h-4zM8 32h16v4h-16zM32 32h16v4h-16zM8 36h40v4h-40zM16 40h24v4h-24z"/><path fill="#1f6fbf" d="M12 20h8v4h-8zM36 20h8v4h-8zM8 40h8v4h-8zM40 40h8v4h-8z"/><path fill="#0f3f72" d="M12 44h8v4h-8zM36 44h8v4h-8z"/><path fill="#155a9c" d="M24 32h8v4h-8z"/><path fill="#ffffff" d="M12 28h4v4h-4zM36 28h4v4h-4z"/><path fill="#10121f" d="M16 24h4v4h-4zM40 24h4v4h-4zM16 28h4v4h-4zM40 28h4v4h-4z"/></g></g>
+      <text x="54" y="112" text-anchor="middle" class="model-name">PINÇAS</text>
+    </g>
+    <g transform="translate(360 14)">
+      <rect class="model-card" width="108" height="126" rx="10"/>
+      <g class="pixel pet-bob" color="#a66cff" transform="translate(26 20)"><g><path fill="currentColor" d="M0 4h8v4h-8zM48 4h8v4h-8zM0 8h8v4h-8zM48 8h8v4h-8zM4 12h8v4h-8zM44 12h8v4h-8z"/><path fill="currentColor" d="M12 8h32v4h-32zM16 12h24v4h-24zM16 16h24v4h-24zM8 20h40v4h-40zM8 24h40v4h-40zM8 28h4v4h-4zM20 28h16v4h-16zM44 28h4v4h-4zM8 32h16v4h-16zM32 32h16v4h-16zM8 36h40v4h-40zM16 40h24v4h-24z"/><path fill="#6f42c9" d="M16 4h24v4h-24zM8 40h8v4h-8zM40 40h8v4h-8zM8 44h4v4h-4zM44 44h4v4h-4z"/><path fill="#39236b" d="M12 44h8v4h-8zM36 44h8v4h-8z"/><path fill="#4f2f94" d="M24 32h8v4h-8z"/><path fill="#10121f" d="M12 28h8v4h-8zM36 28h8v4h-8z"/></g></g>
+      <text x="54" y="112" text-anchor="middle" class="model-name">GUARDIÃO</text>
+    </g>
+  </g>
+
+  <text x="230" y="226" fill="#9299bd" font-size="12">CORPO ESTÁTICO</text>
+  <rect x="348" y="216" width="4" height="12" fill="#ff3d57"/>
+  <text x="365" y="226" fill="#9299bd" font-size="12">PERNAS EM MOVIMENTO</text>
+  <rect x="537" y="216" width="4" height="12" fill="#ff3d57"/>
+  <text x="554" y="226" fill="#9299bd" font-size="12">OLHOS INDEPENDENTES</text>
+  <rect x="744" y="216" width="4" height="12" fill="#ff3d57"/>
+  <text x="761" y="226" fill="#9299bd" font-size="12">100% CSS</text>
+</svg>

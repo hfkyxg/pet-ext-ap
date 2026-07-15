@@ -1,0 +1,25 @@
+# Dependências / build
+node_modules/
+dist/
+build/
+*.log
+
+# SO / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
+
+# Artefatos de smoke / perfis isolados
+tests/_shots/
+.edge-profile*/
+.tmp/
+tmp/
+
+# Segredos locais
+.env
+.env.*
+*.pem
