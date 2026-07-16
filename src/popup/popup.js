@@ -670,20 +670,34 @@ function renderSubpets() {
     const sprite = CLAWD_SUBPET_SPRITES[id] || CLAWD_SUBPET_SPRITES.dog;
     const previewColor = (S.subpets.colors || {})[id] || sprite.colors.B;
     const previewEyes = (S.subpets.eyeColors || {})[id] || sprite.colors.K || '#111111';
+    const hasCustom = /^#[\da-f]{6}$/i.test((S.subpets.colors || {})[id] || '')
+      || /^#[\da-f]{6}$/i.test((S.subpets.eyeColors || {})[id] || '');
     const palette = clawdSubPetPalette(sprite, /^#[\da-f]{6}$/i.test(previewColor) ? previewColor : null, previewEyes);
     const preferPose = id === 'dragon' && sprite.frames.flying ? 'flying'
       : id === 'bird' && sprite.frames.flying ? 'flying'
       : 'idle';
-    const frame = clawdSubPetFrame(sprite, preferPose, 0);
-    const shadow = clawdBuildPixelShadow(frame, palette, CLAWD_SUBPET_CELL);
     const preview = document.createElement('span');
     preview.className = 'subpet-pixel-preview';
     preview.dataset.species = id;
     preview.dataset.pose = preferPose;
     preview.dataset.frame = '0';
     preview.setAttribute('aria-hidden', 'true');
-    preview.style.boxShadow = shadow;
-    card.appendChild(preview);
+    const imgUrl = typeof clawdSubPetImageUrl === 'function' ? clawdSubPetImageUrl(id) : '';
+    if (imgUrl && !hasCustom) {
+      preview.classList.add('subpet-pixel-preview--bitmap');
+      preview.style.backgroundImage = `url("${imgUrl}")`;
+      preview.style.backgroundRepeat = 'no-repeat';
+      preview.style.backgroundPosition = 'center';
+      preview.style.backgroundSize = 'contain';
+      preview.style.boxShadow = 'none';
+    } else {
+      const frame = clawdSubPetFrame(sprite, preferPose, 0);
+      preview.style.boxShadow = clawdBuildPixelShadow(frame, palette, CLAWD_SUBPET_CELL);
+    }
+    const stage = document.createElement('div');
+    stage.className = 'subpet-art-stage';
+    stage.appendChild(preview);
+    card.appendChild(stage);
     const nameEl = document.createElement('span');
     nameEl.className = 'subpet-name';
     nameEl.textContent = name || def.label;
@@ -694,18 +708,18 @@ function renderSubpets() {
     if (unlocked) {
       card.appendChild(makeStar('subpets', id, renderSubpets));
       card.addEventListener('click', () => {
-        const next = active ? null : id;
+        // Clicar no ativo mantém (não desativa por acidente).
+        if (active) return;
+        const next = id;
         persist(st => {
           st.subpets.active = next;
-          if (next) {
-            const need = CLAWD_SUBPETS[next]?.level || 1;
-            const lv = clawdLevelFromXp(st.xp || 0).level;
-            if (lv >= need && !st.subpets.unlocked.includes(next)) {
-              st.subpets.unlocked.push(next);
-            }
-            if (!st.subpets.unlocked.includes(next)) st.subpets.active = null;
-            else st.game.counters.subpetsUnlocked = st.subpets.unlocked.length;
+          const need = CLAWD_SUBPETS[next]?.level || 1;
+          const lv = clawdLevelFromXp(st.xp || 0).level;
+          if (lv >= need && !st.subpets.unlocked.includes(next)) {
+            st.subpets.unlocked.push(next);
           }
+          if (!st.subpets.unlocked.includes(next)) st.subpets.active = null;
+          else st.game.counters.subpetsUnlocked = st.subpets.unlocked.length;
         });
         S.subpets.active = next;
         sendMsg({ action: 'setSubpet', value: next });
@@ -739,6 +753,7 @@ function startSubpetPreviewAnims() {
   window.__clawdSubpetPreviewTimer = setInterval(() => {
     if (document.hidden) return;
     document.querySelectorAll('.subpet-pixel-preview[data-species]').forEach((preview) => {
+      if (preview.classList.contains('subpet-pixel-preview--bitmap')) return;
       const id = preview.dataset.species;
       const sprite = CLAWD_SUBPET_SPRITES[id];
       if (!sprite) return;
@@ -892,15 +907,46 @@ function renderConfig() {
   });
 }
 
+/** Chirp 8-bit no popup ao ajustar volume (feedback imediato do nível). */
+let _popupAudioCtx = null;
+let _volPreviewTimer = null;
+function previewVolumeChirp(vol) {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!_popupAudioCtx || _popupAudioCtx.state === 'closed') {
+      _popupAudioCtx = new Ctx();
+    }
+    const ctx = _popupAudioCtx;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = 620 + Math.round((vol || 0) * 280);
+    const level = Math.max(0.02, Math.min(1, vol || 0.4)) * 0.13;
+    gain.gain.setValueAtTime(level, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.09);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.11);
+  } catch (_) { /* autoplay / AudioContext policy */ }
+}
+
 function bindConfig() {
   $('toggle-crosstab').addEventListener('change', e => setSetting('crossTab', e.target.checked));
   $('select-travel').addEventListener('change', e => setSetting('travelFreq', e.target.value));
   $('toggle-footprints').addEventListener('change', e => setSetting('footprints', e.target.checked));
-  $('toggle-sounds').addEventListener('change', e => setSetting('sounds', e.target.checked));
+  $('toggle-sounds').addEventListener('change', e => {
+    setSetting('sounds', e.target.checked);
+    if (e.target.checked) previewVolumeChirp(parseFloat($('range-volume').value) || 0.4);
+  });
   $('range-volume').addEventListener('input', e => {
     const v = parseFloat(e.target.value);
     $('volume-badge').textContent = `${Math.round(v * 100)}%`;
     setSetting('soundVolume', v);
+    if (!$('toggle-sounds').checked) return;
+    clearTimeout(_volPreviewTimer);
+    _volPreviewTimer = setTimeout(() => previewVolumeChirp(v), 50);
   });
   $('quiet-start').addEventListener('change', e => setSetting('quietStart', e.target.value));
   $('quiet-end').addEventListener('change', e => setSetting('quietEnd', e.target.value));

@@ -138,10 +138,23 @@ test('sprites de sub-pet cobrem todas as espécies e não duplicam no showcase',
     const sprite = CLAWD_SUBPET_SPRITES[id];
     assert.ok(sprite?.frames?.idle && sprite.frames.walk && sprite.frames.sleep, `frames incompletos em ${id}`);
     assert.ok(clawdSubPetFrame(sprite, 'idle', 0).length >= 7, `${id} muito baixo`);
+    assert.ok(sprite?.image?.url, `${id} precisa de image.url`);
+    assert.ok(fs.existsSync(path.join(root, sprite.image.url)), `PNG ausente: ${sprite.image.url}`);
   }
   const showcaseJs = read('docs/showcase.js');
   assert.match(showcaseJs, /CLAWD_SUBPET_SPRITES/);
+  assert.match(showcaseJs, /clawdSubPetImageUrl/);
+  assert.match(showcaseJs, /subpetBitmapUrl|docsAssetUrl/);
+  assert.match(showcaseJs, /subpet-preview--bitmap/);
+  assert.doesNotMatch(showcaseJs, /speciesColors\.dog\.eyes\s*=\s*'#33ff99'/);
   assert.doesNotMatch(showcaseJs, /const subpetSprites\s*=/);
+  const showcaseHtml = read('docs/index.html');
+  assert.match(showcaseHtml, /Subpets-selection\.png/);
+  assert.match(showcaseHtml, /src\/shared\/sprites\/subpets/);
+  assert.ok(
+    fs.existsSync(path.join(root, 'tests/sprite-out/Subpets-selection.png')),
+    'sheet canônico referenciado na docs precisa existir'
+  );
   const dog = clawdSubPetFrame(CLAWD_SUBPET_SPRITES.dog, 'idle', 0).join('\n');
   const dragon = clawdSubPetFrame(CLAWD_SUBPET_SPRITES.dragon, 'idle', 0).join('\n');
   assert.notEqual(dog, dragon, 'dog e dragon não podem compartilhar a mesma silhueta');
@@ -312,9 +325,14 @@ test('content e background alinham cleanup DOM e harden mensagens', () => {
   assert.match(content, /clawdValidateRuntimeMessage/);
   assert.match(content, /CLAWD_DOM_CLEANUP_SELECTORS/);
   assert.match(content, /_canSpawnFx/);
+  assert.match(content, /_pauseRaf/);
+  assert.match(content, /SETTLE_EPS|_writePos/);
+  assert.match(content, /\+ count <= 18/);
   assert.doesNotMatch(content, /speechNode\.innerHTML\s*=/);
   assert.doesNotMatch(content, /el\.innerHTML\s*=\s*`[\s\S]*aic-toast/);
-  assert.match(background, /msg\.type !== 'register'/);
+  assert.doesNotMatch(content, /Object\.assign\(/);
+  assert.match(background, /clawdValidatePortMessage/);
+  assert.match(background, /travelInFlight\.from === tabId/);
   assert.doesNotMatch(background, /stateSync/);
   assert.match(popup, /label\.textContent\s*=\s*String\(daily\.label/);
 });

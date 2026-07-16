@@ -711,8 +711,13 @@ input[type="color"] {
 }
 
 /* ---- CADEADO / BLOQUEADOS ---- */
-.accessory-card.locked, .subpet-card.locked {
+.accessory-card.locked {
   opacity: 0.55;
+  cursor: not-allowed;
+}
+/* Subpets: arte full-color sempre (igual ao sheet). Locked = badge + leve opacidade. */
+.subpet-card.locked {
+  opacity: 1;
   cursor: not-allowed;
 }
 .lock-badge {
@@ -732,14 +737,16 @@ input[type="color"] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 10px 6px;
+  gap: 4px;
+  padding: 10px 8px 12px;
   background: var(--surface2);
   border: 2px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
+  min-width: 0;
+  overflow: visible;
 }
 .subpet-card:hover:not(.locked) { border-color: var(--accent); transform: translateY(-2px); }
 .subpet-card.active {
@@ -748,28 +755,87 @@ input[type="color"] {
   box-shadow: 0 0 12px rgba(46,204,113,0.25);
 }
 .subpet-emoji { font-size: 24px; }
+.subpet-art-stage {
+  position: relative;
+  width: 100%;
+  height: 72px;
+  margin: 4px 0 6px;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .subpet-pixel-preview {
   display: block;
   width: 4px;
   height: 4px;
-  margin: 6px auto 10px;
-  transform: scale(0.95);
-  transform-origin: top center;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 3px 3px rgba(0,0,0,.28));
-  min-height: 36px;
-  transition: transform .2s ease, filter .2s ease;
-}
-.subpet-card:hover .subpet-pixel-preview,
-.subpet-card.active .subpet-pixel-preview {
+  /* art 12×10 @4px — referência Subpets oficial */
   transform: scale(1.05);
+  transform-origin: center center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,.28));
+  transition: transform .2s ease, filter .2s ease, opacity .2s ease;
+  animation: clawd-popup-subpet-idle 2.2s ease-in-out infinite;
+}
+.subpet-pixel-preview--bitmap {
+  width: 60px;
+  height: 50px;
+  transform: scale(1);
+  transform-origin: center center;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+/* Locked: full-color sheet look — NÃO greyscale (destrói a arte) */
+.subpet-card.locked .subpet-pixel-preview {
+  animation: none;
+  opacity: 0.75;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,.28));
+}
+.subpet-card:hover:not(.locked) .subpet-pixel-preview,
+.subpet-card.active .subpet-pixel-preview {
+  transform: scale(1.08);
   filter: drop-shadow(0 4px 6px rgba(0,0,0,.32)) drop-shadow(0 0 8px rgba(46,204,113,.25));
 }
-.subpet-card[data-species="dragon"] .subpet-pixel-preview {
+.subpet-card:hover:not(.locked) .subpet-pixel-preview--bitmap,
+.subpet-card.active .subpet-pixel-preview--bitmap {
+  transform: scale(1.08);
+}
+@keyframes clawd-popup-subpet-idle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .subpet-pixel-preview { animation: none; }
+}
+/* Glow do dragão só quando desbloqueado/ativo — nunca no locked */
+.subpet-card[data-species="dragon"]:not(.locked) .subpet-pixel-preview {
   filter: drop-shadow(0 3px 3px rgba(0,0,0,.28)) drop-shadow(0 0 6px rgba(142,68,173,.35));
 }
-.subpet-name { font-size: 12px; font-weight: 700; color: var(--text); }
-.subpet-desc { font-size: 9px; color: var(--muted); line-height: 1.3; }
+.subpet-card[data-species="dragon"].active .subpet-pixel-preview,
+.subpet-card[data-species="dragon"]:hover:not(.locked) .subpet-pixel-preview {
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.32)) drop-shadow(0 0 8px rgba(142,68,173,.4));
+}
+.subpet-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.subpet-desc {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 100%;
+}
 .subpet-color-row { margin-top: 8px; align-items: center; gap: 7px; }
 .subpet-color-row label { margin: 0; font-size: 10px; color: var(--muted); flex: 1; }
 .subpet-color-row input[type="color"] { width: 28px; height: 24px; padding: 1px; }

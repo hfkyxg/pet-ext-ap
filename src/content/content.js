@@ -26,8 +26,11 @@ class SubPet {
     this.frame = 0;
     this._pose = 'idle';
     this._raf = null;
+    this._rafPaused = false;
     this._lastPaint = 0;
     this._lastX = 0;
+    this._domLeft = null;
+    this._domTop = null;
     this._interactTimer = null;
     this._sleepTimer = null;
     this._wakeTimer = null;
@@ -37,9 +40,17 @@ class SubPet {
     this._petMoves = 0;
     this._cloneNode = null;
     this._perch = false;
+    this._blinking = false;
+    this._blinkTimer = null;
     this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.node = null;
     this.create();
+  }
+
+  _computeScale() {
+    const owner = parseFloat(this.owner?.S?.scale) || 1.5;
+    // Companheiro ~40–55% do pet — pixels na mesma ordem de grandeza do Claw'd.
+    return Math.max(0.55, Math.min(0.95, owner * 0.42));
   }
 
   create() {
@@ -63,15 +74,24 @@ class SubPet {
     this.spriteNode = this.node.querySelector('.subpet-sprite');
     this.motionNode = this.node.querySelector('.subpet-motion');
     this.bubbleNode = this.node.querySelector('.subpet-bubble');
-    const scale = Math.max(0.85, (this.owner.S.scale || 1.5) * 0.55);
-    this.node.style.setProperty('--subpet-scale', scale);
+    const scale = this._computeScale();
+    this.node.style.setProperty('--subpet-scale', String(scale));
+    this.node.style.setProperty('--subpet-body', this.color || this.sprite.colors.B);
+    this.node.style.setProperty('--subpet-eye', this.eyeColor || this.sprite.colors.K || '#111111');
+    this.node.style.setProperty('--subpet-eye-gap', `${Math.max(10, Math.round(this.bounds.width * 0.28))}px`);
     this.node.style.width = `${this.bounds.width}px`;
     this.node.style.height = `${this.bounds.height}px`;
+    this.node.style.left = `${this.x}px`;
+    this.node.style.top = `${this.y}px`;
     this.spriteNode.style.width = `${CLAWD_SUBPET_CELL}px`;
     this.spriteNode.style.height = `${CLAWD_SUBPET_CELL}px`;
+    this.spriteNode.style.transformOrigin = `${this.bounds.width / 2}px 0px`;
+    // Bitmap literal do sheet; fallback box-shadow se paleta custom.
     this._paint(true);
+    this._startBlink();
     this.node.addEventListener('click', (event) => {
       event.stopPropagation();
+      this._pulseTap();
       if (this._clickTimer) {
         clearTimeout(this._clickTimer);
         this._clickTimer = null;
@@ -88,12 +108,21 @@ class SubPet {
     this.node.addEventListener('dblclick', (event) => {
       event.stopPropagation();
       event.preventDefault();
+      this._pulseTap();
       if (this._clickTimer) {
         clearTimeout(this._clickTimer);
         this._clickTimer = null;
       }
       if (this.state === 'sleeping') this.wakeUp('Acordei! ✨');
       else this.interact('special', { force: true });
+    });
+    this.node.addEventListener('mouseenter', () => {
+      if (!this.node || this.state === 'sleeping') return;
+      this.node.classList.add('hovering');
+      if (this.species === 'dog' && !this._interactionBusy && !this._reducedMotion) {
+        this.node.classList.add('wagging');
+        this._sfx('wag');
+      }
     });
     this.node.addEventListener('mousemove', () => {
       if (this.state === 'sleeping' || this._interactionBusy) return;
@@ -103,10 +132,15 @@ class SubPet {
         this.interact('cuddle');
       }
     });
-    this.node.addEventListener('mouseleave', () => { this._petMoves = 0; });
+    this.node.addEventListener('mouseleave', () => {
+      this._petMoves = 0;
+      this.node?.classList.remove('hovering');
+      if (!this._interactionBusy) this.node?.classList.remove('wagging');
+    });
     this.node.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
+        this._pulseTap();
         if (this.state === 'sleeping') this.wakeUp('Acordei! ✨');
         else this.interact('cuddle');
       }
@@ -115,8 +149,18 @@ class SubPet {
     this._later(() => this.node?.classList.remove('summoning'), 700);
     this._burst(['✨', '⭐', '💫'], 6);
     this._spark();
+    this._sfx('summon');
     this._loop();
     this._scheduleInteraction();
+  }
+
+  _pulseTap() {
+    if (!this.node || this._reducedMotion) return;
+    this.node.classList.remove('tapped');
+    // force reflow so re-click retriggers animation
+    void this.node.offsetWidth;
+    this.node.classList.add('tapped');
+    this._later(() => this.node?.classList.remove('tapped'), 300);
   }
 
   _movingPose() {
@@ -127,22 +171,102 @@ class SubPet {
       || !!this.node?.classList.contains('moving');
   }
 
+  _hasCustomPalette() {
+    const custom = this.owner?.S?.subpets?.colors?.[this.species];
+    const customEye = this.owner?.S?.subpets?.eyeColors?.[this.species];
+    return /^#[\da-f]{6}$/i.test(custom || '') || /^#[\da-f]{6}$/i.test(customEye || '');
+  }
+
+  _useBitmap() {
+    return !!(this.sprite?.image?.url || clawdSubPetImageUrl(this.species)) && !this._hasCustomPalette();
+  }
+
+  _startBlink() {
+    clearInterval(this._blinkTimer);
+    if (this._reducedMotion) return;
+    // Pisca troca para frame sleep (olhos fechados) e volta — sem overlay que tapava a íris.
+    this._blinkTimer = setInterval(() => {
+      if (!this.node || document.hidden) return;
+      if (this.state === 'sleeping' || this._interactionBusy || this.owner?.isQuiet?.()) return;
+      this._blinking = true;
+      this.node.classList.add('blinking');
+      this._paint(true);
+      this._later(() => {
+        this._blinking = false;
+        this.node?.classList.remove('blinking');
+        this._paint(true);
+      }, 140);
+    }, 4200 + Math.floor(Math.random() * 1600));
+  }
+
+  /** Sons curtos via o pet dono (respeita settings.sounds / quiet hours). */
+  _sfx(kind) {
+    const o = this.owner;
+    if (!o?.beep || !o.S?.settings?.sounds || o.isQuiet?.()) return;
+    const map = {
+      blink: () => o.beep(920, 0.02, 'triangle'),
+      cuddle: () => o.chime([[620, 0.04], [780, 0.06]]),
+      play: () => o.chime([[520, 0.04], [660, 0.05], [820, 0.06]]),
+      special: () => o.chime([[440, 0.05], [560, 0.05], [720, 0.08]]),
+      wag: () => { o.beep(540, 0.04, 'triangle'); setTimeout(() => o.beep(600, 0.04, 'triangle'), 80); },
+      hop: () => o.beep(700, 0.05, 'square'),
+      stomp: () => { o.beep(160, 0.1, 'sawtooth'); setTimeout(() => o.beep(120, 0.12, 'triangle'), 90); },
+      fire: () => { o.beep(180, 0.08, 'sawtooth'); setTimeout(() => o.beep(320, 0.06, 'sawtooth'), 70); },
+      phase: () => o.beep(380, 0.12, 'triangle'),
+      split: () => o.chime([[500, 0.05], [500, 0.05], [360, 0.1]]),
+      explore: () => o.beep(480, 0.05, 'triangle'),
+      spin: () => o.chime([[600, 0.04], [800, 0.05]]),
+      celebrate: () => o.chime([[520, 0.05], [660, 0.05], [880, 0.08]]),
+      eat: () => o.beep(300, 0.07, 'triangle'),
+      sleep: () => o.beep(240, 0.12, 'triangle'),
+      wake: () => o.chime([[500, 0.04], [720, 0.06]]),
+      summon: () => o.chime([[440, 0.05], [660, 0.06], [880, 0.08]])
+    };
+    (map[kind] || map.special)();
+  }
+
   _paint(force = false) {
     if (!this.spriteNode) return;
+    // Bitmap fica no PNG durante piscada/sono — CSS (.blinking/.sleeping) faz o feedback.
+    // Trocar para box-shadow no blink causava flash PNG↔pixel a cada ~5s.
+    const wantBitmap = this._useBitmap();
+    if (wantBitmap) {
+      const url = clawdSubPetImageUrl(this.species);
+      const w = this.bounds.width;
+      const h = this.bounds.height;
+      this.spriteNode.classList.add('subpet-sprite--bitmap');
+      this.spriteNode.style.boxShadow = 'none';
+      this.spriteNode.style.backgroundImage = `url("${url}")`;
+      this.spriteNode.style.backgroundRepeat = 'no-repeat';
+      this.spriteNode.style.backgroundPosition = 'center bottom';
+      this.spriteNode.style.backgroundSize = 'contain';
+      this.spriteNode.style.width = `${w}px`;
+      this.spriteNode.style.height = `${h}px`;
+      this.spriteNode.style.transformOrigin = `${w / 2}px ${h}px`;
+      this._pose = this.state === 'sleeping' ? 'sleep' : (this._blinking ? 'blink' : 'bitmap');
+      return;
+    }
+    // Fallback / paleta custom / piscada: box-shadow lineless.
+    this.spriteNode.classList.remove('subpet-sprite--bitmap');
+    this.spriteNode.style.backgroundImage = '';
+    this.spriteNode.style.backgroundSize = '';
     let pose = 'idle';
     const flying = this.state === 'flying'
       || this.node?.classList.contains('flying')
       || (this.species === 'dragon' && this._perch)
       || (this.species === 'bird' && (this._perch || this.state === 'special'));
-    if (this.state === 'sleeping') pose = 'sleep';
+    if (this.state === 'sleeping' || this._blinking) pose = 'sleep';
     else if ((this.state === 'special' || this.node?.classList.contains('fire')) && this.sprite.frames.special) pose = 'special';
     else if (flying && this.sprite.frames.flying) pose = 'flying';
     else if (this._movingPose()) pose = 'walk';
     const set = this.sprite.frames[pose] || this.sprite.frames.idle;
-    const animatePose = pose === 'walk' || pose === 'flying' || pose === 'special' || pose === 'idle';
+    const animatePose = !this._blinking && (pose === 'walk' || pose === 'flying' || pose === 'special' || pose === 'idle');
     if (animatePose && !force) this.frame = (this.frame + 1) % set.length;
-    else if (force) this.frame = 0;
+    else if (force || this._blinking) this.frame = 0;
     const rows = clawdSubPetFrame(this.sprite, pose, this.frame);
+    this.spriteNode.style.width = `${CLAWD_SUBPET_CELL}px`;
+    this.spriteNode.style.height = `${CLAWD_SUBPET_CELL}px`;
+    this.spriteNode.style.transformOrigin = `${this.bounds.width / 2}px 0px`;
     this.spriteNode.style.boxShadow = clawdBuildPixelShadow(rows, this.colors, CLAWD_SUBPET_CELL);
     this._pose = pose;
   }
@@ -212,12 +336,14 @@ class SubPet {
   setColor(color) {
     this.color = /^#[\da-f]{6}$/i.test(color || '') ? color : this.sprite.colors.B;
     this.colors = clawdSubPetPalette(this.sprite, this.color, this.eyeColor);
+    this.node?.style.setProperty('--subpet-body', this.color);
     if (this.spriteNode) this._paint(true);
   }
 
   setEyeColor(color) {
     this.eyeColor = /^#[\da-f]{6}$/i.test(color || '') ? color : (this.sprite.colors.K || '#111111');
     this.colors = clawdSubPetPalette(this.sprite, this.color, this.eyeColor);
+    this.node?.style.setProperty('--subpet-eye', this.eyeColor);
     if (this.spriteNode) this._paint(true);
   }
 
@@ -241,19 +367,51 @@ class SubPet {
     this.node?.classList.remove(
       'playing', 'cuddling', 'racing', 'spinning', 'celebrating',
       'exploring', 'vanishing', 'fire', 'split', 'perching', 'eating', 'cheering',
-      'flying', 'summoning'
+      'flying', 'summoning', 'wagging', 'double-hop', 'heavy-stomp', 'phasing', 'singing',
+      'watching-balloon', 'duo-hug', 'startled', 'tapped', 'settling'
     );
     this._perch = false;
+  }
+
+  _isNight() {
+    const h = new Date().getHours();
+    return h >= 19 || h < 6;
+  }
+
+  /** Pool de interações autonômicas por espécie (ficha dos Subpets). */
+  _speciesPool() {
+    const pools = {
+      dog:    ['play', 'cuddle', 'celebrate', 'special', 'hug', 'play', 'cuddle', 'special'],
+      cat:    ['nap', 'nap', 'cuddle', 'special', 'nap', 'explore'],
+      bird:   ['special', 'explore', 'spin', 'special', 'celebrate', 'play'],
+      rabbit: ['play', 'play', 'race', 'special', 'spin', 'celebrate'],
+      dino:   ['race', 'race', 'play', 'special', 'explore', 'stomp'],
+      dragon: ['special', 'celebrate', 'explore', 'special', 'spin'],
+      ghost:  this._isNight()
+        ? ['special', 'explore', 'vanish', 'special', 'spin']
+        : ['nap', 'explore', 'cuddle', 'nap'],
+      slime:  ['play', 'cuddle', 'special', 'explore', 'hug', 'special']
+    };
+    return pools[this.species] || pools.dog;
   }
 
   /** Sincroniza animações com o estado do pet dono (passear/correr/comer/dormir/freestyle). */
   onOwnerState(state) {
     if (!this.node) return;
+    if (state === 'sleeping' && this.state !== 'sleeping') {
+      this.sleep();
+      return;
+    }
+    // Dormindo: fica no lugar — nao herda walk/cheer do dono (so acordar p/ comer).
+    if (this.state === 'sleeping') {
+      this.node.classList.remove('moving', 'owner-walking', 'owner-running', 'cheering');
+      if (state === 'eating') this.interact('eat', { force: true });
+      return;
+    }
     this.node.classList.toggle('owner-walking', state === 'walking');
     this.node.classList.toggle('owner-running', state === 'running');
     this.node.classList.toggle('cheering', state === 'keepy-uppy');
-    if (state === 'sleeping' && this.state !== 'sleeping') this.sleep();
-    else if (state === 'eating') this.interact('eat', { force: true });
+    if (state === 'eating') this.interact('eat', { force: true });
   }
 
   _setState(state) {
@@ -274,13 +432,14 @@ class SubPet {
   _finishInteractionAfter(delay, onFinish) {
     this._cancelInteractionTimer();
     this._interactionEndTimer = this._later(() => {
-      if (onFinish) onFinish();
       this._removeClone();
       this._setState('following');
       this._clearActionClasses();
       this._interactionBusy = false;
       this._interactionEndTimer = null;
       this._paint(true);
+      // Callback depois do reset para poder encadear (ex.: gato → nap).
+      if (onFinish) onFinish();
     }, delay);
   }
 
@@ -302,9 +461,21 @@ class SubPet {
     clone.style.setProperty('--subpet-scale', getComputedStyle(this.node).getPropertyValue('--subpet-scale') || '1');
     clone.innerHTML = '<div class="subpet-motion"><div class="subpet-sprite"></div></div>';
     const sprite = clone.querySelector('.subpet-sprite');
-    sprite.style.width = `${CLAWD_SUBPET_CELL}px`;
-    sprite.style.height = `${CLAWD_SUBPET_CELL}px`;
-    sprite.style.boxShadow = this.spriteNode.style.boxShadow;
+    if (this._useBitmap()) {
+      sprite.classList.add('subpet-sprite--bitmap');
+      sprite.style.width = `${this.bounds.width}px`;
+      sprite.style.height = `${this.bounds.height}px`;
+      sprite.style.boxShadow = 'none';
+      sprite.style.backgroundImage = this.spriteNode.style.backgroundImage;
+      sprite.style.backgroundRepeat = 'no-repeat';
+      sprite.style.backgroundPosition = 'center bottom';
+      sprite.style.backgroundSize = 'contain';
+    } else {
+      sprite.style.width = `${CLAWD_SUBPET_CELL}px`;
+      sprite.style.height = `${CLAWD_SUBPET_CELL}px`;
+      sprite.style.boxShadow = this.spriteNode.style.boxShadow;
+      sprite.style.backgroundImage = '';
+    }
     clone.style.left = `${this.x + this.bounds.width * 0.55}px`;
     clone.style.top = `${this.y}px`;
     document.body.appendChild(clone);
@@ -325,11 +496,12 @@ class SubPet {
     this._cancelInteractionTimer();
     this._setState('sleeping');
     this._clearActionClasses();
-    this.node.classList.remove('waking');
+    this.node.classList.remove('waking', 'moving', 'owner-walking', 'owner-running', 'cheering');
     this.node.classList.add('sleeping');
     this._interactionBusy = true;
     this.say('💤', 0);
     this._paint(true);
+    this._pauseRaf();
   }
 
   wakeUp(message = 'Bom dia, pequenino! ☀️') {
@@ -341,20 +513,56 @@ class SubPet {
     this.node.classList.add('waking');
     this._interactionBusy = false;
     this.say(message, 2200);
+    this._sfx('wake');
     clearTimeout(this._wakeTimer);
     this._wakeTimer = setTimeout(() => this.node && this.node.classList.remove('waking'), 1100);
     this.owner.addXp(1);
     this._paint(true);
+    this._resumeRaf();
+    // Re-sincroniza walk/run se o dono já estava em deslocamento (não re-dorme).
+    if (this.owner?.state && this.owner.state !== 'sleeping') this.onOwnerState(this.owner.state);
+  }
+
+  _pauseRaf() {
+    this._rafPaused = true;
+    if (this._raf != null) {
+      cancelAnimationFrame(this._raf);
+      this._raf = null;
+    }
+  }
+
+  _resumeRaf() {
+    if (!this.node || this._raf != null || document.hidden) return;
+    if (this.state === 'sleeping') return;
+    this._rafPaused = false;
+    this._loop();
+  }
+
+  _writePos(left, top) {
+    const eps = 0.35;
+    if (this._domLeft != null && this._domTop != null
+        && Math.abs(left - this._domLeft) < eps && Math.abs(top - this._domTop) < eps) {
+      return false;
+    }
+    this._domLeft = left;
+    this._domTop = top;
+    this.node.style.left = `${left}px`;
+    this.node.style.top = `${top}px`;
+    return true;
   }
 
   _loop() {
+    if (this._raf != null) return;
     const quiet = () => this._reducedMotion || this.owner.isQuiet?.();
+    const SETTLE_EPS = 0.5;
     const tick = () => {
       if (!this.node) return;
-      if (document.hidden) {
-        this._raf = requestAnimationFrame(tick);
+      if (document.hidden || this.state === 'sleeping') {
+        this._rafPaused = true;
+        this._raf = null;
         return;
       }
+      this._rafPaused = false;
       const now = performance.now();
       const moving = this._movingPose();
       const ownerRun = this.owner.state === 'running';
@@ -382,7 +590,7 @@ class SubPet {
           tx = rect.left + rect.width * (this.species === 'dragon' ? 0.55 : 0.35);
           ty = rect.top - this.bounds.height * (this.species === 'dragon' ? 0.85 : 0.55);
         } else if (this.state === 'following' && !quiet()) {
-          const t = performance.now() / (this.species === 'dragon' ? 1400 : 1100);
+          const t = now / (this.species === 'dragon' ? 1400 : 1100);
           const orbit = 0.35 + (Math.sin(t) + 1) * 0.25;
           if (this.species === 'dragon') {
             this.node.classList.add('flying');
@@ -404,21 +612,53 @@ class SubPet {
       if (this.state === 'racing') { tx = this._raceX; ty = this.y; }
       if (this.state === 'exploring') { tx = this._exploreX; ty = this._exploreY; }
       const dist = Math.hypot(tx - this.x, ty - this.y);
-      const baseK = this.state === 'racing' ? 0.2
-        : this.state === 'exploring' ? 0.12
-        : this.state === 'flying' || this.node.classList.contains('flying') ? 0.1
-        : ownerRun ? 0.16
-        : ownerWalk ? 0.11
-        : 0.08;
+      const ownerBusy = ownerRun || ownerWalk || moving || flyingAnim
+        || this.state === 'racing' || this.state === 'exploring' || this.state === 'special' || this.state === 'flying';
+      // Spring settled: sem write de posição (só idle paint acima).
+      if (!ownerBusy && dist < SETTLE_EPS) {
+        const wasMoving = this.node.classList.contains('moving');
+        if (wasMoving) {
+          this.node.classList.remove('moving');
+          if (!this._interactionBusy && !this._reducedMotion) {
+            this.node.classList.add('settling');
+            this._later(() => this.node?.classList.remove('settling'), 380);
+          }
+        }
+        this._lastX = this.x;
+        this._raf = requestAnimationFrame(tick);
+        return;
+      }
+      const speciesBoost = this.species === 'rabbit' ? 0.055
+        : this.species === 'dog' ? 0.025
+        : this.species === 'dino' ? -0.025
+        : this.species === 'slime' ? -0.02
+        : this.species === 'ghost' ? 0.02
+        : 0;
+      const baseK = this.state === 'racing' ? (this.species === 'dino' ? 0.13 : 0.22)
+        : this.state === 'exploring' ? (this.species === 'ghost' ? 0.18 : 0.13)
+        : this.state === 'flying' || this.node.classList.contains('flying') ? 0.11
+        : ownerRun ? 0.18
+        : ownerWalk ? 0.125
+        : 0.09;
       // Follow spring: acelera longe, amortece perto (mais fluido).
-      const k = Math.min(0.28, baseK + dist * 0.0018);
+      const k = Math.min(0.34, Math.max(0.045, baseK + speciesBoost + dist * 0.0022));
       this.x += (tx - this.x) * k;
       this.y += (ty - this.y) * k;
-      const pad = 4;
-      this.node.style.left = `${Math.max(pad, Math.min(window.innerWidth - this.bounds.width - pad, this.x))}px`;
-      this.node.style.top = `${Math.max(pad, Math.min(window.innerHeight - this.bounds.height - pad, this.y))}px`;
+      // Fantasma atravessa bordas suavemente; demais respeitam a viewport.
+      const pad = this.species === 'ghost' && (this.state === 'exploring' || this.node.classList.contains('phasing'))
+        ? -this.bounds.width * 0.35
+        : 4;
+      const left = Math.max(pad, Math.min(window.innerWidth - this.bounds.width - pad, this.x));
+      const top = Math.max(pad, Math.min(window.innerHeight - this.bounds.height - pad, this.y));
+      this._writePos(left, top);
       this.node.classList.toggle('flipped', tx < this.x - 1);
-      this.node.classList.toggle('moving', Math.abs(this.x - this._lastX) > 0.4 || moving || flyingAnim);
+      const wasMoving = this.node.classList.contains('moving');
+      const nowMoving = Math.abs(this.x - this._lastX) > 0.4 || moving || flyingAnim;
+      this.node.classList.toggle('moving', nowMoving);
+      if (wasMoving && !nowMoving && !this._interactionBusy && !this._reducedMotion) {
+        this.node.classList.add('settling');
+        this._later(() => this.node?.classList.remove('settling'), 380);
+      }
       this._lastX = this.x;
       this._raf = requestAnimationFrame(tick);
     };
@@ -433,14 +673,21 @@ class SubPet {
         this.sleep();
         return;
       }
-      if (this.state === 'sleeping') this.wakeUp();
+      if (this.state === 'sleeping') {
+        // Gato dorme mais; fantasma de dia também.
+        const napBias = this.species === 'cat' ? 0.55
+          : (this.species === 'ghost' && !this._isNight()) ? 0.5
+          : 0.2;
+        if (Math.random() < napBias) return;
+        this.wakeUp();
+      }
       if (this.owner.state !== 'idle') return;
-      const chance = this.owner.emotion === 'joyful' ? 0.75 : 0.45;
+      const chance = this.owner.emotion === 'joyful' ? 0.78 : 0.48;
       if (Math.random() > chance) return;
-      const pool = ['play', 'cuddle', 'nap', 'race', 'explore', 'spin', 'celebrate', 'special', 'hug'];
+      const pool = this._speciesPool();
       const pick = pool[Math.floor(Math.random() * pool.length)];
       this.interact(pick);
-    }, 30000);
+    }, 28000);
   }
 
   interact(kind, { force = false } = {}) {
@@ -453,29 +700,52 @@ class SubPet {
     switch (kind) {
       case 'play':
         this._beginInteraction('playing', 'playing');
+        if (this.species === 'rabbit') this.node?.classList.add('double-hop');
+        if (this.species === 'dog') this.node?.classList.add('wagging');
         this.owner.showSpeech('Vem brincar! 🎾', 2000);
-        this.say('Ual! ✨');
+        this.say(this.species === 'rabbit' ? 'Hop hop! 🐰' : 'Ual! ✨');
         this._burst(['🎾', '✨', '⭐'], 5);
+        this._sfx(this.species === 'rabbit' ? 'hop' : 'play');
         this.owner.addXp(2);
-        this._finishInteractionAfter(2800);
+        this._finishInteractionAfter(this.species === 'rabbit' ? 3200 : 2800);
         break;
       case 'cuddle':
         this._beginInteraction('cuddling', 'cuddling');
-        this.say('❤️');
+        if (this.species === 'dog') this.node?.classList.add('wagging');
+        this.say(this.species === 'dog' ? 'Au! 🦴❤️' : '❤️');
         this._burst(['💕', '💖', '✨'], 6);
+        this._sfx(this.species === 'dog' ? 'wag' : 'cuddle');
         this.owner.setStateFor('happy', 2000);
         this.owner.showSpeech('Que fofo! 💕', 2200);
         this.owner.spawnParticles();
         this.owner.addXp(2);
         this._finishInteractionAfter(1200);
         break;
+      case 'stomp':
+        this._beginInteraction('racing', 'heavy-stomp');
+        this.say('Pisada pesada! 🦕');
+        this._burst(['💨', '🪨', '⚡'], 5);
+        this._sfx('stomp');
+        this.owner.startRun?.(this.x < window.innerWidth / 2 ? window.innerWidth - 80 : 40);
+        this.owner.addXp(2);
+        this._finishInteractionAfter(2800);
+        break;
+      case 'vanish':
+        this._beginInteraction('vanishing', 'phasing');
+        this.say('Buu~ 👻');
+        this._burst(['👻', '✨', '💨'], 5);
+        this._sfx('phase');
+        this._finishInteractionAfter(2200);
+        break;
       case 'nap':
         this._interactionBusy = true;
         this.sleep();
+        this._sfx('sleep');
         this._sleepTimer = setTimeout(() => this.wakeUp('Já descansei! ☀️'), 8000);
         break;
       case 'race':
         this._burst(['💨', '⚡'], 4);
+        this._sfx('play');
         this._startRace();
         break;
       case 'explore': {
@@ -484,6 +754,7 @@ class SubPet {
         this._exploreY = 30 + Math.random() * Math.max(20, window.innerHeight - this.bounds.height - 60);
         this.say('Explorando! 🔎');
         this._burst(['🔎', '✨', '🗺️'], 4);
+        this._sfx('explore');
         this.owner.showSpeech('Vai, pequeno explorador! 🗺️', 2200);
         this.owner.addXp(1);
         this._finishInteractionAfter(3200);
@@ -493,21 +764,30 @@ class SubPet {
         this._beginInteraction('spinning', 'spinning');
         this.say('Uhuuu! 🌀');
         this._burst(['✨', '⭐', '🌀'], 5);
+        this._sfx('spin');
         this.owner.spawnParticles(['✨', '⭐']);
         this.owner.addXp(1);
         this._finishInteractionAfter(1300);
         break;
       case 'celebrate':
         this._beginInteraction('celebrating', 'celebrating');
-        this.say('Nós conseguimos! 🎉');
+        if (this.species === 'dog') this.node?.classList.add('wagging');
+        if (this.species === 'dragon') {
+          this.node?.classList.add('fire');
+          this._burst(['🔥', '🎉', '✨'], 7);
+          this._sfx('fire');
+        } else {
+          this._burst(['🎉', '✨', '⭐', '🎊'], 7);
+          this._sfx('celebrate');
+        }
+        this.say(this.species === 'dog' ? 'Abanando! 🐶🎉' : 'Nós conseguimos! 🎉');
         // Não sobrescreve ações do dono (ex.: cheer → cheering); só sincroniza se ele estiver livre.
         if (!force && (this.owner.state === 'idle' || this.owner.state === 'walking')) {
           this.owner.setStateFor('celebrate', 1900);
         }
-        this._burst(['🎉', '✨', '⭐', '🎊'], 7);
         this.owner.spawnParticles(['🎉', '✨', '⭐']);
         if (!force) this.owner.addXp(2);
-        this._finishInteractionAfter(1900);
+        this._finishInteractionAfter(1900, () => this.node?.classList.remove('fire', 'wagging'));
         break;
       case 'balloon':
         this._beginInteraction('playing', 'playing');
@@ -523,6 +803,8 @@ class SubPet {
         this._burst(['🫶', '💖', '✨'], 5);
         this.node?.classList.add('duo-hug');
         setTimeout(() => this.node?.classList.remove('duo-hug'), 1800);
+        this.owner.setStateFor?.('hugging', 1800);
+        this.owner.showSpeech?.('Abraço em duo! 🤗', 1800);
         this.owner.bumpStat('happiness', 4);
         this._finishInteractionAfter(1800);
         break;
@@ -535,9 +817,20 @@ class SubPet {
         this._finishInteractionAfter(900);
         break;
       case 'eat':
+        if (this.species === 'slime') {
+          this._beginInteraction('splitting', 'split');
+          this._paint(true);
+          this._spawnClone();
+          this.say('blub — se divide! 🫧');
+          this._burst(['🫧', '💚', '🍖', '✨'], 7);
+          this._sfx('split');
+          this._finishInteractionAfter(2000);
+          break;
+        }
         this._beginInteraction('eating', 'eating');
         this.say('Nham!');
         this._burst(['🍖', '✨'], 3);
+        this._sfx('eat');
         this._finishInteractionAfter(1800);
         break;
       case 'special':
@@ -553,36 +846,80 @@ class SubPet {
 
   _special() {
     const map = {
-      dog:    () => { this.say('Au au! 🦴'); this._burst(['🦴', '✨'], 4); this._finishInteractionAfter(2200); },
-      cat:    () => { this.say(Math.random() < 0.4 ? '...😼 (te ignorando)' : 'Miau~'); this._spark(['#7f8c8d', '#e8a0bf']); this._finishInteractionAfter(2200); },
-      bird:   () => {
+      dog: () => {
+        this.node?.classList.add('wagging', 'celebrating');
+        this.say('Au au! Abanando! 🦴');
+        this._burst(['🦴', '✨', '❤️'], 6);
+        this._sfx('wag');
+        this.owner.showSpeech('Companheiro leal! 🐶', 2000);
+        this._finishInteractionAfter(2400);
+      },
+      cat: () => {
+        if (Math.random() < 0.55) {
+          this.say('...😼 (te ignorando)');
+          this._spark(['#7f8c8d', '#e8a0bf']);
+          this._sfx('sleep');
+          this._finishInteractionAfter(1600, () => this.interact('nap', { force: true }));
+          return;
+        }
+        this.say('Miau~');
+        this._sfx('cuddle');
+        this._spark(['#7f8c8d', '#e8a0bf', '#ffffff']);
+        this._finishInteractionAfter(2200);
+      },
+      bird: () => {
         this._perch = true;
-        this.node.classList.add('perching', 'flying');
-        this.say('Piu! Na cabeça! 🎶');
-        this._burst(['🪶', '✨', '🎵'], 5);
+        this.node.classList.add('perching', 'flying', 'singing');
+        this.say('Piu piu! 🎶 voando!');
+        this._burst(['🪶', '✨', '🎵', '🎶'], 6);
+        this._sfx('special');
         this.owner.showSpeech('Companheiro no ombro! 🐦', 2000);
+        this._finishInteractionAfter(2800);
+      },
+      rabbit: () => {
+        this._beginInteraction('playing', 'double-hop');
+        this.say('Salto duplo! 🐰');
+        this._burst(['🐰', '✨', '💨'], 5);
+        this._sfx('hop');
+        this.owner.showSpeech('Rápido demais! 🐰', 1800);
         this._finishInteractionAfter(2600);
       },
-      rabbit: () => { this._beginInteraction('playing', 'playing'); this.say('Hop hop! 🐰'); this._burst(['🐰', '✨'], 4); this._finishInteractionAfter(2200); },
-      dino:   () => { this._burst(['🦖', '💨', '⚡'], 5); this._startRace('RAWR! 🦖', 3200); },
+      dino: () => {
+        this._burst(['🦕', '💨', '🪨', '⚡'], 6);
+        this._sfx('stomp');
+        this._startRace('RAWR! Pisada! 🦕', 3400);
+        this.node?.classList.add('heavy-stomp');
+      },
       dragon: () => {
         this._beginInteraction('flying', 'flying');
         this.node.classList.add('fire');
         this._paint(true);
-        this.say('Asas abertas! 🔥🐉', 2400);
+        this.say('Asas abertas! Fogo no desafio! 🔥🐉', 2400);
         this._burst(['🔥', '✨', '💨', '🟠'], 8);
         this._spark(['#e74c3c', '#f39c12', '#8e44ad', '#c39bd3'], 10);
+        this._sfx('fire');
         this.owner.spawnParticles(['🔥', '✨', '🐉']);
         this.owner.showSpeech('Dragão no céu! 🐉', 2200);
         this._finishInteractionAfter(3200, () => this.node?.classList.remove('fire'));
       },
-      ghost:  () => { this._beginInteraction('vanishing', 'vanishing'); this.say('Buu! 👻', 1900); this._burst(['👻', '✨', '💨'], 5); this._finishInteractionAfter(1900); },
-      slime:  () => {
+      ghost: () => {
+        this._beginInteraction('vanishing', 'vanishing');
+        this.node?.classList.add('phasing', 'exploring');
+        this.say(this._isNight() ? 'Buu da noite! 👻' : 'Buu! 👻', 2000);
+        this._burst(['👻', '✨', '💨'], 5);
+        this._sfx('phase');
+        this._exploreX = -12 + Math.random() * (window.innerWidth + 24);
+        this._exploreY = 16 + Math.random() * Math.max(40, window.innerHeight - 80);
+        this._setState('exploring');
+        this._finishInteractionAfter(2400);
+      },
+      slime: () => {
         this._beginInteraction('splitting', 'split');
         this._paint(true);
         this._spawnClone();
         this.say('blub blub 🫧');
         this._burst(['🫧', '💚', '✨'], 6);
+        this._sfx('split');
         this._finishInteractionAfter(1800);
       }
     };
@@ -597,8 +934,9 @@ class SubPet {
   }
 
   destroy() {
-    cancelAnimationFrame(this._raf);
+    this._pauseRaf();
     clearInterval(this._interactTimer);
+    clearInterval(this._blinkTimer);
     clearTimeout(this._sayTimer);
     clearTimeout(this._sleepTimer);
     clearTimeout(this._wakeTimer);
@@ -617,7 +955,7 @@ class SubPet {
    ===================================================== */
 class ClawdCompanion {
   constructor(initialState) {
-    this.S = initialState;                 // estado completo (schema v3)
+    this.S = initialState;                 // estado completo (schema v4)
     this.node = null;
     this.isDragging = false;
     this.startX = 0; this.startY = 0;
@@ -660,6 +998,13 @@ class ClawdCompanion {
     this._refreshMeasureRaf = null;
     this._motionRaf = null;
     this._glideRaf = null;
+    this._dwellVisibleSince = Date.now();
+    this._dwellHiddenAt = 0;
+    this._dwellThresholdMs = 45000 + Math.floor(Math.random() * 45000); // 45–90s
+    this._lastDwellEngage = 0;
+    this._dwellBusy = false;
+    this._duoBusy = false;
+    this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this._glide = null;
     this._destroyed = false;
     this._contextInvalidated = false;
@@ -780,7 +1125,7 @@ class ClawdCompanion {
 
   _canSpawnFx(count = 1) {
     if (this._destroyed || document.hidden || this.S?.settings?.performanceMode) return false;
-    return (this._activeParticles || 0) + count <= 28;
+    return (this._activeParticles || 0) + count <= 18;
   }
 
   _trackParticle(el, ttl) {
@@ -921,7 +1266,7 @@ class ClawdCompanion {
         const stored = clawdMigrateState(res.clawdState);
         // popup é dono destes campos — mantém a versão do storage
         this.S.favorites = stored.favorites;
-        this.S.settings = Object.assign({}, this.S.settings, stored.settings);
+        this.S.settings = clawdPlainMerge(this.S.settings, stored.settings);
         this.S.subpets = stored.subpets;
         this.S.game.inventory = stored.game.inventory;
         this._safeChrome(() => chrome.storage.local.set({ clawdState: clawdMigrateState(this.S) }));
@@ -990,7 +1335,7 @@ class ClawdCompanion {
       case 'faceStyle': this.node.setAttribute('data-face-style', value); break;
       case 'scale':
         this.node.style.setProperty('--agent-scale', parseFloat(value));
-        if (this.subpet) this.subpet.node.style.setProperty('--subpet-scale', Math.max(0.9, parseFloat(value) * 0.6));
+        if (this.subpet) this.subpet.node.style.setProperty('--subpet-scale', this.subpet._computeScale());
         break;
       case 'animSpeed':
         {
@@ -1112,10 +1457,20 @@ class ClawdCompanion {
     const maxY = window.innerHeight - 130 - pad;
     x = Math.max(pad, Math.min(x, maxX));
     y = Math.max(pad, Math.min(y, maxY));
+    const eps = 0.35;
+    if (this._posX != null && this._posY != null
+        && Math.abs(x - this._posX) < eps && Math.abs(y - this._posY) < eps) {
+      return;
+    }
+    this._posX = x;
+    this._posY = y;
     this.node.style.left = `${x}px`;
     this.node.style.top = `${y}px`;
-    this.node.style.right = 'auto';
-    this.node.style.bottom = 'auto';
+    if (!this._posSidesCleared) {
+      this.node.style.right = 'auto';
+      this.node.style.bottom = 'auto';
+      this._posSidesCleared = true;
+    }
   }
 
   cancelGlide() {
@@ -1265,6 +1620,8 @@ class ClawdCompanion {
       this.node.style.transform = '';
       this._lookRx = 0;
       this._lookRy = 0;
+      this._lookWriteRx = null;
+      this._lookWriteRy = null;
       this.startX = e.clientX; this.startY = e.clientY;
       const rect = this.node.getBoundingClientRect();
       this.offsetX = e.clientX - rect.left;
@@ -1303,14 +1660,14 @@ class ClawdCompanion {
         const speed = Math.sqrt(
           Math.pow(e.clientX - this._lastMX, 2) + Math.pow(e.clientY - this._lastMY, 2)
         );
-        if (speed > 18 && !this.S.settings.performanceMode) {
+        if (speed > 18 && !this.S.settings.performanceMode && this._canSpawnFx(1)) {
           const rect = this.node.getBoundingClientRect();
           const dust = document.createElement('div');
           dust.className = 'aic-dust';
           dust.style.left = `${rect.left + 20}px`;
           dust.style.top  = `${rect.top + 60}px`;
           document.body.appendChild(dust);
-          setTimeout(() => dust.remove(), 600);
+          this._trackParticle(dust, 600);
         }
         const now = performance.now();
         const dt = Math.max(8, now - (this._lastDragAt || now));
@@ -1371,6 +1728,8 @@ class ClawdCompanion {
       this.node.style.transform = '';
       this._lookRx = 0;
       this._lookRy = 0;
+      this._lookWriteRx = null;
+      this._lookWriteRy = null;
       this.startX = t.clientX; this.startY = t.clientY;
       const rect = this.node.getBoundingClientRect();
       this.offsetX = t.clientX - rect.left;
@@ -1435,15 +1794,32 @@ class ClawdCompanion {
       }
     }, { passive: true, signal });
 
-    // "Você voltou!" ao retornar à aba
+    // "Você voltou!" ao retornar à aba — saudação com bounce + duo
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) return;
+      if (document.hidden) {
+        this._dwellHiddenAt = Date.now();
+        this._cancelDwellEngage();
+        if (this.subpet) this.subpet._pauseRaf();
+        return;
+      }
+      if (this.subpet) this.subpet._resumeRaf();
+      const hiddenFor = this._dwellHiddenAt ? Date.now() - this._dwellHiddenAt : 0;
+      this._dwellHiddenAt = 0;
+      this._dwellVisibleSince = Date.now();
+      this._dwellThresholdMs = 45000 + Math.floor(Math.random() * 45000);
       if (!this.isVisible || this.isQuiet()) return;
       this.lastActivity = Date.now();
       if (this.state === 'sleeping') this.wakeUp();
-      this.showSpeech('Você voltou! 🎉', 2200);
+      this.showSpeech(hiddenFor > 120000 ? 'Saudades! Voltei com tudo! 🎉' : 'Você voltou! 🎉', 2200);
+      this._pulseAnimClass('tab-greet', 750);
       this.setStateFor('waving', 1800);
       if (this.subpet) this.subpet.interact('celebrate', { force: true });
+      // Após longo tempo fora: engaja a página mais cedo
+      if (hiddenFor > 180000) {
+        setTimeout(() => {
+          if (!document.hidden && this.isVisible && !this.isQuiet()) this._engagePageStructure({ force: true });
+        }, 2800);
+      }
     }, { signal });
 
     // Rolar mouse sobre o pet → pisca e sorri
@@ -1548,7 +1924,12 @@ class ClawdCompanion {
     this._lookRy = this._lookRy == null ? 0 : this._lookRy;
     this._lookRx += (targetRx - this._lookRx) * 0.22;
     this._lookRy += (targetRy - this._lookRy) * 0.22;
-    this.node.style.transform = `perspective(600px) rotateX(${-this._lookRx.toFixed(2)}deg) rotateY(${this._lookRy.toFixed(2)}deg)`;
+    const rx = (-this._lookRx).toFixed(2);
+    const ry = this._lookRy.toFixed(2);
+    if (rx === this._lookWriteRx && ry === this._lookWriteRy) return;
+    this._lookWriteRx = rx;
+    this._lookWriteRy = ry;
+    this.node.style.transform = `perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg)`;
   }
 
   /* ---------- QUIET HOURS ---------- */
@@ -1894,7 +2275,7 @@ class ClawdCompanion {
   spawnParticles(emojis) {
     if (this._destroyed || this.S.settings.performanceMode || document.hidden) return;
     const pool = emojis || ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
-    const count = Math.min(10, Math.max(4, pool.length + 2));
+    const count = Math.min(8, Math.max(4, pool.length + 1));
     if (!this._canSpawnFx(count)) return;
     const rect = this.node.getBoundingClientRect();
     for (let i = 0; i < count; i++) {
@@ -2347,13 +2728,13 @@ class ClawdCompanion {
 
       this.updatePosition(currentX, rect.top);
 
-      if (Math.random() < 0.15 && !this.S.settings.performanceMode) {
+      if (Math.random() < 0.15 && !this.S.settings.performanceMode && this._canSpawnFx(1)) {
         const dust = document.createElement('div');
         dust.className = 'aic-dust';
         dust.style.left = `${currentX + (dx < 0 ? 60 : -6)}px`;
         dust.style.top = `${rect.top + 70}px`;
         document.body.appendChild(dust);
-        setTimeout(() => dust.remove(), 600);
+        this._trackParticle(dust, 600);
       }
 
       if (progress < 1) {
@@ -2913,7 +3294,7 @@ class ClawdCompanion {
   }
 
   _ninjaTrick() {
-    if (this.S.profession !== 'ninja' || this.state !== 'idle' || this.isQuiet()) return;
+    if (document.hidden || this.S.profession !== 'ninja' || this.state !== 'idle' || this.isQuiet()) return;
     if (Math.random() > 0.3) return;
     this._pulseProfessionFx('stealthing', 1400);
     this.spawnParticles(['💨', '🌫️']);
@@ -2983,7 +3364,7 @@ class ClawdCompanion {
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
       const baseChance = this.emotion === 'joyful' ? 0.6 : 0.45;
       if (Math.random() > baseChance) return;
-      const pool = ['wave', 'dance', 'somersault', 'keepy', 'jump', 'highfive', 'roar', 'balloon', 'hug', 'wink', 'clap'];
+      const pool = ['wave', 'dance', 'somersault', 'keepy', 'jump', 'highfive', 'roar', 'balloon', 'hug', 'wink', 'clap', 'lookAround'];
       const pick = this.getWeightedRandom(pool, this.S.favorites.actions);
       if (pick === 'keepy' && this.S.profession !== 'footballer') {
         this._handleAction('wave');
@@ -2991,6 +3372,12 @@ class ClawdCompanion {
       }
       this._handleAction(pick);
     }, 25000));
+
+    // Duo pet ↔ subpet — cenas periódicas quando ambos idle
+    this._timers.push(setInterval(() => this._maybePlayDuoScene(), 32000));
+
+    // Permanência na aba → engaja estrutura da página (45–90s)
+    this._timers.push(setInterval(() => this._tickDwellEngage(), 8000));
 
     // Auto-walk — a cada ~18s
     this._timers.push(setInterval(() => {
@@ -3006,6 +3393,7 @@ class ClawdCompanion {
 
     // Pescador: pesca espontânea se idle — ciclos curtos e espaçados
     this._timers.push(setInterval(() => {
+      if (document.hidden) return;
       if (this.S.profession !== 'fisher') return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
       if (!this._fishing && Math.random() < 0.4) {
@@ -3016,6 +3404,7 @@ class ClawdCompanion {
     // Pulso de profissão: cada identidade tem uma micro-interação própria,
     // mesmo fora de um site contextual específico.
     this._timers.push(setInterval(() => {
+      if (document.hidden) return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet() || Math.random() > 0.38) return;
       switch (this.S.profession) {
         case 'footballer': this.startKeepyUppy(); break;
@@ -3058,6 +3447,7 @@ class ClawdCompanion {
         this.isAutoWalking = false;
         this.stackNode.style.transform = '';
         this.setState('idle');
+        this._softLand();
         this.bumpStat('energy', -1);
         const c = this.S.game.counters;
         c.walks = (c.walks || 0) + 1;
@@ -3068,6 +3458,349 @@ class ClawdCompanion {
       }
     };
     this._motionRaf = requestAnimationFrame(step);
+  }
+
+  /* ---------- ANIMAÇÕES / DUO / DWELL ---------- */
+  _pulseAnimClass(className, ms = 700) {
+    if (!this.node || this._reducedMotion || this.S.settings.performanceMode) return;
+    this.node.classList.remove(className);
+    void this.node.offsetWidth;
+    this.node.classList.add(className);
+    clearTimeout(this._animClassTimers?.[className]);
+    this._animClassTimers = this._animClassTimers || {};
+    this._animClassTimers[className] = setTimeout(() => {
+      this.node?.classList.remove(className);
+      delete this._animClassTimers[className];
+    }, ms);
+  }
+
+  _softLand() {
+    this._pulseAnimClass('soft-landing', 520);
+    this.beep(420, 0.04, 'triangle');
+  }
+
+  doLookAround() {
+    if (this.state !== 'idle' && this.state !== 'curious') this.setState('idle');
+    this._pulseAnimClass('looking-around', 2500);
+    this.setStateFor('curious', 2400);
+    this.showSpeech(Math.random() < 0.5 ? 'Hmm... 👀' : 'O que tem por aí?', 2000);
+    this.beep(560, 0.05, 'sine');
+  }
+
+  _maybePlayDuoScene() {
+    if (document.hidden || this._destroyed || this._duoBusy || this._dwellBusy) return;
+    if (!this.subpet || !this.isVisible || this.isQuiet()) return;
+    if (this.S.settings.performanceMode) return;
+    if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
+    if (this.subpet.state === 'sleeping' || this.subpet._interactionBusy) return;
+    if (Math.random() > 0.55) return;
+    const scenes = ['cuddle', 'play', 'nap', 'race', 'celebrate', 'pet'];
+    const pick = scenes[Math.floor(Math.random() * scenes.length)];
+    this._playDuoScene(pick);
+  }
+
+  _playDuoScene(kind) {
+    if (!this.subpet || this._duoBusy) return false;
+    this._duoBusy = true;
+    const species = this.subpet.species;
+    const finish = (ms = 2800) => {
+      clearTimeout(this._duoTimer);
+      this._duoTimer = setTimeout(() => {
+        this._duoBusy = false;
+        this.node?.classList.remove('duo-play', 'petting-subpet');
+        this.subpet?.node?.classList.remove('duo-play', 'nap-sync', 'being-petted');
+      }, ms);
+    };
+
+    switch (kind) {
+      case 'cuddle':
+        this.setStateFor('hugging', 2200);
+        this.showSpeech(species === 'cat' ? 'Acariciando o gato... 🐱' : 'Abraço em duo! 🤗', 2200);
+        this.subpet.interact('hug', { force: true });
+        this.spawnParticles(['💕', '✨']);
+        this.chime([[520, 0.05], [680, 0.06]]);
+        finish(2400);
+        break;
+      case 'play':
+        this.node?.classList.add('duo-play');
+        this.setStateFor('bouncing', 1800);
+        this.showSpeech(species === 'rabbit' ? 'Hop hop juntos! 🐰' : 'Brincadeira em duo! 🎾', 2000);
+        this.subpet.interact('play', { force: true });
+        this.subpet.node?.classList.add('duo-play');
+        this.spawnParticles(['✨', '⭐']);
+        this.beep(700, 0.05);
+        finish(3200);
+        break;
+      case 'nap':
+        this.showSpeech('Soneca sincronizada... 💤', 2200);
+        this.subpet.node?.classList.add('nap-sync');
+        this.subpet.interact('nap', { force: true });
+        this.setStateFor('yawning', 1800);
+        setTimeout(() => {
+          if (!this._destroyed && this.state !== 'sleeping') {
+            this.setState('sleeping');
+            this.showSpeech('ZzZz... 💤', 5000);
+          }
+        }, 1900);
+        this.beep(260, 0.12, 'triangle');
+        finish(9000);
+        break;
+      case 'race':
+        this.showSpeech(species === 'dino' ? 'Corrida com o dino! 🦕' : 'Corridinha! 🏁', 1800);
+        this.subpet.interact(species === 'dino' ? 'stomp' : 'race', { force: true });
+        this.setStateFor('excited', 1600);
+        this.beep(780, 0.05);
+        finish(3600);
+        break;
+      case 'celebrate':
+        if (species === 'dog') {
+          this.setStateFor('cheering', 1800);
+          this.showSpeech('Bom menino! 🦴🎉', 2000);
+        } else {
+          this.setStateFor('celebrate', 2000);
+          this.showSpeech('Comemoração em duo! 🎉', 2200);
+        }
+        this.subpet.interact('celebrate', { force: true });
+        this.spawnParticles(['🎉', '✨', '⭐']);
+        this.chime([[600, 0.05], [800, 0.07], [960, 0.06]]);
+        finish(2200);
+        break;
+      case 'pet':
+      default:
+        this.node?.classList.add('petting-subpet');
+        this.setStateFor('happy', 2000);
+        this.showSpeech(
+          species === 'dog' ? 'Fazendo carinho no doguinho... 🐶'
+            : species === 'dragon' ? 'Carinho no dragão! 🐉'
+            : 'Carinho no companheiro... ✨',
+          2200
+        );
+        this.subpet.node?.classList.add('being-petted');
+        this.subpet.interact('cuddle', { force: true });
+        this.spawnParticles(['💖', '✨']);
+        this.beep(640, 0.05, 'sine');
+        this.addXp(1);
+        finish(2200);
+        break;
+    }
+    return true;
+  }
+
+  _cancelDwellEngage() {
+    this._dwellBusy = false;
+    clearTimeout(this._dwellWalkTimer);
+    clearTimeout(this._dwellActionTimer);
+    this._dwellWalkTimer = null;
+    this._dwellActionTimer = null;
+    this.node?.classList.remove('page-peeking');
+  }
+
+  _tickDwellEngage() {
+    if (document.hidden || this._destroyed || this._dwellBusy || this._duoBusy) return;
+    if (!this.isVisible || this.isQuiet() || this.S.settings.performanceMode) return;
+    if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
+    const visibleFor = Date.now() - (this._dwellVisibleSince || Date.now());
+    if (visibleFor < (this._dwellThresholdMs || 60000)) return;
+    if (Date.now() - (this._lastDwellEngage || 0) < 70000) return;
+    this._engagePageStructure();
+  }
+
+  _isSafePageTarget(el) {
+    if (!(el instanceof HTMLElement)) return false;
+    if (el.closest('#aic-clawd-node, .aic-subpet, .aic-lake, .aic-toyball, [data-clawd-owned]')) return false;
+    if (el.closest('[aria-hidden="true"]')) return false;
+    const tag = el.tagName;
+    if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return false;
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 28 || rect.height < 14) return false;
+    if (rect.bottom < 48 || rect.top > window.innerHeight - 40) return false;
+    if (rect.right < 20 || rect.left > window.innerWidth - 20) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return false;
+    return true;
+  }
+
+  _findPageEngageTargets() {
+    const selectors = [
+      'h1', 'h2', 'h3',
+      'button:not([disabled])',
+      'a[href]',
+      'img',
+      'input:not([type="hidden"]):not([disabled])',
+      'textarea:not([disabled])',
+      'article', 'main', 'section', 'footer'
+    ];
+    const found = [];
+    for (const sel of selectors) {
+      let nodes;
+      try { nodes = document.querySelectorAll(sel); } catch (_) { continue; }
+      for (const el of nodes) {
+        if (!this._isSafePageTarget(el)) continue;
+        found.push({
+          el,
+          kind: sel.startsWith('h') ? 'heading'
+            : sel.startsWith('button') ? 'button'
+            : sel.startsWith('a') ? 'link'
+            : sel.startsWith('img') ? 'image'
+            : sel.startsWith('input') || sel.startsWith('textarea') ? 'input'
+            : sel === 'footer' ? 'footer'
+            : 'block'
+        });
+        if (found.length >= 24) break;
+      }
+      if (found.length >= 24) break;
+    }
+    return found;
+  }
+
+  _engagePageStructure({ force = false } = {}) {
+    if (this._dwellBusy && !force) return false;
+    if (document.hidden || this._destroyed || !this.isVisible || this.isQuiet()) return false;
+    if (this.S.settings.performanceMode) return false;
+    if (!force && this.state !== 'idle') return false;
+
+    const targets = this._findPageEngageTargets();
+    if (!targets.length) return false;
+
+    const pick = targets[Math.floor(Math.random() * targets.length)];
+    const rect = pick.el.getBoundingClientRect();
+    const petW = this.node.getBoundingClientRect().width || 64;
+    const petH = this.node.getBoundingClientRect().height || 72;
+
+    // Posições relativas — nunca cobrir inputs por muito tempo
+    let tx; let ty; let behavior;
+    switch (pick.kind) {
+      case 'heading':
+        behavior = 'peek';
+        tx = Math.max(12, Math.min(window.innerWidth - petW - 12, rect.left + rect.width * 0.6));
+        ty = Math.max(12, Math.min(window.innerHeight - petH - 12, rect.bottom + 8));
+        break;
+      case 'button':
+      case 'link':
+        behavior = 'wave';
+        tx = Math.max(12, Math.min(window.innerWidth - petW - 12, rect.right + 10));
+        ty = Math.max(12, Math.min(window.innerHeight - petH - 12, rect.top + rect.height / 2 - petH / 2));
+        break;
+      case 'image':
+        behavior = 'sit';
+        tx = Math.max(12, Math.min(window.innerWidth - petW - 12, rect.left + rect.width / 2 - petW / 2));
+        ty = Math.max(12, Math.min(window.innerHeight - petH - 12, rect.bottom - 18));
+        break;
+      case 'input':
+        behavior = 'encourage';
+        tx = Math.max(12, Math.min(window.innerWidth - petW - 12, rect.right + 16));
+        ty = Math.max(12, Math.min(window.innerHeight - petH - 12, rect.top - 8));
+        break;
+      case 'footer':
+        behavior = 'sleep';
+        tx = Math.max(12, Math.min(window.innerWidth - petW - 12, rect.left + 24));
+        ty = Math.max(12, Math.min(window.innerHeight - petH - 12, rect.top - petH - 4));
+        break;
+      default:
+        behavior = 'peek';
+        tx = Math.max(12, Math.min(window.innerWidth - petW - 12, rect.left - 8));
+        ty = Math.max(12, Math.min(window.innerHeight - petH - 12, rect.bottom - 10));
+    }
+
+    this._dwellBusy = true;
+    this._lastDwellEngage = Date.now();
+    this._dwellThresholdMs = 45000 + Math.floor(Math.random() * 45000);
+    this._dwellVisibleSince = Date.now(); // reinicia ciclo após engajar
+
+    this.cancelMovement();
+    this.isAutoWalking = true;
+    this.setState('walking');
+    this.showSpeech(
+      behavior === 'wave' ? 'Olha esse botão! 👋'
+        : behavior === 'sit' ? 'Deixa eu sentar aqui... 🖼️'
+        : behavior === 'encourage' ? 'Pode digitar, eu espero! ⌨️'
+        : behavior === 'sleep' ? 'Cantinho do rodapé... 💤'
+        : 'Deixa eu espiar... 👀',
+      2000
+    );
+
+    const from = this.node.getBoundingClientRect();
+    const dx = tx - from.left;
+    const dy = ty - from.top;
+    if (dx < 0) this.stackNode.style.transform = 'scaleX(-1)';
+    let startTime = null;
+    const duration = Math.min(1600, 700 + Math.hypot(dx, dy) * 1.1);
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      this.updatePosition(from.left + dx * progress, from.top + dy * progress);
+      if (progress < 1 && !this._destroyed && !document.hidden) {
+        this._dwellWalkTimer = null;
+        this._motionRaf = requestAnimationFrame(step);
+      } else {
+        this._motionRaf = null;
+        this.isAutoWalking = false;
+        this.stackNode.style.transform = '';
+        this.setState('idle');
+        this._softLand();
+        this._runDwellBehavior(behavior, pick.kind);
+      }
+    };
+    this._motionRaf = requestAnimationFrame(step);
+    return true;
+  }
+
+  _runDwellBehavior(behavior) {
+    if (this._destroyed || document.hidden) {
+      this._dwellBusy = false;
+      return;
+    }
+    const release = (ms) => {
+      clearTimeout(this._dwellActionTimer);
+      this._dwellActionTimer = setTimeout(() => {
+        this._dwellBusy = false;
+        this.node?.classList.remove('page-peeking');
+        // Se dormiu no rodapé, deixa acordar depois
+        if (this.state === 'sleeping') {
+          setTimeout(() => {
+            if (this.state === 'sleeping' && !document.hidden) this.wakeUp('Explorei a página! ✨');
+          }, 6000);
+        }
+      }, ms);
+    };
+
+    switch (behavior) {
+      case 'wave':
+        this.setStateFor('waving', 1800);
+        this.showSpeech('Clica aí! ✨', 1600);
+        this.beep(720, 0.04);
+        if (this.subpet && Math.random() < 0.45) this.subpet.interact('explore', { force: true });
+        release(2200);
+        break;
+      case 'sit':
+        this.setStateFor('pose', 2200);
+        this.showSpeech('Que vista! 🖼️', 1800);
+        this._pulseAnimClass('page-peeking', 2000);
+        release(2600);
+        break;
+      case 'encourage':
+        this.setStateFor('typing', 2400);
+        this.showSpeech('Você consegue! ⌨️', 2000);
+        this.chime([[480, 0.04], [600, 0.05]]);
+        release(2800);
+        break;
+      case 'sleep':
+        this.setState('sleeping');
+        this.showSpeech('ZzZz no rodapé... 💤', 4000);
+        this.beep(250, 0.1, 'triangle');
+        release(500);
+        break;
+      case 'peek':
+      default:
+        this._pulseAnimClass('page-peeking', 2200);
+        this.setStateFor('curious', 2000);
+        this.showSpeech('Interessante... 🔎', 1800);
+        this.beep(540, 0.05);
+        if (this.subpet && Math.random() < 0.4) this.subpet.interact('explore', { force: true });
+        release(2400);
+        break;
+    }
   }
 
   /* ---------- SUB-PETS ---------- */
@@ -3117,10 +3850,7 @@ class ClawdCompanion {
     if (this.subpet && wantedEyeColor && this.subpet.eyeColor !== wantedEyeColor) {
       this.subpet.setEyeColor(wantedEyeColor);
     }
-    if (this.S.settings.performanceMode) {
-      if (this.subpet) { this.subpet.destroy(); this.subpet = null; }
-      return;
-    }
+    // Modo performance só reduz FX do pet; sub-pet continua visível.
     const petHidden = this.node.style.display === 'none';
     const unlocked = want && (
       this.S.subpets.unlocked.includes(want)
@@ -3350,22 +4080,20 @@ class ClawdCompanion {
           this.refreshSubpet();
           // Persiste sem sobrescrever nomes/cores que o popup acabou de gravar no storage
           this._safeChrome(() => chrome.storage.local.get('clawdState', (data) => {
-            const st = data?.clawdState;
-            if (!st) { this.save(); return; }
-            st.subpets = st.subpets || {};
+            const st = clawdMigrateState(data?.clawdState);
             st.subpets.active = id;
-            st.subpets.unlocked = [...new Set([
-              ...(st.subpets.unlocked || []).filter(x => CLAWD_SUBPETS[x]),
-              ...(this.S.subpets.unlocked || [])
-            ])];
-            this.S.subpets.names = Object.assign({}, this.S.subpets.names, st.subpets.names || {});
-            this.S.subpets.colors = Object.assign({}, this.S.subpets.colors, st.subpets.colors || {});
-            this.S.subpets.eyeColors = Object.assign({}, this.S.subpets.eyeColors, st.subpets.eyeColors || {});
+            st.subpets.unlocked = clawdMergeUnlockedSubpets(
+              st.subpets.unlocked,
+              this.S.subpets.unlocked
+            );
+            this.S.subpets.names = clawdAssignPlain({}, st.subpets.names);
+            this.S.subpets.colors = clawdAssignPlain({}, st.subpets.colors);
+            this.S.subpets.eyeColors = clawdAssignPlain({}, st.subpets.eyeColors);
             this.S.subpets.active = id;
             this.S.subpets.unlocked = st.subpets.unlocked;
             this.S.game.counters.subpetsUnlocked = st.subpets.unlocked.length;
             this.refreshSubpet();
-            chrome.storage.local.set({ clawdState: st });
+            chrome.storage.local.set({ clawdState: clawdMigrateState(st) });
           }));
           break;
         }
@@ -3443,7 +4171,8 @@ class ClawdCompanion {
       peek:       () => this.doPeek(),
       roll:       () => this.doRoll(),
       balloon:    () => this.doBalloon(),
-      hug:        () => this.doHug()
+      hug:        () => this.doHug(),
+      lookAround: () => this.doLookAround()
     };
     if (!map[action]) return false;
     this.cancelMovement();
@@ -3469,11 +4198,17 @@ class ClawdCompanion {
       '_wakeStretchTimer', '_fishTimer', '_fishBiteTimer', '_fishCatchTimer',
       '_emotionTimer', '_shinyTimer', '_keepy', '_juggleDrop', '_juggleIdleTimer',
       '_profFxTimer', '_equipFxTimer', '_freestyleTimer', '_balloonTimer', '_balloonPopFx',
-      '_pendingCelebrate'
+      '_pendingCelebrate', '_duoTimer', '_dwellWalkTimer', '_dwellActionTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
     });
+    if (this._animClassTimers) {
+      Object.values(this._animClassTimers).forEach(clearTimeout);
+      this._animClassTimers = {};
+    }
+    this._cancelDwellEngage();
+    this._duoBusy = false;
 
     if (this._balloon) this.popBalloon({ silent: true });
 

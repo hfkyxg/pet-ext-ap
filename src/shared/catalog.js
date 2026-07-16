@@ -164,14 +164,14 @@ var CLAWD_ACTIONS = {
 
 /* ---- Sub-Pets ---- */
 var CLAWD_SUBPETS = {
-  dog:    { emoji: '🐶', label: 'Cachorro',  level: 1,  special: 'Busca a bola quando o Claw\'d chuta' },
-  cat:    { emoji: '🐱', label: 'Gato',      level: 2,  special: 'Dorme junto; às vezes ignora (é um gato)' },
-  bird:   { emoji: '🐦', label: 'Pássaro',   level: 3,  special: 'Voa em círculos e pousa na cabeça' },
-  rabbit: { emoji: '🐰', label: 'Coelho',    level: 4,  special: 'Pula junto nas comemorações' },
-  dino:   { emoji: '🦖', label: 'Dinossauro', level: 6, special: 'Dispara pela tela com "RAWR!"' },
-  dragon: { emoji: '🐉', label: 'Dragão',    level: 8,  special: 'Abre as asas, voa pela tela e cospe fogo' },
-  ghost:  { emoji: '👻', label: 'Fantasma',  level: 10, special: 'Aparece e some do nada' },
-  slime:  { emoji: '🟢', label: 'Slime',     level: 12, special: 'Se divide ao receber carinho' }
+  dog:    { emoji: '🐶', label: 'Cachorro',   level: 1,  special: 'Leal, abana o rabo quando feliz' },
+  cat:    { emoji: '🐱', label: 'Gato',       level: 2,  special: 'Independente, dorme o dia todo' },
+  bird:   { emoji: '🐦', label: 'Pássaro',    level: 3,  special: 'Canta e voa pela tela' },
+  rabbit: { emoji: '🐰', label: 'Coelho',     level: 4,  special: 'Rápido, pula em saltos duplos' },
+  dino:   { emoji: '🦕', label: 'Dinossauro', level: 6,  special: 'Clássico, de pisada pesada' },
+  dragon: { emoji: '🐉', label: 'Dragão',     level: 8,  special: 'Raro, cospe fogo no desafio' },
+  ghost:  { emoji: '👻', label: 'Fantasma',   level: 10, special: 'Atravessa paredes, aparece à noite' },
+  slime:  { emoji: '🟢', label: 'Slime',      level: 12, special: 'Grudento, se divide ao comer' }
 };
 
 /* ---- Interações manuais dos Sub-Pets ---- */
@@ -185,157 +185,702 @@ var CLAWD_SUBPET_ACTIONS = {
   special:   { emoji: '✨', label: 'Especial',   feedback: 'Habilidade da espécie!' }
 };
 
-/* ---- Sprites pixel dos Sub-Pets (grade ~12×9 @ 4px) ----
-   Fonte única consumida por content, popup e docs/showcase.
-   Letras: B corpo, D sombra, K olhos, + cores extras por espécie. */
+/* ---- Sub-pet pixel art (shared: content + popup + docs)
+   Grade 12×10 @4px. Referência "Subpets — 8 companheiros":
+   corpo chapado, olhos em linha (KK), patas soltas, lineless igual ao Claw'd.
+   B=corpo, D=sombra/orelha, K=olho, P=rosa, Y=amarelo, R=bico/pé, E=olho slime, +extras. */
 var CLAWD_SUBPET_CELL = 4;
 
 var CLAWD_SUBPET_SPRITES = {
   dog: {
-    colors: { B: '#8d5a2b', D: '#5b3a1a', K: '#111111', W: '#f5e9dc' },
+    colors: { B: "#c4783a", D: "#8a4f22", K: "#111111", W: "#fff3e0", P: "#ff7aa2", C: "#e8a050" },
+    image: { url: 'src/shared/sprites/subpets/dog.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['..DD....DD..', '.DBBBBBBBBD.', 'DBKBBBBKBBBD', 'DBBBBWWBBBBD', '.DBBBBBBBBD.', '..DBBBBBBD..', '...BB..BB...', '...B....B...', '............'],
-        ['..DD....DD..', '.DBBBBBBBBD.', 'DBKBBBBKBBBD', 'DBBBBWWBBBBD', '.DBBBBBBBBD.', '..DBBBBBBD..', '...BB..BB...', '....B..B....', '............']
+      [
+        '............',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ],
+      [
+        '............',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '.D........D.',
+        '............'
+      ]
       ],
       walk: [
-        ['..DD....DD..', '.DBBBBBBBBD.', 'DBKBBBBKBBBD', 'DBBBBWWBBBBD', '.DBBBBBBBBD.', '..DBBBBBBD..', '..BB....BB..', '.B........B.', '............'],
-        ['..DD....DD..', '.DBBBBBBBBD.', 'DBKBBBBKBBBD', 'DBBBBWWBBBBD', '.DBBBBBBBBD.', '..DBBBBBBD..', '...BB..BB...', '....B..B....', '............'],
-        ['..DD....DD..', '.DBBBBBBBBD.', 'DBKBBBBKBBBD', 'DBBBBWWBBBBD', '.DBBBBBBBBD.', '..DBBBBBBD..', '....BBBB....', '...B....B...', '............']
+      [
+        '............',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '.D........D.',
+        '............'
+      ],
+      [
+        '............',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ],
       sleep: [
-        ['..DD....DD..', '.DBBBBBBBBD.', 'DB.BBBB.BBBD', 'DBBBBWWBBBBD', '.DBBBBBBBBD.', '..DBBBBBBD..', '...BBBBBB...', '............', '............']
+      [
+        '............',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BB........BB',
+        'BBBBBKKBBBBB',
+        'BBBBBPPBBBBB',
+        '............',
+        '............',
+        '............'
+      ]
       ]
     }
   },
   cat: {
-    colors: { B: '#7f8c8d', D: '#525c5d', K: '#111111', P: '#e8a0bf' },
+    colors: { B: "#b0b8c0", D: "#6e7680", K: "#111111", W: "#ffffff", P: "#f2a0b8", C: "#e8eef4" },
+    image: { url: 'src/shared/sprites/subpets/cat.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['.D......D...', 'D.BBBBBB.D..', '.BKBBBBKB...', '.BBBPBBBB...', '.DBBBBBBD...', '..BBBBBB....', '..B....B....', '..B....B.D..', '.........D..'],
-        ['.D......D...', 'D.BBBBBB.D..', '.BKBBBBKB...', '.BBBPBBBB...', '.DBBBBBBD...', '..BBBBBB....', '..B....B....', '...B..B..D..', '.........D..']
+      [
+        '............',
+        '.D.P....P.D.',
+        '.DPP....PPD.',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ],
+      [
+        '............',
+        '.D.P....P.D.',
+        '.DPP....PPD.',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ],
       walk: [
-        ['.D......D...', 'D.BBBBBB.D..', '.BKBBBBKB...', '.BBBPBBBB...', '.DBBBBBBD...', '..BBBBBB....', '.B......B...', 'B........B..', '.........D..'],
-        ['.D......D...', 'D.BBBBBB.D..', '.BKBBBBKB...', '.BBBPBBBB...', '.DBBBBBBD...', '..BBBBBB....', '..B....B....', '...B..B.....', '.........D..'],
-        ['.D......D...', 'D.BBBBBB.D..', '.BKBBBBKB...', '.BBBPBBBB...', '.DBBBBBBD...', '..BBBBBB....', '...BBBB.....', '..B....B.D..', '.........D..']
+      [
+        '............',
+        '.D.P....P.D.',
+        '.DPP....PPD.',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '.D........D.',
+        '............'
+      ],
+      [
+        '............',
+        '.D.P....P.D.',
+        '.DPP....PPD.',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ],
       sleep: [
-        ['.D......D...', 'D.BBBBBB.D..', '.B.BBBB.B...', '.BBBPBBBB...', '.DBBBBBBD...', '..BBBBBB....', '..BBBBBB....', '.........D..', '............']
+      [
+        '............',
+        '.D.P....P.D.',
+        '.DPP....PPD.',
+        '.BBBBBBBBBB.',
+        'BB........BB',
+        'BBBBBBBBBBBB',
+        'BBBBBPPBBBBB',
+        '............',
+        '............',
+        '............'
+      ]
       ]
     }
   },
   bird: {
-    colors: { B: '#f1c40f', D: '#e67e22', K: '#111111', W: '#ffffff' },
+    colors: { B: "#4aa3ff", D: "#2b6fc2", K: "#111111", W: "#ffffff", Y: "#ffd14a", R: "#ff8a2b", A: "#7ec0ff" },
+    image: { url: 'src/shared/sprites/subpets/bird.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['....BBB.....', '...BKBBB....', '..DBBBBBW...', '..BBBBBB....', '...BDDB.....', '....D.D.....', '............', '............', '............'],
-        ['....BBB.....', '...BKBBB....', '..DBBBBBW...', '..BBBBBB....', '...BDDB.....', '.....D.D....', '............', '............', '............']
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBYYBBB.',
+        'A.BBBBBBBB.A',
+        '..BBBBBBBB..',
+        '...R....R...',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBYYBBB.',
+        'A.BBBBBBBB.A',
+        '..BBBBBBBB..',
+        '...R....R...',
+        '............',
+        '............'
+      ]
       ],
       walk: [
-        ['....BBB.....', '...BKBBB....', '.D.BBBBBWW..', '..BBDBBB....', '...BBBB.....', '....D.D.....', '............', '............', '............'],
-        ['....BBB.....', '...BKBBB....', '..WBBBBBD...', '..BBBBDB....', '...BBBB.....', '....D.D.....', '............', '............', '............']
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBYYBBB.',
+        'A.BBBBBBBB.A',
+        '..BBBBBBBB..',
+        '..R......R..',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBYYBBB.',
+        'A.BBBBBBBB.A',
+        '..BBBBBBBB..',
+        '...R....R...',
+        '............',
+        '............'
+      ]
       ],
       flying: [
-        ['..W.BBB.W...', '.W.BKBBBW.W.', '..DBBBBBD...', '..BBBBBB....', '...BDDB.....', '............', '............', '............', '............'],
-        ['.W..BBB..W..', 'W..BKBBB..W.', '..DBBBBBD...', '..BBBBBB....', '...BDDB.....', '............', '............', '............', '............'],
-        ['W...BBB...W.', '..WBKBBBW...', '..DBBBBBD...', '..BBBBBB....', '...BDDB.....', '............', '............', '............', '............']
+      [
+        '............',
+        'AA.BBBBBB.AA',
+        'A.BBBBBBBB.A',
+        '..BBKKBBKKB.',
+        '..BBBBYYBB..',
+        '...BBBBBB...',
+        '............',
+        '............',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '.A.BBBBBB.A.',
+        'AA.BBBBBB.AA',
+        'A.BBKKBBKKBB',
+        '..BBBBYYBB..',
+        '...BBBBBB...',
+        '............',
+        '............',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        'AA.BBBBBB.AA',
+        'A.BBBBBBBB.A',
+        '..BBKKBBKKB.',
+        '..BBBBYYBB..',
+        '...BBBBBB...',
+        '............',
+        '............',
+        '............',
+        '............'
+      ]
       ],
       sleep: [
-        ['....BBB.....', '...B.BBB....', '..DBBBBBW...', '..BBBBBB....', '...BDDB.....', '....D.D.....', '............', '............', '............']
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BB......BB.',
+        '.BBBBBYYBBB.',
+        'A.BBBBBBBB.A',
+        '..BBBBBBBB..',
+        '............',
+        '............',
+        '............'
+      ]
       ]
     }
   },
   rabbit: {
-    colors: { B: '#ecf0f1', D: '#bdc3c7', K: '#111111', P: '#fbb1c8' },
+    colors: { B: "#f2f4f6", D: "#a8b0ba", K: "#111111", W: "#ffffff", P: "#ff8eb0", I: "#ffc2d6" },
+    image: { url: 'src/shared/sprites/subpets/rabbit.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['.D....D.....', '.B....B.....', '.BBBBBB.....', 'BKBBBBKB....', 'BBBBPBBB....', '.DBBBBBD....', '..B....B....', '..B....B....', '............'],
-        ['.D....D.....', '.B....B.....', '.BBBBBB.....', 'BKBBBBKB....', 'BBBBPBBB....', '.DBBBBBD....', '..B....B....', '...B..B.....', '............']
+      [
+        '............',
+        '.DP......PD.',
+        '.DP......PD.',
+        '.DBBBBBBBBD.',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ],
+      [
+        '............',
+        '.DP......PD.',
+        '.DP......PD.',
+        '.DBBBBBBBBD.',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ],
       walk: [
-        ['.D....D.....', '.B....B.....', '.BBBBBB.....', 'BKBBBBKB....', 'BBBBPBBB....', '.DBBBBBD....', '.B......B...', 'B........B..', '............'],
-        ['.D....D.....', '.B....B.....', '.BBBBBB.....', 'BKBBBBKB....', 'BBBBPBBB....', '.DBBBBBD....', '..B....B....', '...B..B.....', '............']
+      [
+        '............',
+        '.DP......PD.',
+        '.DP......PD.',
+        '.DBBBBBBBBD.',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '.D........D.',
+        '............'
+      ],
+      [
+        '............',
+        '.DP......PD.',
+        '.DP......PD.',
+        '.DBBBBBBBBD.',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        'BBBBBPPBBBBB',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ],
       sleep: [
-        ['.D....D.....', '.B....B.....', '.BBBBBB.....', 'B.BBBB.B....', 'BBBBPBBB....', '.DBBBBBD....', '..BBBBBB....', '............', '............']
+      [
+        '............',
+        '.DP......PD.',
+        '.DP......PD.',
+        '.DBBBBBBBBD.',
+        'BB........BB',
+        'BBBBBBBBBBBB',
+        'BBBBBPPBBBBB',
+        '............',
+        '............',
+        '............'
+      ]
       ]
     }
   },
   dino: {
-    colors: { B: '#27ae60', D: '#1e8449', K: '#111111', W: '#f4d03f' },
+    colors: { B: "#3ecfcf", D: "#1f8a8a", K: "#111111", W: "#ffffff", Y: "#b8f0f0" },
+    image: { url: 'src/shared/sprites/subpets/dino.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['...W.BBB....', '..WBBKBB....', '.DBBBBBB....', 'DBBBBBBBBD..', '.BBBBBBBB...', '..B....B....', '..B....B....', '..D....D....', '............'],
-        ['...W.BBB....', '..WBBKBB....', '.DBBBBBB....', 'DBBBBBBBBD..', '.BBBBBBBB...', '..B....B....', '...B..B.....', '...D..D.....', '............']
+      [
+        '............',
+        '...D.D.D....',
+        '..BBBBBBB...',
+        '.BBBBBBBBB..',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        '.BBBBBBBBBB.',
+        '..BB....BB..',
+        '..D......D..',
+        '............'
+      ],
+      [
+        '............',
+        '...D.D.D....',
+        '..BBBBBBB...',
+        '.BBBBBBBBB..',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        '.BBBBBBBBBB.',
+        '..BB....BB..',
+        '..D......D..',
+        '............'
+      ]
       ],
       walk: [
-        ['...W.BBB....', '..WBBKBB....', '.DBBBBBB....', 'DBBBBBBBBD..', '.BBBBBBBB...', '.B......B...', 'B........B..', 'D........D..', '............'],
-        ['...W.BBB....', '..WBBKBB....', '.DBBBBBB....', 'DBBBBBBBBD..', '.BBBBBBBB...', '..B....B....', '...B..B.....', '...D..D.....', '............']
+      [
+        '............',
+        '...D.D.D....',
+        '..BBBBBBB...',
+        '.BBBBBBBBB..',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        '.BBBBBBBBBB.',
+        '..BB....BB..',
+        '.D........D.',
+        '............'
+      ],
+      [
+        '............',
+        '...D.D.D....',
+        '..BBBBBBB...',
+        '.BBBBBBBBB..',
+        'BBBKKBBKKBBB',
+        'BBBBBBBBBBBB',
+        '.BBBBBBBBBB.',
+        '..BB....BB..',
+        '..D......D..',
+        '............'
+      ]
       ],
       sleep: [
-        ['...W.BBB....', '..WBB.BB....', '.DBBBBBB....', 'DBBBBBBBBD..', '.BBBBBBBB...', '..BBBBBB....', '............', '............', '............']
+      [
+        '............',
+        '...D.D.D....',
+        '..BBBBBBB...',
+        '.BBBBBBBBB..',
+        'BB........BB',
+        'BBBBBBBBBBBB',
+        '.BBBBBBBBBB.',
+        '............',
+        '............',
+        '............'
+      ]
       ]
     }
   },
   dragon: {
-    colors: { B: '#8e44ad', D: '#5b2c6f', K: '#111111', F: '#e74c3c', W: '#f39c12', A: '#c39bd3' },
+    colors: { B: "#3daf4a", D: "#257a30", K: "#111111", W: "#ffffff", Y: "#ffd14a", F: "#ff5a52", A: "#6ecf78" },
+    image: { url: 'src/shared/sprites/subpets/dragon.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['W.A.....D.A.', '.A.BBBBB.ADA', '.A.DBKBBBDD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.B.....', '..B....B....', '..B....B....', '............'],
-        ['W.A.....D.A.', '.A.BBBBB.ADA', '.A.DBKBBBDD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.B.....', '..B....B....', '...B..B.....', '............']
+      [
+        '............',
+        '.Y.D....D.Y.',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'DBBKKBBKKBBD',
+        'BBBBBBBBBBBB',
+        '.DBBBBBBBBD.',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ],
+      [
+        '............',
+        '.Y.D....D.Y.',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'DBBKKBBKKBBD',
+        'BBBBBBBBBBBB',
+        '.DBBBBBBBBD.',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ],
       walk: [
-        ['W.A.....D.A.', '.A.BBBBB.ADA', '.A.DBKBBBDD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.B.....', '.B......B...', 'B........B..', '............'],
-        ['W.A.....D.A.', '.A.BBBBB.ADA', '.A.DBKBBBDD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.B.....', '..B....B....', '...B..B.....', '............'],
-        ['W.A.....D.A.', '.A.BBBBB.ADA', '.A.DBKBBBDD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.B.....', '...B..B.....', '..B....B....', '............']
+      [
+        '............',
+        '.Y.D....D.Y.',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'DBBKKBBKKBBD',
+        'BBBBBBBBBBBB',
+        '.DBBBBBBBBD.',
+        '.BB......BB.',
+        '.D........D.',
+        '............'
+      ],
+      [
+        '............',
+        '.Y.D....D.Y.',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'DBBKKBBKKBBD',
+        'BBBBBBBBBBBB',
+        '.DBBBBBBBBD.',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ],
       flying: [
-        ['AAW......DAA', 'AAA.BBBBBA.A', 'A.A.DBKBBBD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.......', '............', '............', '............'],
-        ['A.W......D.A', 'A.A.BBBBBAA.', 'AA..DBKBBBD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.......', '............', '............', '............'],
-        ['.AW......DA.', 'AA.BBBBB.AA.', 'A.A.DBKBBBD.', 'A.DBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.......', '............', '............', '............']
+      [
+        '............',
+        'AA.Y.D..D.YA',
+        'A..D....D..A',
+        '..DBBBBBBD..',
+        '.DBKKBBKKBD.',
+        '.BBBBBBBBBB.',
+        '..DBBBBBBD..',
+        '............',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '.A.Y.D..DY.A',
+        'AA.D....D.AA',
+        '.ADBBBBBBA..',
+        '.DBKKBBKKBD.',
+        '.BBBBBBBBBB.',
+        '..DBBBBBBD..',
+        '............',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        'AA.Y.D..D.YA',
+        'A..D....D..A',
+        '..DBBBBBBD..',
+        '.DBKKBBKKBD.',
+        '.BBBBBBBBBB.',
+        '..DBBBBBBD..',
+        '............',
+        '............',
+        '............'
+      ]
       ],
       sleep: [
-        ['W.A.....D.A.', '.A.BBBBB.ADA', '.A.DB.BBBDD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBBBB.....', '............', '............', '............']
+      [
+        '............',
+        '.Y.D....D.Y.',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'DB........BD',
+        'BBBBBBBBBBBB',
+        '.DBBBBBBBBD.',
+        '............',
+        '............',
+        '............'
+      ]
       ],
       special: [
-        ['AAW.F..F.DAA', 'AAA.BBBBBA.A', 'FA.DBKBBBDD.', 'F.DBBBBBBD.A', 'DBBBBBBBBB..', '.BBBB.B.....', '..B....B....', '..B....B....', '............'],
-        ['A.W.F....D.A', 'AFA.BBBBBAA.', 'AAF.DBKBBBD.', '.ADBBBBBBDA.', 'DBBBBBBBBB..', '.BBBB.B.....', '..B....B....', '...B..B.....', '............']
+      [
+        '............',
+        '.Y.D....D.Y.',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'DBBKKBBKKBBD',
+        'BBBBBBBBBBBB',
+        '.DBBBFFBBBD.',
+        '.BB.FFFF.BB.',
+        '..D......D..',
+        '............'
+      ],
+      [
+        '............',
+        '.Y.D....D.Y.',
+        '..D......D..',
+        '.DBBBBBBBBD.',
+        'DBBKKBBKKBBD',
+        'BBBBBBBBBBBB',
+        '.DBBBBBBBBD.',
+        '.BB......BB.',
+        '..D......D..',
+        '............'
+      ]
       ]
     }
   },
   ghost: {
-    colors: { B: 'rgba(236,240,241,0.92)', D: 'rgba(189,195,199,0.75)', K: '#111111' },
+    colors: { B: "rgba(236,240,244,0.96)", D: "rgba(170,180,195,0.8)", K: "#111111", W: "#ffffff", N: "#111111" },
+    image: { url: 'src/shared/sprites/subpets/ghost.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['...BBBB.....', '..BBKBKBB...', '.BBBBBBBB...', '.BBBBBBBB...', '.BBBBBBBB...', '.B.B.B.B.B..', '............', '............', '............'],
-        ['...BBBB.....', '..BBKBKBB...', '.BBBBBBBB...', '.BBBBBBBB...', '.BBBBBBBB...', '..B.B.B.B...', '............', '............', '............']
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBBBBBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.B.B.B.B.BB.',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBBBBBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '..B.B.B.B.B.',
+        '............',
+        '............'
+      ]
       ],
       walk: [
-        ['...BBBB.....', '..BBKBKBB...', '.BBBBBBBB...', '.BBBBBBBB...', '.BBBBBBBB...', '.B.B.B.B.B..', '............', '............', '............'],
-        ['....BBBB....', '...BBKBKBB..', '..BBBBBBBB..', '..BBBBBBBB..', '..BBBBBBBB..', '..B.B.B.B...', '............', '............', '............']
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBBBBBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.B.B.B.B.BB.',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBBBBBBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '..B.B.B.B.B.',
+        '............',
+        '............'
+      ]
       ],
       sleep: [
-        ['...BBBB.....', '..BB.B.BB...', '.BBBBBBBB...', '.BBBBBBBB...', '.BBBBBBBB...', '.B.B.B.B.B..', '............', '............', '............']
+      [
+        '............',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BB......BB.',
+        '.BBBBBBBBBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.B.B.B.B.BB.',
+        '............',
+        '............'
+      ]
       ]
     }
   },
   slime: {
-    colors: { B: '#2ecc71', D: '#27ae60', K: '#111111', H: '#a8e6cf' },
+    colors: { B: "#4adf5a", D: "#2a9a38", K: "#111111", W: "#ffffff", E: "#1f7a2c", N: "#111111", C: "#8aef98" },
+    image: { url: 'src/shared/sprites/subpets/slime.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
-        ['....HHHH....', '...BBBBBB...', '..BBKBBKBB..', '.BDBBBBBDB..', '.BBBBBBBBB..', '..BBBBBBBB..', '...BBBBBB...', '............', '............'],
-        ['.....HH.....', '...BBBBBB...', '..BBKBBKBB..', '.BDBBBBBDB..', '.BBBBBBBBB..', '..BBBBBBBB..', '...BBBBBB...', '............', '............']
+      [
+        '............',
+        '....BBBB....',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKB.',
+        '.BBBBBNBBBB.',
+        '..BBBBBBBB..',
+        '...BBBBBB...',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '.....BB.....',
+        '....BBBB....',
+        '...BBBBBB...',
+        '..BBKKBBKK.B',
+        '..BBBBNBBBB.',
+        '...BBBBBB...',
+        '....BBBB....',
+        '............',
+        '............'
+      ]
       ],
       walk: [
-        ['....HHHH....', '...BBBBBB...', '..BBKBBKBB..', '.BDBBBBBDB..', '.BBBBBBBBB..', '..BBBBBBBB..', '..B.BBB.B...', '............', '............'],
-        ['....HHHH....', '...BBBBBB...', '..BBKBBKBB..', '.BDBBBBBDB..', '.BBBBBBBBB..', '..BBBBBBBB..', '...BB.BB....', '............', '............']
+      [
+        '............',
+        '....BBBB....',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKB.',
+        '.BBBBBNBBBB.',
+        'BBBB....BBBB',
+        '.BB......BB.',
+        '............',
+        '............'
+      ],
+      [
+        '............',
+        '....BBBB....',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKB.',
+        '.BBBBBNBBBB.',
+        '..BBBBBBBB..',
+        '...BBBBBB...',
+        '............',
+        '............'
+      ]
       ],
       sleep: [
-        ['............', '...BBBBBB...', '..BB.BB.BB..', '.BDBBBBBDB..', '.BBBBBBBBB..', '..BBBBBBBB..', '...BBBBBB...', '............', '............']
+      [
+        '............',
+        '....BBBB....',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BB......BB.',
+        '.BBBBBNBBBB.',
+        '..BBBBBBBB..',
+        '...BBBBBB...',
+        '............',
+        '............'
+      ]
       ],
       special: [
-        ['....HHHH....', '...BBBBBB...', '..BBKBBKBB..', '.BDBBBBBDB..', 'BBBBBBBBBBBB', '.BBBBBBBBB..', '..BB....BB..', '............', '............']
+      [
+        '............',
+        '....BBBB....',
+        '...BBBBBB...',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKB.',
+        'BBBBBNBBBBB.',
+        'BB........BB',
+        '.B........B.',
+        '............',
+        '............'
+      ]
       ]
     }
   }
@@ -391,7 +936,28 @@ function clawdSubPetFrame(sprite, pose = 'idle', index = 0) {
   return set[index % set.length] || set[0] || [];
 }
 
+/** PNGs em src/shared/sprites/subpets/<id>.png (content + popup). */
+function clawdSubPetImageUrl(species) {
+  const sprite = CLAWD_SUBPET_SPRITES[species];
+  if (!sprite) return '';
+  const path = sprite.image?.url || `src/shared/sprites/subpets/${species}.png`;
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.getURL === 'function') {
+      return chrome.runtime.getURL(path);
+    }
+  } catch (_) { /* ignore */ }
+  return path;
+}
+
 function clawdSubPetBounds(sprite) {
+  if (sprite?.image?.width && sprite?.image?.height) {
+    return {
+      cols: sprite.image.gridW || Math.round(sprite.image.width / CLAWD_SUBPET_CELL),
+      rows: sprite.image.gridH || Math.round(sprite.image.height / CLAWD_SUBPET_CELL),
+      width: sprite.image.width,
+      height: sprite.image.height
+    };
+  }
   const frame = clawdSubPetFrame(sprite, 'idle', 0);
   const cols = Math.max(1, ...(frame.map(row => row.length)));
   const rows = Math.max(1, frame.length);
@@ -463,6 +1029,9 @@ var CLAWD_RUNTIME_ACTIONS = [
 ];
 
 var CLAWD_PORT_MSG_TYPES = ['register', 'travelComplete'];
+/** SW → content (presença): só spawn / despawn / hide. */
+var CLAWD_DOWNSTREAM_PORT_MSG_TYPES = ['spawnPet', 'despawnPet', 'hidePet'];
+var CLAWD_TRAVEL_DIRECTIONS = ['left', 'right'];
 
 var CLAWD_DOM_CLEANUP_SELECTORS = [
   '#aic-clawd-node', '.aic-subpet', '#aic-footprints', '.aic-toast',
@@ -493,13 +1062,24 @@ function clawdAssignPlain(target, source) {
   return target;
 }
 
+/** Hostname de site bloqueado: só labels DNS simples (sem URL, path, porta ou @). */
+function clawdSanitizeHostname(value) {
+  const s = clawdSanitizePlainText(value, 64).toLowerCase();
+  if (!s || s.length > 64) return '';
+  if (/[/\\:@\s?#]/.test(s)) return '';
+  if (!/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/.test(s)) {
+    return '';
+  }
+  return s;
+}
+
 /** Site bloqueado: só hostname exato ou subdomínio (nunca substring solta). */
 function clawdHostIsBlocked(hostname, blockedSites) {
-  const host = String(hostname || '').trim().toLowerCase();
+  const host = clawdSanitizeHostname(hostname);
   if (!host || !Array.isArray(blockedSites)) return false;
   return blockedSites.some((site) => {
-    const s = String(site || '').trim().toLowerCase();
-    if (!s || s.includes('/') || s.includes(' ') || s.length > 64) return false;
+    const s = clawdSanitizeHostname(site);
+    if (!s) return false;
     return host === s || host.endsWith('.' + s);
   });
 }
@@ -575,7 +1155,7 @@ function clawdSanitizeSettingValue(key, value) {
     case 'blockedSites':
       if (!Array.isArray(value)) return null;
       return value
-        .map(s => clawdSanitizePlainText(s, 64).toLowerCase())
+        .map(s => clawdSanitizeHostname(s))
         .filter(Boolean)
         .slice(0, 40);
     default:
@@ -649,6 +1229,37 @@ function clawdValidatePortMessage(msg) {
   return { type: msg.type };
 }
 
+/** Mensagens do service worker → content (presença). Descarta direction inválida. */
+function clawdValidateDownstreamPortMessage(msg) {
+  if (!msg || typeof msg !== 'object') return null;
+  if (!CLAWD_DOWNSTREAM_PORT_MSG_TYPES.includes(msg.type)) return null;
+  const out = { type: msg.type };
+  if ((msg.type === 'spawnPet' || msg.type === 'despawnPet')
+    && CLAWD_TRAVEL_DIRECTIONS.includes(msg.direction)) {
+    out.direction = msg.direction;
+  }
+  return out;
+}
+
+/** Clone raso de `base` + overlay sem poluir protótipo. */
+function clawdPlainMerge(base, overlay) {
+  return clawdAssignPlain(clawdAssignPlain({}, base || {}), overlay || {});
+}
+
+/** Une listas de subpets desbloqueados, filtrando pelo catálogo. */
+function clawdMergeUnlockedSubpets(...lists) {
+  const out = [];
+  lists.forEach((list) => {
+    if (!Array.isArray(list)) return;
+    list.forEach((id) => {
+      if (Object.prototype.hasOwnProperty.call(CLAWD_SUBPETS, id) && !out.includes(id)) {
+        out.push(id);
+      }
+    });
+  });
+  return out;
+}
+
 /* ---- Estado padrão v4 ---- */
 function clawdDefaultState() {
   return {
@@ -661,7 +1272,7 @@ function clawdDefaultState() {
     faceStyle: 'classic',
     scale: 1.5,
     showSpeech: true,
-    showMouth: false,
+    showMouth: true,
     autoWalk: true,
     sleepEnabled: true,
     animSpeed: 1,
@@ -702,126 +1313,149 @@ function clawdDefaultState() {
   };
 }
 
-/* ---- Migração incremental de saves antigos ---- */
-function clawdMigrateState(raw) {
-  const def = clawdDefaultState();
-  if (!raw || typeof raw !== 'object') return def;
-  const v = raw.schemaVersion || 1;
-  // Merge raso preservando tudo que já existe (sem poluir protótipo)
-  const merged = clawdAssignPlain(Object.assign({}, def), raw);
-  merged.stats     = clawdAssignPlain(Object.assign({}, def.stats), raw.stats || {});
-  merged.game      = clawdAssignPlain(Object.assign({}, def.game), raw.game || {});
-  merged.game.streak       = clawdAssignPlain(Object.assign({}, def.game.streak), (raw.game || {}).streak || {});
-  merged.game.counters     = clawdAssignPlain(Object.assign({}, def.game.counters), (raw.game || {}).counters || {});
-  merged.game.achievements = clawdAssignPlain({}, (raw.game || {}).achievements || {});
-  merged.game.inventory    = ((raw.game || {}).inventory || [])
-    .filter(id => Object.prototype.hasOwnProperty.call(CLAWD_SHOP, id))
-    .slice(0, 80);
-  merged.favorites = clawdAssignPlain(Object.assign({}, def.favorites), raw.favorites || {});
-  Object.keys(def.favorites).forEach((cat) => {
-    const list = Array.isArray(merged.favorites[cat]) ? merged.favorites[cat] : [];
-    merged.favorites[cat] = list
+/* ---- Migração: helpers puros (SSOT com sanitize/validate) ---- */
+
+function clawdSanitizeFavoritesBlock(rawFav, defFav) {
+  const favorites = clawdPlainMerge(defFav, rawFav);
+  Object.keys(defFav).forEach((cat) => {
+    const list = Array.isArray(favorites[cat]) ? favorites[cat] : [];
+    let cleaned = list
       .map(item => clawdSanitizePlainText(item, 48))
       .filter(Boolean)
       .slice(0, 40);
-  });
-  merged.subpets   = clawdAssignPlain(Object.assign({}, def.subpets), raw.subpets || {});
-  merged.subpets.names = clawdAssignPlain({}, (raw.subpets || {}).names || {});
-  merged.subpets.colors = clawdAssignPlain({}, (raw.subpets || {}).colors || {});
-  merged.subpets.eyeColors = clawdAssignPlain({}, (raw.subpets || {}).eyeColors || {});
-  Object.keys(merged.subpets.names).forEach((id) => {
-    if (!CLAWD_SUBPETS[id]) { delete merged.subpets.names[id]; return; }
-    merged.subpets.names[id] = clawdSanitizePlainText(merged.subpets.names[id], 24);
-  });
-  Object.keys(merged.subpets.colors).forEach((id) => {
-    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(merged.subpets.colors[id])) delete merged.subpets.colors[id];
-    else merged.subpets.colors[id] = merged.subpets.colors[id].toLowerCase();
-  });
-  Object.keys(merged.subpets.eyeColors).forEach((id) => {
-    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(merged.subpets.eyeColors[id])) delete merged.subpets.eyeColors[id];
-    else merged.subpets.eyeColors[id] = merged.subpets.eyeColors[id].toLowerCase();
-  });
-  merged.subpets.unlocked = Array.isArray(merged.subpets.unlocked) ? [...merged.subpets.unlocked] : [];
-  /* Alinha unlocks com o nível real (popup e content passam a concordar). */
-  const levelNow = clawdLevelFromXp(merged.xp || 0).level;
-  Object.entries(CLAWD_SUBPETS).forEach(([id, defPet]) => {
-    if (levelNow >= defPet.level && !merged.subpets.unlocked.includes(id)) {
-      merged.subpets.unlocked.push(id);
+    if (cat === 'colors') {
+      cleaned = cleaned.filter(clawdIsHexColor).map(c => c.toLowerCase());
+    } else if (cat === 'actions') {
+      cleaned = cleaned.filter(id => Object.prototype.hasOwnProperty.call(CLAWD_ACTIONS, id));
+    } else if (cat === 'professions') {
+      cleaned = cleaned.filter(id => Object.prototype.hasOwnProperty.call(CLAWD_PROFESSIONS, id));
+    } else if (cat === 'accessories') {
+      cleaned = cleaned.filter(id => id === 'none'
+        || Object.prototype.hasOwnProperty.call(CLAWD_ACCESSORIES, id));
+    } else if (cat === 'subpets') {
+      cleaned = cleaned.filter(id => Object.prototype.hasOwnProperty.call(CLAWD_SUBPETS, id));
+    } else if (cat === 'nicknames') {
+      cleaned = cleaned.map(n => clawdSanitizePlainText(n, 24)).filter(Boolean);
     }
+    favorites[cat] = cleaned.slice(0, 40);
   });
-  merged.subpets.unlocked = [...new Set((merged.subpets.unlocked || [])
-    .filter(id => Object.prototype.hasOwnProperty.call(CLAWD_SUBPETS, id)))];
-  if (!merged.subpets.unlocked.includes('dog')) merged.subpets.unlocked.unshift('dog');
-  if (merged.subpets.active && !Object.prototype.hasOwnProperty.call(CLAWD_SUBPETS, merged.subpets.active)) {
-    merged.subpets.active = null;
+  return favorites;
+}
+
+function clawdSanitizeSubpetsBlock(rawSubpets, defSubpets, xp) {
+  const src = (rawSubpets && typeof rawSubpets === 'object') ? rawSubpets : {};
+  const subpets = clawdPlainMerge(defSubpets, src);
+  subpets.names = clawdAssignPlain({}, src.names || {});
+  subpets.colors = clawdAssignPlain({}, src.colors || {});
+  subpets.eyeColors = clawdAssignPlain({}, src.eyeColors || {});
+  Object.keys(subpets.names).forEach((id) => {
+    if (!CLAWD_SUBPETS[id]) { delete subpets.names[id]; return; }
+    subpets.names[id] = clawdSanitizePlainText(subpets.names[id], 24);
+  });
+  Object.keys(subpets.colors).forEach((id) => {
+    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(subpets.colors[id])) delete subpets.colors[id];
+    else subpets.colors[id] = subpets.colors[id].toLowerCase();
+  });
+  Object.keys(subpets.eyeColors).forEach((id) => {
+    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(subpets.eyeColors[id])) delete subpets.eyeColors[id];
+    else subpets.eyeColors[id] = subpets.eyeColors[id].toLowerCase();
+  });
+  const levelNow = clawdLevelFromXp(xp || 0).level;
+  const levelUnlocks = Object.entries(CLAWD_SUBPETS)
+    .filter(([, defPet]) => levelNow >= defPet.level)
+    .map(([id]) => id);
+  subpets.unlocked = clawdMergeUnlockedSubpets(src.unlocked, levelUnlocks);
+  if (!subpets.unlocked.includes('dog')) subpets.unlocked.unshift('dog');
+  if (subpets.active && !Object.prototype.hasOwnProperty.call(CLAWD_SUBPETS, subpets.active)) {
+    subpets.active = null;
   }
-  const rawSubpets = raw.subpets || {};
   /* Só ativa o cachorro padrão quando o save nunca escolheu companheiro (campo ausente). */
-  if (!Object.prototype.hasOwnProperty.call(rawSubpets, 'active')
-    && !merged.subpets.active
-    && merged.subpets.unlocked.includes('dog')) {
-    merged.subpets.active = 'dog';
+  if (!Object.prototype.hasOwnProperty.call(src, 'active')
+    && !subpets.active
+    && subpets.unlocked.includes('dog')) {
+    subpets.active = 'dog';
   }
-  merged.game.counters.subpetsUnlocked = merged.subpets.unlocked.length;
-  merged.game.streak.days = Math.max(0, Math.min(9999, Number(merged.game.streak.days) || 0));
-  merged.game.streak.lastDay = (typeof merged.game.streak.lastDay === 'string'
-    && /^\d{4}-\d{2}-\d{2}$/.test(merged.game.streak.lastDay))
-    ? merged.game.streak.lastDay
+  return subpets;
+}
+
+function clawdSanitizeSettingsBlock(rawSettings, defSettings) {
+  const settings = clawdPlainMerge(defSettings, rawSettings);
+  CLAWD_SETTING_KEYS.forEach((key) => {
+    if (!Object.prototype.hasOwnProperty.call(settings, key)) return;
+    /* sounds legado não-boolean → true (antes do sanitize genérico). */
+    if (key === 'sounds' && rawSettings && typeof rawSettings.sounds !== 'boolean') {
+      settings.sounds = true;
+      return;
+    }
+    const safe = clawdSanitizeSettingValue(key, settings[key]);
+    if (safe === null) settings[key] = defSettings[key];
+    else settings[key] = safe;
+  });
+  return settings;
+}
+
+function clawdSanitizeDailyBlock(rawDaily) {
+  const src = (rawDaily && typeof rawDaily === 'object') ? rawDaily : {};
+  const date = (typeof src.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(src.date))
+    ? src.date
+    : new Date().toISOString().slice(0, 10);
+  const quest = clawdDailyQuestForDate(date);
+  const sameDay = src.date === quest.date;
+  return {
+    ...quest,
+    progress: sameDay ? Math.max(0, Math.min(quest.target, Number(src.progress) || 0)) : 0,
+    claimed: sameDay ? !!src.claimed : false
+  };
+}
+
+function clawdSanitizeGameBlock(rawGame, defGame) {
+  const src = (rawGame && typeof rawGame === 'object') ? rawGame : {};
+  const game = clawdPlainMerge(defGame, src);
+  game.streak = clawdPlainMerge(defGame.streak, src.streak || {});
+  game.counters = clawdPlainMerge(defGame.counters, src.counters || {});
+  game.achievements = clawdAssignPlain({}, src.achievements || {});
+  game.inventory = (src.inventory || [])
+    .filter(id => Object.prototype.hasOwnProperty.call(CLAWD_SHOP, id))
+    .slice(0, 80);
+  game.streak.days = Math.max(0, Math.min(9999, Number(game.streak.days) || 0));
+  game.streak.lastDay = (typeof game.streak.lastDay === 'string'
+    && /^\d{4}-\d{2}-\d{2}$/.test(game.streak.lastDay))
+    ? game.streak.lastDay
     : '';
-  Object.keys(def.game.counters).forEach((key) => {
-    const cur = merged.game.counters[key];
-    if (Array.isArray(def.game.counters[key])) {
-      merged.game.counters[key] = Array.isArray(cur)
+  Object.keys(defGame.counters).forEach((key) => {
+    const cur = game.counters[key];
+    if (Array.isArray(defGame.counters[key])) {
+      game.counters[key] = Array.isArray(cur)
         ? cur.map(x => clawdSanitizePlainText(x, 64)).filter(Boolean).slice(0, 80)
         : [];
-    } else if (typeof def.game.counters[key] === 'number') {
-      merged.game.counters[key] = Math.max(0, Math.min(1e9, Number(cur) || 0));
-    } else if (typeof def.game.counters[key] === 'string') {
-      merged.game.counters[key] = clawdSanitizePlainText(cur, 32);
+    } else if (typeof defGame.counters[key] === 'number') {
+      game.counters[key] = Math.max(0, Math.min(1e9, Number(cur) || 0));
+    } else if (typeof defGame.counters[key] === 'string') {
+      game.counters[key] = clawdSanitizePlainText(cur, 32);
     }
   });
-  merged.game.coins = Math.max(0, Math.min(1e9, Number(merged.game.coins) || 0));
-  merged.xp = Math.max(0, Math.min(5e6, Number(merged.xp) || 0));
-  ['happiness', 'hunger', 'energy', 'hygiene'].forEach((k) => {
-    merged.stats[k] = Math.max(0, Math.min(100, Number(merged.stats[k]) || 0));
-  });
-  if (typeof raw.showMouth !== 'boolean') merged.showMouth = false;
-  if (raw.settings && typeof raw.settings.sounds !== 'boolean') merged.settings.sounds = true;
-  /* Missão diária: nunca reaproveita label/tipo vindos do storage (evita XSS no popup). */
-  {
-    const rawDaily = (raw.daily && typeof raw.daily === 'object') ? raw.daily : {};
-    const date = (typeof rawDaily.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDaily.date))
-      ? rawDaily.date
-      : new Date().toISOString().slice(0, 10);
-    const quest = clawdDailyQuestForDate(date);
-    const sameDay = rawDaily.date === quest.date;
-    merged.daily = {
-      ...quest,
-      progress: sameDay ? Math.max(0, Math.min(quest.target, Number(rawDaily.progress) || 0)) : 0,
-      claimed: sameDay ? !!rawDaily.claimed : false
-    };
+  game.coins = Math.max(0, Math.min(1e9, Number(game.coins) || 0));
+  return game;
+}
+
+function clawdApplyLegacyAccessoryMigration(merged, raw, version) {
+  if (version >= 3) return;
+  if (raw.accessory && raw.accessory !== 'none') {
+    const acc = CLAWD_ACCESSORIES[raw.accessory];
+    if (acc && acc.slot === 'head') merged.accessoryHead = raw.accessory;
+    else merged.accessoryFace = raw.accessory;
   }
-  clawdEnsureDailyQuest(merged);
-  merged.settings  = clawdAssignPlain(Object.assign({}, def.settings), raw.settings || {});
-  if (v < 3) {
-    // v1/v2: acessório único → slot correto; nível recalculado pela nova curva mantendo o XP
-    if (raw.accessory && raw.accessory !== 'none') {
-      const acc = CLAWD_ACCESSORIES[raw.accessory];
-      if (acc && acc.slot === 'head') merged.accessoryHead = raw.accessory;
-      else merged.accessoryFace = raw.accessory;
-    }
-    delete merged.accessory;
-    merged.xp = Math.max(0, Math.min(5e6, Number(raw.xp) || 0));
-  }
-  merged.model = Object.prototype.hasOwnProperty.call(CLAWD_MODELS, raw.model)
-    ? raw.model
-    : def.model;
-  merged.faceStyle = Object.prototype.hasOwnProperty.call(CLAWD_FACE_STYLES, raw.faceStyle)
-    ? raw.faceStyle
-    : def.faceStyle;
-  merged.skin = Object.prototype.hasOwnProperty.call(CLAWD_SKINS, raw.skin)
-    ? raw.skin
-    : def.skin;
+  delete merged.accessory;
+  merged.xp = Math.max(0, Math.min(5e6, Number(raw.xp) || 0));
+}
+
+function clawdSanitizeIdentityFields(merged, raw, def) {
+  const pick = (key, table) => (
+    Object.prototype.hasOwnProperty.call(table, raw[key]) ? raw[key] : def[key]
+  );
+  merged.model = pick('model', CLAWD_MODELS);
+  merged.faceStyle = pick('faceStyle', CLAWD_FACE_STYLES);
+  merged.skin = pick('skin', CLAWD_SKINS);
   if (!Object.prototype.hasOwnProperty.call(CLAWD_PROFESSIONS, merged.profession)) {
     merged.profession = def.profession;
   }
@@ -833,34 +1467,45 @@ function clawdMigrateState(raw) {
   }
   if (!CLAWD_TAG_THEMES.includes(merged.tagTheme)) merged.tagTheme = def.tagTheme;
   if (!CLAWD_BALL_SKINS.includes(merged.ballSkin)) merged.ballSkin = def.ballSkin;
-  if (!clawdIsHexColor(merged.jerseyColor)) merged.jerseyColor = def.jerseyColor;
-  else merged.jerseyColor = merged.jerseyColor.toLowerCase();
-  merged.name = clawdSanitizePlainText(merged.name, 24) || def.name;
-  merged.scale = Math.max(0.5, Math.min(3, Number(merged.scale) || def.scale));
-  merged.animSpeed = Math.max(0.5, Math.min(2, Number(merged.animSpeed) || def.animSpeed));
-  if (!CLAWD_TRAVEL_FREQS.includes(merged.settings.travelFreq)) {
-    merged.settings.travelFreq = def.settings.travelFreq;
-  }
-  if (!CLAWD_START_CORNERS.includes(merged.settings.startCorner)) {
-    merged.settings.startCorner = def.settings.startCorner;
-  }
-  merged.settings.soundVolume = Math.max(0, Math.min(1, Number(merged.settings.soundVolume) || 0));
-  if (!Array.isArray(merged.settings.blockedSites)) merged.settings.blockedSites = [];
-  else {
-    merged.settings.blockedSites = merged.settings.blockedSites
-      .map(s => clawdSanitizePlainText(s, 64).toLowerCase())
-      .filter(Boolean)
-      .slice(0, 40);
-  }
-  merged.eyeColor = typeof raw.eyeColor === 'string' && /^#[0-9a-f]{6}$/i.test(raw.eyeColor)
-    ? raw.eyeColor.toLowerCase()
-    : def.eyeColor;
-  if (!clawdIsHexColor(merged.color)) merged.color = def.color;
-  else merged.color = merged.color.toLowerCase();
+  const jersey = clawdSanitizeConfigValue('jerseyColor', merged.jerseyColor);
+  merged.jerseyColor = jersey == null ? def.jerseyColor : jersey;
+  const name = clawdSanitizeConfigValue('name', merged.name);
+  merged.name = name == null ? def.name : name;
+  const scale = clawdSanitizeConfigValue('scale', merged.scale);
+  merged.scale = scale == null ? def.scale : scale;
+  const animSpeed = clawdSanitizeConfigValue('animSpeed', merged.animSpeed);
+  merged.animSpeed = animSpeed == null ? def.animSpeed : animSpeed;
+  const eye = clawdSanitizeConfigValue('eyeColor', raw.eyeColor);
+  merged.eyeColor = eye == null ? def.eyeColor : eye;
+  const color = clawdSanitizeConfigValue('color', merged.color);
+  merged.color = color == null ? def.color : color;
   merged.nicknameHistory = (Array.isArray(merged.nicknameHistory) ? merged.nicknameHistory : [])
     .map(n => clawdSanitizePlainText(n, 24))
     .filter(Boolean)
     .slice(0, 12);
+}
+
+/* ---- Migração incremental de saves antigos ---- */
+function clawdMigrateState(raw) {
+  const def = clawdDefaultState();
+  if (!raw || typeof raw !== 'object') return def;
+  const v = raw.schemaVersion || 1;
+  const merged = clawdPlainMerge(def, raw);
+  merged.stats = clawdPlainMerge(def.stats, raw.stats || {});
+  merged.game = clawdSanitizeGameBlock(raw.game, def.game);
+  merged.favorites = clawdSanitizeFavoritesBlock(raw.favorites, def.favorites);
+  merged.xp = Math.max(0, Math.min(5e6, Number(merged.xp) || 0));
+  merged.subpets = clawdSanitizeSubpetsBlock(raw.subpets, def.subpets, merged.xp);
+  merged.game.counters.subpetsUnlocked = merged.subpets.unlocked.length;
+  ['happiness', 'hunger', 'energy', 'hygiene'].forEach((k) => {
+    merged.stats[k] = Math.max(0, Math.min(100, Number(merged.stats[k]) || 0));
+  });
+  if (typeof raw.showMouth !== 'boolean') merged.showMouth = def.showMouth;
+  merged.daily = clawdSanitizeDailyBlock(raw.daily);
+  clawdEnsureDailyQuest(merged);
+  merged.settings = clawdSanitizeSettingsBlock(raw.settings, def.settings);
+  clawdApplyLegacyAccessoryMigration(merged, raw, v);
+  clawdSanitizeIdentityFields(merged, raw, def);
   merged.schemaVersion = CLAWD_SCHEMA_VERSION;
   return merged;
 }
@@ -930,6 +1575,7 @@ if (typeof module !== 'undefined' && module.exports) {
     clawdSubPetPalette,
     clawdSubPetFrame,
     clawdSubPetBounds,
+    clawdSubPetImageUrl,
     CLAWD_SHOP,
     CLAWD_ACHIEVEMENTS,
     CLAWD_COLORS,
@@ -952,14 +1598,24 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_SETTING_KEYS,
     CLAWD_RUNTIME_ACTIONS,
     CLAWD_PORT_MSG_TYPES,
+    CLAWD_DOWNSTREAM_PORT_MSG_TYPES,
+    CLAWD_TRAVEL_DIRECTIONS,
     CLAWD_DOM_CLEANUP_SELECTORS,
     clawdIsHexColor,
     clawdSanitizePlainText,
+    clawdSanitizeHostname,
     clawdAssignPlain,
+    clawdPlainMerge,
+    clawdMergeUnlockedSubpets,
     clawdHostIsBlocked,
     clawdSanitizeConfigValue,
     clawdSanitizeSettingValue,
+    clawdSanitizeFavoritesBlock,
+    clawdSanitizeSubpetsBlock,
+    clawdSanitizeSettingsBlock,
+    clawdSanitizeDailyBlock,
     clawdValidateRuntimeMessage,
-    clawdValidatePortMessage
+    clawdValidatePortMessage,
+    clawdValidateDownstreamPortMessage
   };
 }

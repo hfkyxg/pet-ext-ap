@@ -15,6 +15,7 @@ Desktop.ini
 
 # Artefatos de smoke / perfis isolados
 tests/_shots/
+tests/sprite-out/
 .edge-profile*/
 .tmp/
 tmp/

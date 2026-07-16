@@ -85,13 +85,14 @@ test('modelos, rostos e cor dos olhos são versionados e validados', () => {
 });
 
 test('preferência de boca é persistente, retrocompatível e aplicada ao vivo', () => {
-  assert.equal(clawdDefaultState().showMouth, false);
-  assert.equal(clawdMigrateState({ schemaVersion: 3 }).showMouth, false);
+  assert.equal(clawdDefaultState().showMouth, true);
+  assert.equal(clawdMigrateState({ schemaVersion: 3 }).showMouth, true);
   assert.equal(clawdMigrateState({ schemaVersion: 3, showMouth: false }).showMouth, false);
   assert.equal(clawdMigrateState({ schemaVersion: 3, showMouth: true }).showMouth, true);
   assert.match(contentSource, /classList\.toggle\('mouth-hidden', S\.showMouth === false\)/);
   assert.match(contentSource, /case 'showMouth':\s*this\.node\.classList\.toggle\('mouth-hidden', value === false\)/);
   assert.match(styleSource, /#aic-clawd-node\.mouth-hidden \.emotion-mouth,[\s\S]{0,140}display:\s*none !important;/);
+  assert.doesNotMatch(styleSource, /Boca removida — silhueta Claude/);
   assert.match(popupHtml, /id="toggle-mouth"/);
   assert.match(popupSource, /setConfig\('showMouth', e\.target\.checked\)/);
   assert.match(popupSource, /S\.showMouth !== false/);
@@ -264,12 +265,14 @@ test('sub-pets suportam apelidos e paletas customizadas por espécie', () => {
   assert.equal(migrated.subpets.eyeColors.dog, '#33ff99');
   assert.match(contentSource, /if \(this\.spriteNode\) this\._paint\(true\);/);
   assert.match(contentSource, /setEyeColor\(color\)/);
-  assert.match(contentSource, /case 'setSubpetEyeColor':/);
+  assert.match(contentSource, /case 'setSubpetEyeColor'/);
   assert.match(popupHtml, /id="input-subpet-eye-color"/);
   assert.match(popupSource, /action: 'setSubpetEyeColor'/);
   assert.match(contentSource, /this\.S\.subpets\s*=\s*stored\.subpets;/);
   assert.doesNotMatch(contentSource, /changes\.clawdState\s*\|\|\s*this\._writing/);
   assert.match(contentSource, /this\.S\.subpets\s*=\s*fresh\.subpets;\s*this\.refreshSubpet\(\);/);
+  assert.match(contentSource, /clawdAssignPlain\(\{\}, st\.subpets\.names\)/);
+  assert.match(contentSource, /chrome\.storage\.local\.set\(\{\s*clawdState:\s*clawdMigrateState\(st\)\s*\}\)/);
 });
 
 test('modo liso troca a grade por uma silhueta contínua do mesmo pet', () => {
@@ -288,7 +291,7 @@ test('modo liso troca a grade por uma silhueta contínua do mesmo pet', () => {
   assert.match(styleSource, /\.smooth\.keepy-uppy \.smooth-leg-1/);
   assert.match(styleSource, /clawd-ball-keepy-foot/);
   assert.match(styleSource, /@keyframes clawd-smooth-idle/);
-  assert.match(styleSource, /#aic-clawd-node\.smooth \.emotion-mouth\s*\{[\s\S]*opacity:\s*0;/);
+  assert.match(styleSource, /#aic-clawd-node\.smooth \.emotion-mouth\s*\{[\s\S]*opacity:\s*0\.9;/);
   assert.match(contentSource, /_missFish\(/);
   assert.match(styleSource, /\.aic-lake-hint/);
   assert.match(styleSource, /\.aic-fish-caught\.rare/);
@@ -324,7 +327,7 @@ test('emoções combinam balão de emoji, piscada e expressão do sprite', () =>
   assert.match(contentSource, /const stateEmoji = \{[\s\S]*\}\[newState\]/);
   assert.match(styleSource, /\.emotion-badge\.visible/);
   assert.match(styleSource, /@keyframes clawd-eye-cover/);
-  assert.match(styleSource, /\.emotion-mouth\s*\{[\s\S]*opacity:\s*0;/);
+  assert.match(styleSource, /\.emotion-mouth\s*\{[\s\S]*opacity:\s*0\.92;/);
   assert.match(styleSource, /\[data-emotion="sad"\] \.emotion-mouth/);
   assert.match(styleSource, /\[data-emotion="hungry"\] \.emotion-mouth/);
   assert.match(styleSource, /\[data-emotion="joyful"\] \.emotion-mouth/);
@@ -333,6 +336,15 @@ test('emoções combinam balão de emoji, piscada e expressão do sprite', () =>
   assert.doesNotMatch(styleSource, /\[data-emotion="joyful"\] \.emotion-mouth\s*\{[^}]*background:\s*#fff/);
   assert.match(styleSource, /@keyframes clawd-mouth-talk/);
   assert.match(styleSource, /@keyframes clawd-mouth-chew/);
+  assert.match(styleSource, /@keyframes clawd-mouth-idle/);
+  assert.match(styleSource, /@keyframes clawd-look-around/);
+  assert.match(styleSource, /@keyframes clawd-soft-land/);
+  assert.match(styleSource, /@keyframes clawd-tab-greet/);
+  assert.match(styleSource, /@keyframes clawd-page-peek/);
+  assert.match(contentSource, /_playDuoScene\(/);
+  assert.match(contentSource, /_engagePageStructure\(/);
+  assert.match(contentSource, /_tickDwellEngage\(/);
+  assert.match(contentSource, /doLookAround\(/);
   assert.match(contentSource, /classList\.add\('talking'\)/);
   assert.match(contentSource, /classList\.remove\('talking'\)/);
   assert.match(contentSource, /prop-chef-pan/);
@@ -357,7 +369,7 @@ test('catálogos de ações e profissões estão ligados ao motor do pet', () =>
 test('reinjeção destrói a instância anterior e remove pets órfãos', () => {
   assert.match(contentSource, /window\.__clawd\.destroy\(\)/);
   assert.match(contentSource, /window\.__clawdBootId !== bootId/);
-  assert.match(contentSource, /case 'healthcheck':[\s\S]{0,260}this\.node\?\.isConnected[\s\S]{0,180}document\.getElementById\('aic-clawd-node'\) === this\.node/);
+  assert.match(contentSource, /case 'healthcheck':[\s\S]{0,320}this\.node\?\.isConnected[\s\S]{0,220}document\.getElementById\('aic-clawd-node'\) === this\.node/);
   assert.match(contentSource, /chrome\.storage\.onChanged\.removeListener/);
   assert.match(contentSource, /chrome\.runtime\.onMessage\.removeListener/);
   assert.match(contentSource, /document\.querySelectorAll\(CLAWD_DOM_CLEANUP_SELECTORS\)/);
@@ -417,16 +429,24 @@ test('sub-pet tem ciclo explícito de sono, despertar e interação manual', () 
   assert.match(contentSource, /this\.subpet\.wakeUp\('Acordamos juntos!/);
   assert.match(styleSource, /\.aic-subpet\.waking \.subpet-sprite/);
   assert.match(styleSource, /\.aic-subpet\.cuddling \.subpet-sprite/);
+  // Walk/follow não pode sobrescrever carinho/special; dormindo pausa rAF de verdade.
+  assert.match(styleSource, /\.aic-subpet\.moving:not\([^\n]*\.cuddling/);
+  assert.match(contentSource, /this\._pauseRaf\(\)/);
+  assert.match(contentSource, /sleep\(\)[\s\S]*?_pauseRaf\(\)/);
+  assert.match(contentSource, /wakeUp\(message[\s\S]*?_resumeRaf\(\)/);
+  assert.match(contentSource, /if \(this\.state === 'sleeping'\) return/);
+  assert.match(contentSource, /document\.hidden \|\| this\.state === 'sleeping'/);
+  assert.match(contentSource, /SETTLE_EPS|_writePos/);
 });
 
-test('sub-pet oferece seis ações manuais animadas e habilidade por espécie', () => {
+test('sub-pet oferece sete ações manuais animadas e habilidade por espécie', () => {
   assert.deepEqual(Object.keys(CLAWD_SUBPET_ACTIONS), [
     'cuddle', 'play', 'explore', 'spin', 'celebrate', 'hug', 'special'
   ]);
   assert.match(popupHtml, /id="subpet-action-grid"/);
   assert.match(popupSource, /function renderSubpetActions\(\)/);
   assert.match(popupSource, /action: 'triggerSubpetAction'/);
-  assert.match(contentSource, /case 'triggerSubpetAction':/);
+  assert.match(contentSource, /case 'triggerSubpetAction'/);
   assert.match(contentSource, /this\.subpet\.interact\(msg\.value, \{ force: true \}\)/);
   assert.match(contentSource, /case 'explore':/);
   assert.match(contentSource, /case 'spin':/);

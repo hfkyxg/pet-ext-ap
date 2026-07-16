@@ -1,7 +1,7 @@
 # 📘 Claw'd — Manual de Instruções
 
 > Guia completo de uso para quem acabou de adotar o Claw'd. 🐾
-> Nada de código aqui — só como usar. Para conhecer tudo visualmente, abra a [Documentação Interativa](./docs/index.html); para detalhes técnicos, veja a [Documentação](./DOCUMENTACAO.md).
+> Nada de código aqui — só como usar. Para conhecer tudo visualmente, abra a [Documentação Interativa](../index.html); para detalhes técnicos, veja a [Documentação](./DOCUMENTACAO.md).
 
 ---
 
@@ -38,7 +38,7 @@ Pronto — o Claw'd aparece no canto inferior direito de qualquer site que você
 
 No celular/tablet, toque e arraste funcionam do mesmo jeito.
 
-Para ensaiar tudo antes de usar a extensão, abra a [Demonstração Executável](./docs/index.html#demonstracao): são 18 capítulos com reprodução, pausa, seleção direta e explicação quadro a quadro, do pop-in ao subpet especial.
+Para ensaiar tudo antes de usar a extensão, abra a [Demonstração Executável](../index.html#demonstracao): são 18 capítulos com reprodução, pausa, seleção direta e explicação quadro a quadro, do pop-in ao subpet especial.
 
 ---
 
@@ -56,7 +56,7 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Velocidade da animação** — deixe-o zen (0.5×) ou hiperativo (3×);
 - **Visual liso** — conserva a geometria angular do pet, mas usa superfícies contínuas no lugar das células quadradas; não exibe grade ou textura e não transforma o Claw'd em slime;
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
-- **Exibir boca** — desligue para remover somente a boca; olhos, piscadas e balões de emoji continuam ativos;
+- **Exibir boca** — ligada por padrão; desligue para remover somente a boca (olhos, piscadas e balões de emoji continuam ativos);
 - **Skin do corpo** — Normal, Orelhas ou Robô, combinável com qualquer modelo e rosto;
 - **Provador ao vivo** — mostra a mesma arte CSS do pet e combina modelo + rosto + skin + cabeça + rosto/corpo antes de você fechar o popup;
 - **Acessórios** — 14 opções em dois slots, com miniaturas pixel-art reais, incluindo 7 chapéus redesenhados e sem recorte. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
@@ -82,9 +82,13 @@ O equipamento indicado pela profissão é temporário e aparece com o selo **PRO
 
 - **Balão de fala** — liga/desliga as mensagens aleatórias;
 - **Andar automático** — ele passeia sozinho pela tela de tempos em tempos;
-- **Dormir quando ocioso** — desative se quiser o pet sempre acordado.
+- **Dormir quando ocioso** — desative se quiser o pet sempre acordado;
 - **Passear entre abas** — mantém somente um Claw'd principal e permite definir a frequência da viagem;
-- **Pegadas** — mostra onde o pet não está quando o passeio entre abas está ativo.
+- **Pegadas** — mostra onde o pet não está quando o passeio entre abas está ativo;
+- **Sons** — bipes 8-bit em ações (ligado por padrão); o volume fica no controle ao lado (ao arrastar, um chirp de prévia toca no próprio menu);
+- **Horário de silêncio** — intervalo em que o pet não fala, anda sozinho nem toca sons;
+- **Sites bloqueados** — um domínio por linha (ex.: `meubanco.com.br`); o pet não aparece nesses hosts nem em subdomínios;
+- **Exportar / Importar dados** — backup JSON do progresso (XP, conquistas, favoritos, sub-pets).
 
 ### 🐕 Sub-pets
 
@@ -92,7 +96,7 @@ Ao selecionar um subpet, você pode definir um **apelido**, a **cor do corpo** e
 
 Clique ou use Enter/Espaço no subpet para fazer carinho. Se ele estiver dormindo, acordará com uma animação própria; quando o Claw'd principal acorda, os dois despertam juntos.
 
-No painel **Interações ao vivo**, escolha uma destas seis ações:
+No painel **Interações ao vivo**, escolha uma destas **sete** ações:
 
 - **🫶 Carinho** — aproxima a dupla, mostra coração e gera partículas;
 - **🎾 Brincar** — ativa pulos e uma resposta animada;
@@ -103,6 +107,8 @@ No painel **Interações ao vivo**, escolha uma destas seis ações:
 - **✨ Especial** — usa o comportamento exclusivo da espécie, como fogo/voo do dragão, corrida do dinossauro ou desaparecimento do fantasma.
 
 Qualquer ação manual acorda o subpet antes de começar. Se você escolher outra enquanto uma animação ainda acontece, a nova ação assume de forma imediata.
+
+De tempos em tempos, com os dois idle, o Claw'd e o subpet fazem **cenas em duo** sozinhos (abraço, brincadeira, soneca sincronizada ou comemoração). Depois de uns 45–90 s na mesma página, o pet também pode **explorar a estrutura da página** (caminhar até um título/botão e “espiar” o conteúdo).
 
 ### 🎣 Profissão Pescador
 
@@ -145,7 +151,10 @@ Na v3.2, basta clicar em **Recarregar** em `chrome://extensions`: a extensão re
 Algumas páginas internas do navegador (chrome://, loja de extensões, PDFs) não aceitam extensões — é limitação do Chrome, não do pet.
 
 **As falas estão me atrapalhando.**
-Menu → Comportamento → desligue o **Balão de fala**. Você também pode desligar o andar automático.
+Menu → Comportamento → desligue o **Balão de fala**. Você também pode desligar o andar automático ou definir um **horário de silêncio**.
+
+**Não ouço os sons.**
+O Chrome só libera áudio depois de um clique/toque na página. Clique uma vez na aba e tente de novo; confira se **Sons** está ligado e se você não está em horário de silêncio.
 
 **Quero o pet sem boca, mas ainda expressivo.**
 Menu → Aparência → desligue **Exibir boca**. As piscadas, emoções dos olhos e o balão de emojis continuam funcionando.
@@ -163,7 +172,7 @@ Ainda não — por enquanto Chrome, Edge e Brave. Suporte a Firefox está nas id
 
 ## 7. Recursos avançados já disponíveis
 
-O Claw'd já inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com olhos customizáveis e seis ações, **status e emoções** estilo Tamagotchi, balões de emoji, piscadas e expressões, embaixadinhas ⚽, **óculos de sol 🕶️**, lojinha com PixelCoins, conquistas, missão diária e o pet **passeando entre suas abas abertas**. Novas ideias e melhorias futuras estão no [MELHORIAS.md](./MELHORIAS.md).
+O Claw'd já inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal do sheet, olhos customizáveis e **sete** ações, **status e emoções** estilo Tamagotchi, **boca ligada por padrão**, balões de emoji, piscadas, **cenas em duo** pet↔subpet, engajamento após dwell na página, embaixadinhas ⚽, **óculos de sol 🕶️**, lojinha com PixelCoins, conquistas, missão diária e o pet **passeando entre suas abas abertas**. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas v3.2 está no [MELHORIAS.md](./MELHORIAS.md).
 
 ---
 

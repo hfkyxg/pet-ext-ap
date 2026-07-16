@@ -12,6 +12,22 @@
   const subPetPalette = globalThis.clawdSubPetPalette;
   const subPetFrame = globalThis.clawdSubPetFrame;
   const subPetBounds = globalThis.clawdSubPetBounds;
+  const subPetImageUrl = globalThis.clawdSubPetImageUrl;
+
+  /** Paths do catálogo são raiz-do-repo; a vitrine vive em docs/. */
+  function docsAssetUrl(repoPath) {
+    if (!repoPath) return '';
+    if (/^(?:https?:|chrome-extension:|data:)/i.test(repoPath)) return repoPath;
+    return repoPath.startsWith('../') ? repoPath : `../${repoPath.replace(/^\.\//, '')}`;
+  }
+
+  function subpetBitmapUrl(species) {
+    const sprite = subpetCatalog[species] || subpetCatalog.dog;
+    const raw = (typeof subPetImageUrl === 'function' && subPetImageUrl(species))
+      || sprite?.image?.url
+      || `src/shared/sprites/subpets/${species}.png`;
+    return docsAssetUrl(raw);
+  }
 
   const $ = id => document.getElementById(id);
 
@@ -63,13 +79,16 @@
     { id: 'customization', label: 'Personalização', title: 'Acessórios, modo liso e subpets', text: 'Camadas independentes preservam identidade, legibilidade e liberdade de escolha.' }
   ];
 
+  // Cores padrão do catálogo → preview usa PNG literal; só cai no box-shadow se o usuário customizar.
   const speciesColors = Object.fromEntries(
     Object.keys(subpets).map(id => {
       const sprite = subpetCatalog[id] || subpetCatalog.dog;
-      return [id, { body: sprite?.colors?.B || '#8d5a2b', eyes: '#111111' }];
+      return [id, {
+        body: sprite?.colors?.B || '#c4783a',
+        eyes: sprite?.colors?.K || '#111111'
+      }];
     })
   );
-  speciesColors.dog.eyes = '#33ff99';
 
   const subpetSpecialSpeech = {
     dog: 'Au au! Eu busco a bola! 🦴',
@@ -208,6 +227,12 @@
     prop.textContent = step.prop || '';
     prop.hidden = !step.prop && step.scene !== 'fisher' && step.scene !== 'catch';
     subpet.hidden = !step.subpet;
+    if (step.subpet) {
+      const url = subpetBitmapUrl('dog');
+      subpet.replaceChildren();
+      subpet.style.backgroundImage = url ? `url("${url}")` : '';
+      subpet.classList.toggle('scene-subpet--bitmap', Boolean(url));
+    }
   }
 
   function renderEvidenceStoryboard() {
@@ -447,29 +472,54 @@
     const preview = $('subpet-preview');
     const sprite = subpetCatalog[species] || subpetCatalog.dog;
     const colors = speciesColors[species] || speciesColors.dog;
-    const palette = subPetPalette
-      ? subPetPalette(sprite, colors.body, colors.eyes)
-      : { ...(sprite?.colors || {}), B: colors.body, K: colors.eyes };
-    const preferred = (pose === 'auto')
-      ? ((species === 'dragon' || species === 'bird') && sprite?.frames?.flying ? 'flying' : 'idle')
-      : pose;
-    const frame = subPetFrame
-      ? subPetFrame(sprite, preferred, frameIndex)
-      : (sprite?.frames?.[preferred]?.[frameIndex] || sprite?.frames?.idle?.[0] || []);
-    const bounds = subPetBounds ? subPetBounds(sprite) : { cols: 12, rows: 9 };
-    preview.replaceChildren();
-    preview.style.gridTemplateColumns = `repeat(${bounds.cols}, 10px)`;
-    preview.style.gridTemplateRows = `repeat(${bounds.rows}, 10px)`;
-    preview.style.width = `${bounds.cols * 10}px`;
-    preview.style.height = `${bounds.rows * 10}px`;
-    frame.forEach(row => {
-      for (let x = 0; x < bounds.cols; x++) {
-        const pixel = document.createElement('span');
-        const symbol = row[x];
-        if (palette[symbol]) pixel.style.backgroundColor = palette[symbol];
-        preview.appendChild(pixel);
-      }
-    });
+    const defaultBody = sprite?.colors?.B;
+    const defaultEyes = sprite?.colors?.K || '#111111';
+    const customBody = /^#[\da-f]{6}$/i.test(colors.body) && colors.body.toLowerCase() !== String(defaultBody || '').toLowerCase();
+    const customEyes = /^#[\da-f]{6}$/i.test(colors.eyes) && colors.eyes.toLowerCase() !== String(defaultEyes).toLowerCase();
+    const bitmapUrl = subpetBitmapUrl(species);
+    if (bitmapUrl && !customBody && !customEyes) {
+      preview.replaceChildren();
+      preview.classList.add('subpet-preview--bitmap');
+      preview.dataset.render = 'bitmap';
+      preview.style.gridTemplateColumns = '';
+      preview.style.gridTemplateRows = '';
+      preview.style.width = '120px';
+      preview.style.height = '100px';
+      preview.style.backgroundImage = `url("${bitmapUrl}")`;
+      preview.style.backgroundRepeat = 'no-repeat';
+      preview.style.backgroundPosition = 'center bottom';
+      preview.style.backgroundSize = 'contain';
+      preview.style.imageRendering = 'pixelated';
+    } else {
+      preview.classList.remove('subpet-preview--bitmap');
+      preview.dataset.render = 'pixels';
+      preview.style.backgroundImage = '';
+      preview.style.backgroundSize = '';
+      preview.style.imageRendering = '';
+      const palette = subPetPalette
+        ? subPetPalette(sprite, colors.body, colors.eyes)
+        : { ...(sprite?.colors || {}), B: colors.body, K: colors.eyes };
+      const preferred = (pose === 'auto')
+        ? ((species === 'dragon' || species === 'bird') && sprite?.frames?.flying ? 'flying' : 'idle')
+        : pose;
+      const frame = subPetFrame
+        ? subPetFrame(sprite, preferred, frameIndex)
+        : (sprite?.frames?.[preferred]?.[frameIndex] || sprite?.frames?.idle?.[0] || []);
+      const bounds = subPetBounds ? subPetBounds(sprite) : { cols: 12, rows: 9 };
+      preview.replaceChildren();
+      preview.style.gridTemplateColumns = `repeat(${bounds.cols}, 10px)`;
+      preview.style.gridTemplateRows = `repeat(${bounds.rows}, 10px)`;
+      preview.style.width = `${bounds.cols * 10}px`;
+      preview.style.height = `${bounds.rows * 10}px`;
+      frame.forEach(row => {
+        for (let x = 0; x < bounds.cols; x++) {
+          const pixel = document.createElement('span');
+          const symbol = row[x];
+          if (palette[symbol]) pixel.style.backgroundColor = palette[symbol];
+          preview.appendChild(pixel);
+        }
+      });
+    }
     const nickname = $('subpet-nickname').value.trim();
     const label = subpets[species]?.label || species;
     preview.setAttribute('aria-label', `${nickname || label}, ${label}, olhos ${colors.eyes}`);
@@ -496,7 +546,16 @@
       button.type = 'button';
       button.dataset.species = id;
       button.setAttribute('aria-label', `Selecionar ${item.label}`);
-      button.append(makeElement('span', '', item.emoji), makeElement('b', '', item.label));
+      const thumb = makeElement('span', 'subpet-roster-thumb');
+      thumb.setAttribute('aria-hidden', 'true');
+      const thumbUrl = subpetBitmapUrl(id);
+      if (thumbUrl) {
+        thumb.style.backgroundImage = `url("${thumbUrl}")`;
+        thumb.classList.add('is-bitmap');
+      } else {
+        thumb.textContent = item.emoji;
+      }
+      button.append(thumb, makeElement('b', '', item.label));
       roster.appendChild(button);
     });
 
@@ -511,10 +570,13 @@
 
     function selectSpecies(species) {
       const sprite = subpetCatalog[species] || subpetCatalog.dog;
-      const colors = speciesColors[species] || { body: sprite?.colors?.B || '#8d5a2b', eyes: '#111111' };
+      const colors = speciesColors[species] || {
+        body: sprite?.colors?.B || '#c4783a',
+        eyes: sprite?.colors?.K || '#111111'
+      };
       select.value = species;
-      $('subpet-body-color').value = /^#[\da-f]{6}$/i.test(colors.body) ? colors.body : '#8d5a2b';
-      $('subpet-eye-color').value = colors.eyes;
+      $('subpet-body-color').value = /^#[\da-f]{6}$/i.test(colors.body) ? colors.body : '#c4783a';
+      $('subpet-eye-color').value = /^#[\da-f]{6}$/i.test(colors.eyes) ? colors.eyes : '#111111';
       preview.dataset.frame = '0';
       paintSubpet(species, 'auto', 0);
     }
@@ -563,6 +625,8 @@
       const species = select.value;
       const sprite = subpetCatalog[species];
       if (!sprite || preview.className.includes('is-')) return;
+      // PNG literal é estático (igual ao runtime); anima só o fallback pixel.
+      if (preview.dataset.render === 'bitmap') return;
       const pose = (species === 'dragon' || species === 'bird') && sprite.frames?.flying ? 'flying' : 'idle';
       const set = sprite.frames?.[pose] || sprite.frames?.idle || [];
       if (!set.length) return;

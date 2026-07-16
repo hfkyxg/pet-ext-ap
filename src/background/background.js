@@ -3,11 +3,14 @@
    PresenceManager: coordena o "passeio entre abas".
    Apenas 1 pet visível no navegador quando o modo
    cross-tab está ligado.
+   Validadores / selectors: SSOT em catalog.js
    =================================================== */
+
+importScripts('../shared/catalog.js');
 
 const ports = new Map();      // tabId -> Port
 let hostTabId = null;         // aba onde o pet está visível
-let travelInFlight = null;    // { from, to, timeout }
+let travelInFlight = null;    // { from, to, direction, timeout }
 let travelDebounce = null;
 
 /* ---- Reload seguro: remove instâncias órfãs e reinjeta só na aba ativa ---- */
@@ -35,13 +38,7 @@ async function hasStableLiveContent(tabId) {
   return pingLiveContent(tabId);
 }
 
-function removeClawdDom() {
-  const selectors = [
-    '#aic-clawd-node', '.aic-subpet', '#aic-footprints', '.aic-toast',
-    '.aic-lake', '.aic-fishing-line', '.aic-fish-caught', '.aic-goalpost',
-    '.aic-toyball', '.aic-dust', '.aic-particle', '.aic-pixel-spark',
-    '.aic-walk-dust', '.aic-subpet-particle'
-  ].join(',');
+function removeClawdDom(selectors) {
   document.querySelectorAll(selectors).forEach(el => el.remove());
 }
 
@@ -60,7 +57,11 @@ async function injectClawdIntoTab(tabId) {
     if (!injected) continue;
     await new Promise(resolve => setTimeout(resolve, 250));
     if (await pingLiveContent(tabId)) return true;
-    await chrome.scripting.executeScript({ target: { tabId }, func: removeClawdDom }).catch(() => null);
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: removeClawdDom,
+      args: [CLAWD_DOM_CLEANUP_SELECTORS]
+    }).catch(() => null);
   }
   return false;
 }
@@ -90,7 +91,11 @@ async function reconcileRuntimeAfterReload() {
   await chrome.storage.session.set({ [RUNTIME_RECONCILE_KEY]: true });
 
   await Promise.all(eligibleTabs.map(tab =>
-    chrome.scripting.executeScript({ target: { tabId: tab.id }, func: removeClawdDom }).catch(() => null)
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: removeClawdDom,
+      args: [CLAWD_DOM_CLEANUP_SELECTORS]
+    }).catch(() => null)
   ));
 
   await injectClawdIntoTab(active.id);
@@ -131,6 +136,18 @@ function scrubLastError() {
   }
 }
 
+function clearTravelDebounce() {
+  if (travelDebounce == null) return;
+  clearTimeout(travelDebounce);
+  travelDebounce = null;
+}
+
+function clearTravelInFlight() {
+  if (!travelInFlight) return;
+  clearTimeout(travelInFlight.timeout);
+  travelInFlight = null;
+}
+
 function send(tabId, msg) {
   const port = ports.get(tabId);
   if (!port) return false;
@@ -156,13 +173,15 @@ function getSettings(cb) {
     const s = (res && res.clawdState || {}).settings || {};
     cb({
       crossTab: s.crossTab !== false,
-      travelFreq: s.travelFreq || 'sometimes'
+      travelFreq: CLAWD_TRAVEL_FREQS.includes(s.travelFreq) ? s.travelFreq : 'sometimes'
     });
   });
 }
 
 /* ---- Escolhe/atribui a aba anfitriã ---- */
 function assignHost(tabId) {
+  clearTravelInFlight();
+  clearTravelDebounce();
   hostTabId = tabId;
   persistHost();
   for (const [id] of ports) {
@@ -181,6 +200,7 @@ function travel(toTabId) {
     return;
   }
   if (!ports.has(toTabId)) return;
+  clearTravelDebounce();
   const direction = Math.random() < 0.5 ? 'left' : 'right';
   travelInFlight = { from, to: toTabId, direction };
   send(from, { type: 'despawnPet', direction });
@@ -202,13 +222,39 @@ function completeTravel() {
 }
 
 function respawnAnywhere() {
+  clearTravelDebounce();
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    scrubLastError();
     const activeId = tabs[0]?.id;
     if (activeId != null && ports.has(activeId)) { assignHost(activeId); return; }
     const first = ports.keys().next();
     if (!first.done) assignHost(first.value);
     else { hostTabId = null; persistHost(); }
   });
+}
+
+function handlePresenceMessage(tabId, raw) {
+  const msg = clawdValidatePortMessage(raw);
+  if (!msg) return;
+  switch (msg.type) {
+    case 'register':
+      restoreHost(() => {
+        if (hostTabId == null || !ports.has(hostTabId)) {
+          assignHost(tabId);
+        } else if (tabId === hostTabId) {
+          send(tabId, { type: 'spawnPet' });
+        } else {
+          send(tabId, { type: 'hidePet' });
+        }
+      });
+      break;
+    case 'travelComplete':
+      // Só a origem da viagem em curso pode confirmar (evita spoof de outra aba).
+      if (travelInFlight && travelInFlight.from === tabId) {
+        completeTravel();
+      }
+      break;
+  }
 }
 
 /* ---- Conexões dos content scripts ---- */
@@ -218,24 +264,8 @@ chrome.runtime.onConnect.addListener((port) => {
   if (tabId == null) return;
   ports.set(tabId, port);
 
-  port.onMessage.addListener((msg) => {
-    if (!msg || (msg.type !== 'register' && msg.type !== 'travelComplete')) return;
-    switch (msg.type) {
-      case 'register':
-        restoreHost(() => {
-          if (hostTabId == null || !ports.has(hostTabId)) {
-            assignHost(tabId);
-          } else if (tabId === hostTabId) {
-            send(tabId, { type: 'spawnPet' });
-          } else {
-            send(tabId, { type: 'hidePet' });
-          }
-        });
-        break;
-      case 'travelComplete':
-        completeTravel();
-        break;
-    }
+  port.onMessage.addListener((raw) => {
+    handlePresenceMessage(tabId, raw);
   });
 
   port.onDisconnect.addListener(() => {
@@ -244,8 +274,7 @@ chrome.runtime.onConnect.addListener((port) => {
     if (ports.get(tabId) === port) ports.delete(tabId);
     else scrubLastError();
     if (travelInFlight && (travelInFlight.from === tabId || travelInFlight.to === tabId)) {
-      clearTimeout(travelInFlight.timeout);
-      travelInFlight = null;
+      clearTravelInFlight();
     }
     // aba anfitriã fechou → respawn imediato na aba ativa
     if (tabId === hostTabId && !ports.has(tabId)) {
@@ -264,8 +293,9 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
     if (settings.travelFreq === 'rarely') return;          // só viaja quando o host fecha
     if (tabId === hostTabId || !ports.has(tabId)) return;
     if (settings.travelFreq === 'sometimes' && Math.random() < 0.5) return;
-    clearTimeout(travelDebounce);
+    clearTravelDebounce();
     travelDebounce = setTimeout(() => {
+      travelDebounce = null;
       // ainda é a aba ativa e registrada?
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         scrubLastError();
@@ -278,6 +308,10 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 /* ---- Aba anfitriã removida (redundância ao onDisconnect) ---- */
 chrome.tabs.onRemoved.addListener((tabId) => {
   ports.delete(tabId);
+  clearTravelDebounce();
+  if (travelInFlight && (travelInFlight.from === tabId || travelInFlight.to === tabId)) {
+    clearTravelInFlight();
+  }
   if (tabId === hostTabId) {
     hostTabId = null;
     persistHost();

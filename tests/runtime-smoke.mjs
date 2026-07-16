@@ -215,7 +215,7 @@ async function validatePopupRuntime(port, worker) {
     assert.notEqual(snapshot.headerPreview?.bodyPaint, 'none', 'A miniatura do cabeçalho precisa pintar a arte compartilhada.');
     assert.equal(snapshot.shopItems, Object.keys(CLAWD_SHOP).length, 'Loja incompleta no popup.');
     assert.equal(snapshot.achievements, Object.keys(CLAWD_ACHIEVEMENTS).length, 'Conquistas incompletas no popup.');
-    assert.equal(snapshot.mouthToggleChecked, false, 'A opção de boca deve iniciar desativada (silhueta Claude).');
+    assert.equal(snapshot.mouthToggleChecked, true, 'A opção de boca deve iniciar ativada (showMouth padrão).');
     assert.equal(snapshot.outfitPreview, true, 'O popup deve renderizar o provador com a arte real do pet.');
     assert.equal(snapshot.outfitHead, 'none', 'O provador deve refletir o slot de cabeça inicial.');
     assert.equal(snapshot.outfitFace, 'none', 'O provador deve refletir o slot de rosto inicial.');
@@ -295,12 +295,12 @@ async function validatePopupRuntime(port, worker) {
     await popup.evaluate(`document.querySelector('#toggle-mouth').click(); true`);
     await retry(async () => {
       const value = await worker.evaluate(`(async () => (await chrome.storage.local.get('clawdState')).clawdState?.showMouth)()`);
-      return value === true;
+      return value === false;
     }, 3_000, 80);
     await popup.evaluate(`document.querySelector('#toggle-mouth').click(); true`);
     await retry(async () => {
       const value = await worker.evaluate(`(async () => (await chrome.storage.local.get('clawdState')).clawdState?.showMouth)()`);
-      return value === false;
+      return value === true;
     }, 3_000, 80);
     await popup.evaluate(`document.querySelector('[data-model-id="classic"]').click(); true`);
     await popup.evaluate(`document.querySelector('[data-face-style-id="classic"]').click(); true`);
@@ -1014,7 +1014,8 @@ async function main() {
     assert.match(affectionate.state, /happy|celebrate/);
     assert.equal(statusAfterAffection.xp, statusBeforeAffection.xp + 5, 'O carinho físico não concedeu +5 XP.');
     const mouthVisual = await visualSnapshot(page);
-    assert.equal(mouthVisual.mouthDisplay, 'none', 'Silhueta Claude: boca deve permanecer oculta.');
+    assert.notEqual(mouthVisual.mouthDisplay, 'none', 'Boca deve aparecer no idle com showMouth padrão.');
+    assert.ok(parseFloat(mouthVisual.mouthBorderBottom) > 0, 'Sorriso idle usa borda inferior visível.');
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'showMouth', value: false });
     const hiddenMouth = await retry(async () => {
@@ -1026,7 +1027,8 @@ async function main() {
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'showMouth', value: true });
     await delay(120);
     const restoredMouth = await visualSnapshot(page);
-    assert.equal(restoredMouth.mouthDisplay, 'none', 'Mesmo com toggle, a silhueta Claude não desenha boca.');
+    assert.notEqual(restoredMouth.mouthDisplay, 'none', 'Reativar showMouth deve exibir a boca.');
+    assert.ok(parseFloat(restoredMouth.mouthBorderBottom) > 0, 'Boca restaurada mantém o sorriso.');
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: false });
     await retry(async () => !(await visualSnapshot(page)).smoothClass, 2_000, 50);

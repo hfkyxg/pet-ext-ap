@@ -23,10 +23,32 @@ test('manifest v3.2 referencia apenas arquivos existentes', () => {
   const files = [
     manifest.background.service_worker,
     manifest.action.default_popup,
-    ...manifest.content_scripts.flatMap(entry => [...entry.css, ...entry.js])
+    ...manifest.content_scripts.flatMap(entry => [...entry.css, ...entry.js]),
+    ...Object.values(manifest.icons || {}),
+    ...Object.values(manifest.action.default_icon || {})
   ];
   for (const file of files) {
     assert.ok(fs.existsSync(path.join(root, file)), `${file} precisa existir`);
+  }
+});
+
+test('manifest declara ícones PNG do Claw’d (16/48/128)', () => {
+  assert.ok(manifest.icons, 'icons no top-level');
+  assert.ok(manifest.action.default_icon, 'action.default_icon');
+  for (const size of ['16', '48', '128']) {
+    assert.ok(manifest.icons[size], `icons.${size}`);
+    assert.match(manifest.icons[size], /\.png$/);
+  }
+  for (const size of ['16', '48']) {
+    assert.ok(manifest.action.default_icon[size], `action.default_icon.${size}`);
+  }
+  for (const file of new Set([
+    ...Object.values(manifest.icons),
+    ...Object.values(manifest.action.default_icon)
+  ])) {
+    const buf = fs.readFileSync(path.join(root, file));
+    assert.equal(buf[0], 0x89, `${file} deve ser PNG`);
+    assert.ok(buf.length > 50, `${file} não pode estar vazio`);
   }
 });
 
@@ -96,7 +118,7 @@ test('embaixadinha é interativa: toque mantém no ar, duplo-clique chuta a gol'
 
 test('README e documentação identificam a versão e o ano atuais', () => {
   const readme = read('README.md');
-  const docs = `${read('DOCUMENTACAO.md')}\n${read('MANUAL.md')}`;
+  const docs = `${read('docs/md/DOCUMENTACAO.md')}\n${read('docs/md/MANUAL.md')}`;
   const banner = read('src/assets/pet-banner.svg');
   const modelGallery = read('src/assets/pet-states.svg');
   assert.match(readme, /version-3\.2/);
@@ -149,11 +171,113 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.match(showcaseJs, /previewPet\.dataset\.accFace/);
   assert.match(showcaseJs, /accessorySelect\.replaceChildren\(\)/);
   assert.match(showcaseJs, /Object\.entries\(accessories\)\.forEach/);
-  assert.match(showcaseHtml, /61\/61<\/b> contratos automatizados/);
+  assert.match(showcaseHtml, /65\/65<\/b> contratos automatizados/);
   assert.match(showcaseHtml, /não é um vídeo pré-gravado/);
   assert.doesNotMatch(showcaseHtml, /<video\b/i);
   assert.match(showcaseCss, /\.evidence-card-grid/);
   assert.match(showcaseCss, /clawd-doc-demo-glide/);
   assert.match(showcaseCss, /@media \(max-width: 520px\)/);
   assert.match(showcaseCss, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test('showcase e schema batem com o catálogo vivo', () => {
+  const catalog = require('../src/shared/catalog.js');
+  const actionCount = Object.keys(catalog.CLAWD_ACTIONS).length;
+  const subpetActionCount = Object.keys(catalog.CLAWD_SUBPET_ACTIONS).length;
+  const subpetCount = Object.keys(catalog.CLAWD_SUBPETS).length;
+  assert.equal(actionCount, 24);
+  assert.equal(subpetActionCount, 7);
+  assert.equal(subpetCount, 8);
+  assert.match(catalogSource, /var CLAWD_SCHEMA_VERSION = 4/);
+  assert.match(showcaseHtml, new RegExp(`data-count="${actionCount}"[^>]*>${actionCount}</strong><span>ações do pet</span>`));
+  assert.match(showcaseHtml, new RegExp(`data-count="${subpetActionCount}"[^>]*>${subpetActionCount}</strong><span>ações do subpet</span>`));
+  assert.match(showcaseHtml, /Schema v4/);
+  assert.doesNotMatch(showcaseHtml, /Schema v3/);
+});
+
+test('cada sub-pet tem PNG empacotado e image.url coerente', () => {
+  const catalog = require('../src/shared/catalog.js');
+  const zlib = require('zlib');
+  const war = JSON.stringify(manifest.web_accessible_resources || []);
+  assert.match(war, /src\/shared\/sprites\/subpets\/\*\.png/);
+
+  function decodePng(buf) {
+    let off = 8, w = 0, h = 0, ct = 6;
+    const idat = [];
+    while (off < buf.length) {
+      const len = buf.readUInt32BE(off); off += 4;
+      const type = buf.slice(off, off + 4).toString('ascii'); off += 4;
+      const data = buf.slice(off, off + len); off += len + 4;
+      if (type === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); ct = data[9]; }
+      else if (type === 'IDAT') idat.push(data);
+      else if (type === 'IEND') break;
+    }
+    const raw = zlib.inflateSync(Buffer.concat(idat));
+    const bpp = ct === 6 ? 4 : 3;
+    const stride = w * bpp + 1;
+    const rgba = Buffer.alloc(w * h * 4);
+    let prev = Buffer.alloc(w * bpp);
+    const paeth = (a, b, c) => {
+      const p = a + b - c;
+      const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+      if (pa <= pb && pa <= pc) return a;
+      if (pb <= pc) return b;
+      return c;
+    };
+    for (let y = 0; y < h; y++) {
+      const ft = raw[y * stride];
+      const row = raw.slice(y * stride + 1, y * stride + 1 + w * bpp);
+      const out = Buffer.alloc(w * bpp);
+      for (let i = 0; i < w * bpp; i++) {
+        const x = row[i];
+        const a = i >= bpp ? out[i - bpp] : 0;
+        const b = prev[i];
+        const c = i >= bpp ? prev[i - bpp] : 0;
+        let v = x;
+        if (ft === 1) v = (x + a) & 255;
+        else if (ft === 2) v = (x + b) & 255;
+        else if (ft === 3) v = (x + ((a + b) >> 1)) & 255;
+        else if (ft === 4) v = (x + paeth(a, b, c)) & 255;
+        out[i] = v;
+      }
+      for (let x = 0; x < w; x++) {
+        const si = x * bpp, di = (y * w + x) * 4;
+        rgba[di] = out[si]; rgba[di + 1] = out[si + 1]; rgba[di + 2] = out[si + 2];
+        rgba[di + 3] = bpp === 4 ? out[si + 3] : 255;
+      }
+      prev = out;
+    }
+    return { w, h, rgba };
+  }
+
+  for (const id of Object.keys(catalog.CLAWD_SUBPETS)) {
+    const sprite = catalog.CLAWD_SUBPET_SPRITES[id];
+    assert.ok(sprite?.image?.url, `${id} precisa de image.url`);
+    assert.equal(sprite.image.url, `src/shared/sprites/subpets/${id}.png`);
+    assert.equal(sprite.image.gridW, 12);
+    assert.equal(sprite.image.gridH, 10);
+    const pngPath = path.join(root, sprite.image.url);
+    assert.ok(fs.existsSync(pngPath), `${sprite.image.url} precisa existir`);
+    const buf = fs.readFileSync(pngPath);
+    assert.equal(buf[0], 0x89, `${id} deve ser PNG`);
+    const img = decodePng(buf);
+    assert.ok(img.w >= 48 && img.h >= 40, `${id} PNG muito pequeno`);
+    let eyes = 0;
+    for (let i = 0; i < img.rgba.length; i += 4) {
+      if (img.rgba[i + 3] > 40 && img.rgba[i] === 0x11 && img.rgba[i + 1] === 0x11 && img.rgba[i + 2] === 0x11) eyes++;
+    }
+    assert.ok(eyes >= 64, `${id} precisa de olhos #111111 opacos (got ${eyes})`);
+  }
+  assert.ok(
+    fs.existsSync(path.join(root, 'tests/sprite-out/Subpets-selection.png')),
+    'sheet canônico Subpets-selection.png precisa existir'
+  );
+});
+
+test('_make-sprites não sobrescreve PNGs do pacote sem WRITE_PKG_SPRITES=1', () => {
+  const makeSprites = read('tests/tools/_make-sprites.mjs');
+  assert.match(makeSprites, /WRITE_PKG_SPRITES\s*=\s*process\.env\.WRITE_PKG_SPRITES\s*===\s*'1'/);
+  assert.match(makeSprites, /if\s*\(\s*WRITE_PKG_SPRITES\s*\)/);
+  assert.match(makeSprites, /skip package PNGs/);
+  assert.match(makeSprites, /_crop-literal-sprites/);
 });

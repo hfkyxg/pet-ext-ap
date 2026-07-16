@@ -63,11 +63,11 @@
     </section>
 
     <section class="metrics section-shell" aria-label="Números do projeto">
-      <article><strong data-count="14">14</strong><span>ações do pet</span></article>
+      <article><strong data-count="24">24</strong><span>ações do pet</span></article>
       <article><strong data-count="14">14</strong><span>acessórios</span></article>
       <article><strong data-count="8">8</strong><span>profissões</span></article>
       <article><strong data-count="8">8</strong><span>sub-pets</span></article>
-      <article><strong data-count="6">6</strong><span>ações do subpet</span></article>
+      <article><strong data-count="7">7</strong><span>ações do subpet</span></article>
     </section>
 
     <section class="section-shell intro-grid" id="visao">
@@ -96,10 +96,10 @@
           </div>
         </div>
         <div class="evidence-badges" id="validation-snapshot" aria-label="Resumo da última validação">
-          <span class="passed"><i></i><b>61/61</b> contratos automatizados</span>
+          <span class="passed"><i></i><b>65/65</b> contratos automatizados</span>
           <span class="passed"><i></i><b>8/8</b> scripts verificados</span>
           <span><b id="evidence-catalog-counts">8 profissões · 14 acessórios · 14 ações</b></span>
-          <span><b id="evidence-subpet-counts">8 subpets · 6 ações</b></span>
+          <span><b id="evidence-subpet-counts">8 subpets · 7 ações</b></span>
           <span class="passed"><i></i><b>3/3</b> reloads limpos</span>
           <span class="passed"><i></i><b>0</b> erros de runtime</span>
         </div>
@@ -250,7 +250,7 @@
         <div class="section-heading light reveal">
           <div class="eyebrow"><span></span> companheiro do companheiro</div>
           <h2>Sub-pets que dormem,<br>acordam e brincam.</h2>
-          <p>Oito espécies evolutivas, cada uma com apelido, corpo, olhos e habilidade própria.</p>
+          <p>Oito espécies com skins PNG literais em <code>src/shared/sprites/subpets/</code>. Com paleta padrão você vê o bitmap do pacote; ao customizar corpo/olhos, a vitrine cai no fallback pixel.</p>
         </div>
 
         <div class="subpet-lab reveal">
@@ -261,12 +261,12 @@
             <span class="subpet-species-label" id="subpet-species-label">CACHORRO · LV. 2</span>
           </div>
           <div class="subpet-console">
-            <div class="control-heading"><span>05</span><div><b>Sub-pet studio</b><small>corpo e olhos independentes</small></div></div>
+            <div class="control-heading"><span>05</span><div><b>Sub-pet studio</b><small>PNG literal + fallback pixel</small></div></div>
             <div class="subpet-form-grid">
               <label for="subpet-species">Espécie<select id="subpet-species"></select></label>
               <label for="subpet-nickname">Apelido<input id="subpet-nickname" maxlength="16" value="Rex" autocomplete="off"></label>
-              <label for="subpet-body-color">Corpo<input id="subpet-body-color" type="color" value="#8d5a2b"></label>
-              <label for="subpet-eye-color">Olhos<input id="subpet-eye-color" type="color" value="#33ff99"></label>
+              <label for="subpet-body-color">Corpo<input id="subpet-body-color" type="color" value="#c4783a"></label>
+              <label for="subpet-eye-color">Olhos<input id="subpet-eye-color" type="color" value="#111111"></label>
             </div>
             <div class="lab-action-title">Interações ao vivo</div>
             <div class="subpet-actions" id="subpet-actions"></div>
@@ -274,6 +274,10 @@
           </div>
         </div>
         <div class="subpet-roster" id="subpet-roster"></div>
+        <figure class="subpet-sheet reveal">
+          <img src="../tests/sprite-out/Subpets-selection.png" alt="Sheet canônico Subpets-selection com as oito espécies" width="960" height="540" loading="lazy">
+          <figcaption>Sheet canônico (<code>tests/sprite-out/Subpets-selection.png</code>) — os crops literais do pacote saem daqui via <code>tests/tools/_crop-literal-sprites.mjs</code>.</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -309,7 +313,7 @@
           <div class="arch-link"><span>presença</span><i>↔</i></div>
           <article class="arch-node worker"><small>COORDENAÇÃO</small><b>Service worker</b><p>Reload seguro e anfitrião entre abas.</p><code>background.js</code></article>
           <div class="arch-storage">
-            <i>↕</i><article class="arch-node storage"><small>FONTE ÚNICA</small><b>Catálogo + storage</b><p>Schema v3, migração e persistência local.</p><code>catalog.js · chrome.storage</code></article>
+            <i>↕</i><article class="arch-node storage"><small>FONTE ÚNICA</small><b>Catálogo + storage</b><p>Schema v4, migração e persistência local.</p><code>catalog.js · chrome.storage</code></article>
           </div>
         </div>
         <div class="privacy-strip reveal"><span>◉</span><div><b>Privacidade por arquitetura</b><p>Sem conta, servidor, telemetria ou leitura de formulários. As reações contextuais usam apenas o hostname da aba.</p></div></div>
@@ -392,9 +396,11 @@
           <p>Compatível com navegadores Chromium que suportam Manifest V3.</p>
           <div class="doc-links">
             <a href="../README.md"><span>↗</span><b>README</b><small>visão geral e instalação</small></a>
-            <a href="../DOCUMENTACAO.md"><span>↗</span><b>Documentação técnica</b><small>arquitetura e protocolos</small></a>
-            <a href="../MANUAL.md"><span>↗</span><b>Manual</b><small>controles e uso diário</small></a>
-            <a href="../VALIDACAO.md"><span>↗</span><b>Validação</b><small>evidências da suíte</small></a>
+            <a href="./README.md"><span>↗</span><b>Índice de docs</b><small>mapa da documentação</small></a>
+            <a href="./ARCHITECTURE.md"><span>↗</span><b>Arquitetura</b><small>camadas e padrões</small></a>
+            <a href="./md/DOCUMENTACAO.md"><span>↗</span><b>Documentação técnica</b><small>protocolos internos</small></a>
+            <a href="./md/MANUAL.md"><span>↗</span><b>Manual</b><small>controles e uso diário</small></a>
+            <a href="./md/VALIDACAO.md"><span>↗</span><b>Validação</b><small>evidências da suíte</small></a>
           </div>
         </div>
         <div class="install-card reveal">

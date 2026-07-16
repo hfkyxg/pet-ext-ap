@@ -1,15 +1,17 @@
-# 🚀 Claw'd — Registro de Melhorias e Implementações (v3.2)
+# 🚀 Claw'd — Registro de entrega v3.2
 
-> Especificação técnica que orientou a evolução até a v3.2.
-> Os nove blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção e futuras expansões.
+> Documento histórico das entregas que fecharam a v3.2 (não é roadmap aberto).
+> Os nove blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção.
 
-**Base atual:** `content.js` (classes `ClawdCompanion` e `SubPet`), `popup.js/html/css`, `background.js` (service worker MV3), catálogo compartilhado, persistência via `chrome.storage.local` (chave `clawdState`) e [vitrine interativa](./docs/index.html).
+**Base atual:** `content.js` (classes `ClawdCompanion` e `SubPet`), `popup.js/html/css`, `background.js` (service worker MV3), catálogo compartilhado, persistência via `chrome.storage.local` (chave `clawdState`) e [vitrine interativa](../index.html).
 
 **Marco v3.2 — Estúdio pixel-art:** quatro silhuetas (`classic`, `mini`, `claws`, `guardian`) × quatro rostos, olhos independentes e skins combináveis. O corpo virou uma camada estática; apenas as pernas mudam de frame quando o pet realmente se desloca ou chuta. Popup, runtime, modo liso e documentação usam o mesmo catálogo visual.
 
-**Polish 15/07/2026 — Sub-pets unificados:** `CLAWD_SUBPET_SPRITES` no catálogo (grade ~12×9 @ 4px, frames idle/walk/sleep), animações no wrapper `.subpet-motion`, especiais reforçados (pouso do pássaro, fogo/voo do dragão, clone do slime), preview pixel no popup e limpeza das regras que reanimavam o corpo do pet principal.
+**Polish 15/07/2026 — Sub-pets unificados + PNG:** `CLAWD_SUBPET_SPRITES` no catálogo (grade 12×10 @ 4px, frames idle/walk/sleep), PNGs literais do sheet em `src/shared/sprites/subpets/` via `web_accessible_resources`, fallback `box-shadow` sob paleta custom, animações no wrapper `.subpet-motion`, especiais reforçados; crops via `tests/tools/_crop-literal-sprites.mjs` (`_make-sprites` não sobrescreve o pacote sem `WRITE_PKG_SPRITES=1`).
 
-**Polish 15/07/2026 — Segurança, performance e integridade:** allowlist de mensagens, sanitização de storage/DOM, bfcache sem `Unchecked runtime.lastError`, AudioContext só após gesto, particles com teto, heartbeat 2,5 s, sites bloqueados por host/subdomínio, **24 ações** principais (inclui balão/abraço) e **7 ações** de sub-pet; suíte em **61/61** + smoke zerado.
+**Polish 15/07/2026 — Segurança, performance e integridade:** allowlist de mensagens, sanitização de storage/DOM, bfcache sem `Unchecked runtime.lastError`, AudioContext só após gesto, particles com teto, heartbeat 2,5 s, sites bloqueados por host/subdomínio, **24 ações** principais (inclui balão/abraço) e **7 ações** de sub-pet; suíte em **65/65** + smoke zerado.
+
+**Polish 15/07/2026 — Presença viva:** `showMouth: true` por padrão; cenas duo pet↔subpet; dwell/page-engage (`look-around`, `page-peek`, `tab-greet`, `soft-land`).
 
 ---
 
@@ -84,7 +86,7 @@ O Claw'd pode **adotar seus próprios pets** em pixel-art — dos convencionais 
 | 🟢 Slime | Nível 15 | Se divide em dois mini-slimes ao receber carinho |
 
 ### Comportamento
-- **Renderização**: cada sub-pet é um nó próprio (`.aic-subpet`) com sprite em `box-shadow` pixel-art (mesma técnica do Claw'd), ~60% do tamanho do pet principal, herdando `--agent-scale`.
+- **Renderização**: cada sub-pet é um nó próprio (`.aic-subpet`). Por padrão usa o PNG de `src/shared/sprites/subpets/<id>.png`; com cor de corpo/olhos customizada (ou na piscada) cai no `box-shadow` gerado a partir dos frames do catálogo. Escala ~40–55% do pet principal via `--subpet-scale`.
 - **Follow**: o sub-pet segue o Claw'd com atraso suave (lerp de posição, ~300ms atrás), inclusive no auto-walk e no drag.
 - **Interações pet↔pet** (sorteadas a cada ~30s quando ambos idle):
   - `play`: pulam e brincam juntos;
@@ -115,12 +117,13 @@ subpets: {
 |---------|---------|
 | `content.js` | Nova classe `SubPet` (sprite, follow, estados, interações); instanciada por `ClawdCompanion` |
 | `style.css` | Keyframes isolados `clawd-subpet-*`, direção preservada e movimento reduzido |
-| `popup.html/js` | Aba "🐕 Pets", corpo/olhos, apelido e painel de seis ações |
-| `catalog.js` | Catálogo `CLAWD_SUBPET_ACTIONS`, defaults e migração de `eyeColors` |
+| `popup.html/js` | Aba "🐕 Pets", corpo/olhos, apelido e painel de sete ações |
+| `catalog.js` | `CLAWD_SUBPET_SPRITES` + `image.url`, `CLAWD_SUBPET_ACTIONS`, defaults e migração de `eyeColors` |
+| `src/shared/sprites/subpets/*.png` | Bitmaps literais do sheet (`_crop-literal-sprites.mjs`; `_make-sprites` não sobrescreve sem `WRITE_PKG_SPRITES=1`) |
 
 ### Critérios de aceite
 - [x] Sub-pet segue o Claw'd suavemente em qualquer página.
-- [x] Seis interações manuais e oito habilidades por espécie são observáveis.
+- [x] Sete interações manuais e oito habilidades por espécie são observáveis.
 - [x] Apelido, corpo e olhos persistem de forma independente.
 - [x] Desbloqueio por nível funciona e persiste.
 
@@ -358,7 +361,7 @@ Nova aba **⚙️ Config** no popup, consolidando:
 - **Rostos e olhos**: Clássico, Brilho, Focado e Sonolento, com canal de cor independente;
 - **Skins de corpo**: além de cor, formatos alternativos (orelhas caídas, rabo longo, robô);
 - **Temas do name-tag**: claro / escuro / neon / invisível;
-- **Sons** (opcional, off por padrão): bipes 8-bit sutis em ações (Web Audio API, volume ajustável);
+- **Sons** (ligado por padrão, desligável): bipes 8-bit sutis em ações (Web Audio API, volume ajustável); só após gesto do usuário na página;
 - **Horário de silêncio**: intervalo em que o pet não fala nem anda (ex.: 09h–12h, foco);
 - **Sites bloqueados**: lista de domínios onde o pet não aparece (ex.: banco, e-mail corporativo);
 - **Posição inicial preferida**: canto da tela padrão ao entrar em página nova.
@@ -386,13 +389,13 @@ Nova aba **⚙️ Config** no popup, consolidando:
 | **4** | Profissões 2.0 | Embaixadinhas, Tutor, Dev e novas profissões | ✅ Concluída |
 | **5** | Sub-Pets | Classe `SubPet`, catálogo, apelidos, cores e interações | ✅ Concluída |
 | **6** | Cross-Tab | PresenceManager, viagens e reconciliação de reload | ✅ Concluída |
-| **7** | Showcase + Sub-Pets 2.0 | Documentação interativa, olhos customizáveis e seis ações | ✅ Concluída |
+| **7** | Showcase + Sub-Pets 2.0 | Documentação interativa, olhos customizáveis e sete ações | ✅ Concluída |
 | **8** | Estúdio Pixel-art v3.2 | 4 modelos, 4 rostos, olhos independentes e pernas em camada própria | ✅ Concluída |
 
 ### Diretrizes gerais
 - Manter **zero dependências externas** — tudo em Vanilla JS + CSS puro;
 - Toda feature nova atrás de config com padrão sensato (nada intrusivo por default);
-- Sprites permanecem em `box-shadow` pixel-art para consistência visual;
+- Sub-pets usam PNG default + fallback `box-shadow` sob paleta custom;
 - `z-index` máximo (`2147483647`) e `pointer-events` cuidadosos para nunca bloquear a página;
 - Migração de dados: versionar o storage (`clawdState.schemaVersion = 4`) com migrador incremental.
 

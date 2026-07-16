@@ -20,24 +20,7 @@ const replacement = `/* Modo liso: acessórios e skins permanecem em PIXEL-SPRIT
 
 css = css.slice(0, i) + replacement + css.slice(j);
 
-const mouthForce = `
-/* Boca removida — silhueta Claude/Welcome sem mouth em todas as emoções */
-#aic-clawd-node .emotion-mouth,
-#aic-clawd-node .emotion-mouth::before,
-#aic-clawd-node .emotion-mouth::after {
-  display: none !important;
-  opacity: 0 !important;
-  animation: none !important;
-  border-width: 0 !important;
-}
-`;
-
-if (!css.includes('Boca removida — silhueta Claude')) {
-  css = css.replace(
-    '#aic-clawd-node .emotion-mouth { position: absolute; display: block; pointer-events: none; }',
-    `#aic-clawd-node .emotion-mouth { position: absolute; display: none; pointer-events: none; }\n${mouthForce}`
-  );
-}
+/* Boca permanece visível por padrão (showMouth); não forçar display:none. */
 
 const anims = `
 /* ---- Novas ações do pet principal ---- */
