@@ -1119,7 +1119,7 @@ var CLAWD_CONFIG_KEYS = [
   'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
   'smooth', 'outline', 'showMouth', 'showSpeech', 'autoWalk', 'sleepEnabled',
   'skin', 'tagTheme', 'jerseyColor', 'ballSkin', 'accessoryHead', 'accessoryFace',
-  'accessoryBody', 'profession', 'particleColor'
+  'accessoryBody', 'profession', 'particleColor', 'personality'
 ];
 
 var CLAWD_SETTING_KEYS = [
@@ -1259,6 +1259,13 @@ function clawdSanitizeConfigValue(key, value) {
     case 'autoWalk':
     case 'sleepEnabled':
       return !!value;
+    case 'personality': {
+      if (!value || typeof value !== 'object') return null;
+      const traits = ['playful', 'lazy', 'curious', 'social', 'foodie'];
+      const result = {};
+      traits.forEach(t => { result[t] = Math.max(0, Math.min(10, Math.round(Number(value[t]) || 0))); });
+      return result;
+    }
     default:
       return null;
   }

@@ -487,6 +487,62 @@ input[type="color"] {
   border-radius: 6px;
   transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+.streak-pill {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ff7675;
+  background: rgba(255,118,117,0.12);
+  border: 1px solid rgba(255,118,117,0.35);
+  border-radius: 6px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  animation: pulse-dot 2s ease infinite;
+}
+
+/* ---- Sliders de Personalidade ---- */
+.personality-section { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+.section-label-personality { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+.personality-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.personality-label {
+  font-size: 11px;
+  color: var(--text);
+  min-width: 90px;
+  flex-shrink: 0;
+}
+.personality-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  accent-color: var(--accent);
+}
+.personality-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent2);
+  min-width: 14px;
+  text-align: right;
+}
+.personality-presets {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.btn-preset {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-preset:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
 .xp-count {
   font-size: 9px;
   color: var(--muted);

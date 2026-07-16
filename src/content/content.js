@@ -1420,6 +1420,11 @@ class ClawdCompanion {
         this._trackAccessory(value);
         this.registerDaily('accessories');
         break;
+      case 'personality':
+        if (value && typeof value === 'object') {
+          this.S.personality = { ...(this.S.personality || {}), ...value };
+        }
+        break;
       case 'profession':
         this._applyProfessionVisuals();
         this._detectPageContext();

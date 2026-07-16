@@ -233,6 +233,7 @@ function pollLiveStats() {
         if (res.daily) renderDailyQuest(res.daily);
         if (res.weekly) renderWeeklyChallenge(res.weekly);
         updateContextBar(res);
+        if (res.streakDays !== undefined) updateStreakPill(res.streakDays);
       })
       .catch(() => { scrubLastError(); });
   });
@@ -1044,6 +1045,36 @@ function bindConfig() {
   $('toggle-crosstab').addEventListener('change', e => setSetting('crossTab', e.target.checked));
   $('select-travel').addEventListener('change', e => setSetting('travelFreq', e.target.value));
   $('toggle-footprints').addEventListener('change', e => setSetting('footprints', e.target.checked));
+
+  /* Sliders de personalidade */
+  const PERSONALITY_PRESETS = {
+    energetic: { playful: 9, lazy: 1, curious: 7, social: 8, foodie: 6 },
+    relaxed:   { playful: 3, lazy: 8, curious: 4, social: 4, foodie: 5 },
+    curious:   { playful: 6, lazy: 2, curious: 10, social: 5, foodie: 3 }
+  };
+  ['playful', 'lazy', 'curious', 'social', 'foodie'].forEach(trait => {
+    const el = $(`personality-${trait}`);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      const v = parseInt(el.value, 10);
+      const valEl = $(`val-${trait}`);
+      if (valEl) valEl.textContent = v;
+      if (!S.personality) S.personality = { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
+      S.personality[trait] = v;
+      persist(st => { if (!st.personality) st.personality = {}; st.personality[trait] = v; });
+      sendMsg({ action: 'updateConfig', key: 'personality', value: S.personality });
+    });
+  });
+  document.querySelectorAll('.btn-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = PERSONALITY_PRESETS[btn.dataset.preset];
+      if (!preset) return;
+      S.personality = { ...S.personality, ...preset };
+      persist(st => { st.personality = { ...(st.personality || {}), ...preset }; });
+      sendMsg({ action: 'updateConfig', key: 'personality', value: S.personality });
+      renderPersonality();
+    });
+  });
   $('toggle-sounds').addEventListener('change', e => {
     setSetting('sounds', e.target.checked);
     if (e.target.checked) previewVolumeChirp(parseFloat($('range-volume').value) || 0.4);
@@ -1282,9 +1313,33 @@ function bindStatic() {
 /* =====================================================
    RENDER GERAL + BOOT
    ===================================================== */
+function renderPersonality() {
+  const p = S.personality || { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
+  ['playful', 'lazy', 'curious', 'social', 'foodie'].forEach(trait => {
+    const el = $(`personality-${trait}`);
+    const valEl = $(`val-${trait}`);
+    if (el) el.value = p[trait] ?? 5;
+    if (valEl) valEl.textContent = p[trait] ?? 5;
+  });
+}
+
+function updateStreakPill(days) {
+  const pill = $('streak-pill');
+  if (!pill) return;
+  const count = $('streak-count');
+  if (days >= 2) {
+    pill.style.display = '';
+    if (count) count.textContent = days;
+    pill.title = `${days} dia${days !== 1 ? 's' : ''} seguidos — ${days >= 7 ? '+50% XP!' : '+20% XP!'}`;
+  } else {
+    pill.style.display = 'none';
+  }
+}
+
 function renderAll() {
   renderHeader();
   renderNameArea();
+  renderPersonality();
   renderColors();
   renderModels();
   renderFaceStyles();

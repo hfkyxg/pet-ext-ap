@@ -26,6 +26,7 @@
         <span class="xp-level" id="xp-level">Lv. 1</span>
         <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
         <span class="xp-count" id="xp-count">0 XP</span>
+        <span class="streak-pill" id="streak-pill" style="display:none" title="Dias seguidos com o pet ativo">🔥 <span id="streak-count">0</span>d</span>
       </div>
       <!-- Medidores Tamagotchi -->
       <div class="stats-row" id="stats-row">
@@ -101,6 +102,7 @@
               <div class="emotion-face" aria-hidden="true"><span class="blink-cover"></span><span class="blink-line"></span><span class="emotion-mouth"></span></div>
               <div class="jersey"></div><div class="skin-mod"></div>
               <div class="accessory acc-head"></div><div class="accessory acc-face"></div>
+              <div class="accessory acc-body"></div>
             </div>
             <div class="name-tag" id="popup-name-preview" aria-hidden="true"></div>
           </div>
@@ -264,6 +266,42 @@
         <span class="toggle-desc">Mostra pegadas nas abas sem o pet</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-footprints"><span class="slider"></span></label>
+    </div>
+
+    <!-- Sliders de Personalidade -->
+    <div class="control-group personality-section">
+      <label class="section-label-personality">🧠 Personalidade</label>
+      <p class="section-hint">Ajusta com que frequência o pet age de cada forma.</p>
+      <div class="personality-row">
+        <span class="personality-label" title="Frequência de danças e ações espontâneas">🎪 Brincalhão</span>
+        <input type="range" id="personality-playful" min="0" max="10" step="1" value="5">
+        <span class="personality-value" id="val-playful">5</span>
+      </div>
+      <div class="personality-row">
+        <span class="personality-label" title="Quanto tempo leva para adormecer">😴 Preguiçoso</span>
+        <input type="range" id="personality-lazy" min="0" max="10" step="1" value="3">
+        <span class="personality-value" id="val-lazy">3</span>
+      </div>
+      <div class="personality-row">
+        <span class="personality-label" title="Frequência de explorar e espiar">🔎 Curioso</span>
+        <input type="range" id="personality-curious" min="0" max="10" step="1" value="7">
+        <span class="personality-value" id="val-curious">7</span>
+      </div>
+      <div class="personality-row">
+        <span class="personality-label" title="Frequência de falas e balões">💬 Social</span>
+        <input type="range" id="personality-social" min="0" max="10" step="1" value="5">
+        <span class="personality-value" id="val-social">5</span>
+      </div>
+      <div class="personality-row">
+        <span class="personality-label" title="Reação e frequência de pedir comida">🍖 Comilão</span>
+        <input type="range" id="personality-foodie" min="0" max="10" step="1" value="4">
+        <span class="personality-value" id="val-foodie">4</span>
+      </div>
+      <div class="personality-presets">
+        <button class="btn-preset" data-preset="energetic">⚡ Enérgico</button>
+        <button class="btn-preset" data-preset="relaxed">😌 Relaxado</button>
+        <button class="btn-preset" data-preset="curious">🔎 Curioso</button>
+      </div>
     </div>
   </div>
 
