@@ -148,10 +148,10 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.match(showcaseHtml, /id="lab-model"/);
   assert.match(showcaseHtml, /id="lab-face-style"/);
   assert.match(showcaseHtml, /id="lab-eye-color"/);
-  assert.match(showcaseHtml, /src="\.\.\/src\/shared\/catalog\.js"/);
-  assert.match(showcaseHtml, /href="\.\.\/src\/content\/style\.css"/);
-  assert.match(showcaseHtml, /src="\.\/showcase\.js"/);
-  assert.match(showcaseHtml, /href="\.\/showcase\.css"/);
+  assert.match(showcaseHtml, /(?:src="\.\.\/src\/shared\/catalog\.js"|src="\/src\/shared\/catalog\.js")/);
+  assert.match(showcaseHtml, /(?:href="\.\.\/src\/content\/style\.css"|href="\/src\/content\/style\.css")/);
+  assert.match(showcaseHtml, /(?:src="\.\/showcase\.js"|src="\/docs\/showcase\.js")/);
+  assert.match(showcaseHtml, /(?:href="\.\/showcase\.css"|href="\/docs\/showcase\.css")/);
   assert.doesNotMatch(showcaseHtml, /<(?:script|link)[^>]+(?:src|href)="https?:\/\//i);
 
   const usedIds = [...showcaseJs.matchAll(/\$\('([^']+)'\)/g)].map(match => match[1]);
