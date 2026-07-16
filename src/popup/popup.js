@@ -200,6 +200,9 @@ function renderOutfitPreview() {
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
   preview.style.setProperty('--jersey-color', S.jerseyColor || '#e74c3c');
+  preview.setAttribute('data-tag-theme', S.tagTheme || 'light');
+  const namePreview = $('popup-name-preview');
+  if (namePreview) namePreview.textContent = S.name || "Claw'd";
   preview.setAttribute('aria-label', equipped.length
     ? `Prévia do pet com ${equipped.join(' e ')}`
     : 'Prévia do pet sem acessórios');
@@ -338,6 +341,8 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
    ===================================================== */
 function renderNameArea() {
   $('input-name').value = S.name || "Claw'd";
+  const namePreview = $('popup-name-preview');
+  if (namePreview) namePreview.textContent = S.name || "Claw'd";
   const dl = $('name-history');
   dl.innerHTML = '';
   (S.nicknameHistory || []).forEach(n => {
@@ -1173,6 +1178,8 @@ function bindStatic() {
   $('input-name').addEventListener('input', (e) => {
     const val = e.target.value || "Claw'd";
     setConfig('name', val);
+    const namePreview = $('popup-name-preview');
+    if (namePreview) namePreview.textContent = val;
     persist(st => {
       if (val && !st.nicknameHistory.includes(val)) {
         st.nicknameHistory.push(val);

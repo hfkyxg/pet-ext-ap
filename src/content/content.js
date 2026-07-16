@@ -1210,6 +1210,10 @@ class ClawdCompanion {
           <div class="profession-prop prop-music-note" aria-hidden="true"></div>
           <div class="profession-prop prop-ninja-smoke" aria-hidden="true"></div>
           <div class="profession-prop prop-tutor-glint" aria-hidden="true"></div>
+          <div class="profession-prop prop-doctor-cross" aria-hidden="true"></div>
+          <div class="profession-prop prop-artist-brush" aria-hidden="true"></div>
+          <div class="profession-prop prop-gamer-ctrl" aria-hidden="true"></div>
+          <div class="profession-prop prop-streamer-live" aria-hidden="true"></div>
         </div>
         <div class="name-tag" id="aic-name-tag"></div>
       </div>
@@ -1761,6 +1765,19 @@ class ClawdCompanion {
         this.giveAffection();
       }
     }, { signal });
+
+    /* Atalhos de teclado globais (Alt+F/H/P/Z) — v3.4 */
+    if (typeof CLAWD_KEYBOARD_SHORTCUTS === 'object' && CLAWD_KEYBOARD_SHORTCUTS) {
+      document.addEventListener('keydown', (e) => {
+        if (this._destroyed || !e.altKey) return;
+        const key = `Alt+${e.key.toUpperCase()}`;
+        const actionId = CLAWD_KEYBOARD_SHORTCUTS[key];
+        if (!actionId) return;
+        e.preventDefault();
+        this._handleAction(actionId);
+        this.showSpeech(`${key} ✓`, 1200);
+      }, { signal });
+    }
     this.ballNode.addEventListener('mousedown', (e) => e.stopPropagation(), { signal });
     // Cada clique é um toque de embaixadinha imediato (resposta sem atraso).
     // Duplo-clique finaliza a sequência com um chute a gol (bônus de combo).
@@ -3477,6 +3494,7 @@ class ClawdCompanion {
       this._ctxTimers.push(setInterval(() => {
         if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
         if (Math.random() < 0.4) {
+          this._pulseProfessionFx('healing', 2500);
           this.doBath();
           this.showSpeech('Check-up de higiene! 🩺', 2200);
         }
@@ -3486,8 +3504,10 @@ class ClawdCompanion {
       this._ctxTimers.push(setInterval(() => {
         if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
         if (Math.random() < 0.45) {
+          this._pulseProfessionFx('painting', 2800);
           this.doMeditate();
           this.showSpeech('Inspiração artística! 🎨', 2400);
+          this.spawnParticles(['⭐', '✨', '🌟']);
         }
       }, 70000));
     }
@@ -3495,6 +3515,7 @@ class ClawdCompanion {
       this._ctxTimers.push(setInterval(() => {
         if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
         if (Math.random() < 0.4) {
+          this._pulseProfessionFx('gaming', 2200);
           this.doFlip();
           this.showSpeech(Math.random() < 0.5 ? 'GG EZ! 🎮' : 'Vita para o Claw\'d! 🏆', 2000);
         }
@@ -3504,6 +3525,7 @@ class ClawdCompanion {
       this._ctxTimers.push(setInterval(() => {
         if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
         if (Math.random() < 0.5) {
+          this._pulseProfessionFx('streaming', 3000);
           this.doDance();
           this.showSpeech('Hype no chat! 📡🎉', 2200);
           this.spawnParticles(['📡', '🎬', '✨', '🎉']);

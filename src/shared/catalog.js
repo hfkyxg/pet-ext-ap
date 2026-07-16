@@ -124,11 +124,19 @@ var CLAWD_ACCESSORIES = {
   medal:      { slot: 'face', emoji: '🏅', label: 'Medalha',           desc: 'Medalha dourada presa por fita', unlock: { type: 'level', level: 10 } },
   monocle:    { slot: 'face', emoji: '🧐', label: 'Monóculo',          desc: 'Lente elegante com corrente dourada', unlock: { type: 'level', level: 10 } },
   mustache:   { slot: 'face', emoji: '🥸', label: 'Bigodão',           desc: 'Bigode estiloso para um visual distinto', unlock: { type: 'shop', price: 30 } },
-  /* --- Slot BODY (novo) --- */
+  /* --- Slot HEAD extra (v3.5) --- */
+  halo:       { slot: 'head', emoji: '😇', label: 'Auréola',           desc: 'Anel dourado flutuante de anjo pixel', unlock: { type: 'level', level: 25 } },
+  horns:      { slot: 'head', emoji: '😈', label: 'Chifrinhos',         desc: 'Chifres vermelhos de diabinho travesso', unlock: { type: 'shop', price: 40 } },
+  headband:   { slot: 'head', emoji: '🤸', label: 'Bandana',            desc: 'Bandana colorida de atleta', unlock: { type: 'free' } },
+  /* --- Slot FACE extra (v3.5) --- */
+  blush:      { slot: 'face', emoji: '🥰', label: 'Blush',             desc: 'Bochechas coradas de animê fofinho', unlock: { type: 'free' } },
+  /* --- Slot BODY (v3.3) --- */
   ribbon:     { slot: 'body', emoji: '🎗️', label: 'Laço de Pescoço',  desc: 'Laçinho delicado de seda no pescoço', unlock: { type: 'free' } },
   wings:      { slot: 'body', emoji: '🪶', label: 'Asas',              desc: 'Asas leves que permitem planeio suave', unlock: { type: 'level', level: 15 } },
   cape:       { slot: 'body', emoji: '🦸', label: 'Capa de Herói',     desc: 'Capa esvoaçante de super-herói', unlock: { type: 'shop', price: 80 } },
-  armor:      { slot: 'body', emoji: '🛡️', label: 'Armadura',          desc: 'Armadura pixel-art com detalhes metálicos', unlock: { type: 'shop', price: 100 } }
+  armor:      { slot: 'body', emoji: '🛡️', label: 'Armadura',          desc: 'Armadura pixel-art com detalhes metálicos', unlock: { type: 'shop', price: 100 } },
+  /* --- Slot BODY extra (v3.5) --- */
+  scarf_body: { slot: 'body', emoji: '🧣', label: 'Cachecol Corpo',    desc: 'Cachecol enrolado no pescoço, ponta ao vento', unlock: { type: 'shop', price: 35 } }
 };
 
 /* ---- Modelos do pet (silhuetas na mesma grade 4 px) ---- */
@@ -1058,7 +1066,11 @@ var CLAWD_SHOP = {
   monocle:    { emoji: '🧐', label: 'Monóculo',            price: 35,  kind: 'accessory' },
   mustache:   { emoji: '🥸', label: 'Bigodão',             price: 30,  kind: 'accessory' },
   cape:       { emoji: '🦸', label: 'Capa de Herói',       price: 80,  kind: 'accessory' },
-  armor:      { emoji: '🛡️', label: 'Armadura',            price: 100, kind: 'accessory' }
+  armor:      { emoji: '🛡️', label: 'Armadura',            price: 100, kind: 'accessory' },
+  /* Novos acessórios v3.5 */
+  horns:      { emoji: '😈', label: 'Chifrinhos',           price: 40,  kind: 'accessory' },
+  blush:      { emoji: '🥰', label: 'Blush Animê',          price: 20,  kind: 'accessory' },
+  scarf_body: { emoji: '🧣', label: 'Cachecol Corpo',       price: 35,  kind: 'accessory' }
 };
 
 /* ---- Conquistas ---- */
@@ -1203,7 +1215,11 @@ function clawdSanitizeTimeHHMM(value) {
 function clawdSanitizeConfigValue(key, value) {
   switch (key) {
     case 'name':
-      return clawdSanitizePlainText(value, 24) || "Claw'd";
+      // Nome via textContent: permitir apostrofo ('), remover apenas controles e HTML perigoso
+      return String(value == null ? '' : value)
+        .replace(/[\u0000-\u001F\u007F<>&"`]/g, '')
+        .trim()
+        .slice(0, 24) || "Claw'd";
     case 'color':
     case 'eyeColor':
     case 'jerseyColor':
