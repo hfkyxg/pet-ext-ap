@@ -3101,6 +3101,14 @@
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
+/* Glow colorido das profissões durante ação ativa */
+#aic-clawd-node[data-profession="doctor"].healing     .sprite-stack { filter: drop-shadow(0 0 6px rgba(231,76,60,0.6)); }
+#aic-clawd-node[data-profession="artist"].painting    .sprite-stack { filter: drop-shadow(0 0 6px rgba(232,67,147,0.6)); }
+#aic-clawd-node[data-profession="gamer"].gaming       .sprite-stack { filter: drop-shadow(0 0 6px rgba(52,152,219,0.6)); }
+#aic-clawd-node[data-profession="streamer"].streaming .sprite-stack { filter: drop-shadow(0 0 6px rgba(255,71,87,0.6)); }
+#aic-clawd-node[data-profession="chef"].cooking       .sprite-stack { filter: drop-shadow(0 0 6px rgba(230,126,34,0.6)); }
+#aic-clawd-node[data-profession="musician"].jamming   .sprite-stack { filter: drop-shadow(0 0 6px rgba(142,68,173,0.6)); }
+
 /* ---- Props de profissão ---- */
 #aic-clawd-node .profession-prop {
   position: absolute;

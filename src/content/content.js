@@ -1538,7 +1538,27 @@ class ClawdCompanion {
         this._scrollReacting = true;
         if (this.state === 'idle' || this.state === 'walking') {
           this.setState('excited');
-          setTimeout(() => { if (!this._destroyed) this.setState('idle'); }, 900);
+          /* Partículas de velocidade conforme personalidade */
+          const curious = this.S.personality?.curious ?? 7;
+          if (curious >= 5 && this._canSpawnFx(2)) {
+            this.spawnParticles(['⚡', '💨']);
+          }
+          /* Scroll muito rápido (>3000px/s) → corrida horizontal */
+          let dashed = false;
+          if (speed > 3000 && (this.S.personality?.playful ?? 5) >= 4) {
+            setTimeout(() => {
+              if (this._destroyed || this.state === 'idle' || this.isAutoWalking || !this.node) return;
+              const rect = this.node.getBoundingClientRect();
+              const dir = Math.random() < 0.5 ? -1 : 1;
+              const span = 160 + Math.random() * 140;
+              const target = Math.max(10, Math.min(window.innerWidth - 90, rect.left + dir * span));
+              this.startRun(target);
+            }, 200);
+            dashed = true;
+          }
+          if (!dashed) {
+            setTimeout(() => { if (!this._destroyed) this.setState('idle'); }, 900);
+          }
         }
         setTimeout(() => { this._scrollReacting = false; }, 2000);
       }
@@ -1605,7 +1625,7 @@ class ClawdCompanion {
     if (effective.autoFace) this._trackAccessory(effective.autoFace);
     this.node.classList.toggle('has-ball', effective.profession === 'footballer');
     this.node.classList.toggle('has-jersey', effective.profession === 'footballer');
-    this.node.classList.remove('cooking', 'jamming', 'stealthing', 'thinking');
+    this.node.classList.remove('cooking', 'jamming', 'stealthing', 'thinking', 'healing', 'painting', 'gaming', 'streaming');
     if (effective.profession !== 'footballer') this.stopKeepyUppy();
     if (effective.profession !== 'fisher') this.stopFishing();
     if (effective.profession !== 'idle') {
@@ -1683,6 +1703,10 @@ class ClawdCompanion {
     }
     const tick = (now) => {
       if (!this._glide) return;
+      if (document.hidden) {
+        this.cancelGlide();
+        return;
+      }
       const g = this._glide;
       const dt = Math.min(32, Math.max(1, now - g.last)) / 16.67;
       g.last = now;
@@ -2486,10 +2510,12 @@ class ClawdCompanion {
   spawnParticles(emojis, opts = {}) {
     if (this._destroyed || this.S.settings.performanceMode || document.hidden) return;
     let pool = emojis || ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
-    /* v3.3: particleColor customizado altera o tema visual se for emoji neutro */
     const count = Math.min(8, Math.max(4, pool.length + 1));
     if (!this._canSpawnFx(count)) return;
     const rect = this.node.getBoundingClientRect();
+    /* v3.3: particleColor — glow colorido customizado nas partículas */
+    const pColor = this.S.particleColor;
+    const glowStyle = pColor ? `filter:drop-shadow(0 0 4px ${pColor});` : '';
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
         if (this._destroyed || document.hidden) return;
@@ -2503,6 +2529,7 @@ class ClawdCompanion {
           font-size:${13 + Math.random() * 9}px;
           pointer-events:none;
           animation:clawd-float-up ${0.75 + Math.random() * 0.45}s ease-out forwards;
+          ${glowStyle}
         `;
         el.textContent = pool[Math.floor(Math.random() * pool.length)];
         document.body.appendChild(el);
