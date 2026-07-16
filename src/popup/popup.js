@@ -134,6 +134,8 @@ function renderStats(stats) {
     const el = $(id);
     el.style.width = `${v}%`;
     el.classList.toggle('low', v < 30);
+    /* atualiza aria-valuenow no progressbar pai */
+    el.parentElement?.setAttribute('aria-valuenow', String(v));
   });
 }
 

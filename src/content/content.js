@@ -2199,6 +2199,10 @@ class ClawdCompanion {
   /* ---------- GAMIFICAÇÃO ---------- */
   addXp(amount) {
     amount = Math.max(0, Number(amount) || 0);
+    /* Bônus de streak: >=3 dias +20%, >=7 dias +50% */
+    const streakDays = this.S.game?.streak?.days || 0;
+    if (streakDays >= 7)      amount = Math.round(amount * 1.5);
+    else if (streakDays >= 3) amount = Math.round(amount * 1.2);
     const before = clawdLevelFromXp(this.S.xp).level;
     this.S.xp += amount;
     // PixelCoins: ~1 a cada 5 XP
@@ -3411,10 +3415,31 @@ class ClawdCompanion {
   }
 
   /* ---------- CONTEXTO DA PÁGINA / PROFISSÕES ---------- */
+  _detectGeneralPageContext() {
+    const url = location.hostname.toLowerCase();
+    const map = {
+      coding:   ['github', 'gitlab', 'stackoverflow', 'codepen', 'replit', 'codesandbox', 'npmjs', 'pypi', 'developer.', 'mdn'],
+      music:    ['spotify', 'soundcloud', 'music.youtube', 'deezer', 'last.fm', 'letras.mus', 'bandcamp'],
+      video:    ['youtube.com', 'netflix', 'twitch', 'primevideo', 'disneyplus'],
+      shopping: ['amazon', 'mercadolivre', 'shopee', 'aliexpress', 'magazineluiza', 'americanas'],
+      social:   ['twitter', 'x.com', 'instagram', 'facebook', 'tiktok', 'reddit', 'mastodon'],
+      news:     ['g1.globo', 'uol.com', 'bbc', 'cnn', 'folha.uol', 'estadao', 'theguardian'],
+      email:    ['gmail', 'mail.google', 'outlook', 'hotmail', 'yahoo.com/mail', 'protonmail'],
+      gaming:   ['steam', 'roblox', 'epicgames', 'itch.io', 'gog.com', 'gamespot', 'ign.com'],
+      health:   ['medscape', 'healthline', 'bula.ms', 'saude', 'medical', 'hospital'],
+      learning: ['coursera', 'udemy', 'khanacademy', 'duolingo', 'alura', 'dio.me']
+    };
+    for (const [ctx, domains] of Object.entries(map)) {
+      if (domains.some(d => url.includes(d))) { this._currentPageContext = ctx; return; }
+    }
+    this._currentPageContext = 'idle';
+  }
+
   _detectPageContext() {
     // limpa loops contextuais da profissão anterior (evita timers acumulados)
     (this._ctxTimers || []).forEach(clearInterval);
     this._ctxTimers = [];
+    this._detectGeneralPageContext();
     const prof = this.S.profession;
     if (prof === 'idle') return;
     const url = location.hostname.toLowerCase();
@@ -4464,10 +4489,12 @@ class ClawdCompanion {
             holdingBalloon: !!this._balloon,
             fishing: this._fishing,
             profession: this.S.profession,
+            pageContext: this._currentPageContext || 'idle',
             daily: clawdEnsureDailyQuest(this.S),
             weekly: clawdEnsureWeeklyChallenge(this.S),
             combo: this._comboCount,
             personality: this.S.personality,
+            streakDays: this.S.game?.streak?.days || 0,
             subpet: this.subpet ? {
               species: this.subpet.species,
               state: this.subpet.state,
