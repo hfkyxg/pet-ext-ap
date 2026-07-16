@@ -26,7 +26,7 @@ const RARITIES = ['common', 'rare', 'epic', 'legendary'];
 /* ---------- ACESSÓRIOS ---------- */
 test('todo acessório tem slot, arte e desbloqueio coerentes', () => {
   for (const [id, acc] of Object.entries(CLAWD_ACCESSORIES)) {
-    assert.ok(['head', 'face'].includes(acc.slot), `slot inválido em ${id}`);
+    assert.ok(['head', 'face', 'body'].includes(acc.slot), `slot inválido em ${id}`);
     assert.ok(acc.emoji && acc.label && acc.desc, `metadados faltando em ${id}`);
     assert.ok(acc.unlock && typeof acc.unlock.type === 'string', `unlock faltando em ${id}`);
     assert.ok(['free', 'shop', 'level'].includes(acc.unlock.type), `tipo de unlock inválido em ${id}`);
@@ -162,7 +162,7 @@ test('sprites de sub-pet cobrem todas as espécies e não duplicam no showcase',
 
 /* ---------- MISSÃO DIÁRIA ---------- */
 test('todo tipo de missão diária é uma fonte de progresso conhecida', () => {
-  const known = new Set(['pets', 'feed', 'play', 'dance', 'walk', 'fish', 'goals']);
+  const known = new Set(['pets', 'feed', 'play', 'dance', 'walk', 'fish', 'goals', 'bath', 'accessories', 'subpet', 'combo', 'profession']);
   for (const q of CLAWD_DAILY_QUESTS) {
     assert.ok(known.has(q.type), `tipo de missão desconhecido: ${q.type}`);
     assert.ok(q.target > 0 && q.rewardXp > 0 && q.rewardCoins > 0, `recompensa inválida em ${q.type}`);
@@ -203,7 +203,7 @@ test('migração recupera saves antigos sem perder progresso', () => {
     schemaVersion: 1, accessory: 'cap', model: 'inexistente',
     faceStyle: 'zzz', xp: 320, game: { counters: { goals: 12 } }
   });
-  assert.equal(migrated.schemaVersion, catalog.CLAWD_DAILY_QUESTS ? 4 : 4);
+  assert.equal(migrated.schemaVersion, catalog.CLAWD_SCHEMA_VERSION || 5);
   assert.equal(migrated.accessoryHead, 'cap', 'acessório único não migrou para o slot de cabeça');
   assert.equal(migrated.model, 'classic', 'modelo inválido não caiu para o padrão');
   assert.equal(migrated.faceStyle, 'classic', 'rosto inválido não caiu para o padrão');

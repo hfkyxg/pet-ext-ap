@@ -434,6 +434,114 @@
 #aic-clawd-node .fishing-rod-layer { z-index: 5; display: none; }
 #aic-clawd-node .balloon-layer { z-index: 6; display: none; pointer-events: none; }
 
+/* ===== ACESSÓRIOS — SLOT CABEÇA (novos v3.3) ===== */
+[data-acc-head="witch_hat"] .acc-head {
+  box-shadow:
+    /* ponta do chapéu */
+    20px -24px #2d1b4e, 20px -20px #3d2060,
+    16px -16px #4a2572, 20px -16px #3d2060, 24px -16px #4a2572,
+    /* corpo do chapéu */
+    12px -12px #5c2d88, 16px -12px #6a3698, 20px -12px #5c2d88, 24px -12px #5c2d88, 28px -12px #4a2572,
+    8px -8px #4a2572, 12px -8px #6a3698, 16px -8px #7b42aa, 20px -8px #6a3698, 24px -8px #7b42aa, 28px -8px #5c2d88, 32px -8px #4a2572,
+    /* aba larga */
+    0px -4px #2d1b4e, 4px -4px #3d2060, 8px -4px #4a2572, 12px -4px #5c2d88,
+    16px -4px #6a3698, 20px -4px #5c2d88, 24px -4px #6a3698,
+    28px -4px #5c2d88, 32px -4px #4a2572, 36px -4px #3d2060, 40px -4px #2d1b4e,
+    /* fivela dourada */
+    20px -8px #f1c40f;
+}
+[data-acc-head="bunny_ears"] .acc-head {
+  box-shadow:
+    /* orelha esquerda */
+    8px -20px #f2f4f6, 8px -16px #f2f4f6, 12px -16px #f2c0d0,
+    8px -12px #f2f4f6, 12px -12px #f2c0d0,
+    /* orelha direita */
+    32px -20px #f2f4f6, 32px -16px #f2f4f6, 28px -16px #f2c0d0,
+    32px -12px #f2f4f6, 28px -12px #f2c0d0,
+    /* base entre as orelhas */
+    12px -8px #f2f4f6, 16px -8px #f2f4f6, 20px -8px #f2c0d0, 24px -8px #f2f4f6, 28px -8px #f2f4f6;
+}
+[data-acc-head="party_hat"] .acc-head {
+  box-shadow:
+    /* ponta */
+    20px -24px #f1c40f,
+    18px -20px #e74c3c, 20px -20px #f1c40f, 22px -20px #3498db,
+    16px -16px #e74c3c, 20px -16px #9b59b6, 24px -16px #3498db,
+    /* corpo listrado */
+    12px -12px #e74c3c, 16px -12px #f1c40f, 20px -12px #27ae60, 24px -12px #3498db, 28px -12px #e74c3c,
+    8px -8px #f1c40f, 12px -8px #3498db, 16px -8px #e74c3c, 20px -8px #f1c40f,
+    24px -8px #9b59b6, 28px -8px #27ae60, 32px -8px #f1c40f,
+    /* pompom */
+    19px -26px #fff, 21px -26px #fff, 20px -27px #ffd;
+}
+[data-acc-head="visor"] .acc-head {
+  box-shadow:
+    /* viseira futurista com LEDs */
+    8px -8px #1a252f, 12px -8px #2c3e50, 16px -8px #00c0ff, 20px -8px #2c3e50,
+    24px -8px #00c0ff, 28px -8px #2c3e50, 32px -8px #1a252f,
+    8px -4px #0d1521, 12px -4px #1d2b3b, 16px -4px #2980b9,
+    20px -4px #1d2b3b, 24px -4px #2980b9, 28px -4px #1d2b3b, 32px -4px #0d1521,
+    /* led lateral esquerdo e direito */
+    4px -8px #00e5ff, 36px -8px #00e5ff;
+}
+
+/* ===== ACESSÓRIOS — SLOT ROSTO (novos v3.3) ===== */
+[data-acc-face="monocle"] .acc-face {
+  box-shadow:
+    /* aro do monóculo */
+    12px 4px #c7a84c, 16px 4px #dfc76a, 20px 4px #c7a84c,
+    8px 8px #c7a84c, 12px 8px rgba(200,220,255,0.3), 16px 8px rgba(180,220,255,0.25), 20px 8px rgba(200,220,255,0.3), 24px 8px #c7a84c,
+    8px 12px #c7a84c, 12px 12px rgba(200,220,255,0.2), 20px 12px rgba(200,220,255,0.2), 24px 12px #c7a84c,
+    12px 16px #c7a84c, 16px 16px #dfc76a, 20px 16px #c7a84c,
+    /* corrente */
+    24px 12px #c7a84c, 28px 16px #b8963c, 32px 20px #c7a84c;
+}
+[data-acc-face="mustache"] .acc-face {
+  box-shadow:
+    /* bigode largo */
+    4px 8px #2c1a0e, 8px 8px #3d2612, 12px 8px #2c1a0e,
+    4px 12px #4a3020, 8px 12px #3d2612, 12px 12px #2c1a0e, 16px 12px #111,
+    20px 12px #111, 24px 12px #2c1a0e, 28px 12px #3d2612, 32px 12px #4a3020,
+    28px 8px #2c1a0e, 32px 8px #3d2612, 36px 8px #2c1a0e;
+}
+
+/* ===== ACESSÓRIOS — SLOT CORPO (novos v3.3) ===== */
+[data-acc-body="ribbon"] .acc-body {
+  box-shadow:
+    /* laço de pescoço pequeno */
+    12px 4px #e74c3c, 16px 4px #ff6b6b, 20px 4px #e74c3c,
+    14px 8px #c0392b, 16px 8px #ff6b6b, 18px 8px #c0392b,
+    8px 4px #c0392b, 24px 4px #c0392b;
+}
+[data-acc-body="wings"] .acc-body {
+  box-shadow:
+    /* asa esquerda */
+    -8px -4px #e8f4f8, -12px -4px #b8d8e8, -8px 0 #d0e8f2, -12px 0 #a8c8dc, -4px 4px #c0d8ea,
+    -8px 4px #b0c8da, -12px 4px #90b0c8,
+    /* asa direita */
+    48px -4px #e8f4f8, 52px -4px #b8d8e8, 48px 0 #d0e8f2, 52px 0 #a8c8dc, 44px 4px #c0d8ea,
+    48px 4px #b0c8da, 52px 4px #90b0c8;
+}
+[data-acc-body="cape"] .acc-body {
+  box-shadow:
+    /* capa vermelha hero */
+    8px 4px #c0392b, 12px 4px #e74c3c, 16px 4px #e74c3c, 20px 4px #e74c3c, 24px 4px #e74c3c, 28px 4px #c0392b,
+    8px 8px #a93226, 12px 8px #e74c3c, 16px 8px #e74c3c, 20px 8px #e74c3c, 24px 8px #e74c3c, 28px 8px #a93226,
+    10px 12px #c0392b, 14px 12px #e74c3c, 20px 12px #e74c3c, 26px 12px #c0392b,
+    /* interior mais escuro */
+    12px 4px #922b21, 24px 4px #922b21;
+}
+[data-acc-body="armor"] .acc-body {
+  box-shadow:
+    /* peça peitoral metálica */
+    8px 0 #636e72, 12px 0 #95a5a6, 16px 0 #b2bec3, 20px 0 #95a5a6, 24px 0 #636e72, 28px 0 #636e72,
+    8px 4px #4a5568, 12px 4px #74838a, 16px 4px #95a5a6, 20px 4px #74838a, 24px 4px #4a5568, 28px 4px #4a5568,
+    12px 8px #636e72, 16px 8px #74838a, 20px 8px #636e72,
+    /* entalhe central e linhas da armadura */
+    18px 0 #2d3436, 22px 0 #2d3436,
+    18px 4px #2d3436;
+}
+
 /* ===== ACESSÓRIOS — SLOT ROSTO/CORPO ===== */
 [data-acc-face="glasses"] .acc-face {
   box-shadow:
@@ -3370,6 +3478,165 @@
   #aic-clawd-node.petting-subpet .pet-body,
   .aic-subpet.duo-play .subpet-sprite,
   .aic-subpet.being-petted .subpet-sprite {
+    animation: none !important;
+  }
+}
+
+/* ===================================================
+   CLAW'D v3.3 — NOVAS ANIMAÇÕES & ESTILOS
+   =================================================== */
+
+/* ---- Novos Keyframes v3.3 ---- */
+
+/* Acrobacia lateral (flip) */
+@keyframes clawd-flip {
+  0%   { transform: scale(var(--agent-scale,1.5)) scaleX(1) translateY(0); }
+  25%  { transform: scale(var(--agent-scale,1.5)) scaleX(-0.4) translateY(-10px); }
+  50%  { transform: scale(var(--agent-scale,1.5)) scaleX(-1) translateY(-18px); }
+  75%  { transform: scale(var(--agent-scale,1.5)) scaleX(0.4) translateY(-8px); }
+  100% { transform: scale(var(--agent-scale,1.5)) scaleX(1) translateY(0); }
+}
+
+/* Meditação flutuante */
+@keyframes clawd-meditate {
+  0%,100% { transform: scale(var(--agent-scale,1.5)) translateY(0); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)); }
+  40%     { transform: scale(var(--agent-scale,1.5)) translateY(-8px); filter: drop-shadow(0 2px 16px rgba(155,89,182,0.5)); }
+  70%     { transform: scale(var(--agent-scale,1.5)) translateY(-5px); filter: drop-shadow(0 3px 12px rgba(52,152,219,0.4)); }
+}
+
+/* Descarga elétrica */
+@keyframes clawd-electric {
+  0%,100% { transform: scale(var(--agent-scale,1.5)) translateX(0); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)); }
+  10%     { transform: scale(var(--agent-scale,1.5)) translateX(-3px); filter: drop-shadow(0 0 10px rgba(241,196,15,0.9)); }
+  20%     { transform: scale(var(--agent-scale,1.5)) translateX(3px); filter: drop-shadow(0 0 14px rgba(52,152,219,0.9)); }
+  30%     { transform: scale(var(--agent-scale,1.5)) translateX(-3px); filter: drop-shadow(0 0 10px rgba(241,196,15,0.8)); }
+  40%     { transform: scale(var(--agent-scale,1.5)) translateX(2px); filter: drop-shadow(0 0 12px rgba(52,152,219,0.7)); }
+  50%     { transform: scale(var(--agent-scale,1.5)) translateX(-2px); }
+}
+
+/* Flutuação idle (asas) */
+@keyframes clawd-float-idle {
+  0%,100% { transform: scale(var(--agent-scale,1.5)) translateY(0); }
+  50%     { transform: scale(var(--agent-scale,1.5)) translateY(-6px); }
+}
+
+/* Aura arco-íris (level 30) */
+@keyframes clawd-rainbow-glow {
+  0%   { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)) hue-rotate(0deg); }
+  100% { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)) hue-rotate(360deg); }
+}
+
+/* Partícula confetti com rotação aleatória */
+@keyframes clawd-confetti-fall {
+  0%   { opacity:1; transform: translateY(0) rotate(0deg); }
+  100% { opacity:0; transform: translateY(-80px) rotate(720deg); }
+}
+
+/* Name-tag arco-íris */
+@keyframes clawd-nametag-rainbow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Efeito holográfico (shimmer) */
+@keyframes clawd-holographic-shimmer {
+  0%   { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ---- Animações de estado (novos) ---- */
+#aic-clawd-node.flipping .pet-body,
+#aic-clawd-node.flipping .smooth-sprite {
+  animation: clawd-flip 0.9s ease-in-out both !important;
+}
+#aic-clawd-node.meditating .pet-body,
+#aic-clawd-node.meditating .smooth-sprite {
+  animation: clawd-meditate 2s ease-in-out both !important;
+}
+#aic-clawd-node.electrified .pet-body,
+#aic-clawd-node.electrified .smooth-sprite {
+  animation: clawd-electric 0.7s ease-in-out both !important;
+}
+
+/* Asas: flutuação suave no idle */
+#aic-clawd-node.has-wings.idle .pet-body,
+#aic-clawd-node.has-wings.idle .smooth-sprite {
+  animation: clawd-float-idle 3s ease-in-out infinite !important;
+}
+
+/* Aura arco-íris (level 30) */
+#aic-clawd-node.rainbow-aura .pet-body,
+#aic-clawd-node.rainbow-aura .smooth-sprite {
+  animation: clawd-rainbow-glow 3s linear infinite !important;
+}
+
+/* ---- Slot body: acessórios visuais ---- */
+#aic-clawd-node [data-acc-body="cape"] .acc-body::after,
+#aic-clawd-node.has-cape .acc-body::after {
+  content: '🦸';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  font-size: 10px;
+  pointer-events: none;
+}
+#aic-clawd-node.has-armor {
+  filter: drop-shadow(0 2px 4px rgba(52,73,94,0.6)) !important;
+}
+
+/* ---- Name-tag temas novos ---- */
+#aic-clawd-node[data-tag-theme="rainbow"] .pet-name {
+  background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+  background-size: 300% 300%;
+  animation: clawd-nametag-rainbow 3s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+#aic-clawd-node[data-tag-theme="rainbow"] .pet-label {
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+#aic-clawd-node[data-tag-theme="holographic"] .pet-label {
+  background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(80,80,200,0.5) 50%, rgba(0,0,0,0.7) 100%);
+  background-size: 200% 100%;
+  animation: clawd-holographic-shimmer 2.5s linear infinite;
+  border: 1px solid rgba(100,150,255,0.6);
+}
+#aic-clawd-node[data-tag-theme="holographic"] .pet-name {
+  color: #e0e8ff;
+  text-shadow: 0 0 8px rgba(100,150,255,0.8);
+}
+#aic-clawd-node[data-tag-theme="minimal"] .pet-label {
+  background: transparent;
+  border: none;
+  padding: 1px 4px;
+}
+#aic-clawd-node[data-tag-theme="minimal"] .pet-name {
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+/* ---- Partícula confetti ---- */
+.aic-particle-confetti {
+  animation: clawd-confetti-fall 0.9s ease-out forwards !important;
+}
+
+/* ---- Reduced motion: desabilita novos ---- */
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node.flipping .pet-body,
+  #aic-clawd-node.flipping .smooth-sprite,
+  #aic-clawd-node.meditating .pet-body,
+  #aic-clawd-node.meditating .smooth-sprite,
+  #aic-clawd-node.electrified .pet-body,
+  #aic-clawd-node.electrified .smooth-sprite,
+  #aic-clawd-node.has-wings.idle .pet-body,
+  #aic-clawd-node.has-wings.idle .smooth-sprite,
+  #aic-clawd-node.rainbow-aura .pet-body,
+  #aic-clawd-node.rainbow-aura .smooth-sprite {
     animation: none !important;
   }
 }

@@ -108,9 +108,26 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['clawdState'], (res) => {
     if (!res.clawdState) {
       chrome.storage.local.set({
-        clawdState: { schemaVersion: 4, position: { x: null, y: null }, profession: 'idle' }
+        clawdState: { schemaVersion: 5, position: { x: null, y: null }, profession: 'idle' }
       });
     }
+  });
+  /* v3.3: alarm semanal para reset do desafio — toda segunda-feira às 00:00 */
+  chrome.alarms.create('clawdWeeklyReset', {
+    periodInMinutes: 10080 // 7 dias
+  });
+});
+
+/* v3.3: Processamento do alarm semanal */
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name !== 'clawdWeeklyReset') return;
+  /* Notifica todas as abas para resetar o desafio semanal */
+  chrome.tabs.query({}, (tabs) => {
+    tabs.forEach(tab => {
+      if (tab.id) {
+        chrome.tabs.sendMessage(tab.id, { action: 'weeklyReset' }).catch(() => {});
+      }
+    });
   });
 });
 

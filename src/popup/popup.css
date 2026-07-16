@@ -1067,6 +1067,19 @@ input[type="color"] {
 .daily-claim:not(:disabled):hover { background: rgba(241,196,15,0.32); transform: translateY(-1px); }
 .daily-claim:disabled { cursor: default; opacity: .65; }
 
+/* ---- DESAFIO SEMANAL v3.3 ---- */
+.weekly-challenge {
+  padding: 11px 12px;
+  margin: 0 0 12px;
+  border: 1px solid rgba(155,89,182,0.45);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(155,89,182,0.12), rgba(52,73,94,0.08));
+}
+.weekly-challenge .daily-top { color: #9b59b6; }
+.weekly-challenge .daily-bar div { background: linear-gradient(90deg, #9b59b6, #6c3483); }
+.weekly-challenge .daily-claim { border-color: #9b59b6; background: rgba(155,89,182,0.16); }
+.weekly-challenge .daily-claim:not(:disabled):hover { background: rgba(155,89,182,0.32); }
+
 /* ---- CONQUISTAS ---- */
 .ach-summary {
   font-size: 12px;

@@ -50,7 +50,7 @@ function setConfig(key, value) {
   S[key] = safe;
   sendMsg({ action: 'updateConfig', key, value: safe });
   persist(st => { st[key] = safe; });
-  if (['color', 'eyeColor', 'model', 'faceStyle', 'smooth', 'outline', 'skin', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace'].includes(key)) {
+  if (['color', 'eyeColor', 'model', 'faceStyle', 'smooth', 'outline', 'skin', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace', 'accessoryBody'].includes(key)) {
     syncHeaderPetPreview();
     renderOutfitPreview();
   }
@@ -177,14 +177,16 @@ function renderOutfitPreview() {
   const effective = clawdEffectiveAccessories(S);
   const head = CLAWD_ACCESSORIES[effective.head];
   const face = CLAWD_ACCESSORIES[effective.face];
+  const body = CLAWD_ACCESSORIES[effective.body];
   const automatic = [effective.autoHead, effective.autoFace]
     .filter(Boolean)
     .map(id => CLAWD_ACCESSORIES[id]?.label)
     .filter(Boolean);
-  const equipped = [head?.label, face?.label].filter(Boolean);
+  const equipped = [head?.label, face?.label, body?.label].filter(Boolean);
 
   preview.dataset.accHead = effective.head;
   preview.dataset.accFace = effective.face;
+  preview.dataset.accBody = effective.body || 'none';
   preview.dataset.model = S.model || 'classic';
   preview.dataset.faceStyle = S.faceStyle || 'classic';
   preview.dataset.skin = S.skin || 'normal';
@@ -192,6 +194,9 @@ function renderOutfitPreview() {
   preview.classList.toggle('smooth', !!S.smooth);
   preview.classList.toggle('outlined', !!S.outline);
   preview.classList.toggle('has-jersey', effective.profession === 'footballer');
+  preview.classList.toggle('has-wings', effective.body === 'wings');
+  preview.classList.toggle('has-cape', effective.body === 'cape');
+  preview.classList.toggle('has-armor', effective.body === 'armor');
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
   preview.style.setProperty('--jersey-color', S.jerseyColor || '#e74c3c');
@@ -201,7 +206,7 @@ function renderOutfitPreview() {
   $('outfit-preview-title').textContent = equipped.length ? equipped.join(' + ') : 'Visual sem acessórios';
   $('outfit-preview-detail').textContent = automatic.length
     ? `${automatic.join(' + ')} temporário da profissão; sua escolha pessoal está salva.`
-    : `${CLAWD_MODELS[S.model]?.label || 'Clássico'} · ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'} · ${S.smooth ? 'liso sem grade' : 'pixel-art'} · dois slots combináveis`;
+    : `${CLAWD_MODELS[S.model]?.label || 'Clássico'} · ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'} · ${S.smooth ? 'liso sem grade' : 'pixel-art'} · três slots combináveis`;
 }
 
 /* Busca stats ao vivo do content script */
@@ -221,6 +226,7 @@ function pollLiveStats() {
         const rec = $('keepy-record');
         if (rec) rec.querySelector('b').textContent = res.keepyRecord;
         if (res.daily) renderDailyQuest(res.daily);
+        if (res.weekly) renderWeeklyChallenge(res.weekly);
       })
       .catch(() => { scrubLastError(); });
   });
@@ -268,6 +274,60 @@ function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
 
   if (done && !daily.claimed) button.addEventListener('click', () => {
     sendMsg({ action: 'claimDailyQuest' });
+    setTimeout(pollLiveStats, 300);
+  });
+}
+
+function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
+  const box = $('weekly-challenge');
+  if (!box || !weekly) return;
+  const progress = Math.min(weekly.progress || 0, weekly.target);
+  const done = progress >= weekly.target;
+  box.replaceChildren();
+
+  const top = document.createElement('div');
+  top.className = 'daily-top';
+  const title = document.createElement('span');
+  title.textContent = `${weekly.badge || '🏆'} Desafio semanal`;
+  const progressEl = document.createElement('b');
+  progressEl.textContent = `${progress}/${weekly.target}`;
+  top.appendChild(title);
+  top.appendChild(progressEl);
+
+  const label = document.createElement('div');
+  label.className = 'daily-label';
+  label.textContent = String(weekly.label || '');
+
+  const desc = document.createElement('div');
+  desc.className = 'daily-label';
+  desc.style.cssText = 'font-size:10px;opacity:0.7;';
+  desc.textContent = String(weekly.desc || '');
+
+  const bar = document.createElement('div');
+  bar.className = 'daily-bar';
+  bar.style.background = 'rgba(155,89,182,0.2)';
+  const fill = document.createElement('div');
+  fill.style.cssText = `width:${Math.round(progress / weekly.target * 100)}%; background: #9b59b6;`;
+  bar.appendChild(fill);
+
+  const button = document.createElement('button');
+  button.className = 'daily-claim';
+  button.style.borderColor = '#9b59b6';
+  button.disabled = !done || !!weekly.claimed;
+  button.textContent = weekly.claimed
+    ? '✅ Resgatado'
+    : done
+      ? `Resgatar +${weekly.rewardCoins} 🪙`
+      : `+${weekly.rewardXp} XP ao concluir`;
+
+  box.appendChild(top);
+  box.appendChild(label);
+  box.appendChild(desc);
+  box.appendChild(bar);
+  box.appendChild(button);
+
+  if (done && !weekly.claimed) button.addEventListener('click', () => {
+    sendMsg({ action: 'claimWeeklyChallenge' });
     setTimeout(pollLiveStats, 300);
   });
 }
@@ -446,12 +506,14 @@ function accessoryUnlocked(id) {
 
 function renderAccessories() {
   const effective = clawdEffectiveAccessories(S);
-  ['head', 'face'].forEach(slot => {
-    const grid = $(slot === 'head' ? 'acc-head-grid' : 'acc-face-grid');
+  ['head', 'face', 'body'].forEach(slot => {
+    const gridId = slot === 'head' ? 'acc-head-grid' : slot === 'face' ? 'acc-face-grid' : 'acc-body-grid';
+    const grid = $(gridId);
+    if (!grid) return;
     grid.innerHTML = '';
-    const configKey = slot === 'head' ? 'accessoryHead' : 'accessoryFace';
+    const configKey = slot === 'head' ? 'accessoryHead' : slot === 'face' ? 'accessoryFace' : 'accessoryBody';
     const current = S[configKey] || 'none';
-    const autoId = slot === 'head' ? effective.autoHead : effective.autoFace;
+    const autoId = slot === 'head' ? effective.autoHead : slot === 'face' ? effective.autoFace : null;
 
     // card "nenhum"
     const noneCard = document.createElement('button');
@@ -466,7 +528,8 @@ function renderAccessories() {
     noneName.className = 'acc-name';
     noneName.textContent = 'Nenhum';
     noneCard.append(noneArt, noneName);
-    noneCard.title = `Remover acessório de ${slot === 'head' ? 'cabeça' : 'rosto e corpo'}`;
+    const slotName = slot === 'head' ? 'cabeça' : slot === 'face' ? 'rosto' : 'corpo';
+    noneCard.title = `Remover acessório de ${slotName}`;
     noneCard.setAttribute('aria-label', noneCard.title);
     noneCard.setAttribute('aria-pressed', String(current === 'none'));
     noneCard.addEventListener('click', () => { setConfig(configKey, 'none'); renderAccessories(); });
@@ -489,6 +552,14 @@ function renderAccessories() {
         face: slot === 'face' ? id : 'none',
         className: 'accessory-art-preview'
       }));
+      /* body: mostra emoji como label visual se sem art */
+      if (slot === 'body' && def.emoji) {
+        const emojiEl = document.createElement('span');
+        emojiEl.className = 'acc-body-emoji';
+        emojiEl.textContent = def.emoji;
+        emojiEl.style.cssText = 'font-size:18px;display:block;margin-bottom:2px;';
+        card.insertBefore(emojiEl, card.firstChild);
+      }
       const name = document.createElement('span');
       name.className = 'acc-name';
       name.textContent = def.label;
@@ -527,7 +598,9 @@ function renderAccessories() {
     });
 
     const selected = CLAWD_ACCESSORIES[current];
-    const description = $(slot === 'head' ? 'acc-head-description' : 'acc-face-description');
+    const descId = slot === 'head' ? 'acc-head-description' : slot === 'face' ? 'acc-face-description' : 'acc-body-description';
+    const description = $(descId);
+    if (!description) return;
     const automatic = autoId && CLAWD_ACCESSORIES[autoId];
     description.textContent = automatic
       ? `${automatic.emoji} ${automatic.label} está em uso pela profissão. ${selected ? `Sua escolha ${selected.label}` : 'A opção sem acessório'} volta no modo Livre.`
@@ -535,7 +608,9 @@ function renderAccessories() {
       ? `${selected.emoji} ${selected.label} — ${selected.desc}`
       : slot === 'head'
         ? 'Sem chapéu selecionado.'
-        : 'Sem acessório de rosto ou corpo selecionado.';
+        : slot === 'face'
+        ? 'Sem acessório de rosto selecionado.'
+        : 'Sem acessório de corpo selecionado.';
   });
   renderOutfitPreview();
 }
@@ -821,15 +896,20 @@ function renderShop() {
         persist(st => {
           if ((st.game.coins || 0) < def.price) return;
           st.game.coins -= def.price;
-          if (!st.game.inventory.includes(id)) st.game.inventory.push(id);
+          if (!st.game.inventory.includes(id)) {
+            st.game.inventory.push(id);
+            /* v3.3: track compras para conquista shopaholic */
+            st.game.counters.shopPurchases = (st.game.counters.shopPurchases || 0) + 1;
+          }
         });
         setTimeout(() => { renderShop(); renderHeader(); renderAccessories(); }, 120);
       });
     } else if (def.kind === 'accessory') {
       btn.textContent = 'Equipar';
       btn.addEventListener('click', () => {
-        const slot = CLAWD_ACCESSORIES[id]?.slot === 'head' ? 'accessoryHead' : 'accessoryFace';
-        setConfig(slot, id);
+        const accSlot = CLAWD_ACCESSORIES[id]?.slot;
+        const configKey = accSlot === 'head' ? 'accessoryHead' : accSlot === 'body' ? 'accessoryBody' : 'accessoryFace';
+        setConfig(configKey, id);
         renderAccessories();
       });
     } else if (def.kind === 'ball') {
@@ -881,6 +961,7 @@ function renderAchievements() {
   streakBox.appendChild(streakB);
   streakBox.append(' — volte amanhã para bônus de XP!');
   renderDailyQuest(S.daily);
+  renderWeeklyChallenge(clawdEnsureWeeklyChallenge(S));
 }
 
 /* =====================================================
@@ -894,6 +975,25 @@ function renderConfig() {
   $('toggle-sounds').checked = !!set.sounds;
   $('range-volume').value = set.soundVolume ?? 0.4;
   $('volume-badge').textContent = `${Math.round((set.soundVolume ?? 0.4) * 100)}%`;
+  /* v3.3: volumes por categoria */
+  const raEl = $('range-volume-actions');
+  if (raEl) {
+    raEl.value = set.soundVolumeActions ?? 1.0;
+    $('volume-actions-badge').textContent = `${Math.round((set.soundVolumeActions ?? 1.0) * 100)}%`;
+  }
+  const rbEl = $('range-volume-ambient');
+  if (rbEl) {
+    rbEl.value = set.soundVolumeAmbient ?? 0.6;
+    $('volume-ambient-badge').textContent = `${Math.round((set.soundVolumeAmbient ?? 0.6) * 100)}%`;
+  }
+  /* v3.3: cor de partículas */
+  const pcEl = $('input-particle-color');
+  if (pcEl && S.particleColor) pcEl.value = S.particleColor;
+  const pcHex = $('particle-color-hex');
+  if (pcHex) pcHex.textContent = S.particleColor || '(padrão)';
+  /* v3.3: frases customizadas */
+  const csEl = $('custom-speech');
+  if (csEl) csEl.value = (S.customSpeech || []).join('\n');
   $('quiet-start').value = set.quietStart || '';
   $('quiet-end').value = set.quietEnd || '';
   $('blocked-sites').value = (set.blockedSites || []).join('\n');
@@ -947,6 +1047,44 @@ function bindConfig() {
     if (!$('toggle-sounds').checked) return;
     clearTimeout(_volPreviewTimer);
     _volPreviewTimer = setTimeout(() => previewVolumeChirp(v), 50);
+  });
+  /* v3.3: volumes por categoria */
+  const raEl = $('range-volume-actions');
+  if (raEl) raEl.addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    $('volume-actions-badge').textContent = `${Math.round(v * 100)}%`;
+    setSetting('soundVolumeActions', v);
+  });
+  const rbEl = $('range-volume-ambient');
+  if (rbEl) rbEl.addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    $('volume-ambient-badge').textContent = `${Math.round(v * 100)}%`;
+    setSetting('soundVolumeAmbient', v);
+  });
+  /* v3.3: cor de partículas */
+  const pcEl = $('input-particle-color');
+  if (pcEl) {
+    pcEl.addEventListener('input', e => {
+      const hex = e.target.value;
+      const hexEl = $('particle-color-hex');
+      if (hexEl) hexEl.textContent = hex;
+      setConfig('particleColor', hex);
+    });
+  }
+  const pcClearEl = $('particle-color-clear');
+  if (pcClearEl) pcClearEl.addEventListener('click', () => {
+    const pcEl2 = $('input-particle-color');
+    if (pcEl2) pcEl2.value = '#f1c40f';
+    const hexEl = $('particle-color-hex');
+    if (hexEl) hexEl.textContent = '(padrão)';
+    setConfig('particleColor', null);
+  });
+  /* v3.3: frases customizadas */
+  const csEl = $('custom-speech');
+  if (csEl) csEl.addEventListener('change', e => {
+    const lines = e.target.value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 20);
+    persist(st => { st.customSpeech = lines; });
+    S.customSpeech = lines;
   });
   $('quiet-start').addEventListener('change', e => setSetting('quietStart', e.target.value));
   $('quiet-end').addEventListener('change', e => setSetting('quietEnd', e.target.value));

@@ -19,7 +19,7 @@
     </div>
     <div class="header-info">
       <div class="header-top">
-        <h1 class="brand">Claw'd <span class="version">v3.2</span></h1>
+        <h1 class="brand">Claw'd <span class="version">v3.3</span></h1>
         <span class="coins-pill" id="coins-pill" title="PixelCoins">🪙 <span id="coins-count">0</span></span>
       </div>
       <div class="xp-area">
@@ -167,9 +167,14 @@
       <p class="accessory-description" id="acc-head-description">Escolha um chapéu para ver os detalhes.</p>
     </div>
     <div class="control-group">
-      <label>Acessório — Rosto/Corpo</label>
+      <label>Acessório — Rosto</label>
       <div class="accessory-grid" id="acc-face-grid"></div>
       <p class="accessory-description" id="acc-face-description">Escolha um acessório para ver os detalhes.</p>
+    </div>
+    <div class="control-group">
+      <label>Acessório — Corpo <span class="value-badge" style="font-size:9px">NOVO</span></label>
+      <div class="accessory-grid" id="acc-body-grid"></div>
+      <p class="accessory-description" id="acc-body-description">Escolha um item de corpo para ver os detalhes.</p>
     </div>
 
   </div>
@@ -282,8 +287,9 @@
 
   <!-- PAINEL CONQUISTAS -->
   <div class="tab-panel" id="tab-achievements">
-    <div class="ach-summary" id="ach-summary">0 / 7 desbloqueadas</div>
+    <div class="ach-summary" id="ach-summary">0 / 25 desbloqueadas</div>
     <div class="daily-quest" id="daily-quest" aria-live="polite"></div>
+    <div class="weekly-challenge" id="weekly-challenge" aria-live="polite"></div>
     <div class="ach-list" id="ach-list"></div>
     <div class="divider"></div>
     <div class="streak-box" id="streak-box">🔥 Streak: <b>0 dias</b></div>
@@ -299,6 +305,9 @@
         <button class="mini-card" data-theme="dark"><span>🌙</span>Escuro</button>
         <button class="mini-card" data-theme="neon"><span>💠</span>Neon</button>
         <button class="mini-card" data-theme="invisible"><span>🫥</span>Oculto</button>
+        <button class="mini-card" data-theme="rainbow"><span>🌈</span>Arco-íris</button>
+        <button class="mini-card" data-theme="holographic"><span>✨</span>Holográfico</button>
+        <button class="mini-card" data-theme="minimal"><span>🪶</span>Minimal</button>
       </div>
     </div>
 
@@ -310,8 +319,16 @@
       <label class="toggle-switch"><input type="checkbox" id="toggle-sounds" checked><span class="slider"></span></label>
     </div>
     <div class="control-group indent">
-      <label for="range-volume">Volume <span class="value-badge" id="volume-badge">40%</span></label>
+      <label for="range-volume">Volume geral <span class="value-badge" id="volume-badge">40%</span></label>
       <input type="range" id="range-volume" min="0" max="1" step="0.1" value="0.4">
+    </div>
+    <div class="control-group indent">
+      <label for="range-volume-actions">Volume de ações <span class="value-badge" id="volume-actions-badge">100%</span></label>
+      <input type="range" id="range-volume-actions" min="0" max="1" step="0.1" value="1">
+    </div>
+    <div class="control-group indent">
+      <label for="range-volume-ambient">Volume ambiente <span class="value-badge" id="volume-ambient-badge">60%</span></label>
+      <input type="range" id="range-volume-ambient" min="0" max="1" step="0.1" value="0.6">
     </div>
 
     <div class="control-group">
@@ -347,6 +364,22 @@
         <span class="toggle-desc">Desativa partículas, 3D e sub-pet</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-performance"><span class="slider"></span></label>
+    </div>
+
+    <div class="control-group">
+      <label for="input-particle-color">🎨 Cor das partículas</label>
+      <div class="input-row color-row">
+        <input type="color" id="input-particle-color" value="#f1c40f" title="Cor customizada das partículas">
+        <span class="color-label" id="particle-color-hex">#f1c40f</span>
+        <button class="btn-mini" id="particle-color-clear" title="Usar padrão">✖</button>
+      </div>
+      <span class="toggle-desc">Deixe vazio para usar a cor padrão das ações.</span>
+    </div>
+
+    <div class="control-group">
+      <label for="custom-speech">💬 Frases personalizadas do pet</label>
+      <textarea id="custom-speech" rows="3" placeholder="Uma frase por linha&#10;ex: Olá mundo! 🌍"></textarea>
+      <span class="toggle-desc">O pet dirá essas frases aleatoriamente.</span>
     </div>
 
     <div class="divider"></div>

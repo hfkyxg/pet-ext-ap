@@ -4,21 +4,65 @@
    Zero dependências — apenas globais.
    =================================================== */
 
-var CLAWD_SCHEMA_VERSION = 4;
+var CLAWD_SCHEMA_VERSION = 5;
 
 var CLAWD_DAILY_QUESTS = [
-  { type: 'pets', target: 3, label: 'Dê carinho ao Claw\'d 3 vezes', rewardXp: 18, rewardCoins: 4 },
-  { type: 'feed', target: 2, label: 'Alimente seu companheiro 2 vezes', rewardXp: 16, rewardCoins: 4 },
-  { type: 'play', target: 2, label: 'Brinque com o pet 2 vezes', rewardXp: 16, rewardCoins: 4 },
-  { type: 'dance', target: 2, label: 'Dance junto 2 vezes', rewardXp: 18, rewardCoins: 5 },
-  { type: 'walk', target: 3, label: 'Faça o pet passear 3 vezes', rewardXp: 20, rewardCoins: 5 },
-  { type: 'fish', target: 2, label: 'Pesque 2 vezes', rewardXp: 20, rewardCoins: 5 },
-  { type: 'goals', target: 2, label: 'Marque 2 golaços', rewardXp: 22, rewardCoins: 6 }
+  { type: 'pets',       target: 3, label: 'Dê carinho ao Claw\'d 3 vezes',         rewardXp: 18, rewardCoins: 4 },
+  { type: 'feed',       target: 2, label: 'Alimente seu companheiro 2 vezes',        rewardXp: 16, rewardCoins: 4 },
+  { type: 'play',       target: 2, label: 'Brinque com o pet 2 vezes',               rewardXp: 16, rewardCoins: 4 },
+  { type: 'dance',      target: 2, label: 'Dance junto 2 vezes',                     rewardXp: 18, rewardCoins: 5 },
+  { type: 'walk',       target: 3, label: 'Faça o pet passear 3 vezes',              rewardXp: 20, rewardCoins: 5 },
+  { type: 'fish',       target: 2, label: 'Pesque 2 vezes',                          rewardXp: 20, rewardCoins: 5 },
+  { type: 'goals',      target: 2, label: 'Marque 2 golaços',                        rewardXp: 22, rewardCoins: 6 },
+  { type: 'bath',       target: 2, label: 'Dê banho no pet 2 vezes',                 rewardXp: 16, rewardCoins: 4 },
+  { type: 'accessories',target: 1, label: 'Troque de acessório pelo menos 1 vez',    rewardXp: 14, rewardCoins: 3 },
+  { type: 'subpet',     target: 3, label: 'Interaja com seu sub-pet 3 vezes',        rewardXp: 18, rewardCoins: 5 },
+  { type: 'combo',      target: 3, label: 'Faça um combo de 3 ações seguidas',       rewardXp: 22, rewardCoins: 6 },
+  { type: 'profession', target: 1, label: 'Use uma profissão por pelo menos 1 ciclo',rewardXp: 20, rewardCoins: 5 }
+];
+
+/* ---- Desafios Semanais (rotação por hash da semana ISO) ---- */
+var CLAWD_WEEKLY_CHALLENGES = [
+  { type: 'fish',    target: 8,  label: 'Pescador da Semana',    desc: 'Pesque 8 vezes nesta semana',          rewardXp: 80, rewardCoins: 20, badge: '🎣' },
+  { type: 'dance',   target: 10, label: 'Febre Semanal',         desc: 'Dance 10 vezes nesta semana',           rewardXp: 90, rewardCoins: 22, badge: '🕺' },
+  { type: 'pets',    target: 15, label: 'Carinhoso Demais',      desc: 'Dê carinho 15 vezes nesta semana',      rewardXp: 85, rewardCoins: 20, badge: '❤️'  },
+  { type: 'walk',    target: 20, label: 'Maratonista Digital',   desc: 'Faça o pet passear 20 vezes',           rewardXp: 95, rewardCoins: 25, badge: '🏃' }
 ];
 
 function clawdDailyQuestForDate(date = new Date().toISOString().slice(0, 10)) {
   const hash = String(date).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return { date, ...CLAWD_DAILY_QUESTS[hash % CLAWD_DAILY_QUESTS.length], progress: 0, claimed: false };
+}
+
+/* Retorna a semana ISO (YYYY-Www) de uma data */
+function clawdISOWeek(date) {
+  const d = date ? new Date(date) : new Date();
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const start = new Date(jan4);
+  start.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+  const diff = d - start;
+  const week = Math.floor(diff / 604800000) + 1;
+  return `${d.getFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+
+function clawdWeeklyChallengeForWeek(weekKey) {
+  const hash = String(weekKey).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return { weekKey, ...CLAWD_WEEKLY_CHALLENGES[hash % CLAWD_WEEKLY_CHALLENGES.length], progress: 0, claimed: false };
+}
+
+function clawdEnsureWeeklyChallenge(state) {
+  const weekKey = clawdISOWeek();
+  if (!state.weekly || state.weekly.weekKey !== weekKey) {
+    state.weekly = clawdWeeklyChallengeForWeek(weekKey);
+  }
+  return state.weekly;
+}
+
+function clawdRegisterWeeklyProgress(state, type, amount = 1) {
+  const challenge = clawdEnsureWeeklyChallenge(state);
+  if (challenge.type !== type || challenge.claimed) return challenge;
+  challenge.progress = Math.min(challenge.target, (challenge.progress || 0) + amount);
+  return challenge;
 }
 
 function clawdEnsureDailyQuest(state, date = new Date().toISOString().slice(0, 10)) {
@@ -56,22 +100,35 @@ var CLAWD_RARITY = {
   legendary: { label: 'Lendário', color: '#f1c40f', glow: 'rgba(241,196,15,0.8)', stars: 4 }
 };
 
-/* ---- Acessórios (2 slots: head + face) ---- */
+/* ---- Acessórios (3 slots: head + face + body) ---- */
 var CLAWD_ACCESSORIES = {
-  cap:        { slot: 'head', emoji: '🧢', label: 'Boné',            desc: 'Boné esportivo com aba, painéis e botão', unlock: { type: 'free' } },
-  tophat:     { slot: 'head', emoji: '🎩', label: 'Cartola',          desc: 'Cartola clássica com faixa violeta', unlock: { type: 'shop', price: 40 } },
-  crown:      { slot: 'head', emoji: '👑', label: 'Coroa',            desc: 'Coroa dourada com três joias', unlock: { type: 'level', level: 20 } },
-  chefhat:    { slot: 'head', emoji: '👨‍🍳', label: 'Chapéu Chef',     desc: 'Touca de chef com gomos e faixa', unlock: { type: 'shop', price: 35 } },
-  ninjaband:  { slot: 'head', emoji: '🥷', label: 'Faixa Ninja',      desc: 'Faixa ninja com nó e pontas ao vento', unlock: { type: 'shop', price: 35 } },
-  fishhat:    { slot: 'head', emoji: '🎣', label: 'Chapéu Pescador', desc: 'Chapelão de pesca com aba larga e distintivo', unlock: { type: 'free' } },
-  propeller:  { slot: 'head', emoji: '🪖', label: 'Capacete Hélice', desc: 'Capacete colorido com hélice animada', unlock: { type: 'shop', price: 45 } },
-  glasses:    { slot: 'face', emoji: '👓', label: 'Óculos',          desc: 'Armação leve com lentes translúcidas', unlock: { type: 'free' } },
-  sunglasses: { slot: 'face', emoji: '🕶️', label: 'Óc. de Sol',     desc: 'Óculos escuros com lentes, ponte e reflexo', unlock: { type: 'free' } },
-  bow:        { slot: 'face', emoji: '🎀', label: 'Laço',            desc: 'Laço rosa com centro destacado', unlock: { type: 'free' } },
-  headphones: { slot: 'face', emoji: '🎧', label: 'Fones',           desc: 'Fones acolchoados sobre a cabeça', unlock: { type: 'free' } },
-  scarf:      { slot: 'face', emoji: '🧣', label: 'Cachecol',        desc: 'Cachecol vermelho com ponta animada', unlock: { type: 'shop', price: 30 } },
-  backpack:   { slot: 'face', emoji: '🎒', label: 'Mochilinha',      desc: 'Mochila compacta com bolso e fivela', unlock: { type: 'shop', price: 30 } },
-  medal:      { slot: 'face', emoji: '🏅', label: 'Medalha',         desc: 'Medalha dourada presa por fita', unlock: { type: 'level', level: 10 } }
+  /* --- Slot HEAD --- */
+  cap:        { slot: 'head', emoji: '🧢', label: 'Boné',             desc: 'Boné esportivo com aba, painéis e botão', unlock: { type: 'free' } },
+  tophat:     { slot: 'head', emoji: '🎩', label: 'Cartola',           desc: 'Cartola clássica com faixa violeta', unlock: { type: 'shop', price: 40 } },
+  crown:      { slot: 'head', emoji: '👑', label: 'Coroa',             desc: 'Coroa dourada com três joias', unlock: { type: 'level', level: 20 } },
+  chefhat:    { slot: 'head', emoji: '👨‍🍳', label: 'Chapéu Chef',      desc: 'Touca de chef com gomos e faixa', unlock: { type: 'shop', price: 35 } },
+  ninjaband:  { slot: 'head', emoji: '🥷', label: 'Faixa Ninja',       desc: 'Faixa ninja com nó e pontas ao vento', unlock: { type: 'shop', price: 35 } },
+  fishhat:    { slot: 'head', emoji: '🎣', label: 'Chapéu Pescador',   desc: 'Chapelão de pesca com aba larga e distintivo', unlock: { type: 'free' } },
+  propeller:  { slot: 'head', emoji: '🪖', label: 'Capacete Hélice',  desc: 'Capacete colorido com hélice animada', unlock: { type: 'shop', price: 45 } },
+  witch_hat:  { slot: 'head', emoji: '🧙', label: 'Chapéu Bruxa',     desc: 'Chapéu pontudo com fivela e brim largo', unlock: { type: 'shop', price: 55 } },
+  bunny_ears: { slot: 'head', emoji: '🐰', label: 'Orelhas de Coelho', desc: 'Orelhinhas cor-de-rosa suaves e fofas', unlock: { type: 'shop', price: 45 } },
+  party_hat:  { slot: 'head', emoji: '🎉', label: 'Chapéu de Festa',   desc: 'Chapéu pontudo listrado com pompom', unlock: { type: 'level', level: 5 } },
+  visor:      { slot: 'head', emoji: '🎮', label: 'Viseira Gamer',     desc: 'Viseira futurista com LEDs laterais', unlock: { type: 'shop', price: 60 } },
+  /* --- Slot FACE --- */
+  glasses:    { slot: 'face', emoji: '👓', label: 'Óculos',            desc: 'Armação leve com lentes translúcidas', unlock: { type: 'free' } },
+  sunglasses: { slot: 'face', emoji: '🕶️', label: 'Óc. de Sol',       desc: 'Óculos escuros com lentes, ponte e reflexo', unlock: { type: 'free' } },
+  bow:        { slot: 'face', emoji: '🎀', label: 'Laço',              desc: 'Laço rosa com centro destacado', unlock: { type: 'free' } },
+  headphones: { slot: 'face', emoji: '🎧', label: 'Fones',             desc: 'Fones acolchoados sobre a cabeça', unlock: { type: 'free' } },
+  scarf:      { slot: 'face', emoji: '🧣', label: 'Cachecol',          desc: 'Cachecol vermelho com ponta animada', unlock: { type: 'shop', price: 30 } },
+  backpack:   { slot: 'face', emoji: '🎒', label: 'Mochilinha',        desc: 'Mochila compacta com bolso e fivela', unlock: { type: 'shop', price: 30 } },
+  medal:      { slot: 'face', emoji: '🏅', label: 'Medalha',           desc: 'Medalha dourada presa por fita', unlock: { type: 'level', level: 10 } },
+  monocle:    { slot: 'face', emoji: '🧐', label: 'Monóculo',          desc: 'Lente elegante com corrente dourada', unlock: { type: 'level', level: 10 } },
+  mustache:   { slot: 'face', emoji: '🥸', label: 'Bigodão',           desc: 'Bigode estiloso para um visual distinto', unlock: { type: 'shop', price: 30 } },
+  /* --- Slot BODY (novo) --- */
+  ribbon:     { slot: 'body', emoji: '🎗️', label: 'Laço de Pescoço',  desc: 'Laçinho delicado de seda no pescoço', unlock: { type: 'free' } },
+  wings:      { slot: 'body', emoji: '🪶', label: 'Asas',              desc: 'Asas leves que permitem planeio suave', unlock: { type: 'level', level: 15 } },
+  cape:       { slot: 'body', emoji: '🦸', label: 'Capa de Herói',     desc: 'Capa esvoaçante de super-herói', unlock: { type: 'shop', price: 80 } },
+  armor:      { slot: 'body', emoji: '🛡️', label: 'Armadura',          desc: 'Armadura pixel-art com detalhes metálicos', unlock: { type: 'shop', price: 100 } }
 };
 
 /* ---- Modelos do pet (silhuetas na mesma grade 4 px) ---- */
@@ -98,14 +155,18 @@ var CLAWD_SKINS = {
 
 /* ---- Profissões ---- */
 var CLAWD_PROFESSIONS = {
-  idle:       { emoji: '🐾', label: 'Livre',     desc: 'Sem profissão específica', gear: {} },
-  footballer: { emoji: '⚽', label: 'Jogador',   desc: 'Embaixadinhas e gols', gear: { head: 'cap' } },
-  tutor:      { emoji: '📚', label: 'Tutor',     desc: 'Desafios anti-procrastinação', gear: { face: 'glasses' } },
-  engineer:   { emoji: '💻', label: 'Dev',       desc: 'Digita e reage a código', gear: { face: 'headphones' } },
-  musician:   { emoji: '🎸', label: 'Músico',    desc: 'Riffs em sites de música', gear: { face: 'sunglasses' } },
-  chef:       { emoji: '🧑‍🍳', label: 'Chef',     desc: 'Alimentar 2× mais eficaz', gear: { head: 'chefhat' } },
-  ninja:      { emoji: '🥷', label: 'Ninja',     desc: 'Se esconde e surpreende', gear: { head: 'ninjaband' } },
-  fisher:     { emoji: '🎣', label: 'Pescador',  desc: 'Pesca em um lago pixelado', gear: { head: 'fishhat' } }
+  idle:       { emoji: '🐾', label: 'Livre',     desc: 'Sem profissão específica',                    gear: {} },
+  footballer: { emoji: '⚽', label: 'Jogador',   desc: 'Embaixadinhas e gols',                        gear: { head: 'cap' } },
+  tutor:      { emoji: '📚', label: 'Tutor',     desc: 'Desafios anti-procrastinação',                gear: { face: 'glasses' } },
+  engineer:   { emoji: '💻', label: 'Dev',       desc: 'Digita e reage a código',                     gear: { face: 'headphones' } },
+  musician:   { emoji: '🎸', label: 'Músico',    desc: 'Riffs em sites de música',                    gear: { face: 'sunglasses' } },
+  chef:       { emoji: '🧑‍🍳', label: 'Chef',     desc: 'Alimentar 2× mais eficaz',                    gear: { head: 'chefhat' } },
+  ninja:      { emoji: '🥷', label: 'Ninja',     desc: 'Se esconde e surpreende',                     gear: { head: 'ninjaband' } },
+  fisher:     { emoji: '🎣', label: 'Pescador',  desc: 'Pesca em um lago pixelado',                   gear: { head: 'fishhat' } },
+  doctor:     { emoji: '🩺', label: 'Médico',    desc: '+3 higiene por banho, reage a sites de saúde', gear: { face: 'monocle' } },
+  artist:     { emoji: '🎨', label: 'Artista',   desc: 'Partículas de estrelas ao posar e meditar',   gear: { face: 'monocle' } },
+  gamer:      { emoji: '🎮', label: 'Gamer',     desc: 'Reage a sites de jogos, XP bônus em combos', gear: { head: 'visor', face: 'headphones' } },
+  streamer:   { emoji: '📡', label: 'Streamer',  desc: 'Dança em streaming, balão especial na aba',   gear: { head: 'party_hat', face: 'headphones' } }
 };
 
 /* O uniforme profissional é apenas visual e temporário. A seleção pessoal
@@ -118,6 +179,7 @@ function clawdEffectiveAccessories(state = {}) {
   const validForSlot = (id, slot) => CLAWD_ACCESSORIES[id]?.slot === slot ? id : null;
   const userHead = validForSlot(state.accessoryHead, 'head') || 'none';
   const userFace = validForSlot(state.accessoryFace, 'face') || 'none';
+  const userBody = validForSlot(state.accessoryBody, 'body') || 'none';
   const autoHead = validForSlot(gear.head, 'head');
   const autoFace = validForSlot(gear.face, 'face');
 
@@ -125,12 +187,15 @@ function clawdEffectiveAccessories(state = {}) {
     profession,
     head: autoHead || userHead,
     face: autoFace || userFace,
+    body: userBody,
     userHead,
     userFace,
+    userBody,
     autoHead,
     autoFace,
     headSource: autoHead ? 'profession' : 'personal',
-    faceSource: autoFace ? 'profession' : 'personal'
+    faceSource: autoFace ? 'profession' : 'personal',
+    bodySource: 'personal'
   };
 }
 
@@ -159,7 +224,11 @@ var CLAWD_ACTIONS = {
   peek:       { emoji: '👀', label: 'Espiar' },
   roll:       { emoji: '🎱', label: 'Rolar' },
   balloon:    { emoji: '🎈', label: 'Balão' },
-  hug:        { emoji: '🤗', label: 'Abraçar' }
+  hug:        { emoji: '🤗', label: 'Abraçar' },
+  flip:       { emoji: '🔄', label: 'Acrobacia' },
+  meditate:   { emoji: '🧘', label: 'Meditar' },
+  electric:   { emoji: '⚡', label: 'Descarga' },
+  nap:        { emoji: '💤', label: 'Cochilo' }
 };
 
 /* ---- Sub-Pets ---- */
@@ -971,32 +1040,56 @@ function clawdSubPetBounds(sprite) {
 
 /* ---- Loja (PixelCoins) ---- */
 var CLAWD_SHOP = {
-  tophat:     { emoji: '🎩', label: 'Cartola',       price: 40,  kind: 'accessory' },
-  scarf:      { emoji: '🧣', label: 'Cachecol',       price: 30,  kind: 'accessory' },
-  backpack:   { emoji: '🎒', label: 'Mochilinha',     price: 30,  kind: 'accessory' },
-  chefhat:    { emoji: '👨‍🍳', label: 'Chapéu Chef',   price: 35,  kind: 'accessory' },
-  ninjaband:  { emoji: '🥷', label: 'Faixa Ninja',    price: 35,  kind: 'accessory' },
-  propeller:  { emoji: '🪖', label: 'Hélice Cabeça',  price: 45,  kind: 'accessory' },
-  medal:      { emoji: '🏅', label: 'Medalha',         price: 55,  kind: 'accessory' },
-  ball_gold:  { emoji: '🟡', label: 'Bola Dourada',   price: 60,  kind: 'ball' },
-  ball_beach: { emoji: '🏖️', label: 'Bola de Praia',  price: 40,  kind: 'ball' },
-  cushion:    { emoji: '🛏️', label: 'Almofada',        price: 50,  kind: 'decor' }
+  /* Acessórios originais */
+  tophat:     { emoji: '🎩', label: 'Cartola',           price: 40,  kind: 'accessory' },
+  scarf:      { emoji: '🧣', label: 'Cachecol',           price: 30,  kind: 'accessory' },
+  backpack:   { emoji: '🎒', label: 'Mochilinha',         price: 30,  kind: 'accessory' },
+  chefhat:    { emoji: '👨‍🍳', label: 'Chapéu Chef',       price: 35,  kind: 'accessory' },
+  ninjaband:  { emoji: '🥷', label: 'Faixa Ninja',        price: 35,  kind: 'accessory' },
+  propeller:  { emoji: '🪖', label: 'Hélice Cabeça',      price: 45,  kind: 'accessory' },
+  medal:      { emoji: '🏅', label: 'Medalha',             price: 55,  kind: 'accessory' },
+  ball_gold:  { emoji: '🟡', label: 'Bola Dourada',       price: 60,  kind: 'ball' },
+  ball_beach: { emoji: '🏖️', label: 'Bola de Praia',      price: 40,  kind: 'ball' },
+  cushion:    { emoji: '🛏️', label: 'Almofada',            price: 50,  kind: 'decor' },
+  /* Novos acessórios v3.3 */
+  witch_hat:  { emoji: '🧙', label: 'Chapéu Bruxa',       price: 55,  kind: 'accessory' },
+  bunny_ears: { emoji: '🐰', label: 'Orelhas de Coelho',  price: 45,  kind: 'accessory' },
+  visor:      { emoji: '🎮', label: 'Viseira Gamer',       price: 60,  kind: 'accessory' },
+  monocle:    { emoji: '🧐', label: 'Monóculo',            price: 35,  kind: 'accessory' },
+  mustache:   { emoji: '🥸', label: 'Bigodão',             price: 30,  kind: 'accessory' },
+  cape:       { emoji: '🦸', label: 'Capa de Herói',       price: 80,  kind: 'accessory' },
+  armor:      { emoji: '🛡️', label: 'Armadura',            price: 100, kind: 'accessory' }
 };
 
 /* ---- Conquistas ---- */
 var CLAWD_ACHIEVEMENTS = {
-  first_pet:   { emoji: '🐾', label: 'Primeiro Carinho',  desc: '1º clique no pet',            rarity: 'common',    check: (g) => (g.counters.pets || 0) >= 1,           goal: 1,   counter: 'pets' },
-  striker:     { emoji: '⚽', label: 'Artilheiro',        desc: '50 gols',                     rarity: 'rare',      check: (g) => (g.counters.goals || 0) >= 50,          goal: 50,  counter: 'goals' },
-  juggler:     { emoji: '🤹', label: 'Malabarista',       desc: '30 embaixadinhas seguidas',   rarity: 'epic',      check: (g) => (g.counters.keepyRecord || 0) >= 30,    goal: 30,  counter: 'keepyRecord' },
-  combo_king:  { emoji: '🔥', label: 'Rei do Combo',      desc: '50 embaixadinhas seguidas',   rarity: 'legendary', check: (g) => (g.counters.keepyRecord || 0) >= 50,    goal: 50,  counter: 'keepyRecord' },
-  zoo:         { emoji: '🦁', label: 'Zoológico',         desc: 'Desbloquear 4 sub-pets',      rarity: 'rare',      check: (g) => (g.counters.subpetsUnlocked || 0) >= 4, goal: 4,   counter: 'subpetsUnlocked' },
-  sleepyhead:  { emoji: '💤', label: 'Dorminhoco',        desc: 'Pet dormiu 100 vezes',        rarity: 'common',    check: (g) => (g.counters.sleeps || 0) >= 100,        goal: 100, counter: 'sleeps' },
-  fashionista: { emoji: '👗', label: 'Fashionista',       desc: 'Usar 8 acessórios diferentes', rarity: 'rare',     check: (g) => (g.counters.accessoriesUsed || []).length >= 8, goal: 8, counter: 'accessoriesUsed' },
-  explorer:    { emoji: '🗺️', label: 'Explorador',        desc: '10 abas diferentes num dia',  rarity: 'common',    check: (g) => (g.counters.tabsToday || 0) >= 10,      goal: 10,  counter: 'tabsToday' },
-  fisherman:   { emoji: '🎣', label: 'Pescador',           desc: 'Pescar 20 vezes',             rarity: 'rare',      check: (g) => (g.counters.fish || 0) >= 20,           goal: 20,  counter: 'fish' },
-  bigcatch:    { emoji: '🐟', label: 'Peixe Grande',      desc: 'Pescar 1 peixe raro',         rarity: 'epic',      check: (g) => (g.counters.rareFish || 0) >= 1,        goal: 1,   counter: 'rareFish' },
-  marathoner:  { emoji: '🏃', label: 'Maratonista',       desc: 'Passear 500 vezes',           rarity: 'rare',      check: (g) => (g.counters.walks || 0) >= 500,         goal: 500, counter: 'walks' },
-  dance_fever: { emoji: '🕺', label: 'Febre de Dança',    desc: 'Dançar 50 vezes',             rarity: 'common',    check: (g) => (g.counters.dances || 0) >= 50,         goal: 50,  counter: 'dances' }
+  /* Conquistas originais */
+  first_pet:    { emoji: '🐾', label: 'Primeiro Carinho',   desc: '1º clique no pet',                  rarity: 'common',    check: (g) => (g.counters.pets || 0) >= 1,              goal: 1,   counter: 'pets' },
+  striker:      { emoji: '⚽', label: 'Artilheiro',         desc: '50 gols',                           rarity: 'rare',      check: (g) => (g.counters.goals || 0) >= 50,            goal: 50,  counter: 'goals' },
+  juggler:      { emoji: '🤹', label: 'Malabarista',        desc: '30 embaixadinhas seguidas',         rarity: 'epic',      check: (g) => (g.counters.keepyRecord || 0) >= 30,      goal: 30,  counter: 'keepyRecord' },
+  combo_keepy:  { emoji: '🔥', label: 'Rei do Keepy',       desc: '50 embaixadinhas seguidas',         rarity: 'legendary', check: (g) => (g.counters.keepyRecord || 0) >= 50,      goal: 50,  counter: 'keepyRecord' },
+  zoo:          { emoji: '🦁', label: 'Zoológico',          desc: 'Desbloquear 4 sub-pets',            rarity: 'rare',      check: (g) => (g.counters.subpetsUnlocked || 0) >= 4,   goal: 4,   counter: 'subpetsUnlocked' },
+  sleepyhead:   { emoji: '💤', label: 'Dorminhoco',         desc: 'Pet dormiu 100 vezes',              rarity: 'common',    check: (g) => (g.counters.sleeps || 0) >= 100,          goal: 100, counter: 'sleeps' },
+  fashionista:  { emoji: '👗', label: 'Fashionista',        desc: 'Usar 8 acessórios diferentes',      rarity: 'rare',      check: (g) => (g.counters.accessoriesUsed || []).length >= 8, goal: 8, counter: 'accessoriesUsed' },
+  explorer:     { emoji: '🗺️', label: 'Explorador',         desc: '10 abas diferentes num dia',        rarity: 'common',    check: (g) => (g.counters.tabsToday || 0) >= 10,        goal: 10,  counter: 'tabsToday' },
+  fisherman:    { emoji: '🎣', label: 'Pescador',            desc: 'Pescar 20 vezes',                   rarity: 'rare',      check: (g) => (g.counters.fish || 0) >= 20,             goal: 20,  counter: 'fish' },
+  bigcatch:     { emoji: '🐟', label: 'Peixe Grande',       desc: 'Pescar 1 peixe raro',               rarity: 'epic',      check: (g) => (g.counters.rareFish || 0) >= 1,          goal: 1,   counter: 'rareFish' },
+  marathoner:   { emoji: '🏃', label: 'Maratonista',        desc: 'Passear 500 vezes',                 rarity: 'rare',      check: (g) => (g.counters.walks || 0) >= 500,           goal: 500, counter: 'walks' },
+  dance_fever:  { emoji: '🕺', label: 'Febre de Dança',     desc: 'Dançar 50 vezes',                   rarity: 'common',    check: (g) => (g.counters.dances || 0) >= 50,           goal: 50,  counter: 'dances' },
+  /* Novas conquistas v3.3 */
+  first_level:  { emoji: '🎖️', label: 'Novato Dedicado',   desc: 'Alcançar nível 5',                  rarity: 'common',    check: (g) => (g.counters.level || 0) >= 5,             goal: 5,   counter: 'level' },
+  centurion:    { emoji: '💯', label: 'Centurião',           desc: '100 ações realizadas',              rarity: 'common',    check: (g) => (g.counters.totalActions || 0) >= 100,    goal: 100, counter: 'totalActions' },
+  shopaholic:   { emoji: '🛍️', label: 'Shopaholic',          desc: 'Comprar 5 itens na loja',           rarity: 'common',    check: (g) => (g.counters.shopPurchases || 0) >= 5,     goal: 5,   counter: 'shopPurchases' },
+  gourmet:      { emoji: '🍖', label: 'Gourmet',             desc: 'Alimentar o pet 20 vezes',          rarity: 'rare',      check: (g) => (g.counters.feeds || 0) >= 20,            goal: 20,  counter: 'feeds' },
+  dance_machine:{ emoji: '🎶', label: 'Máquina de Dançar',  desc: 'Dançar 15 vezes',                   rarity: 'rare',      check: (g) => (g.counters.dances || 0) >= 15,           goal: 15,  counter: 'dances' },
+  fashion_victim:{ emoji: '✨', label: 'Fashion Victim',     desc: 'Ter 6 acessórios desbloqueados',    rarity: 'rare',      check: (g) => (g.counters.accessoriesUsed || []).length >= 6, goal: 6, counter: 'accessoriesUsed' },
+  combo_king:   { emoji: '🔥', label: 'Rei do Combo',       desc: 'Combo de 5 ações em 10 segundos',   rarity: 'epic',      check: (g) => (g.counters.maxCombo || 0) >= 5,          goal: 5,   counter: 'maxCombo' },
+  legendary_pet:{ emoji: '🌟', label: 'Pet Lendário',       desc: 'Alcançar o nível 30',               rarity: 'legendary', check: (g) => (g.counters.level || 0) >= 30,            goal: 30,  counter: 'level' },
+  full_house:   { emoji: '🐾', label: 'Família Completa',   desc: 'Todos os sub-pets desbloqueados',   rarity: 'epic',      check: (g) => (g.counters.subpetsUnlocked || 0) >= 8,   goal: 8,   counter: 'subpetsUnlocked' },
+  polyglot:     { emoji: '🌐', label: 'Polivalente',         desc: 'Usar todas as 12 profissões',       rarity: 'epic',      check: (g) => (g.counters.professionsUsed || []).length >= 12, goal: 12, counter: 'professionsUsed' },
+  night_owl:    { emoji: '🦉', label: 'Coruja Noturna',     desc: '50 interações fora do horário nobre', rarity: 'rare',    check: (g) => (g.counters.nightInteractions || 0) >= 50, goal: 50, counter: 'nightInteractions' },
+  speedrun:     { emoji: '⚡', label: 'Speedrunner',         desc: '10 ações em 30 segundos',           rarity: 'epic',      check: (g) => (g.counters.maxSpeedrun || 0) >= 10,      goal: 10,  counter: 'maxSpeedrun' },
+  iron_will:    { emoji: '💎', label: 'Vontade de Ferro',   desc: 'Streak de 30 dias consecutivos',    rarity: 'legendary', check: (g) => (g.counters?.streakDays || 0) >= 30,       goal: 30,  counter: 'streakDays' }
 };
 
 /* ---- Cores padrão ---- */
@@ -1005,7 +1098,7 @@ var CLAWD_COLORS = ['#c71515', '#d97757', '#C15F3C', '#e67e22', '#f1c40f', '#2ec
 /* ---- Cores de camisa (Jogador) ---- */
 var CLAWD_JERSEYS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#ffffff', '#111111', '#9b59b6', '#e67e22'];
 
-var CLAWD_TAG_THEMES = ['light', 'dark', 'neon', 'invisible'];
+var CLAWD_TAG_THEMES = ['light', 'dark', 'neon', 'invisible', 'rainbow', 'holographic', 'minimal'];
 var CLAWD_TRAVEL_FREQS = ['rarely', 'sometimes', 'always'];
 var CLAWD_START_CORNERS = ['br', 'bl', 'tr', 'tl'];
 var CLAWD_BALL_SKINS = ['classic', 'ball_gold', 'ball_beach'];
@@ -1014,18 +1107,20 @@ var CLAWD_CONFIG_KEYS = [
   'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
   'smooth', 'outline', 'showMouth', 'showSpeech', 'autoWalk', 'sleepEnabled',
   'skin', 'tagTheme', 'jerseyColor', 'ballSkin', 'accessoryHead', 'accessoryFace',
-  'profession'
+  'accessoryBody', 'profession', 'particleColor'
 ];
 
 var CLAWD_SETTING_KEYS = [
   'crossTab', 'travelFreq', 'footprints', 'sounds', 'soundVolume',
+  'soundVolumeActions', 'soundVolumeAmbient',
   'quietStart', 'quietEnd', 'blockedSites', 'startCorner', 'performanceMode'
 ];
 
 var CLAWD_RUNTIME_ACTIONS = [
   'healthcheck', 'toggleVisibility', 'resetPosition', 'updateConfig',
   'updateSetting', 'triggerAction', 'setSubpet', 'setSubpetColor',
-  'setSubpetEyeColor', 'triggerSubpetAction', 'claimDailyQuest', 'getStatus'
+  'setSubpetEyeColor', 'triggerSubpetAction', 'claimDailyQuest', 'claimWeeklyChallenge',
+  'weeklyReset', 'getStatus'
 ];
 
 var CLAWD_PORT_MSG_TYPES = ['register', 'travelComplete'];
@@ -1112,8 +1207,12 @@ function clawdSanitizeConfigValue(key, value) {
       return CLAWD_BALL_SKINS.includes(value) ? value : null;
     case 'accessoryHead':
     case 'accessoryFace':
+    case 'accessoryBody':
       if (value === 'none') return 'none';
       return Object.prototype.hasOwnProperty.call(CLAWD_ACCESSORIES, value) ? value : null;
+    case 'particleColor':
+      if (value === null || value === '') return null;
+      return clawdIsHexColor(value) ? value.toLowerCase() : null;
     case 'scale': {
       const n = Number(value);
       return Number.isFinite(n) ? Math.max(0.5, Math.min(3, n)) : null;
@@ -1145,7 +1244,9 @@ function clawdSanitizeSettingValue(key, value) {
       return CLAWD_TRAVEL_FREQS.includes(value) ? value : null;
     case 'startCorner':
       return CLAWD_START_CORNERS.includes(value) ? value : null;
-    case 'soundVolume': {
+    case 'soundVolume':
+    case 'soundVolumeActions':
+    case 'soundVolumeAmbient': {
       const n = Number(value);
       return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : null;
     }
@@ -1173,6 +1274,8 @@ function clawdValidateRuntimeMessage(request) {
     case 'toggleVisibility':
     case 'resetPosition':
     case 'claimDailyQuest':
+    case 'claimWeeklyChallenge':
+    case 'weeklyReset':
     case 'getStatus':
       return { action };
 
@@ -1192,7 +1295,7 @@ function clawdValidateRuntimeMessage(request) {
 
     case 'triggerAction': {
       if (!Object.prototype.hasOwnProperty.call(CLAWD_ACTIONS, request.value)
-        && !['kick', 'keepy', 'highfive', 'superdance'].includes(request.value)) {
+        && !['kick', 'keepy', 'highfive', 'superdance', 'lookAround'].includes(request.value)) {
         return null;
       }
       return { action, value: request.value };
@@ -1260,7 +1363,7 @@ function clawdMergeUnlockedSubpets(...lists) {
   return out;
 }
 
-/* ---- Estado padrão v4 ---- */
+/* ---- Estado padrão v5 ---- */
 function clawdDefaultState() {
   return {
     schemaVersion: CLAWD_SCHEMA_VERSION,
@@ -1281,33 +1384,48 @@ function clawdDefaultState() {
     outline: false,
     accessoryHead: 'none',
     accessoryFace: 'none',
-    skin: 'normal',          // normal | droopy | robot
-    tagTheme: 'light',       // light | dark | neon | invisible
+    accessoryBody: 'none',         // v5: novo slot de corpo
+    skin: 'normal',               // normal | droopy | robot
+    tagTheme: 'light',            // light | dark | neon | invisible | rainbow | holographic | minimal
     jerseyColor: '#e74c3c',
-    ballSkin: 'classic',     // classic | ball_gold | ball_beach
+    ballSkin: 'classic',          // classic | ball_gold | ball_beach
+    particleColor: null,          // v5: cor customizada de partículas (hex ou null)
     xp: 0,
     stats: { happiness: 80, hunger: 80, energy: 90, hygiene: 85, lastStatsUpdate: 0 },
+    personality: { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 }, // v5: traços 0–10
+    customSpeech: [],             // v5: frases personalizadas do pet
     game: {
       coins: 0, coinFrac: 0,
       streak: { days: 0, lastDay: '' },
       achievements: {},
-      counters: { pets: 0, goals: 0, keepyRecord: 0, keepyTotal: 0, sleeps: 0, tabsToday: 0, tabsDay: '', tabsSeen: [], subpetsUnlocked: 1, accessoriesUsed: [], fish: 0, rareFish: 0, walks: 0, dances: 0 },
+      counters: {
+        pets: 0, goals: 0, keepyRecord: 0, keepyTotal: 0, sleeps: 0,
+        tabsToday: 0, tabsDay: '', tabsSeen: [], subpetsUnlocked: 1,
+        accessoriesUsed: [], fish: 0, rareFish: 0, walks: 0, dances: 0,
+        /* v5 */
+        feeds: 0, totalActions: 0, shopPurchases: 0, maxCombo: 0,
+        maxSpeedrun: 0, nightInteractions: 0, professionsUsed: [], level: 1,
+        streakDays: 0
+      },
       inventory: []
     },
     favorites: { actions: [], professions: [], accessories: [], colors: [], nicknames: [], subpets: [] },
     nicknameHistory: [],
     subpets: { active: 'dog', unlocked: ['dog'], names: {}, colors: {}, eyeColors: {} },
     daily: clawdDailyQuestForDate(),
+    weekly: clawdWeeklyChallengeForWeek(clawdISOWeek()), // v5: desafio semanal
     settings: {
       crossTab: true,
-      travelFreq: 'sometimes',   // rarely | sometimes | always
+      travelFreq: 'sometimes',     // rarely | sometimes | always
       footprints: false,
       sounds: true,
       soundVolume: 0.45,
-      quietStart: '',            // "09:00"
+      soundVolumeActions: 1.0,     // v5: volume de ações
+      soundVolumeAmbient: 0.6,     // v5: volume ambiente
+      quietStart: '',              // "09:00"
       quietEnd: '',
       blockedSites: [],
-      startCorner: 'br',         // br | bl | tr | tl
+      startCorner: 'br',           // br | bl | tr | tl
       performanceMode: false
     }
   };
@@ -1434,6 +1552,11 @@ function clawdSanitizeGameBlock(rawGame, defGame) {
       game.counters[key] = clawdSanitizePlainText(cur, 32);
     }
   });
+  /* v5: garante counters novos ausentes em saves antigos */
+  ['feeds', 'totalActions', 'shopPurchases', 'maxCombo', 'maxSpeedrun', 'nightInteractions', 'level', 'streakDays'].forEach(k => {
+    if (typeof game.counters[k] !== 'number') game.counters[k] = 0;
+  });
+  if (!Array.isArray(game.counters.professionsUsed)) game.counters.professionsUsed = [];
   game.coins = Math.max(0, Math.min(1e9, Number(game.coins) || 0));
   return game;
 }
@@ -1464,6 +1587,9 @@ function clawdSanitizeIdentityFields(merged, raw, def) {
   }
   if (merged.accessoryFace !== 'none' && !CLAWD_ACCESSORIES[merged.accessoryFace]) {
     merged.accessoryFace = 'none';
+  }
+  if (merged.accessoryBody !== 'none' && !CLAWD_ACCESSORIES[merged.accessoryBody]) {
+    merged.accessoryBody = 'none';
   }
   if (!CLAWD_TAG_THEMES.includes(merged.tagTheme)) merged.tagTheme = def.tagTheme;
   if (!CLAWD_BALL_SKINS.includes(merged.ballSkin)) merged.ballSkin = def.ballSkin;
@@ -1506,6 +1632,33 @@ function clawdMigrateState(raw) {
   merged.settings = clawdSanitizeSettingsBlock(raw.settings, def.settings);
   clawdApplyLegacyAccessoryMigration(merged, raw, v);
   clawdSanitizeIdentityFields(merged, raw, def);
+  /* v5: campos novos com defaults seguros se ausentes */
+  if (v < 5) {
+    if (!merged.personality || typeof merged.personality !== 'object') {
+      merged.personality = { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
+    }
+    if (merged.accessoryBody === undefined) merged.accessoryBody = 'none';
+    if (!merged.weekly || typeof merged.weekly !== 'object') {
+      merged.weekly = clawdWeeklyChallengeForWeek(clawdISOWeek());
+    }
+    if (!Array.isArray(merged.customSpeech)) merged.customSpeech = [];
+    if (merged.particleColor === undefined) merged.particleColor = null;
+    if (!merged.settings.soundVolumeActions) merged.settings.soundVolumeActions = 1.0;
+    if (!merged.settings.soundVolumeAmbient) merged.settings.soundVolumeAmbient = 0.6;
+  }
+  /* Garantir campos v5 em qualquer versão (saves corrompidos parciais) */
+  if (!merged.personality || typeof merged.personality !== 'object') {
+    merged.personality = { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
+  }
+  if (merged.accessoryBody === undefined || merged.accessoryBody === null) merged.accessoryBody = 'none';
+  if (!merged.weekly || typeof merged.weekly !== 'object') {
+    merged.weekly = clawdWeeklyChallengeForWeek(clawdISOWeek());
+  }
+  clawdEnsureWeeklyChallenge(merged);
+  if (!Array.isArray(merged.customSpeech)) merged.customSpeech = [];
+  if (merged.particleColor !== null && !clawdIsHexColor(merged.particleColor || '')) merged.particleColor = null;
+  if (!merged.settings.soundVolumeActions) merged.settings.soundVolumeActions = 1.0;
+  if (!merged.settings.soundVolumeAmbient) merged.settings.soundVolumeAmbient = 0.6;
   merged.schemaVersion = CLAWD_SCHEMA_VERSION;
   return merged;
 }
@@ -1559,7 +1712,9 @@ function clawdGuardExtensionCallback(api, callback, onInvalidated) {
 // Export opcional para validações locais sem alterar o carregamento da extensão.
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    CLAWD_SCHEMA_VERSION,
     CLAWD_DAILY_QUESTS,
+    CLAWD_WEEKLY_CHALLENGES,
     CLAWD_ACCESSORIES,
     CLAWD_MODELS,
     CLAWD_FACE_STYLES,
@@ -1578,12 +1733,18 @@ if (typeof module !== 'undefined' && module.exports) {
     clawdSubPetImageUrl,
     CLAWD_SHOP,
     CLAWD_ACHIEVEMENTS,
+    CLAWD_RARITY,
     CLAWD_COLORS,
     clawdDailyQuestForDate,
     clawdEnsureDailyQuest,
     clawdRegisterDailyProgress,
+    clawdISOWeek,
+    clawdWeeklyChallengeForWeek,
+    clawdEnsureWeeklyChallenge,
+    clawdRegisterWeeklyProgress,
     clawdDefaultState,
     clawdEffectiveAccessories,
+    clawdXpForLevel,
     clawdLevelFromXp,
     clawdMigrateState,
     clawdHasExtensionContext,

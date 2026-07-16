@@ -1009,6 +1009,18 @@ class ClawdCompanion {
     this._destroyed = false;
     this._contextInvalidated = false;
     this._abort = new AbortController();
+    /* v3.3: Sistema de combo */
+    this._comboCount = 0;
+    this._comboTimer = null;
+    this._comboWindowMs = 10000;
+    this._lastActionTime = 0;
+    this._speedrunCount = 0;
+    this._speedrunTimer = null;
+    /* v3.3: Tempo na aba */
+    this._tabStartTime = Date.now();
+    this._tabMilestonesFired = [];
+    /* v3.3: Clima ambiente */
+    this._ambientWeatherTimer = null;
 
     this.messages = {
       idle:     ["Oi! 👋", "Bora navegar! 🌐", "Me arraste! ✨", "Aqui pra ajudar 🐾", "Clique em mim! 💫", "O que faremos hoje? 🎯"],
@@ -1031,7 +1043,12 @@ class ClawdCompanion {
       musician:   ['spotify', 'music.youtube', 'soundcloud', 'deezer', 'last.fm', 'letras.mus'],
       chef:       ['tudogostoso', 'receitas', 'panelinha', 'allrecipes', 'cybercook', 'recipe'],
       ninja:      [],
-      fisher:     ['pesca', 'fishing', 'natureza', 'aquarius', 'peixe', 'lake', 'rio', 'mar', 'oceano', 'aqua']
+      fisher:     ['pesca', 'fishing', 'natureza', 'aquarius', 'peixe', 'lake', 'rio', 'mar', 'oceano', 'aqua'],
+      /* v3.3: novas profissões */
+      doctor:     ['medscape', 'healthline', 'bula.ms', 'saude', 'health', 'medical', 'hospital', 'farmacia', 'clinica'],
+      artist:     ['behance', 'dribbble', 'deviantart', 'artstation', 'pinterest', 'canva', 'figma', 'design'],
+      gamer:      ['steam', 'roblox', 'epic', 'twitch', 'itch.io', 'gamesradar', 'gamespot', 'ign', 'gamejolt'],
+      streamer:   ['twitch', 'kick.com', 'youtube', 'streamlabs', 'obs', 'restream', 'trovo']
     };
 
     this._profMessages = {
@@ -1041,7 +1058,12 @@ class ClawdCompanion {
       musician:   ["🎸 Que som!", "Aumenta o volume! 🎶", "Riff novo! 🎵"],
       chef:       ["Hmm, que cheirinho! 🍲", "Bora cozinhar? 🧑‍🍳", "Essa receita é boa! 😋"],
       ninja:      ["...🥷", "Você não me viu. 🌫️"],
-      fisher:     ["Fisgou! 🎣", "Hoje vai dar peixe! 🐟", "Silêncio... os peixes! 🤫", "Linha na água! 🌊"]
+      fisher:     ["Fisgou! 🎣", "Hoje vai dar peixe! 🐟", "Silêncio... os peixes! 🤫", "Linha na água! 🌊"],
+      /* v3.3 */
+      doctor:     ["Tome seus remédios! 💊", "A saúde em dia? 🩺", "Esse site é saudável! 🏥"],
+      artist:     ["Que cores lindas! 🎨", "Arte boa! 🖌️", "Criatividade a mil! ✨"],
+      gamer:      ["Boa sorte no game! 🎮", "Noob ou pro? 🏆", "GG EZ! 🎯"],
+      streamer:   ["Live on! 📡", "Saudações ao chat! 👋", "Clip isso! 🎬"]
     };
 
     // Peixes raros com raridade
@@ -1288,7 +1310,8 @@ class ClawdCompanion {
         'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
         'smooth', 'outline', 'showMouth', 'showSpeech', 'autoWalk', 'sleepEnabled',
         'skin', 'tagTheme', 'jerseyColor', 'ballSkin', 'accessoryHead',
-        'accessoryFace', 'profession'
+        'accessoryFace', 'accessoryBody', 'profession', 'particleColor',
+        'personality', 'customSpeech'
       ];
       visualKeys.forEach(key => { this.S[key] = fresh[key]; });
       const animationSpeed = Math.max(0.5, parseFloat(fresh.animSpeed) || 1);
@@ -1367,14 +1390,31 @@ class ClawdCompanion {
       case 'accessoryHead':
         this._syncAccessoryVisuals();
         this._trackAccessory(value);
+        this.registerDaily('accessories');
         break;
       case 'accessoryFace':
         this._syncAccessoryVisuals();
         this._trackAccessory(value);
+        this.registerDaily('accessories');
+        break;
+      case 'accessoryBody':
+        this._syncAccessoryVisuals();
+        this._trackAccessory(value);
+        this.registerDaily('accessories');
         break;
       case 'profession':
         this._applyProfessionVisuals();
         this._detectPageContext();
+        /* v3.3: track profissões usadas */
+        if (value && value !== 'idle') {
+          const used = this.S.game.counters.professionsUsed || [];
+          if (!used.includes(value)) {
+            used.push(value);
+            this.S.game.counters.professionsUsed = used;
+            this.registerDaily('profession');
+            this.checkAchievements();
+          }
+        }
         break;
     }
     this.save();
@@ -1387,6 +1427,19 @@ class ClawdCompanion {
       this.showSpeech('Missão diária pronta! Resgate sua recompensa! 🎁', 3200);
       this.spawnParticles(['🎁', '⭐', '✨']);
     }
+    /* v3.3: progresso semanal simultâneo */
+    clawdRegisterWeeklyProgress(this.S, type, amount);
+    const weekly = clawdEnsureWeeklyChallenge(this.S);
+    if (weekly.progress >= weekly.target && !weekly.claimed && !this._weeklyCelebrated) {
+      this._weeklyCelebrated = true;
+      setTimeout(() => {
+        if (!this._destroyed) {
+          this.showSpeech('Desafio semanal completo! 🏆 Resgate no popup!', 4000);
+          this.spawnParticles(['🏆', '🎊', '⭐', '✨']);
+          this._weeklyCelebrated = false;
+        }
+      }, 2000);
+    }
     this.save();
   }
 
@@ -1397,8 +1450,24 @@ class ClawdCompanion {
     this.S.game.coins = (this.S.game.coins || 0) + quest.rewardCoins;
     this.addXp(quest.rewardXp);
     this.showSpeech(`Missão concluída! +${quest.rewardCoins} 🪙`, 3200);
+    this.spawnParticles(['🪙', '💰', '✨']);
     this.toast('', { rarity: 'rare', icon: '🎁', title: 'Recompensa diária', desc: `+${quest.rewardXp} XP e +${quest.rewardCoins} PixelCoins` });
     this._dailyCelebrated = false;
+    this.save();
+    return true;
+  }
+
+  claimWeeklyChallenge() {
+    const challenge = clawdEnsureWeeklyChallenge(this.S);
+    if (challenge.claimed || challenge.progress < challenge.target) return false;
+    challenge.claimed = true;
+    const rewardXp = challenge.rewardXp || 80;
+    const rewardCoins = challenge.rewardCoins || 20;
+    this.S.game.coins = (this.S.game.coins || 0) + rewardCoins;
+    this.addXp(rewardXp);
+    this.showSpeech(`Desafio semanal concluído! +${rewardCoins} 🪙`, 4000);
+    this.spawnParticles(['🏆', '🎊', '⭐', '🪙', '✨']);
+    this.toast('', { rarity: 'epic', icon: challenge.badge || '🏆', title: `${challenge.label}!`, desc: `+${rewardXp} XP e +${rewardCoins} PixelCoins` });
     this.save();
     return true;
   }
@@ -1417,10 +1486,16 @@ class ClawdCompanion {
     const effective = clawdEffectiveAccessories(this.S);
     this.node.dataset.accHead = effective.head;
     this.node.dataset.accFace = effective.face;
+    this.node.dataset.accBody = effective.body;
     this.node.dataset.userAccHead = effective.userHead;
     this.node.dataset.userAccFace = effective.userFace;
+    this.node.dataset.userAccBody = effective.userBody;
     this.node.dataset.accessoryHeadSource = effective.headSource;
     this.node.dataset.accessoryFaceSource = effective.faceSource;
+    /* Asas: habilita animação de flutuação quando ativas */
+    this.node.classList.toggle('has-wings', effective.body === 'wings');
+    this.node.classList.toggle('has-cape', effective.body === 'cape');
+    this.node.classList.toggle('has-armor', effective.body === 'armor');
     this.node.classList.toggle('profession-headwear', !!effective.autoHead);
     this.node.classList.toggle('profession-facewear', !!effective.autoFace);
     return effective;
@@ -2047,6 +2122,27 @@ class ClawdCompanion {
       }, 1800);
     }
     this.beep(880, 0.12);
+    // v3.3: marcos de nível com recompensas específicas
+    if (level === 5 && !this.S.game.inventory.includes('party_hat')) {
+      this.S.game.inventory.push('party_hat');
+      this.toast('', { rarity: 'common', icon: '🎉', title: 'Chapéu de Festa desbloqueado!', desc: 'Nível 5 conquistado! Celebre com estilo.' });
+      setTimeout(() => this.spawnParticles(['🎉', '🎊', '🎈', '✨']), 400);
+    }
+    if (level === 10 && !this.S.game.inventory.includes('monocle')) {
+      this.S.game.inventory.push('monocle');
+      this.toast('', { rarity: 'rare', icon: '🧐', title: 'Monóculo desbloqueado!', desc: 'Nível 10 — elegância em pixel.' });
+    }
+    if (level === 15 && !this.S.game.inventory.includes('wings')) {
+      this.S.game.inventory.push('wings');
+      this.toast('', { rarity: 'rare', icon: '🪶', title: 'Asas desbloqueadas!', desc: 'Nível 15 — agora você pode voar!' });
+      setTimeout(() => this.spawnParticles(['🪶', '✨', '🌟', '💫']), 400);
+    }
+    // Coroa no nível 20
+    if (level >= 20 && !this.S.game.inventory.includes('crown')) {
+      this.S.game.inventory.push('crown');
+      setTimeout(() => this.spawnParticles(['👑', '🌟', '✨', '🎊', '💫']), 400);
+      this.toast('', { rarity: 'legendary', icon: '👑', title: 'Coroa Desbloqueada!', desc: 'Você é rei/rainha do nível 20!' });
+    }
     // Desbloqueio de sub-pets por nível
     let newly = 0;
     Object.entries(CLAWD_SUBPETS).forEach(([id, def]) => {
@@ -2064,11 +2160,8 @@ class ClawdCompanion {
       }
       this.refreshSubpet();
     }
-    // Coroa no nível 20
-    if (level >= 20 && !this.S.game.inventory.includes('crown')) {
-      this.S.game.inventory.push('crown');
-      this.toast('👑 Coroa desbloqueada!', { rarity: 'legendary', icon: '👑', title: 'Coroa Desbloqueada!', desc: 'Você é rei/rainha do nível 20!' });
-    }
+    // v3.3: atualiza counter de level para conquistas
+    this.S.game.counters.level = level;
     this.checkAchievements();
   }
 
@@ -2144,6 +2237,9 @@ class ClawdCompanion {
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     st.days = st.lastDay === yesterday ? (st.days || 0) + 1 : 1;
     st.lastDay = today;
+    /* v3.3: mirror para counter (para a conquista iron_will) */
+    this.S.game.counters.streakDays = st.days;
+    if (st.days >= 30) this.checkAchievements();
     const bonus = Math.min(50, 10 + (st.days - 1) * 7);
     this.addXp(bonus);
     const rarity = st.days >= 7 ? 'epic' : st.days >= 3 ? 'rare' : 'common';
@@ -2263,6 +2359,7 @@ class ClawdCompanion {
     const c = this.S.game.counters;
     c.pets = (c.pets || 0) + 1;
     this.registerDaily('pets');
+    clawdRegisterWeeklyProgress(this.S, 'pets');
     this.checkAchievements();
     this.updateEmotion(true);
     if (this.subpet && this.subpet.species === 'slime' && Math.random() < 0.35) {
@@ -2272,9 +2369,10 @@ class ClawdCompanion {
     }
   }
 
-  spawnParticles(emojis) {
+  spawnParticles(emojis, opts = {}) {
     if (this._destroyed || this.S.settings.performanceMode || document.hidden) return;
-    const pool = emojis || ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
+    let pool = emojis || ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
+    /* v3.3: particleColor customizado altera o tema visual se for emoji neutro */
     const count = Math.min(8, Math.max(4, pool.length + 1));
     if (!this._canSpawnFx(count)) return;
     const rect = this.node.getBoundingClientRect();
@@ -2427,16 +2525,23 @@ class ClawdCompanion {
   doFeed() {
     if (this.state === 'sleeping') this.wakeUp();
     const mult = this.S.profession === 'chef' ? 2 : 1;
+    const isDoctor = this.S.profession === 'doctor';
     this.setStateFor('eating', 1800);
     if (this.S.profession === 'chef') this._pulseProfessionFx('cooking', 2200);
-    this.showSpeech(mult > 1 ? 'Comida de chef! 😋👨‍🍳' : 'Nham nham! 😋', 2200);
+    this.showSpeech(mult > 1 ? 'Comida de chef! 😋👨‍🍳' : (isDoctor ? 'Nutri-dose! 🩺😋' : 'Nham nham! 😋'), 2200);
     this.bumpStat('hunger', 30 * mult);
     this.registerDaily('feed');
     this.bumpStat('happiness', 5);
-    this.addXp(3);
+    const xpBase = 3;
+    const xpMult = (this.S.profession === 'chef') ? 1.5 : 1;
+    this.addXp(Math.round(xpBase * xpMult));
     this.beep(520);
     this.spawnParticles(mult > 1 ? ['🍖', '🍲', '♨️', '✨'] : ['🍖', '🍪', '✨']);
     this.updateEmotion(true);
+    /* v3.3: contadores */
+    const c = this.S.game.counters;
+    c.feeds = (c.feeds || 0) + 1;
+    if (c.feeds >= 20) this.checkAchievements();
   }
 
   doPlay() {
@@ -2467,16 +2572,21 @@ class ClawdCompanion {
 
   doBath() {
     if (this.state === 'sleeping') this.wakeUp();
+    const isDoctor = this.S.profession === 'doctor';
     this.setStateFor('bathing', 2500);
-    this.showSpeech('Splish splash! 🫧', 2500);
+    this.showSpeech(isDoctor ? 'Banho medicinal! 🩺🫧' : 'Splish splash! 🫧', 2500);
     this.spawnParticles(['🫧', '💧', '🧼', '✨']);
-    this.bumpStat('hygiene', 100);
+    this.bumpStat('hygiene', isDoctor ? 100 : 100);
+    if (isDoctor) this.bumpStat('hygiene', 3); // bônus de médico
     this.bumpStat('happiness', 8);
-    this.addXp(4);
+    const xpBase = 4;
+    const xpMult = isDoctor ? 1.5 : 1;
+    this.addXp(Math.round(xpBase * xpMult));
     this.node.classList.add('shiny');
     clearTimeout(this._shinyTimer);
     this._shinyTimer = setTimeout(() => this.node.classList.remove('shiny'), 60000);
     this.updateEmotion(true);
+    this.registerDaily('bath');
   }
 
   doDance() {
@@ -2496,6 +2606,8 @@ class ClawdCompanion {
     const c = this.S.game.counters;
     c.dances = (c.dances || 0) + 1;
     this.registerDaily('dance');
+    clawdRegisterWeeklyProgress(this.S, 'dance');
+    if (c.dances >= 15) this.checkAchievements();
     this.checkAchievements();
   }
 
@@ -3094,6 +3206,7 @@ class ClawdCompanion {
       const c = this.S.game.counters;
       c.fish = (c.fish || 0) + 1;
       this.registerDaily('fish');
+      clawdRegisterWeeklyProgress(this.S, 'fish');
       if (fish.rare) c.rareFish = (c.rareFish || 0) + 1;
       this.checkAchievements();
 
@@ -3271,6 +3384,44 @@ class ClawdCompanion {
         if (Math.random() < 0.6) this.doFish();
       }, 180000));
     }
+    /* v3.3: novas profissões */
+    if (prof === 'doctor') {
+      this._ctxTimers.push(setInterval(() => {
+        if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
+        if (Math.random() < 0.4) {
+          this.doBath();
+          this.showSpeech('Check-up de higiene! 🩺', 2200);
+        }
+      }, 90000));
+    }
+    if (prof === 'artist') {
+      this._ctxTimers.push(setInterval(() => {
+        if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
+        if (Math.random() < 0.45) {
+          this.doMeditate();
+          this.showSpeech('Inspiração artística! 🎨', 2400);
+        }
+      }, 70000));
+    }
+    if (prof === 'gamer') {
+      this._ctxTimers.push(setInterval(() => {
+        if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
+        if (Math.random() < 0.4) {
+          this.doFlip();
+          this.showSpeech(Math.random() < 0.5 ? 'GG EZ! 🎮' : 'Vita para o Claw\'d! 🏆', 2000);
+        }
+      }, 80000));
+    }
+    if (prof === 'streamer') {
+      this._ctxTimers.push(setInterval(() => {
+        if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
+        if (Math.random() < 0.5) {
+          this.doDance();
+          this.showSpeech('Hype no chat! 📡🎉', 2200);
+          this.spawnParticles(['📡', '🎬', '✨', '🎉']);
+        }
+      }, 65000));
+    }
   }
 
   _devComment() {
@@ -3391,6 +3542,12 @@ class ClawdCompanion {
     // Truque ninja — a cada 50s
     this._timers.push(setInterval(() => this._ninjaTrick(), 50000));
 
+    // v3.3: marcos de tempo na aba — a cada 60s
+    this._timers.push(setInterval(() => this._checkTabMilestones(), 60000));
+
+    // v3.3: clima ambiente — a cada 30s
+    this._timers.push(setInterval(() => this._spawnAmbientWeather(), 30000));
+
     // Pescador: pesca espontânea se idle — ciclos curtos e espaçados
     this._timers.push(setInterval(() => {
       if (document.hidden) return;
@@ -3414,8 +3571,67 @@ class ClawdCompanion {
         case 'chef': this.doFeed(); break;
         case 'fisher': if (!this._fishing) this.doFish(); break;
         case 'ninja': this._ninjaTrick(); break;
+        /* v3.3 */
+        case 'doctor': this.doBath(); this.showSpeech('Higiene em dia! 🩺', 2000); break;
+        case 'artist': this.doMeditate(); break;
+        case 'gamer': this.doFlip(); this.showSpeech('Level up! 🎮', 1800); break;
+        case 'streamer': this.doDance(); this.showSpeech('Clip isso! 📡', 2000); break;
       }
     }, 85000));
+  }
+
+  /* v3.3: Marcos de tempo na aba */
+  _checkTabMilestones() {
+    if (!this.isVisible || this.isQuiet() || document.hidden) return;
+    const minutesOnTab = Math.floor((Date.now() - this._tabStartTime) / 60000);
+    const milestones = [
+      { min: 5,  msg: 'Já faz 5 min aqui! ⏱️',   xp: 3,  emoji: ['⏱️', '✨'] },
+      { min: 30, msg: 'Maratonando? 🏃 30 min!', xp: 8,  emoji: ['🏃', '⭐', '✨'] },
+      { min: 60, msg: 'Foco total! 🎯 1 hora!',  xp: 15, emoji: ['🎯', '🏆', '✨', '⭐'] }
+    ];
+    for (const m of milestones) {
+      if (minutesOnTab >= m.min && !this._tabMilestonesFired.includes(m.min)) {
+        this._tabMilestonesFired.push(m.min);
+        this.showSpeech(m.msg, 3000);
+        this.spawnParticles(m.emoji);
+        this.addXp(m.xp);
+        break;
+      }
+    }
+  }
+
+  /* v3.3: Clima ambiente sazonal */
+  _spawnAmbientWeather() {
+    if (!this.isVisible || this.S.settings.performanceMode || document.hidden) return;
+    if (!this._canSpawnFx(2)) return;
+    const month = new Date().getMonth() + 1; // 1–12
+    let pool = null;
+    if (month === 12 || month === 1)  pool = ['❄️', '🌨️', '⛄'];
+    else if (month === 10)             pool = ['🍂', '🍃', '🌿'];
+    else if (month === 4)              pool = ['🌸', '🌺', '🌼'];
+    else if (month >= 6 && month <= 7) pool = ['✨', '🌟', '🔆'];
+    if (!pool) return;
+    const count = 1 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        if (this._destroyed || document.hidden || !this._canSpawnFx(1)) return;
+        const el = document.createElement('div');
+        el.className = 'aic-particle';
+        el.style.cssText = `
+          position:fixed;
+          left:${Math.random() * window.innerWidth}px;
+          top:${Math.random() * (window.innerHeight * 0.6)}px;
+          z-index:2147483644;
+          font-size:${10 + Math.random() * 8}px;
+          pointer-events:none;
+          opacity:0.7;
+          animation:clawd-float-up ${1.2 + Math.random() * 0.8}s ease-out forwards;
+        `;
+        el.textContent = pool[Math.floor(Math.random() * pool.length)];
+        document.body.appendChild(el);
+        this._trackParticle(el, 2200);
+      }, i * 400);
+    }
   }
 
   _doAutoWalk() {
@@ -3452,6 +3668,7 @@ class ClawdCompanion {
         const c = this.S.game.counters;
         c.walks = (c.walks || 0) + 1;
         this.registerDaily('walk');
+        clawdRegisterWeeklyProgress(this.S, 'walk');
         this.S.position = { x: parseFloat(this.node.style.left), y: parseFloat(this.node.style.top) };
         this.checkAchievements();
         this.save();
@@ -4115,6 +4332,14 @@ class ClawdCompanion {
         case 'claimDailyQuest':
           sendResponse({ claimed: this.claimDailyQuest(), daily: this.S.daily });
           return true;
+        case 'claimWeeklyChallenge':
+          sendResponse({ claimed: this.claimWeeklyChallenge(), weekly: clawdEnsureWeeklyChallenge(this.S) });
+          return true;
+        case 'weeklyReset':
+          this.S.weekly = clawdWeeklyChallengeForWeek(clawdISOWeek());
+          this._weeklyCelebrated = false;
+          this.save();
+          break;
         case 'getStatus':
           sendResponse({
             stats: this.S.stats, emotion: this.emotion, state: this.state,
@@ -4127,6 +4352,9 @@ class ClawdCompanion {
             fishing: this._fishing,
             profession: this.S.profession,
             daily: clawdEnsureDailyQuest(this.S),
+            weekly: clawdEnsureWeeklyChallenge(this.S),
+            combo: this._comboCount,
+            personality: this.S.personality,
             subpet: this.subpet ? {
               species: this.subpet.species,
               state: this.subpet.state,
@@ -4172,7 +4400,12 @@ class ClawdCompanion {
       roll:       () => this.doRoll(),
       balloon:    () => this.doBalloon(),
       hug:        () => this.doHug(),
-      lookAround: () => this.doLookAround()
+      lookAround: () => this.doLookAround(),
+      /* v3.3: novas ações */
+      flip:       () => this.doFlip(),
+      meditate:   () => this.doMeditate(),
+      electric:   () => this.doElectric(),
+      nap:        () => this.doNap()
     };
     if (!map[action]) return false;
     this.cancelMovement();
@@ -4181,8 +4414,134 @@ class ClawdCompanion {
     if (this._fishing && action !== 'fish') this.stopFishing();
     if (this._keepy && action !== 'keepy' && action !== 'kick') this.stopKeepyUppy();
     if (this._balloon && action !== 'balloon') this.popBalloon({ silent: true });
+
+    /* v3.3: combo system — só conta ações interativas (exclui sleep/wake/nap) */
+    const comboExcluded = ['sleep', 'wake', 'nap', 'fish', 'keepy', 'kick'];
+    if (!comboExcluded.includes(action)) this._tickCombo();
+
+    /* v3.3: XP multiplicador por profissão */
     map[action]();
+
+    /* v3.3: track total de ações */
+    const c = this.S.game.counters;
+    c.totalActions = (c.totalActions || 0) + 1;
+
+    /* v3.3: speedrun tracking (10 ações em 30s) */
+    const now = Date.now();
+    if (!this._speedrunTimer) {
+      this._speedrunCount = 0;
+      this._speedrunTimer = setTimeout(() => {
+        this._speedrunTimer = null;
+        this._speedrunCount = 0;
+      }, 30000);
+    }
+    this._speedrunCount = (this._speedrunCount || 0) + 1;
+    if (this._speedrunCount > (c.maxSpeedrun || 0)) {
+      c.maxSpeedrun = this._speedrunCount;
+      if (this._speedrunCount >= 10) this.checkAchievements();
+    }
+
+    /* v3.3: interações noturnas */
+    const hour = new Date().getHours();
+    if (hour >= 22 || hour < 6) {
+      c.nightInteractions = (c.nightInteractions || 0) + 1;
+      if (c.nightInteractions >= 50) this.checkAchievements();
+    }
+
     return true;
+  }
+
+  _tickCombo() {
+    clearTimeout(this._comboTimer);
+    this._comboCount = (this._comboCount || 0) + 1;
+    const c = this.S.game.counters;
+    if (this._comboCount > (c.maxCombo || 0)) {
+      c.maxCombo = this._comboCount;
+      if (c.maxCombo >= 5) this.checkAchievements();
+    }
+    if (this._comboCount >= 5) {
+      const gamer = this.S.profession === 'gamer';
+      this.showSpeech(gamer ? `COMBO x${this._comboCount}! 🎮🔥` : `Combo x${this._comboCount}! 🔥`, 2000);
+      this.spawnParticles(['🔥', '⭐', '✨', '💥']);
+      this.addXp(Math.floor(this._comboCount * 0.5));
+      this.chime([[600, 0.05], [800, 0.07], [1000, 0.09]]);
+    } else if (this._comboCount >= 3) {
+      this.showSpeech(`Combo x${this._comboCount}! ✨`, 1400);
+      this.spawnParticles(['✨', '⭐']);
+      /* track para daily quest */
+      this.registerDaily('combo');
+      clawdRegisterWeeklyProgress(this.S, 'combo');
+    }
+    /* daily quest de combo */
+    if (this._comboCount >= 3) this.registerDaily('combo');
+    this._comboTimer = setTimeout(() => {
+      this._comboCount = 0;
+    }, this._comboWindowMs);
+  }
+
+  /* ---------- NOVAS AÇÕES v3.3 ---------- */
+  doFlip() {
+    if (this.state === 'sleeping') this.wakeUp();
+    this._pulseAnimClass('flipping', 1000);
+    this.setStateFor('somersault', 900);
+    this.showSpeech('Acrobacia! 🔄', 1400);
+    this.spawnParticles(['🌀', '✨', '💫']);
+    this.bumpStat('energy', -3);
+    this.bumpStat('happiness', 4);
+    this.addXp(3);
+    this.chime([[500, 0.05], [750, 0.06], [1000, 0.07]]);
+    if (this.subpet && Math.random() < 0.4) this.subpet.interact('spin', { force: true });
+  }
+
+  doMeditate() {
+    if (this.state === 'sleeping') this.wakeUp();
+    this._pulseAnimClass('meditating', 4000);
+    this.setStateFor('pose', 4000);
+    this.showSpeech('🧘 Concentrando energia...', 4000);
+    const isArtist = this.S.profession === 'artist';
+    this.spawnParticles(isArtist ? ['⭐', '🌟', '✨', '🎨'] : ['✨', '🌟', '💫', '🌙']);
+    this.bumpStat('energy', 12);
+    this.bumpStat('happiness', 5);
+    this.addXp(isArtist ? 8 : 5);
+    this.beep(220, 0.08, 'sine');
+    setTimeout(() => {
+      if (!this._destroyed) this.beep(330, 0.06, 'sine');
+    }, 1000);
+    setTimeout(() => {
+      if (!this._destroyed) this.beep(440, 0.05, 'sine');
+    }, 2000);
+  }
+
+  doElectric() {
+    if (this.state === 'sleeping') this.wakeUp();
+    this._pulseAnimClass('electrified', 800);
+    this.setStateFor('excited', 1200);
+    this.showSpeech('⚡ Descarga elétrica!', 1600);
+    this.spawnParticles(['⚡', '💥', '✨', '🔆']);
+    this.spawnPixelSparks(['#f1c40f', '#e67e22', '#3498db', '#ffffff']);
+    this.bumpStat('energy', 8);
+    this.addXp(3);
+    this.beep(800, 0.15, 'square');
+    setTimeout(() => { if (!this._destroyed) this.beep(600, 0.1, 'sawtooth'); }, 80);
+    setTimeout(() => { if (!this._destroyed) this.beep(400, 0.12, 'square'); }, 160);
+    if (this.subpet && Math.random() < 0.5) this.subpet.interact('spin', { force: true });
+  }
+
+  doNap() {
+    if (this.state === 'sleeping') { this.wakeUp(); return; }
+    this.setState('sleeping');
+    this.showSpeech('💤 Cochilando rápido...', 5500);
+    this.beep(280, 0.12, 'triangle');
+    this.bumpStat('energy', 18);
+    this.addXp(2);
+    /* Acorda automaticamente após 5 segundos */
+    setTimeout(() => {
+      if (!this._destroyed && this.state === 'sleeping') {
+        this.wakeUp();
+        this.showSpeech('Descansado! ☀️', 1800);
+        this.chime([[500, 0.04], [700, 0.06]]);
+      }
+    }, 5000);
   }
 
   destroy({ skipExtensionApis = false } = {}) {
@@ -4198,7 +4557,9 @@ class ClawdCompanion {
       '_wakeStretchTimer', '_fishTimer', '_fishBiteTimer', '_fishCatchTimer',
       '_emotionTimer', '_shinyTimer', '_keepy', '_juggleDrop', '_juggleIdleTimer',
       '_profFxTimer', '_equipFxTimer', '_freestyleTimer', '_balloonTimer', '_balloonPopFx',
-      '_pendingCelebrate', '_duoTimer', '_dwellWalkTimer', '_dwellActionTimer'
+      '_pendingCelebrate', '_duoTimer', '_dwellWalkTimer', '_dwellActionTimer',
+      /* v3.3 */
+      '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
