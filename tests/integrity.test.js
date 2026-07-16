@@ -345,3 +345,23 @@ test('os contadores usados pelo futebol existem no estado padrão', () => {
     assert.ok(key in counters, `estado padrão não inicializa counters.${key}`);
   }
 });
+
+test('CLAWD_IDLE_VARIATIONS referencia keyframes existentes no CSS (v3.4)', () => {
+  const { CLAWD_IDLE_VARIATIONS } = require('../src/shared/catalog.js');
+  if (!CLAWD_IDLE_VARIATIONS || !CLAWD_IDLE_VARIATIONS.length) {
+    assert.fail('CLAWD_IDLE_VARIATIONS não exportado ou vazio');
+  }
+  const style = read('src/content/style.css');
+  for (const v of CLAWD_IDLE_VARIATIONS) {
+    assert.ok(style.includes(`@keyframes ${v.keyframe}`), `keyframe ausente no CSS: ${v.keyframe}`);
+  }
+});
+
+test('CLAWD_KEYBOARD_SHORTCUTS — todos os action ids existem em CLAWD_ACTIONS (v3.4)', () => {
+  const { CLAWD_KEYBOARD_SHORTCUTS, CLAWD_ACTIONS } = require('../src/shared/catalog.js');
+  if (!CLAWD_KEYBOARD_SHORTCUTS) assert.fail('CLAWD_KEYBOARD_SHORTCUTS não exportado');
+  const actionIds = Object.keys(CLAWD_ACTIONS);
+  for (const [key, actionId] of Object.entries(CLAWD_KEYBOARD_SHORTCUTS)) {
+    assert.ok(actionIds.includes(actionId), `atalho ${key} aponta para action inexistente: '${actionId}'`);
+  }
+});

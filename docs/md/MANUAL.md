@@ -59,7 +59,20 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Exibir boca** — ligada por padrão; desligue para remover somente a boca (olhos, piscadas e balões de emoji continuam ativos);
 - **Skin do corpo** — Normal, Orelhas ou Robô, combinável com qualquer modelo e rosto;
 - **Provador ao vivo** — mostra a mesma arte CSS do pet e combina modelo + rosto + skin + cabeça + rosto/corpo antes de você fechar o popup;
-- **Acessórios** — 14 opções em dois slots, com miniaturas pixel-art reais, incluindo 7 chapéus redesenhados e sem recorte. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
+- **Acessórios** — 24 opções em **três slots** (cabeça, rosto, **corpo**), com miniaturas pixel-art reais, incluindo 11 chapéus redesenhados e sem recorte. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
+
+#### Slot de Corpo (novo em v3.3)
+
+O terceiro slot veste o corpo inteiro do pet e combina com qualquer cabeça ou rosto:
+
+| Acessório | Desbloqueio | Efeito especial |
+|-----------|-------------|-----------------|
+| 🎀 **Ribbon** | Grátis | Laço no pescoço |
+| 🪽 **Wings** | Nível 15 | Animação de levitação suave no idle |
+| 🦸 **Cape** | Loja (80 coins) | Capa flutuante ao caminhar |
+| 🛡️ **Armor** | Loja (100 coins) | Armadura completa |
+
+Wings ativa automaticamente a animação `clawd-float-idle` quando o pet está parado.
 
 ### 💼 Aba Profissão
 
@@ -75,6 +88,10 @@ A profissão muda o comportamento do pet:
 | 🧑‍🍳 **Chef** | Cozinha e torna a alimentação duas vezes mais eficaz |
 | 🥷 **Ninja** | Desaparece, corre e surpreende com truques próprios |
 | 🎣 **Pescador** | Monta lago e vara, espera a fisgada e captura peixes |
+| 🩺 **Doutor** | Reage a sites de saúde; banho rende +higiene extra |
+| 🎨 **Artista** | Pinta no idle; spawn de estrelas ao posar |
+| 🎮 **Gamer** | Reage a sites de jogos; combo de ações dá XP bônus |
+| 📡 **Streamer** | Dança em sites de streaming; balão especial ao ficar 5min na aba |
 
 O equipamento indicado pela profissão é temporário e aparece com o selo **PROF.**. Sua escolha pessoal continua salva e volta automaticamente ao selecionar **Livre**.
 
@@ -116,7 +133,7 @@ O Pescador monta um lago e uma vara ao lado do pet. Depois de alguns segundos o 
 
 ### ⚡ Aba Ações
 
-Botões de comando imediato: 👋 **Acenar** · 🕺 **Dançar** · ❤️ **Carinho** · 🍖 **Alimentar** · 🎾 **Brincar** · 📸 **Posar** · 🫧 **Banho** · 😴 **Dormir** · ☀️ **Acordar** · 🎣 **Pescar** · 🦘 **Pular** · 🤾 **Esticar** · 🦁 **Rugir** · 🌀 **Girar** · 🎈 **Balão** · 🤗 **Abraçar** · e outras ações do catálogo (24 no total).
+Botões de comando imediato: 👋 **Acenar** · 🕺 **Dançar** · ❤️ **Carinho** · 🍖 **Alimentar** · 🎾 **Brincar** · 📸 **Posar** · 🫧 **Banho** · 😴 **Dormir** · ☀️ **Acordar** · 🎣 **Pescar** · 🦘 **Pular** · 🤾 **Esticar** · 🦁 **Rugir** · 🌀 **Girar** · 🎈 **Balão** · 🤗 **Abraçar** · 🤸 **Flip** · 🧘 **Meditar** · ⚡ **Elétrico** · 💤 **Cochilo** · e outras ações do catálogo (28 no total).
 
 Abaixo deles:
 
@@ -125,7 +142,15 @@ Abaixo deles:
 
 ### 🎯 Missão diária
 
-Na aba **🏆 Conquistas**, uma missão muda diariamente. Ela acompanha ações reais (carinho, comida, brincadeira, dança, passeio, pesca ou gols), mostra o progresso em tempo real e libera XP + PixelCoins ao clicar em **Resgatar**. A recompensa só pode ser coletada uma vez por dia.
+Na aba **🏆 Conquistas**, uma missão muda diariamente. Ela acompanha ações reais (carinho, comida, brincadeira, dança, passeio, pesca, gols, banho, acessório, sub-pet, combo ou profissão), mostra o progresso em tempo real e libera XP + PixelCoins ao clicar em **Resgatar**. A recompensa só pode ser coletada uma vez por dia.
+
+### 🏅 Desafio Semanal (novo em v3.3)
+
+Logo abaixo das missões diárias, a seção **Desafio da Semana** mostra um objetivo maior (troca de semana toda segunda-feira zero-hora). Cada semana traz um dos quatro desafios rotativos com barra de progresso e recompensa especial (XP elevado + badge visual). Clique em **Resgatar** quando completar para receber o prêmio — só é possível uma vez por semana.
+
+### 🔥 Sistema de Combo (novo em v3.3)
+
+Faça **3 ou mais ações em sequência dentro de 10 segundos** para ativar o combo. O balão mostra o multiplicador atual (×3, ×4…) e ao atingir ×5 o XP recebido sobe automaticamente. Manter o ritmo é a forma mais rápida de evoluir de nível e desbloquear a conquista **Combo King**.
 
 ---
 
@@ -172,7 +197,18 @@ Ainda não — por enquanto Chrome, Edge e Brave. Suporte a Firefox está nas id
 
 ## 7. Recursos avançados já disponíveis
 
-O Claw'd já inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal do sheet, olhos customizáveis e **sete** ações, **status e emoções** estilo Tamagotchi, **boca ligada por padrão**, balões de emoji, piscadas, **cenas em duo** pet↔subpet, engajamento após dwell na página, embaixadinhas ⚽, **óculos de sol 🕶️**, lojinha com PixelCoins, conquistas, missão diária e o pet **passeando entre suas abas abertas**. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas v3.2 está no [MELHORIAS.md](./MELHORIAS.md).
+O Claw'd v3.3 inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **24 acessórios em 3 slots**, **12 profissões** com contexto de página, **28 ações**, **status e emoções** estilo Tamagotchi, sistema de **combo**, **desafio semanal**, **25 conquistas**, **12 quests diárias**, **traços de personalidade**, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas sazonais e o pet **passeando entre suas abas**. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md).
+
+### Personalização avançada (v3.3)
+
+| Opção | Onde | O que faz |
+|-------|------|-----------|
+| **Traços de personalidade** | Aba Comportamento | 5 sliders (playful, lazy, curious, social, foodie) que afetam frequência de ações e falas |
+| **Voz customizada** | Aba Config | Textarea com frases personalizadas que o pet fala aleatoriamente |
+| **Cor de partícula** | Aba Config | Color picker para substituir o tema padrão de partículas |
+| **Volume de ações** | Aba Config | Slider separado para sons de ações do pet |
+| **Volume ambiente** | Aba Config | Slider separado para sons ambientes e idle |
+| **Tema de name-tag** | Aba Aparência | 7 opções: classic, neon, pastel, dark, ocean, rainbow, holographic, minimal |
 
 ---
 

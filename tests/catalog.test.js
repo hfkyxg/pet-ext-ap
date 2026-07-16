@@ -506,3 +506,32 @@ test('estados estacionários não reativam ciclo legado clawd-pixel-walk no corp
   assert.match(styleSource, /#aic-clawd-node\[data-clawd-owned="true"\] \.pixel-sprite/);
   assert.match(styleSource, /\.pixel-legs[\s\S]*clawd-pixel-leg-cycle/);
 });
+
+test('catálogo exporta CLAWD_IDLE_VARIATIONS com estrutura correta (v3.4)', () => {
+  const { CLAWD_IDLE_VARIATIONS } = require('../src/shared/catalog.js');
+  assert.ok(Array.isArray(CLAWD_IDLE_VARIATIONS), 'CLAWD_IDLE_VARIATIONS deve ser array');
+  assert.ok(CLAWD_IDLE_VARIATIONS.length >= 3, `esperado ≥ 3 variações, encontrado ${CLAWD_IDLE_VARIATIONS.length}`);
+  for (const v of CLAWD_IDLE_VARIATIONS) {
+    assert.ok(typeof v.id === 'string' && v.id.length > 0, `variação sem id: ${JSON.stringify(v)}`);
+    assert.ok(typeof v.keyframe === 'string' && v.keyframe.startsWith('clawd-'), `keyframe inválido: ${v.keyframe}`);
+    assert.ok(typeof v.durationMs === 'number' && v.durationMs > 0, `durationMs inválido: ${v.durationMs}`);
+    assert.ok(typeof v.cooldownMs === 'number' && v.cooldownMs > 0, `cooldownMs inválido: ${v.cooldownMs}`);
+  }
+});
+
+test('catálogo exporta CLAWD_KEYBOARD_SHORTCUTS mapeando Alt+* → action ids válidos (v3.4)', () => {
+  const { CLAWD_KEYBOARD_SHORTCUTS, CLAWD_ACTIONS } = require('../src/shared/catalog.js');
+  assert.ok(typeof CLAWD_KEYBOARD_SHORTCUTS === 'object' && CLAWD_KEYBOARD_SHORTCUTS !== null, 'deve ser objeto');
+  const actionIds = Object.keys(CLAWD_ACTIONS);
+  for (const [key, actionId] of Object.entries(CLAWD_KEYBOARD_SHORTCUTS)) {
+    assert.match(key, /^Alt\+[A-Z]$/, `atalho com formato inesperado: ${key}`);
+    assert.ok(actionIds.includes(actionId), `action id '${actionId}' não existe em CLAWD_ACTIONS`);
+  }
+  assert.ok(Object.keys(CLAWD_KEYBOARD_SHORTCUTS).length >= 4, 'deve ter ao menos 4 atalhos');
+});
+
+test('estado padrão inclui onboardingDone (v3.4)', () => {
+  const state = clawdDefaultState();
+  assert.ok('onboardingDone' in state, 'estado default deve ter onboardingDone');
+  assert.equal(state.onboardingDone, false, 'onboardingDone deve começar false');
+});

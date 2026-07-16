@@ -227,6 +227,7 @@ function pollLiveStats() {
         if (rec) rec.querySelector('b').textContent = res.keepyRecord;
         if (res.daily) renderDailyQuest(res.daily);
         if (res.weekly) renderWeeklyChallenge(res.weekly);
+        updateContextBar(res);
       })
       .catch(() => { scrubLastError(); });
   });
@@ -1302,11 +1303,38 @@ function renderAll() {
   $('toggle-mouth').checked = S.showMouth !== false;
 }
 
+function showOnboarding() {
+  const overlay = $('clawd-onboarding');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  const btn = $('onboarding-start');
+  if (btn) btn.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    persist(st => { st.onboardingDone = true; });
+    S.onboardingDone = true;
+  }, { once: true });
+}
+
+function updateContextBar(status) {
+  const bar = $('clawd-context-bar');
+  if (!bar) return;
+  const prof = status?.profession || S.profession || 'idle';
+  const ctx  = status?.pageContext || 'idle';
+  const profData = (CLAWD_PROFESSIONS || []).find(p => p.id === prof);
+  const emoji = profData ? (profData.emoji || '💼') : '💼';
+  const label = profData ? (profData.label || 'Livre') : 'Livre';
+  $('context-bar-profession').textContent = `${emoji} ${label}`;
+  $('context-bar-page').textContent = ctx;
+  bar.style.display = 'flex';
+}
+
 chrome.storage.local.get(['clawdState'], (res) => {
   scrubLastError();
   S = clawdMigrateState(res.clawdState);
   bindStatic();
   renderAll();
+  if (!S.onboardingDone) showOnboarding();
+  updateContextBar(null);
   pollLiveStats();
   setInterval(pollLiveStats, 4000);
 });

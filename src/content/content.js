@@ -1021,6 +1021,13 @@ class ClawdCompanion {
     this._tabMilestonesFired = [];
     /* v3.3: Clima ambiente */
     this._ambientWeatherTimer = null;
+    /* v3.4: Variações idle, scroll e tab visibility */
+    this._idleVarTimer = null;
+    this._idleVarLastTime = {};
+    this._scrollReacting = false;
+    this._scrollHandler = null;
+    this._visibilityHandler = null;
+    this._tabHiddenAt = null;
 
     this.messages = {
       idle:     ["Oi! 👋", "Bora navegar! 🌐", "Me arraste! ✨", "Aqui pra ajudar 🐾", "Clique em mim! 💫", "O que faremos hoje? 🎯"],
@@ -1107,9 +1114,16 @@ class ClawdCompanion {
     if (this._destroyed) return;
     this._detectPageContext();
     this.refreshSubpet();
+    this._setupScrollReaction();
+    this._setupVisibilityReaction();
     setTimeout(() => {
       if (!this._destroyed && this.isVisible && !this.isQuiet()) this.showSpeech(this.getRandom('idle'));
     }, 1400);
+    /* Summon elaborado — queda com bounce (v3.4) */
+    if (this.node && !this._reducedMotion) {
+      this.node.classList.add('clawd-summon-drop');
+      setTimeout(() => this.node?.classList.remove('clawd-summon-drop'), 750);
+    }
   }
 
   _hasExtensionContext() {
@@ -1470,6 +1484,80 @@ class ClawdCompanion {
     this.toast('', { rarity: 'epic', icon: challenge.badge || '🏆', title: `${challenge.label}!`, desc: `+${rewardXp} XP e +${rewardCoins} PixelCoins` });
     this.save();
     return true;
+  }
+
+  /* ---- Variações de Idle (v3.4) ---- */
+  _doIdleVariation() {
+    if (this._destroyed || this.state !== 'idle' || !this.node || this._reducedMotion) return;
+    if (!Array.isArray(CLAWD_IDLE_VARIATIONS) || !CLAWD_IDLE_VARIATIONS.length) return;
+    const now = Date.now();
+    const playful = (this.S.personality?.playful ?? 5);
+    /* filtrar por cooldown individual */
+    const available = CLAWD_IDLE_VARIATIONS.filter(v => {
+      const last = this._idleVarLastTime?.[v.id] || 0;
+      return (now - last) >= v.cooldownMs;
+    });
+    if (!available.length) return;
+    /* playful alto → pesa para variações mais energéticas */
+    const pick = available[Math.floor(Math.random() * available.length)];
+    if (!this._idleVarLastTime) this._idleVarLastTime = {};
+    this._idleVarLastTime[pick.id] = now;
+    const cls = pick.keyframe.replace('@keyframes ', '');
+    this.node.classList.add(cls);
+    setTimeout(() => this.node?.classList.remove(cls), pick.durationMs + 200);
+    /* agendamento para próxima variação baseado em personalidade */
+    const baseInterval = Math.max(8000, 22000 - playful * 1000);
+    const jitter = Math.random() * 6000;
+    if (this._idleVarTimer) clearTimeout(this._idleVarTimer);
+    this._idleVarTimer = setTimeout(() => this._doIdleVariation(), baseInterval + jitter);
+  }
+
+  /* ---- Reação ao Scroll (v3.4) ---- */
+  _setupScrollReaction() {
+    let lastScrollY = window.scrollY;
+    let lastScrollTime = Date.now();
+    this._scrollReacting = false;
+    this._scrollHandler = () => {
+      if (this._destroyed) return;
+      const now = Date.now();
+      const dy = Math.abs(window.scrollY - lastScrollY);
+      const dt = Math.max(now - lastScrollTime, 1);
+      const speed = dy / dt * 1000;
+      lastScrollY = window.scrollY;
+      lastScrollTime = now;
+      if (speed > 1200 && !this._scrollReacting) {
+        this._scrollReacting = true;
+        if (this.state === 'idle' || this.state === 'walking') {
+          this.setState('excited');
+          setTimeout(() => { if (!this._destroyed) this.setState('idle'); }, 900);
+        }
+        setTimeout(() => { this._scrollReacting = false; }, 2000);
+      }
+    };
+    window.addEventListener('scroll', this._scrollHandler, { passive: true });
+  }
+
+  /* ---- Reação ao Retorno de Aba (v3.4) ---- */
+  _setupVisibilityReaction() {
+    this._tabHiddenAt = null;
+    this._visibilityHandler = () => {
+      if (this._destroyed) return;
+      if (document.hidden) {
+        this._tabHiddenAt = Date.now();
+      } else {
+        const away = this._tabHiddenAt ? Date.now() - this._tabHiddenAt : 0;
+        this._tabHiddenAt = null;
+        if (away > 1800000) {
+          this.showSpeech('Que saudade! 🥺', 3000);
+          this.doCelebrate?.();
+        } else if (away > 300000) {
+          this.showSpeech('Você voltou! 😊', 2500);
+        } else if (this.state === 'sleeping') {
+          this._handleAction('wake');
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', this._visibilityHandler);
   }
 
   _trackAccessory(id) {
@@ -3548,6 +3636,9 @@ class ClawdCompanion {
     // v3.3: clima ambiente — a cada 30s
     this._timers.push(setInterval(() => this._spawnAmbientWeather(), 30000));
 
+    // v3.4: variação de idle — kickoff inicial após 15s
+    setTimeout(() => { if (!this._destroyed) this._doIdleVariation(); }, 15000);
+
     // Pescador: pesca espontânea se idle — ciclos curtos e espaçados
     this._timers.push(setInterval(() => {
       if (document.hidden) return;
@@ -4559,7 +4650,9 @@ class ClawdCompanion {
       '_profFxTimer', '_equipFxTimer', '_freestyleTimer', '_balloonTimer', '_balloonPopFx',
       '_pendingCelebrate', '_duoTimer', '_dwellWalkTimer', '_dwellActionTimer',
       /* v3.3 */
-      '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer'
+      '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer',
+      /* v3.4 */
+      '_idleVarTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
@@ -4601,6 +4694,16 @@ class ClawdCompanion {
     }
 
     document.querySelectorAll(CLAWD_DOM_CLEANUP_SELECTORS).forEach(el => el.remove());
+
+    /* v3.4: remover event listeners novos */
+    if (this._scrollHandler) {
+      window.removeEventListener('scroll', this._scrollHandler, { passive: true });
+      this._scrollHandler = null;
+    }
+    if (this._visibilityHandler) {
+      document.removeEventListener('visibilitychange', this._visibilityHandler);
+      this._visibilityHandler = null;
+    }
   }
 }
 

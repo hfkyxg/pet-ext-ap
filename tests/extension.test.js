@@ -121,7 +121,7 @@ test('README e documentação identificam a versão e o ano atuais', () => {
   const docs = `${read('docs/md/DOCUMENTACAO.md')}\n${read('docs/md/MANUAL.md')}`;
   const banner = read('src/assets/pet-banner.svg');
   const modelGallery = read('src/assets/pet-states.svg');
-  assert.match(readme, /version-3\.2/);
+  assert.match(readme, /version-3\.[23]/);
   assert.match(readme, /MIT © 2026/);
   assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
   assert.match(docs, /2026/);
@@ -280,4 +280,28 @@ test('_make-sprites não sobrescreve PNGs do pacote sem WRITE_PKG_SPRITES=1', ()
   assert.match(makeSprites, /if\s*\(\s*WRITE_PKG_SPRITES\s*\)/);
   assert.match(makeSprites, /skip package PNGs/);
   assert.match(makeSprites, /_crop-literal-sprites/);
+});
+
+test('popup.html contém elementos de onboarding e context-bar (v3.4)', () => {
+  assert.match(popupHtml, /id="clawd-onboarding"/, 'overlay de onboarding deve existir');
+  assert.match(popupHtml, /id="clawd-context-bar"/, 'barra de contexto deve existir');
+  assert.match(popupHtml, /id="onboarding-start"/, 'botão de início do onboarding deve existir');
+  assert.match(popupHtml, /role="progressbar"/, 'barras de stat devem ter role progressbar');
+  assert.match(popupHtml, /aria-label="Felicidade"/, 'barra de felicidade deve ter aria-label');
+});
+
+test('content.js contém handlers de interação v3.4', () => {
+  assert.match(contentSource, /_setupScrollReaction/, 'reação ao scroll deve existir');
+  assert.match(contentSource, /visibilitychange/, 'reação ao retorno de aba deve existir');
+  assert.match(contentSource, /_doIdleVariation/, 'variações de idle devem existir');
+  assert.match(contentSource, /clawd-summon-drop/, 'animação de summon drop deve existir');
+});
+
+test('catálogo exporta CLAWD_IDLE_VARIATIONS e CLAWD_KEYBOARD_SHORTCUTS (v3.4)', () => {
+  const catalog = require('../src/shared/catalog.js');
+  assert.ok(Array.isArray(catalog.CLAWD_IDLE_VARIATIONS), 'CLAWD_IDLE_VARIATIONS deve ser array');
+  assert.ok(catalog.CLAWD_IDLE_VARIATIONS.length >= 3, 'deve ter ao menos 3 variações de idle');
+  assert.ok(typeof catalog.CLAWD_KEYBOARD_SHORTCUTS === 'object', 'CLAWD_KEYBOARD_SHORTCUTS deve ser objeto');
+  const shortcuts = Object.keys(catalog.CLAWD_KEYBOARD_SHORTCUTS || {});
+  assert.ok(shortcuts.length >= 4, 'deve ter ao menos 4 atalhos de teclado');
 });

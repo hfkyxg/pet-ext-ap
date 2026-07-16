@@ -1,7 +1,44 @@
-# 🚀 Claw'd — Registro de entrega v3.2
+# 🚀 Claw'd — Registro de entregas v3.2 e v3.3
 
-> Documento histórico das entregas que fecharam a v3.2 (não é roadmap aberto).
-> Os nove blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção.
+> Documento histórico das entregas das versões v3.2 e v3.3 (não é roadmap aberto).
+> Os blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção.
+
+---
+
+## v3.3 — Gamificação 2.0, Profissões & Acessórios (2026-07-16)
+
+### Entregas v3.3
+
+| Módulo | Entrega | Estado |
+|--------|---------|--------|
+| **M3** | Gamificação 2.0: combo, desafio semanal, 13 conquistas, 5 quests | ✅ Concluído |
+| **M4** | 4 profissões, 10 acessórios, slot body, schema v5 | ✅ Concluído |
+| **M5** | 4 ações, 8 keyframes, partículas sazonais, detecção de contexto | ✅ Concluído |
+| **M6** | Docs sync, personality, customSpeech, particleColor, volumes | ✅ Concluído |
+
+### Novidades principais
+
+- **Slot body**: terceiro slot de acessório (ribbon, wings, cape, armor); CSS pixel-art completo; rendering condicional de has-wings/has-cape/has-armor
+- **Sistema de combo**: janela 10s, balão a ×3, XP ×(1+0.15×n) a ×5, conquista combo_king
+- **Desafio semanal**: 4 desafios por hash ISO week, alarm background semanal, claim com XP+badge
+- **Traços de personalidade**: 5 dimensões (playful, lazy, curious, social, foodie) afetam idle e fala
+- **Detecção de contexto**: 11 categorias de sites (coding, music, video, shopping, social, news, email, gaming, health, learning, idle)
+- **Partículas sazonais**: neve (dez/jan), folhas (out), flores (abr), vagalumes (jun/jul)
+- **Marcos de nível**: party_hat (5), monocle (10), wings (15), crown (20) — automáticos
+
+### Roadmap v3.4
+
+| Fase | Foco |
+|------|------|
+| Docs sync | Sincronizar toda documentação com estado v3.3 (este ciclo) |
+| Micro-animações | Variações idle (look/scratch/taptoe), frames pixel-art para flip/meditate/electric/nap |
+| UX onboarding | Overlay de boas-vindas na primeira abertura do popup |
+| Interações | Atalhos Alt+F/H/P/Z, reação ao scroll, duplo-clique, retorno de aba, click frenético |
+| Summon elaborado | Animação de queda com bounce ao injetar o pet |
+
+---
+
+> **Registro v3.2 abaixo — histórico de implementação do ciclo anterior.**
 
 **Base atual:** `content.js` (classes `ClawdCompanion` e `SubPet`), `popup.js/html/css`, `background.js` (service worker MV3), catálogo compartilhado, persistência via `chrome.storage.local` (chave `clawdState`) e [vitrine interativa](../index.html).
 
@@ -401,4 +438,4 @@ Nova aba **⚙️ Config** no popup, consolidando:
 
 ---
 
-*Registro de implementação — Claw'd v3.2 · 2026*
+*Registro de implementação — Claw'd v3.2 e v3.3 · 2026*

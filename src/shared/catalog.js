@@ -1123,6 +1123,21 @@ var CLAWD_RUNTIME_ACTIONS = [
   'weeklyReset', 'getStatus'
 ];
 
+/* ---- Variações de Idle (v3.4) ---- */
+var CLAWD_IDLE_VARIATIONS = [
+  { id: 'look',    keyframe: 'clawd-idle-look',    durationMs: 1800, cooldownMs: 15000 },
+  { id: 'scratch', keyframe: 'clawd-idle-scratch',  durationMs: 1200, cooldownMs: 20000 },
+  { id: 'taptoe',  keyframe: 'clawd-idle-taptoe',   durationMs:  900, cooldownMs: 25000 }
+];
+
+/* ---- Atalhos de Teclado (v3.4) ---- */
+var CLAWD_KEYBOARD_SHORTCUTS = {
+  'Alt+F': 'feed',
+  'Alt+H': 'happy',
+  'Alt+P': 'pose',
+  'Alt+Z': 'sleep'
+};
+
 var CLAWD_PORT_MSG_TYPES = ['register', 'travelComplete'];
 /** SW → content (presença): só spawn / despawn / hide. */
 var CLAWD_DOWNSTREAM_PORT_MSG_TYPES = ['spawnPet', 'despawnPet', 'hidePet'];
@@ -1427,7 +1442,8 @@ function clawdDefaultState() {
       blockedSites: [],
       startCorner: 'br',           // br | bl | tr | tl
       performanceMode: false
-    }
+    },
+    onboardingDone: false          // v5: true após primeiro uso do popup
   };
 }
 
@@ -1777,6 +1793,8 @@ if (typeof module !== 'undefined' && module.exports) {
     clawdSanitizeDailyBlock,
     clawdValidateRuntimeMessage,
     clawdValidatePortMessage,
-    clawdValidateDownstreamPortMessage
+    clawdValidateDownstreamPortMessage,
+    CLAWD_IDLE_VARIATIONS,
+    CLAWD_KEYBOARD_SHORTCUTS
   };
 }

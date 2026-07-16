@@ -202,7 +202,7 @@ Tudo vive numa única chave `clawdState`:
 
 ```javascript
 {
-  schemaVersion: 4,         // migrador incremental atual
+  schemaVersion: 5,         // migrador incremental atual (v1/v2/v4 → v5)
   name: "Claw'd",          // nome exibido no name-tag
   color: '#c71515',        // cor principal (--agent-color)
   eyeColor: '#08080b',     // cor independente dos olhos
@@ -215,26 +215,54 @@ Tudo vive numa única chave `clawdState`:
   showMouth: true,         // sorriso e expressões da boca
   autoWalk: true,          // passeio automático
   sleepEnabled: true,      // dormir por inatividade
-  profession: 'idle',      // idle | footballer | tutor | engineer | musician | chef | ninja | fisher
+  profession: 'idle',      // idle | footballer | tutor | engineer | musician | chef | ninja | fisher | doctor | artist | gamer | streamer
   smooth: false,           // visual liso
   outline: false,          // contorno
   accessoryHead: 'none',   // slot de cabeça
-  accessoryFace: 'none',   // slot de rosto/corpo
+  accessoryFace: 'none',   // slot de rosto
+  accessoryBody: 'none',   // slot de corpo (v3.3) — ribbon | wings | cape | armor
   position: { x, y },      // última posição arrastada
-  xp: 0,                   // gamificação
+  // Personalização avançada (v3.3)
+  personality: { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 },
+  customSpeech: [],        // frases personalizadas do pet
+  particleColor: null,     // hex override para partículas (null = tema padrão)
+  soundVolumeActions: 1,   // 0–1, volume de sons de ação
+  soundVolumeAmbient: 0.6, // 0–1, volume de sons ambientes
+  // Gamificação (v3.3)
+  weekly: {
+    questIndex: 0,         // índice do desafio semanal ativo
+    progress: 0,           // progresso atual no desafio
+    claimed: false,        // true se já resgatado esta semana
+    weekKey: ''            // chave ISO week (ex.: '2026-W29')
+  },
+  // Sub-pets
   subpets: {
     active: null,
     unlocked: [],
     names: {},             // apelido por espécie
     colors: {},            // cor do corpo por espécie
     eyeColors: {}          // cor dos olhos por espécie
+  },
+  // Contadores de gamificação
+  counters: {
+    feeds: 0, dances: 0, pets: 0, goals: 0, keepyRecord: 0,
+    sleeps: 0, tabsToday: 0, totalActions: 0, shopPurchases: 0,
+    maxCombo: 0, maxSpeedrun: 0, nightInteractions: 0,
+    professionsUsed: 0, level: 0, streakDays: 0  // streakDays: mirror de game.streak.days
   }
 }
 ```
 
-O estado inicial mantém o sprite compacto vermelho de referência (`color: #c71515`, `eyeColor: #08080b`, `model: classic`, `faceStyle: classic`, `skin: normal`, `smooth: false`, `accessoryHead/Face: none`). O sistema não fixa 60 FPS: animações CSS e `requestAnimationFrame` acompanham a cadência do navegador e o modo de baixo refresh desliga apenas efeitos decorativos.
+O estado inicial mantém o sprite compacto vermelho de referência (`color: #c71515`, `eyeColor: #08080b`, `model: classic`, `faceStyle: classic`, `skin: normal`, `smooth: false`, `accessoryHead/Face/Body: none`). O sistema não fixa 60 FPS: animações CSS e `requestAnimationFrame` acompanham a cadência do navegador.
 
-Escrita incremental via `save()`/`persist()` (read-modify-write). O schema v4 inclui `model`, `faceStyle` e `eyeColor`, além de `stats`, `game`, `favorites`, `subpets` e `daily`; o migrador normaliza saves antigos ou valores desconhecidos sem perder progresso. A missão diária é derivada da data, tem progresso limitado ao alvo e recompensa idempotente.
+Escrita incremental via `save()`/`persist()` (read-modify-write). O schema v5 inclui todos os campos v4 mais: `accessoryBody`, `personality`, `customSpeech`, `particleColor`, `soundVolumeActions`, `soundVolumeAmbient`, `weekly`, `counters.streakDays`; o migrador normaliza saves v1/v2/v4 → v5 sem perder progresso. A missão diária é derivada da data; o desafio semanal é derivado via `clawdISOWeek()` (hash determinístico, reproduzível).
+
+**Runtime actions (v3.3 adicionados):**
+```javascript
+{ action: 'claimWeeklyChallenge' }   // resgata desafio semanal concluído
+{ action: 'weeklyReset' }            // broadcast do background alarm (nova semana)
+{ action: 'getStatus' }              // retorna stats + jogo + missão + weekly + subpet
+```
 
 Sub-pets têm `subpets.names`, `subpets.colors` e `subpets.eyeColors` indexados pela espécie. Cada entrada em `CLAWD_SUBPET_SPRITES` inclui frames pixel (`idle`/`walk`/`sleep`/…) e metadados `image: { url, width, height, gridW, gridH }` apontando para `src/shared/sprites/subpets/<id>.png` (crops literais do sheet). Helpers compartilhados: `clawdSubPetImageUrl`, `clawdSubPetBounds`, `clawdSubPetPalette`, `clawdBuildPixelShadow`. Em runtime, `SubPet._paint()` usa o PNG quando não há paleta custom; caso contrário (ou na piscada) cai no `box-shadow`. Regeneração canônica dos PNGs do pacote: `node tests/tools/_crop-literal-sprites.mjs`. `node tests/tools/_make-sprites.mjs` atualiza frames/preview e o catálogo, mas só sobrescreve os PNGs empacotados com `WRITE_PKG_SPRITES=1`. O popup envia `setSubpetColor` e `setSubpetEyeColor` para atualização ao vivo; cards bloqueados mantêm a arte full-color (sem greyscale); saves antigos recebem `eyeColors: {}` pela migração sem perder os demais dados.
 

@@ -1,8 +1,8 @@
-# Relatório de Validação — Claw'd v3.2
+# Relatório de Validação — Claw'd v3.3
 
-**Data:** 16 de julho de 2026 (loop M2 — performance)  
+**Data:** 16 de julho de 2026 (v3.3.0 — Gamificação 2.0)  
 **Ambiente:** Windows · Node.js 24 · Edge/Chromium com perfil isolado  
-**Marco:** Novo ciclo modular; M1 security fechado; M2 afina rAF/spring, particle caps e idle timers
+**Marco:** Expansão completa: 4 profissões, 10 acessórios, slot body, sistema combo, desafio semanal, 13 conquistas, schema v5
 
 ## Resultado
 
@@ -11,16 +11,31 @@
 - Smoke test em navegador Chromium/Edge real: **aprovado** (`runtimeErrors: 0`, `invalidContextErrors: 0`, `reloads: [1,1,1]`, `mouthToggleChecked: true`);
 - Assets: **8/8** PNGs em `src/shared/sprites/subpets/` com `image.url` no catálogo.
 
-## Loop de módulos (novo ciclo)
+## Ciclo v3.3 — módulos entregues
 
 | Módulo | Foco | Status |
 |--------|------|--------|
 | **M1** | Segurança / privacidade / bugs críticos + micro-perf | **feito** |
-| **M2** | Performance (rAF spring skip, particle caps, idle timers) | **feito** (este tick) |
-| M3 | Algoritmos (follow spring, dwell targeting) | próximo |
-| M4 | UX intuitiva (popup, mouth, grade subpet) | pendente |
-| M5 | Animações / efeitos / interações | pendente |
-| M6 | Docs sync + suite completa + smoke | pendente |
+| **M2** | Performance (rAF spring skip, particle caps, idle timers) | **feito** |
+| **M3** | Gamificação 2.0 (combo, weekly, achievements, quests) | **feito** |
+| **M4** | Profissões + Acessórios 2.0 (4 profs, 10 accs, slot body) | **feito** |
+| **M5** | Animações / partículas sazonais / detecção de contexto | **feito** |
+| **M6** | Docs sync + suíte completa + Schema v5 + smoke | **feito** |
+
+## Checklist v3.3
+
+| Item | Verificado |
+|------|-----------|
+| Slot body (ribbon, wings, cape, armor) CSS + JS + popup | ✅ |
+| Sistema de combo: janela, balão, XP bônus, conquista | ✅ |
+| Desafio semanal: alarm background, hash ISO week, claim | ✅ |
+| 25 conquistas — iron_will usa counter:streakDays | ✅ |
+| Schema v5: clawdMigrateState bloco v<5 sem perda de dados | ✅ |
+| _comboTimer / _speedrunTimer / _ambientWeatherTimer limpos em destroy() | ✅ |
+| 4 novas profissões detectam domínio e reagem ao contexto | ✅ |
+| Partículas sazonais: neve/folhas/flores/vagalumes por mês | ✅ |
+| Marcos de tempo na aba: 5min / 30min / 1h com XP | ✅ |
+| Novos temas name-tag: rainbow, holographic, minimal | ✅ |
 
 ## Comandos reproduzíveis
 

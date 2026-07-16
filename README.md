@@ -5,7 +5,7 @@
 <br/>
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-red?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Version](https://img.shields.io/badge/version-3.2-ff4757?style=for-the-badge)](./manifest.json)
+[![Version](https://img.shields.io/badge/version-3.3-ff4757?style=for-the-badge)](./manifest.json)
 [![License](https://img.shields.io/badge/license-MIT-2ecc71?style=for-the-badge)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f1c40f?style=for-the-badge&logo=javascript&logoColor=black)](./src/)
 
@@ -14,7 +14,7 @@ Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus pró
 
 [Instalar](#-instalação) · [Funcionalidades](#-funcionalidades) · [Personalização](#-personalização) · [Validação](#-validação) · [Contribuir](#-contribuição)
 
-🌐 **Explore:** [Índice de docs](./docs/README.md) · [Arquitetura](./docs/ARCHITECTURE.md) · [Documentação Interativa](./docs/index.html) · [Documentação Técnica](./docs/md/DOCUMENTACAO.md) · [Manual](./docs/md/MANUAL.md) · [Validação](./docs/md/VALIDACAO.md) · [Melhorias v3.2](./docs/md/MELHORIAS.md) · [CHANGELOG](./CHANGELOG.md)
+🌐 **Explore:** [Índice de docs](./docs/README.md) · [Arquitetura](./docs/ARCHITECTURE.md) · [Documentação Interativa](./docs/index.html) · [Documentação Técnica](./docs/md/DOCUMENTACAO.md) · [Manual](./docs/md/MANUAL.md) · [Validação](./docs/md/VALIDACAO.md) · [Melhorias v3.3](./docs/md/MELHORIAS.md) · [CHANGELOG](./CHANGELOG.md)
 
 </div>
 
@@ -36,11 +36,15 @@ A alma brincalhona do Claw'd está na profissão **Jogador**. Aqui a bola não �
 
 ### Um elenco em harmonia
 
-Ao redor do futebol há um sistema inteiro que conversa entre si: **oito profissões** (Jogador, Tutor, Dev, Músico, Chef, Ninja, Pescador e Livre), cada uma com um uniforme temporário que *não* apaga seus acessórios pessoais; **14 acessórios** em dois slots; **sub-pets** com espécie, apelido e habilidades; **status estilo Tamagotchi** que geram emoções; e uma camada de **gamificação** com XP progressivo, PixelCoins, loja, missão diária e conquistas. Tudo compartilha o mesmo **catálogo único** (`src/shared/catalog.js`), então o popup e o pet real sempre mostram exatamente os mesmos dados.
+Ao redor do futebol há um sistema inteiro que conversa entre si: **12 profissões** (Jogador, Tutor, Dev, Músico, Chef, Ninja, Pescador, Livre, Doutor, Artista, Gamer e Streamer), cada uma com uniforme temporário que *não* apaga acessórios pessoais; **24 acessórios** em três slots (cabeça, rosto, corpo); **sub-pets** com espécie, apelido e habilidades; **status estilo Tamagotchi** que geram emoções; e uma camada de **gamificação 2.0** com XP progressivo, sistema de combo, desafio semanal, 25 conquistas, 12 quests diárias e PixelCoins. Tudo compartilha o mesmo **catálogo único** (`src/shared/catalog.js`), então o popup e o pet real sempre mostram exatamente os mesmos dados.
 
 ### Feito para durar (e para hackear)
 
 Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; e **64 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
+
+### Novidades em v3.3
+
+A versão 3.3 trouxe **Gamificação 2.0**: sistema de combo com janela de 10s (×3 balão, ×5 bônus XP), desafio semanal rotativo (4 desafios por hash de semana ISO, reset via `chrome.alarms`), 13 novas conquistas, 5 novas quests diárias e marcos de nível com recompensas automáticas (party_hat em nível 5, wings em 15). O pet também ganhou um **terceiro slot de acessório** (corpo: ribbon, wings, cape, armor), **4 novas profissões** (Doutor, Artista, Gamer, Streamer) com detecção de contexto em 11 categorias de sites, **4 novas ações** (flip, meditate, electric, nap), **8 novos keyframes CSS** e **3 novos temas de name-tag** (rainbow, holographic, minimal). A personalização avança com traços de personalidade (5 dimensões em sliders), cor de partícula, voz customizada e volumes por categoria.
 
 O Claw'd não quer sua atenção o tempo todo. Ele só quer estar lá, no rodapé da sua tarde, pronto para uma embaixadinha quando você precisar sorrir.
 
@@ -50,7 +54,7 @@ O Claw'd não quer sua atenção o tempo todo. Ele só quer estar lá, no rodap�
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
 
-A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **65/65 contratos**, **8/8 scripts**, **4 modelos**, **4 rostos**, **8 profissões**, **14 acessórios**, **24 ações**, **7 ações do subpet**, **3/3 reloads limpos** e **0 erros de runtime**.
+A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **65/65 contratos**, **8/8 scripts**, **4 modelos**, **4 rostos**, **12 profissões**, **24 acessórios (3 slots)**, **28 ações**, **7 ações do subpet**, **25 conquistas**, **3/3 reloads limpos** e **0 erros de runtime**.
 
 ---
 

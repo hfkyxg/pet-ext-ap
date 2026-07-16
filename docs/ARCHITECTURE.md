@@ -30,7 +30,34 @@ manifest.json
 - **Facade (messaging)** — popup/background não mexem no DOM do pet; enviam ações allowlisted (`chrome.tabs.sendMessage` / `runtime.onMessage`) que o companion interpreta.
 - **Strategy (profissões)** — `CLAWD_PROFESSIONS` + `clawdEffectiveAccessories()` escolhem gear/comportamento por contexto sem `if` espalhado de uniforme.
 - **SSOT / Shared Kernel** — catálogo compartilhado entre content, popup, docs e testes (`require` / script clássico, não ES modules na injeção).
-- **Migration script** — `clawdMigrateState` normaliza saves antigos antes do runtime.
+- **Migration script** — `clawdMigrateState` normaliza saves antigos antes do runtime (suporta v1/v2/v4 → v5 incrementalmente).
+
+## Gamificação 2.0 (v3.3)
+
+### Sistema de Combo
+`ClawdCompanion._tickCombo()` — chamado em `_handleAction()`. Rastreia `_comboCount` e `_comboTimer` (janela de 10s). Combo ≥ 3 exibe balão, ≥ 5 multiplica XP. Limpo em `destroy()`.
+
+### Desafio Semanal
+`background.js` cria `chrome.alarms.create('clawdWeeklyReset', { periodInMinutes: 10080 })` e faz broadcast `{ type: 'weeklyReset' }` para todas as abas via `chrome.tabs.query`. O content script seleciona o desafio da semana com `clawdWeeklyChallengeForWeek(clawdISOWeek())` — hash determinístico, sem sortear ao acaso.
+
+### Slot de Corpo (3 slots)
+`clawdEffectiveAccessories()` retorna três slots: `head/userHead/headSource`, `face/userFace/faceSource`, **`body/userBody/bodySource`**. CSS usa `[data-acc-body="wings"]` etc. Profissões podem sobrepor qualquer slot; acessórios pessoais voltam ao desvestir.
+
+### Schema v5
+`CLAWD_SCHEMA_VERSION = 5`. Bloco de migração em `clawdMigrateState()`:
+```js
+if (v < 5) {
+  s.personality = { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
+  s.accessories.body = null;
+  s.weekly = { questIndex: 0, progress: 0, claimed: false, weekKey: '' };
+  s.customSpeech = []; s.particleColor = null;
+  s.soundVolumeActions = 1; s.soundVolumeAmbient = 0.6;
+  s.counters.streakDays = s.game?.streak?.days || 0;
+}
+```
+
+### Detecção de Contexto (11 categorias)
+`_detectPageContext()` em `content.js` mapeia hostname para categoria: coding, music, video, shopping, social, news, email, gaming, health, learning. Categoria `idle` é o padrão. Afeta mensagens, XP bônus e reações do pet.
 
 Não há camada de “services” ou DI: o tamanho e o modelo MV3 (scripts clássicos na ordem do manifest) tornam um refactor modular pesado **pior** até existir um plano de carga explícito.
 
