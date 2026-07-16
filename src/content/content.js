@@ -97,12 +97,14 @@ class SubPet {
         this._clickTimer = null;
         if (this.state === 'sleeping') this.wakeUp('Acordei! ✨');
         else this.interact('special', { force: true });
+        this.owner.registerDaily?.('subpet');
         return;
       }
       this._clickTimer = setTimeout(() => {
         this._clickTimer = null;
         if (this.state === 'sleeping') this.wakeUp('Acordei com seu carinho! ✨');
         else this.interact('cuddle');
+        this.owner.registerDaily?.('subpet');
       }, 220);
     });
     this.node.addEventListener('dblclick', (event) => {
@@ -115,6 +117,7 @@ class SubPet {
       }
       if (this.state === 'sleeping') this.wakeUp('Acordei! ✨');
       else this.interact('special', { force: true });
+      this.owner.registerDaily?.('subpet');
     });
     this.node.addEventListener('mouseenter', () => {
       if (!this.node || this.state === 'sleeping') return;
@@ -143,6 +146,7 @@ class SubPet {
         this._pulseTap();
         if (this.state === 'sleeping') this.wakeUp('Acordei! ✨');
         else this.interact('cuddle');
+        this.owner.registerDaily?.('subpet');
       }
     });
     this.node.classList.add('summoning');
@@ -164,9 +168,12 @@ class SubPet {
   }
 
   _movingPose() {
-    return this.state === 'racing' || this.state === 'exploring' || this.state === 'playing'
-      || this.state === 'splitting' || this.state === 'flying' || this.state === 'special'
-      || !!this.node?.classList.contains('owner-walking')
+    // Interações de deslocamento usam pose walk; carinho/spin/etc. não herdam walk do follow.
+    const actionMove = this.state === 'racing' || this.state === 'exploring' || this.state === 'playing'
+      || this.state === 'splitting' || this.state === 'flying' || this.state === 'special';
+    if (actionMove) return true;
+    if (this._interactionBusy) return false;
+    return !!this.node?.classList.contains('owner-walking')
       || !!this.node?.classList.contains('owner-running')
       || !!this.node?.classList.contains('moving');
   }
@@ -191,12 +198,13 @@ class SubPet {
       this._blinking = true;
       this.node.classList.add('blinking');
       this._paint(true);
+      // ~160ms fecha os olhos com calma (antes 140 — flashia demais em PNG).
       this._later(() => {
         this._blinking = false;
         this.node?.classList.remove('blinking');
         this._paint(true);
-      }, 140);
-    }, 4200 + Math.floor(Math.random() * 1600));
+      }, 160);
+    }, 4800 + Math.floor(Math.random() * 2200));
   }
 
   /** Sons curtos via o pet dono (respeita settings.sounds / quiet hours). */
@@ -368,7 +376,7 @@ class SubPet {
       'playing', 'cuddling', 'racing', 'spinning', 'celebrating',
       'exploring', 'vanishing', 'fire', 'split', 'perching', 'eating', 'cheering',
       'flying', 'summoning', 'wagging', 'double-hop', 'heavy-stomp', 'phasing', 'singing',
-      'watching-balloon', 'duo-hug', 'startled', 'tapped', 'settling'
+      'watching-balloon', 'duo-hug', 'startled', 'tapped', 'settling', 'sleep-settle'
     );
     this._perch = false;
   }
@@ -498,6 +506,11 @@ class SubPet {
     this._clearActionClasses();
     this.node.classList.remove('waking', 'moving', 'owner-walking', 'owner-running', 'cheering');
     this.node.classList.add('sleeping');
+    // Squash curto ao deitar — não compete com walk porque moving já saiu.
+    if (!this._reducedMotion) {
+      this.node.classList.add('sleep-settle');
+      this._later(() => this.node?.classList.remove('sleep-settle'), 420);
+    }
     this._interactionBusy = true;
     this.say('💤', 0);
     this._paint(true);
@@ -1026,8 +1039,12 @@ class ClawdCompanion {
     this._idleVarLastTime = {};
     this._scrollReacting = false;
     this._scrollHandler = null;
+    this._scrollIdleTimer = null;
     this._visibilityHandler = null;
     this._tabHiddenAt = null;
+    this._saveInFlight = false;
+    this._saveDirty = false;
+    this._particleTimers = new Set();
 
     this.messages = {
       idle:     ["Oi! 👋", "Bora navegar! 🌐", "Me arraste! ✨", "Aqui pra ajudar 🐾", "Clique em mim! 💫", "O que faremos hoje? 🎯"],
@@ -1166,10 +1183,13 @@ class ClawdCompanion {
 
   _trackParticle(el, ttl) {
     this._activeParticles = (this._activeParticles || 0) + 1;
-    setTimeout(() => {
+    if (!this._particleTimers) this._particleTimers = new Set();
+    const timer = setTimeout(() => {
+      this._particleTimers.delete(timer);
       try { el.remove(); } catch (_) {}
       this._activeParticles = Math.max(0, (this._activeParticles || 1) - 1);
     }, ttl);
+    this._particleTimers.add(timer);
   }
 
   createNode() {
@@ -1295,24 +1315,56 @@ class ClawdCompanion {
 
   /* ---------- PERSISTÊNCIA ---------- */
   save() {
+    // Debounce 350ms + coalescing: rajadas (XP/stats/ações) viram um flush.
     clearTimeout(this._saveTimer);
-    this._saveTimer = setTimeout(() => {
-      if (this._destroyed || !this._hasExtensionContext()) {
-        this._handleExtensionContextInvalidated();
+    this._saveTimer = setTimeout(() => this._flushSave(), 350);
+  }
+
+  _flushSave() {
+    if (this._destroyed || !this._hasExtensionContext()) {
+      this._handleExtensionContextInvalidated();
+      return;
+    }
+    // Se um get→set ainda está no ar, marca dirty e re-agenda ao terminar.
+    if (this._saveInFlight) {
+      this._saveDirty = true;
+      return;
+    }
+    this._saveInFlight = true;
+    this._saveDirty = false;
+    // read-modify-write: preserva mudanças feitas pelo popup em paralelo
+    const onState = this._guardChromeCallback((res) => {
+      if (this._destroyed) {
+        this._saveInFlight = false;
         return;
       }
-      // read-modify-write: preserva mudanças feitas pelo popup em paralelo
-      const onState = this._guardChromeCallback((res) => {
-        const stored = clawdMigrateState(res.clawdState);
-        // popup é dono destes campos — mantém a versão do storage
-        this.S.favorites = stored.favorites;
-        this.S.settings = clawdPlainMerge(this.S.settings, stored.settings);
-        this.S.subpets = stored.subpets;
-        this.S.game.inventory = stored.game.inventory;
-        this._safeChrome(() => chrome.storage.local.set({ clawdState: clawdMigrateState(this.S) }));
-      });
-      this._safeChrome(() => chrome.storage.local.get(['clawdState'], onState));
-    }, 350);
+      const stored = clawdMigrateState(res.clawdState);
+      // popup é dono destes campos — mantém a versão do storage
+      this.S.favorites = stored.favorites;
+      this.S.settings = clawdPlainMerge(this.S.settings, stored.settings);
+      this.S.subpets = stored.subpets;
+      this.S.game.inventory = stored.game.inventory;
+      const next = clawdMigrateState(this.S);
+      let unchanged = false;
+      try {
+        unchanged = JSON.stringify(stored) === JSON.stringify(next);
+      } catch (_) {}
+      const finish = () => {
+        this._saveInFlight = false;
+        if (this._saveDirty && !this._destroyed) this.save();
+      };
+      // Evita write + onChanged cross-tab quando nada mudou após o merge.
+      if (unchanged) {
+        finish();
+        return;
+      }
+      const queued = this._safeChrome(() => {
+        chrome.storage.local.set({ clawdState: next }, this._guardChromeCallback(finish));
+        return true;
+      }, false);
+      if (!queued) finish();
+    });
+    this._safeChrome(() => chrome.storage.local.get(['clawdState'], onState));
   }
 
   listenToStorage() {
@@ -1428,15 +1480,15 @@ class ClawdCompanion {
       case 'profession':
         this._applyProfessionVisuals();
         this._detectPageContext();
-        /* v3.3: track profissões usadas */
-        if (value && value !== 'idle') {
+        /* v3.3: track profissões usadas (inclui idle/Livre — polyglot precisa das 12) */
+        if (value && Object.prototype.hasOwnProperty.call(CLAWD_PROFESSIONS, value)) {
           const used = this.S.game.counters.professionsUsed || [];
           if (!used.includes(value)) {
             used.push(value);
             this.S.game.counters.professionsUsed = used;
-            this.registerDaily('profession');
             this.checkAchievements();
           }
+          if (value !== 'idle') this.registerDaily('profession');
         }
         break;
     }
@@ -1761,6 +1813,8 @@ class ClawdCompanion {
       this.S.game.counters.sleeps = (this.S.game.counters.sleeps || 0) + 1;
       this.checkAchievements();
       this.save();
+      // Micro: acomoda o corpo ao deitar (respiração de sono assume depois).
+      this._pulseAnimClass('sleep-settle', 480);
     }
     if (this.subpet) this.subpet.onOwnerState(newState);
   }
@@ -1774,6 +1828,22 @@ class ClawdCompanion {
   }
 
   _queuePetClick() {
+    // 5 cliques rápidos em 2s → birra
+    const now = Date.now();
+    if (now - (this._rapidClickAt || 0) > 2000) this._rapidClickCount = 0;
+    this._rapidClickAt = now;
+    this._rapidClickCount = (this._rapidClickCount || 0) + 1;
+    if (this._rapidClickCount >= 5) {
+      this._rapidClickCount = 0;
+      clearTimeout(this._clickTimer);
+      this._clickTimer = null;
+      this._clickCount = 0;
+      this.setStateFor('tantrum', 2500);
+      this.showSpeech('Para! 😤', 2000);
+      this.spawnParticles(['💢', '😤', '⚡'], 4);
+      return;
+    }
+
     this._clickCount++;
     clearTimeout(this._clickTimer);
     this._clickTimer = setTimeout(() => {
@@ -1983,7 +2053,6 @@ class ClawdCompanion {
     }, { signal });
 
     // Scroll — anima e às vezes leva o sub-pet a explorar
-    let scrollTimer;
     let scrollBursts = 0;
     document.addEventListener('scroll', () => {
       this.lastActivity = Date.now();
@@ -1991,8 +2060,10 @@ class ClawdCompanion {
       scrollBursts++;
       if (this.state === 'idle') {
         this.setState('excited');
-        clearTimeout(scrollTimer);
-        scrollTimer = setTimeout(() => {
+        clearTimeout(this._scrollIdleTimer);
+        this._scrollIdleTimer = setTimeout(() => {
+          this._scrollIdleTimer = null;
+          if (this._destroyed) return;
           if (this.state === 'excited') this.setState('idle');
           if (scrollBursts >= 10 && this.subpet && Math.random() < 0.55) {
             this.subpet.interact('explore', { force: true });
@@ -2415,11 +2486,18 @@ class ClawdCompanion {
 
   decayStats(mins) {
     const s = this.S.stats;
-    s.hunger  = Math.max(0, s.hunger - 0.2 * mins);
+    const foodie = this.S.personality?.foodie ?? 4;
+    const lazy   = this.S.personality?.lazy   ?? 3;
+    // Comilão fica com fome mais rápido
+    const hungerRate = 0.2 + (foodie >= 7 ? 0.1 : foodie >= 5 ? 0.05 : 0);
+    s.hunger  = Math.max(0, s.hunger - hungerRate * mins);
     s.hygiene = Math.max(0, s.hygiene - 0.08 * mins);
     if (this.state === 'sleeping') s.energy = Math.min(100, s.energy + 2 * mins);
-    else s.energy = Math.max(0, s.energy - 0.06 * mins);
-    // felicidade sofre com fome e abandono
+    else {
+      // Preguiçoso drena energia mais rápido (esgota-se sem fazer nada)
+      const energyRate = 0.06 + (lazy >= 7 ? 0.05 : lazy >= 5 ? 0.02 : 0);
+      s.energy = Math.max(0, s.energy - energyRate * mins);
+    }
     const ignoredMin = (Date.now() - this.lastActivity) / 60000;
     if (s.hunger < 25 || ignoredMin > 10) s.happiness = Math.max(0, s.happiness - 0.25 * mins);
     else s.happiness = Math.max(0, s.happiness - 0.05 * mins);
@@ -2913,6 +2991,7 @@ class ClawdCompanion {
     this.bumpStat('happiness', 6);
     this.addXp(2);
     this.S.game.counters.balloons = (this.S.game.counters.balloons || 0) + 1;
+    this.save();
     if (this.subpet) this.subpet.interact('balloon', { force: true });
     clearTimeout(this._balloonTimer);
     this._balloonTimer = setTimeout(() => this.popBalloon(), 9000 + Math.random() * 4000);
@@ -2937,6 +3016,9 @@ class ClawdCompanion {
     this.bumpStat('happiness', 4);
     this.addXp(1);
     this.S.game.counters.balloonsPopped = (this.S.game.counters.balloonsPopped || 0) + 1;
+    this.registerDaily('balloons');
+    this.checkAchievements();
+    this.save();
     if (this.subpet) this.subpet.interact('startle', { force: true });
     clearTimeout(this._balloonPopFx);
     this._balloonPopFx = setTimeout(() => this.node?.classList.remove('balloon-pop'), 700);
@@ -3136,6 +3218,7 @@ class ClawdCompanion {
         desc: `${finalCount} embaixadinhas seguidas!`
       });
     }
+    this.registerDaily('keepy', finalCount);
     this.addXp(Math.round(finalCount * combo * 0.4));
     this.checkAchievements();
     this.save();
@@ -3461,10 +3544,37 @@ class ClawdCompanion {
       health:   ['medscape', 'healthline', 'bula.ms', 'saude', 'medical', 'hospital'],
       learning: ['coursera', 'udemy', 'khanacademy', 'duolingo', 'alura', 'dio.me']
     };
+    const prevCtx = this._currentPageContext;
     for (const [ctx, domains] of Object.entries(map)) {
-      if (domains.some(d => url.includes(d))) { this._currentPageContext = ctx; return; }
+      if (domains.some(d => url.includes(d))) { this._currentPageContext = ctx; break; }
     }
-    this._currentPageContext = 'idle';
+    if (!this._currentPageContext || this._currentPageContext === prevCtx) {
+      this._currentPageContext = prevCtx || 'idle';
+    }
+    if (prevCtx === undefined) return; // primeiro carregamento, sem reação
+    if (this._currentPageContext !== prevCtx) this._onContextChange(this._currentPageContext);
+  }
+
+  _onContextChange(ctx) {
+    if (this._destroyed || !this.isVisible) return;
+    const playful = this.S.personality?.playful ?? 5;
+    const social  = this.S.personality?.social  ?? 5;
+    const curious = this.S.personality?.curious ?? 7;
+    const reactions = {
+      gaming:   { min: 4, trait: playful, msg: 'Hora de jogar! 🎮', action: 'cheer' },
+      music:    { min: 5, trait: social,  msg: 'Música! 🎵',         action: 'dance' },
+      social:   { min: 5, trait: social,  msg: 'Rede social! 📱',    action: 'wave' },
+      shopping: { min: 3, trait: playful, msg: 'Comprando? 🛒',      action: 'bounce' },
+      learning: { min: 5, trait: curious, msg: 'Aprendendo! 📚',     action: 'meditate' },
+      coding:   { min: 4, trait: curious, msg: 'Codando! 💻',        action: 'lookAround' }
+    };
+    const r = reactions[ctx];
+    if (!r || r.trait < r.min) return;
+    setTimeout(() => {
+      if (this._destroyed || this.state !== 'idle') return;
+      this.showSpeech(r.msg, 2500);
+      this._handleAction(r.action);
+    }, 1200);
   }
 
   _detectPageContext() {
@@ -3637,12 +3747,16 @@ class ClawdCompanion {
       if (document.hidden || this.isDragging || !this.isVisible || this.isAutoWalking) return;
       const idle = (Date.now() - this.lastActivity) / 1000;
       if (this.S.sleepEnabled && this.state === 'idle') {
-        if (idle > 13 && idle <= 28 && !this._yawned) {
+        // Preguiçoso dorme mais cedo
+        const lazy = this.S.personality?.lazy ?? 3;
+        const sleepAt = lazy >= 7 ? 18 : lazy >= 5 ? 23 : 28;
+        const yawnAt  = Math.round(sleepAt * 0.46);
+        if (idle > yawnAt && idle <= sleepAt && !this._yawned) {
           this._yawned = true;
           this.setStateFor('yawning', 2000);
           this.showSpeech('🥱...', 1800);
         }
-        if (idle > 28) {
+        if (idle > sleepAt) {
           this.setState('sleeping');
           this.showSpeech('ZzZz... 💤', 6000);
         }
@@ -3669,7 +3783,8 @@ class ClawdCompanion {
     this._timers.push(setInterval(() => {
       if (document.hidden || !this.isVisible || !this.S.showSpeech || this.isQuiet()) return;
       if (this.state === 'sleeping') return;
-      const chance = this.emotion === 'sad' ? 0.3 : 0.6;
+      const social = this.S.personality?.social ?? 5;
+      const chance = this.emotion === 'sad' ? 0.3 : (social >= 7 ? 0.8 : 0.6);
       if (Math.random() < chance) {
         const pool = this.emotion === 'hungry' ? 'hungry' : this.state;
         this.showSpeech(this.getRandom(this.messages[pool] ? pool : 'idle'));
@@ -3702,8 +3817,9 @@ class ClawdCompanion {
       if (document.hidden) return;
       if (this.state !== 'idle' || this.isDragging || !this.S.autoWalk ||
           this.isAutoWalking || !this.isVisible || this.isQuiet()) return;
-      const chance = this.emotion === 'sad' ? 0.25 : 0.55;
-      if (Math.random() < chance) this._doAutoWalk();
+      const lazy2 = this.S.personality?.lazy ?? 3;
+      const walkChance = this.emotion === 'sad' ? 0.25 : (lazy2 >= 7 ? 0.3 : lazy2 >= 5 ? 0.42 : 0.55);
+      if (Math.random() < walkChance) this._doAutoWalk();
     }, 18000));
 
     // Truque ninja — a cada 50s
@@ -4497,7 +4613,10 @@ class ClawdCompanion {
           this.save();
           break;
         case 'triggerSubpetAction':
-          if (this.subpet) this.subpet.interact(msg.value, { force: true });
+          if (this.subpet) {
+            this.subpet.interact(msg.value, { force: true });
+            this.registerDaily('subpet');
+          }
           break;
         case 'claimDailyQuest':
           sendResponse({ claimed: this.claimDailyQuest(), daily: this.S.daily });
@@ -4640,11 +4759,8 @@ class ClawdCompanion {
     } else if (this._comboCount >= 3) {
       this.showSpeech(`Combo x${this._comboCount}! ✨`, 1400);
       this.spawnParticles(['✨', '⭐']);
-      /* track para daily quest */
-      this.registerDaily('combo');
-      clawdRegisterWeeklyProgress(this.S, 'combo');
     }
-    /* daily quest de combo */
+    /* daily/weekly quest de combo — uma vez por tick quando ≥ 3 */
     if (this._comboCount >= 3) this.registerDaily('combo');
     this._comboTimer = setTimeout(() => {
       this._comboCount = 0;
@@ -4722,7 +4838,9 @@ class ClawdCompanion {
 
     this._abort.abort();
     this._timers.forEach(clearInterval);
+    this._timers.length = 0;
     (this._ctxTimers || []).forEach(clearInterval);
+    if (this._ctxTimers) this._ctxTimers.length = 0;
 
     [
       '_speechTimer', '_stateTimer', '_saveTimer', '_clickTimer', '_holdTimer',
@@ -4732,12 +4850,19 @@ class ClawdCompanion {
       '_pendingCelebrate', '_duoTimer', '_dwellWalkTimer', '_dwellActionTimer',
       /* v3.3 */
       '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer',
-      /* v3.4 */
-      '_idleVarTimer'
+      /* v3.4 / tick5 */
+      '_idleVarTimer', '_scrollIdleTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
     });
+    if (this._particleTimers) {
+      this._particleTimers.forEach(clearTimeout);
+      this._particleTimers.clear();
+    }
+    this._activeParticles = 0;
+    this._saveInFlight = false;
+    this._saveDirty = false;
     if (this._animClassTimers) {
       Object.values(this._animClassTimers).forEach(clearTimeout);
       this._animClassTimers = {};

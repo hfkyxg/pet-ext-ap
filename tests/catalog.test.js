@@ -210,7 +210,8 @@ test('sub-pet e deslocamentos não usam timer fixo para renderizar frames', () =
   assert.doesNotMatch(contentSource, /_frameTimer\s*=\s*setInterval/);
   assert.match(contentSource, /measureRefreshRate\(\)/);
   assert.match(contentSource, /requestAnimationFrame\(step\)/);
-  assert.match(contentSource, /_queuePetClick\(\)[\s\S]{0,420}this\.giveAffection\(\)/);
+  // clique enfileirado ainda resolve em carinho (bloco pode crescer com birra/rapid-click)
+  assert.match(contentSource, /_queuePetClick\(\)[\s\S]{0,900}this\.giveAffection\(\)/);
   assert.match(contentSource, /if \(diffX < 5 && diffY < 5\) \{\s*this\._queuePetClick\(\)/);
 });
 
@@ -432,8 +433,12 @@ test('sub-pet tem ciclo explícito de sono, despertar e interação manual', () 
   assert.match(contentSource, /this\.subpet\.wakeUp\('Acordamos juntos!/);
   assert.match(styleSource, /\.aic-subpet\.waking \.subpet-sprite/);
   assert.match(styleSource, /\.aic-subpet\.cuddling \.subpet-sprite/);
-  // Walk/follow não pode sobrescrever carinho/special; dormindo pausa rAF de verdade.
+  // Walk/follow/run não pode sobrescrever carinho/special; dormindo pausa rAF de verdade.
   assert.match(styleSource, /\.aic-subpet\.moving:not\([^\n]*\.cuddling/);
+  assert.match(styleSource, /\.aic-subpet\.owner-running:not\([^\n]*\.cuddling/);
+  assert.match(styleSource, /@keyframes clawd-sleep-settle/);
+  assert.match(contentSource, /_pulseAnimClass\('sleep-settle'/);
+  assert.match(contentSource, /if \(this\._interactionBusy\) return false/);
   assert.match(contentSource, /this\._pauseRaf\(\)/);
   assert.match(contentSource, /sleep\(\)[\s\S]*?_pauseRaf\(\)/);
   assert.match(contentSource, /wakeUp\(message[\s\S]*?_resumeRaf\(\)/);
@@ -534,4 +539,32 @@ test('estado padrão inclui onboardingDone (v3.4)', () => {
   const state = clawdDefaultState();
   assert.ok('onboardingDone' in state, 'estado default deve ter onboardingDone');
   assert.equal(state.onboardingDone, false, 'onboardingDone deve começar false');
+});
+
+test('novos acessórios v3.5b (star_clip, goggles) estão no catálogo com slots corretos', () => {
+  assert.ok('star_clip' in CLAWD_ACCESSORIES, 'star_clip deve existir em CLAWD_ACCESSORIES');
+  assert.ok('goggles'   in CLAWD_ACCESSORIES, 'goggles deve existir em CLAWD_ACCESSORIES');
+  assert.equal(CLAWD_ACCESSORIES.star_clip.slot, 'head', 'star_clip deve ser slot head');
+  assert.equal(CLAWD_ACCESSORIES.goggles.slot,   'face', 'goggles deve ser slot face');
+  assert.ok(CLAWD_ACCESSORIES.star_clip.unlock?.price > 0, 'star_clip deve ter preço');
+  assert.ok(CLAWD_ACCESSORIES.goggles.unlock?.price > 0,   'goggles deve ter preço');
+});
+
+test('personalidade influencia decayStats — foodie e lazy presentes no content.js', () => {
+  assert.match(contentSource, /foodie/, 'decayStats deve usar traço foodie');
+  assert.match(contentSource, /hungerRate/, 'decayStats deve ter taxa de fome variável');
+  assert.match(contentSource, /energyRate/, 'decayStats deve ter taxa de energia variável');
+  assert.match(contentSource, /sleepAt/, 'sleep threshold deve variar por personalidade lazy');
+  assert.match(contentSource, /walkChance/, 'chance de walk deve variar por personalidade lazy');
+});
+
+test('mecanismo de 5 cliques rápidos → tantrum (v3.5b)', () => {
+  assert.match(contentSource, /_rapidClickCount/, '5-click tantrum deve existir no content.js');
+  assert.match(contentSource, /_rapidClickAt/,    'timestamp do clique rápido deve existir');
+  assert.match(contentSource, /Para!\s*😤/,       'mensagem de birra por clique rápido deve existir');
+});
+
+test('CSS pixel-art dos acessórios v3.5b existe no style.css', () => {
+  assert.match(styleSource, /data-acc-head="star_clip"/, 'CSS do grampo estrela deve existir');
+  assert.match(styleSource, /data-acc-face="goggles"/,   'CSS dos goggles deve existir');
 });

@@ -18,7 +18,9 @@ var CLAWD_DAILY_QUESTS = [
   { type: 'accessories',target: 1, label: 'Troque de acessório pelo menos 1 vez',    rewardXp: 14, rewardCoins: 3 },
   { type: 'subpet',     target: 3, label: 'Interaja com seu sub-pet 3 vezes',        rewardXp: 18, rewardCoins: 5 },
   { type: 'combo',      target: 3, label: 'Faça um combo de 3 ações seguidas',       rewardXp: 22, rewardCoins: 6 },
-  { type: 'profession', target: 1, label: 'Use uma profissão por pelo menos 1 ciclo',rewardXp: 20, rewardCoins: 5 }
+  { type: 'profession', target: 1, label: 'Use uma profissão por pelo menos 1 ciclo',rewardXp: 20, rewardCoins: 5 },
+  { type: 'balloons',   target: 3, label: 'Estoure 3 balões',                        rewardXp: 18, rewardCoins: 5 },
+  { type: 'keepy',      target: 20, label: 'Faça 20 embaixadinhas no total',         rewardXp: 24, rewardCoins: 6 }
 ];
 
 /* ---- Desafios Semanais (rotação por hash da semana ISO) ---- */
@@ -128,8 +130,10 @@ var CLAWD_ACCESSORIES = {
   halo:       { slot: 'head', emoji: '😇', label: 'Auréola',           desc: 'Anel dourado flutuante de anjo pixel', unlock: { type: 'level', level: 25 } },
   horns:      { slot: 'head', emoji: '😈', label: 'Chifrinhos',         desc: 'Chifres vermelhos de diabinho travesso', unlock: { type: 'shop', price: 40 } },
   headband:   { slot: 'head', emoji: '🤸', label: 'Bandana',            desc: 'Bandana colorida de atleta', unlock: { type: 'free' } },
+  star_clip:  { slot: 'head', emoji: '⭐', label: 'Grampo Estrela',     desc: 'Grampo de cabelo em forma de estrela dourada', unlock: { type: 'shop', price: 25 } },
   /* --- Slot FACE extra (v3.5) --- */
   blush:      { slot: 'face', emoji: '🥰', label: 'Blush',             desc: 'Bochechas coradas de animê fofinho', unlock: { type: 'free' } },
+  goggles:    { slot: 'face', emoji: '🥽', label: 'Óculos Aventura',   desc: 'Goggles de piloto/mergulhador em pixel-art', unlock: { type: 'shop', price: 45 } },
   /* --- Slot BODY (v3.3) --- */
   ribbon:     { slot: 'body', emoji: '🎗️', label: 'Laço de Pescoço',  desc: 'Laçinho delicado de seda no pescoço', unlock: { type: 'free' } },
   wings:      { slot: 'body', emoji: '🪶', label: 'Asas',              desc: 'Asas leves que permitem planeio suave', unlock: { type: 'level', level: 15 } },
@@ -236,7 +240,19 @@ var CLAWD_ACTIONS = {
   flip:       { emoji: '🔄', label: 'Acrobacia' },
   meditate:   { emoji: '🧘', label: 'Meditar' },
   electric:   { emoji: '⚡', label: 'Descarga' },
-  nap:        { emoji: '💤', label: 'Cochilo' }
+  nap:        { emoji: '💤', label: 'Cochilo' },
+  highfive:   { emoji: '✋', label: 'High five' },
+  lookAround: { emoji: '🔍', label: 'Olhar em volta' }
+};
+
+/**
+ * Ações do pet invocáveis via triggerAction / gestos, mas fora do grid do popup.
+ * SSOT p/ allowlist (não poluir CLAWD_ACTIONS com kick/keepy de profissão).
+ */
+var CLAWD_PET_EXTRA_ACTIONS = {
+  kick:       { emoji: '⚽', label: 'Chutar',        via: 'dblclick na bola / triggerAction' },
+  keepy:      { emoji: '🤹', label: 'Embaixadinhas', via: 'profissão jogador + bola / triggerAction' },
+  superdance: { emoji: '💃', label: 'Super dança',   via: 'triplo-clique no pet / triggerAction' }
 };
 
 /* ---- Sub-Pets ---- */
@@ -1070,7 +1086,9 @@ var CLAWD_SHOP = {
   /* Novos acessórios v3.5 */
   horns:      { emoji: '😈', label: 'Chifrinhos',           price: 40,  kind: 'accessory' },
   blush:      { emoji: '🥰', label: 'Blush Animê',          price: 20,  kind: 'accessory' },
-  scarf_body: { emoji: '🧣', label: 'Cachecol Corpo',       price: 35,  kind: 'accessory' }
+  scarf_body: { emoji: '🧣', label: 'Cachecol Corpo',       price: 35,  kind: 'accessory' },
+  star_clip:  { emoji: '⭐', label: 'Grampo Estrela',       price: 25,  kind: 'accessory' },
+  goggles:    { emoji: '🥽', label: 'Óculos Aventura',      price: 45,  kind: 'accessory' }
 };
 
 /* ---- Conquistas ---- */
@@ -1098,10 +1116,15 @@ var CLAWD_ACHIEVEMENTS = {
   combo_king:   { emoji: '🔥', label: 'Rei do Combo',       desc: 'Combo de 5 ações em 10 segundos',   rarity: 'epic',      check: (g) => (g.counters.maxCombo || 0) >= 5,          goal: 5,   counter: 'maxCombo' },
   legendary_pet:{ emoji: '🌟', label: 'Pet Lendário',       desc: 'Alcançar o nível 30',               rarity: 'legendary', check: (g) => (g.counters.level || 0) >= 30,            goal: 30,  counter: 'level' },
   full_house:   { emoji: '🐾', label: 'Família Completa',   desc: 'Todos os sub-pets desbloqueados',   rarity: 'epic',      check: (g) => (g.counters.subpetsUnlocked || 0) >= 8,   goal: 8,   counter: 'subpetsUnlocked' },
+  /* idle conta: há 12 entradas em CLAWD_PROFESSIONS (inclui Livre) */
   polyglot:     { emoji: '🌐', label: 'Polivalente',         desc: 'Usar todas as 12 profissões',       rarity: 'epic',      check: (g) => (g.counters.professionsUsed || []).length >= 12, goal: 12, counter: 'professionsUsed' },
   night_owl:    { emoji: '🦉', label: 'Coruja Noturna',     desc: '50 interações fora do horário nobre', rarity: 'rare',    check: (g) => (g.counters.nightInteractions || 0) >= 50, goal: 50, counter: 'nightInteractions' },
   speedrun:     { emoji: '⚡', label: 'Speedrunner',         desc: '10 ações em 30 segundos',           rarity: 'epic',      check: (g) => (g.counters.maxSpeedrun || 0) >= 10,      goal: 10,  counter: 'maxSpeedrun' },
-  iron_will:    { emoji: '💎', label: 'Vontade de Ferro',   desc: 'Streak de 30 dias consecutivos',    rarity: 'legendary', check: (g) => (g.counters?.streakDays || 0) >= 30,       goal: 30,  counter: 'streakDays' }
+  iron_will:    { emoji: '💎', label: 'Vontade de Ferro',   desc: 'Streak de 30 dias consecutivos',    rarity: 'legendary', check: (g) => (g.counters?.streakDays || 0) >= 30,       goal: 30,  counter: 'streakDays' },
+  /* Contadores de balão / keepyTotal (handoff tick 3) */
+  balloon_novice:{ emoji: '🎈', label: 'Soprador',           desc: 'Estoure 5 balões',                  rarity: 'common',    check: (g) => (g.counters.balloonsPopped || 0) >= 5,    goal: 5,   counter: 'balloonsPopped' },
+  balloon_party:{ emoji: '💥', label: 'Estoura-Festas',     desc: 'Estoure 25 balões',                 rarity: 'rare',      check: (g) => (g.counters.balloonsPopped || 0) >= 25,   goal: 25,  counter: 'balloonsPopped' },
+  keepy_miles:  { emoji: '⚽', label: 'Embaixador',         desc: '200 embaixadinhas no total',        rarity: 'rare',      check: (g) => (g.counters.keepyTotal || 0) >= 200,       goal: 200, counter: 'keepyTotal' }
 };
 
 /* ---- Cores padrão ---- */
@@ -1333,7 +1356,7 @@ function clawdValidateRuntimeMessage(request) {
 
     case 'triggerAction': {
       if (!Object.prototype.hasOwnProperty.call(CLAWD_ACTIONS, request.value)
-        && !['kick', 'keepy', 'highfive', 'superdance', 'lookAround'].includes(request.value)) {
+        && !Object.prototype.hasOwnProperty.call(CLAWD_PET_EXTRA_ACTIONS, request.value)) {
         return null;
       }
       return { action, value: request.value };
@@ -1440,9 +1463,10 @@ function clawdDefaultState() {
         pets: 0, goals: 0, keepyRecord: 0, keepyTotal: 0, sleeps: 0,
         tabsToday: 0, tabsDay: '', tabsSeen: [], subpetsUnlocked: 1,
         accessoriesUsed: [], fish: 0, rareFish: 0, walks: 0, dances: 0,
+        balloons: 0, balloonsPopped: 0,
         /* v5 */
         feeds: 0, totalActions: 0, shopPurchases: 0, maxCombo: 0,
-        maxSpeedrun: 0, nightInteractions: 0, professionsUsed: [], level: 1,
+        maxSpeedrun: 0, nightInteractions: 0, professionsUsed: ['idle'], level: 1,
         streakDays: 0
       },
       inventory: []
@@ -1592,10 +1616,14 @@ function clawdSanitizeGameBlock(rawGame, defGame) {
     }
   });
   /* v5: garante counters novos ausentes em saves antigos */
-  ['feeds', 'totalActions', 'shopPurchases', 'maxCombo', 'maxSpeedrun', 'nightInteractions', 'level', 'streakDays'].forEach(k => {
+  ['feeds', 'totalActions', 'shopPurchases', 'maxCombo', 'maxSpeedrun', 'nightInteractions', 'level', 'streakDays', 'balloons', 'balloonsPopped'].forEach(k => {
     if (typeof game.counters[k] !== 'number') game.counters[k] = 0;
   });
   if (!Array.isArray(game.counters.professionsUsed)) game.counters.professionsUsed = [];
+  /* Garante 'idle' no histórico se a profissão atual (ou padrão) é Livre — polyglot alcançável */
+  if (!game.counters.professionsUsed.includes('idle')) {
+    game.counters.professionsUsed = ['idle', ...game.counters.professionsUsed].slice(0, 80);
+  }
   game.coins = Math.max(0, Math.min(1e9, Number(game.coins) || 0));
   return game;
 }
@@ -1797,6 +1825,7 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_CONFIG_KEYS,
     CLAWD_SETTING_KEYS,
     CLAWD_RUNTIME_ACTIONS,
+    CLAWD_PET_EXTRA_ACTIONS,
     CLAWD_PORT_MSG_TYPES,
     CLAWD_DOWNSTREAM_PORT_MSG_TYPES,
     CLAWD_TRAVEL_DIRECTIONS,

@@ -578,6 +578,15 @@
     28px 20px rgba(255,120,120,0.2), 32px 20px rgba(255,120,120,0.3);
 }
 
+/* Grampo Estrela (star_clip) — clipe com estrela dourada */
+[data-acc-head="star_clip"] .acc-head {
+  box-shadow:
+    16px -12px #f1c40f, 20px -12px #f1c40f,
+    12px -8px #f1c40f,  16px -8px #f39c12,  20px -8px #f39c12,  24px -8px #f1c40f,
+    16px -4px #f39c12,  20px -4px #f1c40f,
+    12px -12px #b8860b, 24px -12px #b8860b;
+}
+
 /* ===== NOVOS ACESSÓRIOS v3.5 — BODY ===== */
 /* Cachecol corpo — enrolado no pescoço */
 [data-acc-body="scarf_body"] .acc-body {
@@ -588,6 +597,19 @@
     24px 0 #c0392b,
     4px 4px #e74c3c, 8px 4px rgba(231,76,60,0.5),
     28px 4px rgba(231,76,60,0.8), 32px 4px #c0392b;
+}
+
+/* Óculos de Aventura (goggles) — lentes grandes com aro */
+[data-acc-face="goggles"] .acc-face {
+  box-shadow:
+    4px 4px #4a4a5a,   8px 4px #4a4a5a,   12px 4px #4a4a5a,
+    4px 8px #4a4a5a,   8px 8px rgba(135,206,235,0.7), 12px 8px rgba(135,206,235,0.7),
+    4px 12px #4a4a5a,  8px 12px #4a4a5a,  12px 12px #4a4a5a,
+    16px 8px #2d2d3a,
+    20px 4px #4a4a5a,  24px 4px #4a4a5a,  28px 4px #4a4a5a,
+    20px 8px rgba(135,206,235,0.7), 24px 8px rgba(135,206,235,0.7), 28px 8px #4a4a5a,
+    20px 12px #4a4a5a, 24px 12px #4a4a5a, 28px 12px #4a4a5a,
+    9px 6px rgba(255,255,255,0.5), 21px 6px rgba(255,255,255,0.4);
 }
 
 /* ===== ACESSÓRIOS — SLOT ROSTO/CORPO ===== */
@@ -2164,11 +2186,21 @@
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
 }
 .aic-subpet.settling .subpet-sprite {
-  animation: clawd-subpet-settle 0.35s ease-out both;
+  animation: clawd-subpet-settle 0.38s cubic-bezier(.34, 1.2, .64, 1) both;
 }
 @keyframes clawd-subpet-settle {
-  0% { transform: scale(calc(var(--subpet-scale, 1) * 1.06), calc(var(--subpet-scale, 1) * 0.92)) scaleX(var(--subpet-direction)); }
+  0% { transform: scale(calc(var(--subpet-scale, 1) * 1.08), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)); }
+  55% { transform: scale(calc(var(--subpet-scale, 1) * 0.97), calc(var(--subpet-scale, 1) * 1.04)) scaleX(var(--subpet-direction)) translateY(1px); }
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
+}
+/* Acomoda ao deitar — squash curto antes da respiração de sono */
+.aic-subpet.sleep-settle .subpet-sprite {
+  animation: clawd-subpet-sleep-settle 0.4s ease-out both !important;
+}
+@keyframes clawd-subpet-sleep-settle {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+  45% { transform: scale(calc(var(--subpet-scale, 1) * 1.1), calc(var(--subpet-scale, 1) * 0.82)) scaleX(var(--subpet-direction)) translateY(2px); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
 }
 .aic-subpet.flipped { --subpet-direction: -1; }
 .aic-subpet .subpet-bubble {
@@ -2208,10 +2240,12 @@
 }
 .aic-subpet.playing .subpet-sprite { animation: clawd-subpet-hop 0.4s ease-in-out infinite; }
 .aic-subpet.cuddling .subpet-sprite { animation: clawd-subpet-cuddle 0.32s ease-in-out 3; }
-.aic-subpet.racing .subpet-sprite,
-.aic-subpet.owner-running .subpet-sprite { animation: clawd-subpet-run 0.18s ease-in-out infinite; }
-/* Walk do dono não pode ganhar de carinho/special/tap (mesma especificidade + ordem). */
-.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering) .subpet-sprite {
+.aic-subpet.racing .subpet-sprite { animation: clawd-subpet-run 0.18s ease-in-out infinite; }
+/* Walk/run do dono não pode ganhar de carinho/special/tap/duo (mesma especificidade + ordem). */
+.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
+  animation: clawd-subpet-run 0.18s ease-in-out infinite;
+}
+.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
   animation: clawd-subpet-run 0.28s ease-in-out infinite;
 }
 .aic-subpet.eating .subpet-sprite { animation: clawd-subpet-eat 0.35s ease-in-out 5; }
@@ -2323,6 +2357,7 @@
   .aic-subpet.singing .subpet-motion,
   .aic-subpet.tapped .subpet-sprite,
   .aic-subpet.settling .subpet-sprite,
+  .aic-subpet.sleep-settle .subpet-sprite,
   .aic-subpet.hovering .subpet-sprite {
     animation: none !important;
   }
@@ -2332,8 +2367,8 @@
    ESTADOS DO MASCOTE
    ============================ */
 
-/* IDLE: respiração suave */
-#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.walking):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.stretching):not(.roaring):not(.highfive) .pet-body {
+/* IDLE: respiração suave — exclui micro-anims (look/land/greet/peek/duo) */
+#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.walking):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.stretching):not(.roaring):not(.highfive):not(.looking-around):not(.soft-landing):not(.tab-greet):not(.page-peeking):not(.duo-play):not(.petting-subpet):not(.sleep-settle) .pet-body {
   animation: clawd-breathe 3s ease-in-out infinite;
 }
 
@@ -3518,8 +3553,9 @@
   55% { transform: translateY(-5px) scale(1.14); opacity: 1; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
-.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering) .subpet-sprite,
-.aic-subpet.moving:not(.flying):not(.playing):not(.racing):not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering) .subpet-sprite {
+.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite,
+.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite,
+.aic-subpet.moving:not(.flying):not(.playing):not(.racing):not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
   animation: clawd-subpet-run 0.28s ease-in-out infinite;
 }
 .aic-subpet.flying .subpet-motion,
@@ -3602,6 +3638,17 @@
   animation: clawd-subpet-cuddle 0.5s ease-in-out 3 !important;
 }
 
+/* Soft sleep settle — pet principal acomoda o corpo ao deitar */
+@keyframes clawd-sleep-settle {
+  0% { transform: translateY(0) scale(1, 1); }
+  40% { transform: translateY(3px) scale(1.06, 0.88); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+#aic-clawd-node.sleep-settle .pet-body,
+#aic-clawd-node.sleep-settle .smooth-sprite {
+  animation: clawd-sleep-settle 0.45s ease-out both !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   #aic-clawd-node.looking-around .pet-body,
   #aic-clawd-node.looking-around .smooth-sprite,
@@ -3613,8 +3660,11 @@
   #aic-clawd-node.page-peeking .smooth-sprite,
   #aic-clawd-node.duo-play .pet-body,
   #aic-clawd-node.petting-subpet .pet-body,
+  #aic-clawd-node.sleep-settle .pet-body,
+  #aic-clawd-node.sleep-settle .smooth-sprite,
   .aic-subpet.duo-play .subpet-sprite,
-  .aic-subpet.being-petted .subpet-sprite {
+  .aic-subpet.being-petted .subpet-sprite,
+  .aic-subpet.sleep-settle .subpet-sprite {
     animation: none !important;
   }
 }
