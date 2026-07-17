@@ -1135,15 +1135,33 @@ function renderConfig() {
 /** Chirp 8-bit no popup ao ajustar volume (feedback imediato do nível). */
 let _popupAudioCtx = null;
 let _volPreviewTimer = null;
+function _popupAudioUserActive() {
+  try { return !navigator.userActivation || !!navigator.userActivation.isActive; }
+  catch (_) { return true; }
+}
+/** Cria/resume o AudioContext só durante gesto (input/click) — evita warning de autoplay. */
+function unlockPopupAudio() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx || !_popupAudioUserActive()) return;
+    if (!_popupAudioCtx || _popupAudioCtx.state === 'closed') _popupAudioCtx = new Ctx();
+    if (_popupAudioCtx.state === 'suspended') _popupAudioCtx.resume().catch(() => {});
+  } catch (_) { /* ignore */ }
+}
 function previewVolumeChirp(vol, channel = 'master') {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     if (!_popupAudioCtx || _popupAudioCtx.state === 'closed') {
+      if (!_popupAudioUserActive()) return;
       _popupAudioCtx = new Ctx();
     }
     const ctx = _popupAudioCtx;
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    if (ctx.state === 'suspended') {
+      if (!_popupAudioUserActive()) return;
+      ctx.resume().catch(() => {});
+    }
+    if (ctx.state !== 'running') return;
     const masterRaw = parseFloat($('range-volume')?.value);
     const master = Number.isFinite(masterRaw) ? Math.max(0, Math.min(1, masterRaw)) : 0.4;
     if (master <= 0) return;
@@ -1202,13 +1220,17 @@ function bindConfig() {
   });
   $('toggle-sounds').addEventListener('change', e => {
     setSetting('sounds', e.target.checked);
-    if (e.target.checked) previewVolumeChirp(parseFloat($('range-volume').value) || 0.4);
+    if (e.target.checked) {
+      unlockPopupAudio();
+      previewVolumeChirp(parseFloat($('range-volume').value) || 0.4);
+    }
   });
   $('range-volume').addEventListener('input', e => {
     const v = parseFloat(e.target.value);
     $('volume-badge').textContent = `${Math.round(v * 100)}%`;
     setSetting('soundVolume', v);
     if (!$('toggle-sounds').checked) return;
+    unlockPopupAudio(); /* gesto sync — create/resume sem warning */
     clearTimeout(_volPreviewTimer);
     _volPreviewTimer = setTimeout(() => previewVolumeChirp(v), 50);
   });
@@ -1219,6 +1241,7 @@ function bindConfig() {
     $('volume-actions-badge').textContent = `${Math.round(v * 100)}%`;
     setSetting('soundVolumeActions', v);
     if (!$('toggle-sounds').checked) return;
+    unlockPopupAudio();
     clearTimeout(_volPreviewTimer);
     _volPreviewTimer = setTimeout(() => previewVolumeChirp(v, 'actions'), 50);
   });
@@ -1228,6 +1251,7 @@ function bindConfig() {
     $('volume-ambient-badge').textContent = `${Math.round(v * 100)}%`;
     setSetting('soundVolumeAmbient', v);
     if (!$('toggle-sounds').checked) return;
+    unlockPopupAudio();
     clearTimeout(_volPreviewTimer);
     _volPreviewTimer = setTimeout(() => previewVolumeChirp(v, 'ambient'), 50);
   });

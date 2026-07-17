@@ -247,9 +247,13 @@ test('AudioContext só nasce após gesto do usuário', () => {
   assert.match(content, /_audioAllowed/);
   assert.match(content, /_ensureAudioCtx/);
   assert.match(content, /pointerdown/);
-  // não cria AudioContext no boot/beep sem unlock
+  assert.match(content, /fromGesture:\s*true/);
+  assert.match(content, /userActivation/);
+  // beep não cria/resume — só toca se já estiver running
+  assert.match(content, /_ensureAudioCtx\(\{\s*fromGesture:\s*false\s*\}\)/);
+  assert.match(content, /!fromGesture \|\| !this\._hasAudioUserActivation/);
   assert.match(content, /!this\._audioAllowed/);
-  assert.doesNotMatch(content, /beep\([\s\S]{0,120}new \(window\.AudioContext/);
+  assert.doesNotMatch(content, /beep\([\s\S]{0,200}new \(window\.AudioContext/);
 });
 
 test('host bloqueado só por match exato/subdomínio e streak não aceita HTML', () => {

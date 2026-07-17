@@ -2525,7 +2525,8 @@ class ClawdCompanion {
 
   /* ---------- QUIET HOURS ---------- */
   isQuiet() {
-    const { quietStart, quietEnd } = this.S.settings;
+    const { quietStart, quietEnd } = this.S.settings || {};
+    if (typeof quietStart !== 'string' || typeof quietEnd !== 'string') return false;
     if (!quietStart || !quietEnd) return false;
     const now = new Date();
     const cur = now.getHours() * 60 + now.getMinutes();
@@ -2538,29 +2539,53 @@ class ClawdCompanion {
   }
 
   /* ---------- SONS 8-BIT (só após gesto do usuário — política de autoplay) ---------- */
+  _hasAudioUserActivation() {
+    try {
+      const ua = navigator.userActivation;
+      /* isActive = gesto nesta pilha; hasBeenActive = já houve gesto na página */
+      if (ua && typeof ua.isActive === 'boolean') return !!ua.isActive;
+    } catch (_) { /* ignore */ }
+    return true; /* browsers sem User Activation API */
+  }
+
   _bindAudioUnlock() {
     if (this._audioUnlockBound || !this._abort) return;
     this._audioUnlockBound = true;
     const unlock = () => {
       if (this._destroyed) return;
       this._audioAllowed = true;
-      this._ensureAudioCtx();
+      /* create/resume SOMENTE no handler de gesto — evita warning do Chrome */
+      this._ensureAudioCtx({ fromGesture: true });
     };
     const opts = { capture: true, passive: true, signal: this._abort.signal };
-    ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => {
+    /* pointerdown/touchstart/click são activation; keydown também (exceto só modifiers) */
+    ['pointerdown', 'keydown', 'touchstart', 'click'].forEach((ev) => {
       document.addEventListener(ev, unlock, opts);
     });
   }
 
-  _ensureAudioCtx() {
+  /**
+   * @param {{ fromGesture?: boolean }} [opts]
+   * fromGesture=true → pode criar/resume (só chamar de handlers de gesto).
+   * Demais caminhos só reutilizam um contexto já running.
+   */
+  _ensureAudioCtx(opts = {}) {
+    const fromGesture = !!opts.fromGesture;
     if (!this._audioAllowed || !this.S?.settings?.sounds) return null;
     try {
       if (!this._audioCtx) {
+        if (!fromGesture || !this._hasAudioUserActivation()) return null;
         const Ctx = window.AudioContext || window.webkitAudioContext;
         if (!Ctx) return null;
         this._audioCtx = new Ctx();
       }
+      if (this._audioCtx.state === 'closed') {
+        this._audioCtx = null;
+        return null;
+      }
       if (this._audioCtx.state === 'suspended') {
+        /* resume() fora de gesto também dispara o warning de autoplay */
+        if (!fromGesture || !this._hasAudioUserActivation()) return this._audioCtx;
         this._audioCtx.resume().catch(() => {});
       }
       return this._audioCtx;
@@ -2572,7 +2597,8 @@ class ClawdCompanion {
   beep(freq = 660, dur = 0.07, type = 'square', channel = 'actions') {
     if (!this.S.settings.sounds || this.isQuiet() || !this._audioAllowed) return;
     try {
-      const ctx = this._ensureAudioCtx();
+      /* Nunca cria/resume aqui — só toca se o ctx já estiver running pós-gesto */
+      const ctx = this._ensureAudioCtx({ fromGesture: false });
       if (!ctx || ctx.state === 'closed') return;
       // Ainda suspenso = sem gesto válido; silencia sem avisar no console.
       if (ctx.state !== 'running') return;
