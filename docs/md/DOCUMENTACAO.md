@@ -100,14 +100,18 @@ Antes e durante esse ciclo, todas as chamadas a `chrome.runtime`, `chrome.storag
       <div class="accessory">          <!-- camada cosmética compartilhada -->
       <div class="emotion-face">       <!-- piscada e boca em camada própria -->
     </div>
-    <div class="name-tag">             <!-- nome do pet -->
+    <div class="name-tag">
+      <span class="name-title"></span>  <!-- título por nível (Novato…) -->
+      <span class="name-label"></span>  <!-- nome do pet -->
+    </div>
+    <div class="pixel-fx"></div>       <!-- poses pixel de ação (steps) -->
   </div>
   <div class="pet-ball">               <!-- bola (profissão jogador) -->
   <div class="ground-shadow">          <!-- sombra no chão -->
 </div>
 ```
 
-A separação `node` (posição) → `sprite-stack` (flip) → corpo/pernas/rosto/acessórios evita conflito de `transform` entre camadas. O corpo não troca de frame ao caminhar: somente `.pixel-legs` recebe o ciclo de passos. O nó recebe `data-clawd-owned="true"` e `all: initial`; seletores críticos são escopados em `#aic-clawd-node` para impedir que estilos genéricos da página, como `.pixel-sprite` ou `.name-tag`, contaminem a extensão.
+A separação `node` (posição) → `sprite-stack` (flip) → corpo/pernas/rosto/acessórios evita conflito de `transform` entre camadas. O corpo não troca de frame ao caminhar: `.pixel-legs` recebe o ciclo de passos e `.pixel-fx` as poses de ação (aceno, pulo, dança…). O name-tag guarda título de nível e nome em spans separados (`_syncNameTag`) — nunca use `textContent` no container. O nó recebe `data-clawd-owned="true"` e `all: initial`; seletores críticos são escopados em `#aic-clawd-node` para impedir que estilos genéricos da página contaminem a extensão.
 
 **Máquina de estados (`setState`):**
 
@@ -159,7 +163,7 @@ O estado é uma classe no `#aic-clawd-node`; o CSS resolve a animação correspo
 - **Emoções em camadas**: o corpo base não é substituído; `emotion-face` desenha piscada/boca (ligada por padrão via `showMouth: true`), `emotion-badge` exibe o emoji e `.mouth-hidden` remove somente a boca;
 - **Presença viva**: animações `look-around`, `soft-land`, `tab-greet` e `page-peek`; cenas **duo** pet↔subpet quando ambos idle; após dwell (~45–90 s) o pet pode engajar estrutura da página;
 - **Escala**: `--agent-scale` compõe com todos os keyframes (evita sobrescrever `transform`);
-- **Modificadores**: `.smooth` alterna para a silhueta contínua; `.outlined` aplica contorno; `[data-acc-head]`/`[data-acc-face]` desenham 14 acessórios com variantes pixel-art e lisas;
+- **Modificadores**: `.smooth` alterna para a silhueta contínua; `.outlined` aplica contorno; `[data-acc-head]`/`[data-acc-face]`/`[data-acc-body]` desenham os acessórios do catálogo com variantes pixel-art;
 - **Chapéus responsivos**: os 7 itens de cabeça têm detalhes próprios nos dois renderizadores e `clawd-headwear-step` acompanha apenas `walking`/`running`, sem animação ociosa;
 - **Isolamento**: todos os keyframes usam namespace `clawd-`, evitando colisões com `walk`, `sleep`, `fish` e outras animações comuns do site;
 - Velocidade de animação ajustada pelas variáveis `--clawd-step-duration` e `--clawd-run-duration`, derivadas de `animSpeed`.
@@ -270,7 +274,7 @@ O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `
 
 Cada espécie implementa `special`: cachorro late/busca, gato pode ignorar, pássaro rodopia, coelho salta, dinossauro corre, dragão solta fogo, fantasma desaparece e slime se divide. As animações preservam o flip horizontal por variável CSS e respeitam `prefers-reduced-motion`.
 
-No modo liso, `pixel-sprite` e `pixel-legs` ficam ocultos e sem `box-shadow`; o `smooth-sprite` assume uma variante contínua de cada um dos quatro modelos, com cabeça, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os 14 acessórios e as skins especiais também têm variantes contínuas. Os 7 chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. A `sprite-stack` mantém contenção de layout/estilo, mas não de pintura: isso permite que cartolas, coroas, toucas, hélices, abas e mochilas ultrapassem a caixa de 44×36px sem recorte. Fones usam uma camada atrás do chapéu, e a faixa ninja fica na testa sem cobrir os olhos.
+No modo liso, `pixel-sprite` e `pixel-legs` ficam ocultos e sem `box-shadow`; o `smooth-sprite` assume uma variante contínua de cada um dos quatro modelos, com cabeça, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os **31** acessórios e as skins especiais também têm variantes contínuas. Os chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. A `sprite-stack` mantém contenção de layout/estilo, mas não de pintura: isso permite que cartolas, coroas, toucas, hélices, abas e mochilas ultrapassem a caixa de 44×36px sem recorte. Fones usam uma camada atrás do chapéu, e a faixa ninja fica na testa sem cobrir os olhos.
 
 `clawdEffectiveAccessories(state)` separa seleção pessoal e traje profissional. O DOM recebe o item efetivo e a origem (`personal` ou `profession`), mas `accessoryHead`/`accessoryFace` continuam intactos no storage; ao voltar para Livre, o visual pessoal reaparece. O popup reutiliza `style.css` em um provador real que combina os dois slots e reflete pixel/liso, skin, cor, contorno e camisa. O Pescador cria lago, vara/linha e janela de fisgada; cancelamento limpa timers/cena sem conceder peixe, enquanto a captura completa incrementa o contador.
 
@@ -342,8 +346,8 @@ O painel **Demonstração validada** possui:
 - player local de 45 segundos com 18 estados e controles de reprodução, capítulos, range, setas e teclado;
 - quatro grupos de evidência renderizados a partir do mesmo array `DEMO_STEPS`, evitando divergência entre roteiro e storyboard;
 - selos que combinam contagens dinâmicas dos catálogos com o snapshot reproduzível da suíte;
-- galeria dos 14 acessórios usando diretamente as camadas pixel-art de `src/content/style.css`, sem substituição por emoji;
-- laboratórios separados para sprite normal/liso, boca, os 14 acessórios e subpets com apelido, corpo, olhos e sete ações;
+- galeria dos acessórios usando diretamente as camadas pixel-art de `src/content/style.css`, sem substituição por emoji;
+- laboratórios separados para sprite normal/liso, boca, os **31** acessórios e subpets com apelido, corpo, olhos e sete ações;
 - pausa ao ocultar a aba e respeito a `prefers-reduced-motion`;
 - breakpoints desktop, tablet e móvel sem rolagem horizontal.
 
@@ -362,7 +366,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **64 testes** cobrem estado padrão, schema v4 e migração de saves (sem XSS de missão/streak, sem poluição de protótipo), quatro modelos, quatro rostos, cor independente dos olhos, curva de nível, missão diária, catálogo/CSS dos 14 acessórios, chapéus sem recorte, composição das camadas, trajes profissionais temporários, corpo estático e pernas isoladas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlist de mensagens, sites bloqueados seguros e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida 4/4 modelos, 4/4 rostos, acessórios, estúdio pixel/liso, boca, 8 profissões, ações do catálogo (**24**), pesca, popup, subpet com **7** interações e três reloads sem erros ou duplicação. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
+Os **117 testes** cobrem estado padrão, schema v5 e migração de saves (sem XSS de missão/streak, sem poluição de protótipo), quatro modelos, quatro rostos, cor independente dos olhos, curva de nível, missão diária (14 tipos, incl. balões/keepy), catálogo/CSS dos acessórios, chapéus sem recorte, composição das camadas, trajes profissionais temporários, corpo estático e pernas isoladas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup, manifest, isolamento de keyframes, invalidação do contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlist de mensagens, sites bloqueados seguros, save coalesce, extras kick/keepy/superdance, harmonia/qualidade-fluida, pixel-fx e name-tag, e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida 4/4 modelos, 4/4 rostos, acessórios, estúdio pixel/liso, boca, 12 profissões, ações do catálogo (**30**), pesca, popup, subpet com **7** interações e três reloads sem erros ou duplicação. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
 
 ### Segurança (resumo)
 
@@ -374,4 +378,4 @@ Os **64 testes** cobrem estado padrão, schema v4 e migração de saves (sem XSS
 
 ---
 
-*Documentação Técnica — Claw'd · atualizada em 15/07/2026*
+*Documentação Técnica — Claw'd · atualizada em 16/07/2026*

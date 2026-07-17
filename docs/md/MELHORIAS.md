@@ -20,7 +20,7 @@
 
 - **Slot body**: terceiro slot de acessório (ribbon, wings, cape, armor); CSS pixel-art completo; rendering condicional de has-wings/has-cape/has-armor
 - **Sistema de combo**: janela 10s, balão a ×3, XP ×(1+0.15×n) a ×5, conquista combo_king
-- **Desafio semanal**: 4 desafios por hash ISO week, alarm background semanal, claim com XP+badge
+- **Desafio semanal**: 12 desafios por hash ISO week, alarm background semanal, claim com XP+badge
 - **Traços de personalidade**: 5 dimensões (playful, lazy, curious, social, foodie) afetam idle e fala
 - **Detecção de contexto**: 11 categorias de sites (coding, music, video, shopping, social, news, email, gaming, health, learning, idle)
 - **Partículas sazonais**: neve (dez/jan), folhas (out), flores (abr), vagalumes (jun/jul)
@@ -28,13 +28,13 @@
 
 ### Roadmap v3.4
 
-| Fase | Foco |
-|------|------|
-| Docs sync | Sincronizar toda documentação com estado v3.3 (este ciclo) |
-| Micro-animações | Variações idle (look/scratch/taptoe), frames pixel-art para flip/meditate/electric/nap |
-| UX onboarding | Overlay de boas-vindas na primeira abertura do popup |
-| Interações | Atalhos Alt+F/H/P/Z, reação ao scroll, duplo-clique, retorno de aba, click frenético |
-| Summon elaborado | Animação de queda com bounce ao injetar o pet |
+| Fase | Foco | Estado |
+|------|------|--------|
+| Docs sync | Sincronizar documentação com estado vivo (loop tick 6) | ✅ Concluído (81/81) |
+| Micro-animações | Variações idle (look/scratch/taptoe), frames pixel-art para flip/meditate/electric/nap | ✅ (tick 2) |
+| UX onboarding | Overlay de boas-vindas na primeira abertura do popup | Parcial / em produto |
+| Interações | Atalhos Alt+F/H/P/Z, reação ao scroll, duplo-clique, retorno de aba, click frenético | ✅ |
+| Summon elaborado | Animação de queda com bounce ao injetar o pet | Opcional |
 
 ---
 
@@ -46,7 +46,13 @@
 
 **Polish 15/07/2026 — Sub-pets unificados + PNG:** `CLAWD_SUBPET_SPRITES` no catálogo (grade 12×10 @ 4px, frames idle/walk/sleep), PNGs literais do sheet em `src/shared/sprites/subpets/` via `web_accessible_resources`, fallback `box-shadow` sob paleta custom, animações no wrapper `.subpet-motion`, especiais reforçados; crops via `tests/tools/_crop-literal-sprites.mjs` (`_make-sprites` não sobrescreve o pacote sem `WRITE_PKG_SPRITES=1`).
 
-**Polish 15/07/2026 — Segurança, performance e integridade:** allowlist de mensagens, sanitização de storage/DOM, bfcache sem `Unchecked runtime.lastError`, AudioContext só após gesto, particles com teto, heartbeat 2,5 s, sites bloqueados por host/subdomínio, **24 ações** principais (inclui balão/abraço) e **7 ações** de sub-pet; suíte em **65/65** + smoke zerado.
+**Polish 17/07/2026 — Pixel-fx + name-tag + qualidade:** camada `.pixel-fx` com poses `steps(1)` (aceno, andar, pulo, dança, rugido, banho, etc.); name-tag com título de nível + nome (fix do `textContent` que apagava spans); FX de acessório/ambient; volumes Ações/Ambiente; suíte **117/117**.
+
+**Polish 15/07/2026 — Segurança, performance e integridade:** allowlist de mensagens, sanitização de storage/DOM, bfcache sem `Unchecked runtime.lastError`, AudioContext só após gesto, particles com teto, heartbeat 2,5 s, sites bloqueados por host/subdomínio, ações principais e **7 ações** de sub-pet; suíte histórica **65/65** (superseded — ver polish 16/07).
+
+**Polish 16/07/2026 — Loop validation (ticks 1–6):** segurança endurecida; animações/idle; **30 ações** no popup + extras kick/keepy/superdance; gamificação com balões/keepy (28 conquistas, 14 quests); save coalesce / caps; docs + showcase alinhados — suíte **81/81**.
+
+**Polish 16/07/2026 — Padrões + profundidade:** contexto de página SSOT (`CLAWD_PAGE_CONTEXTS` / reset para `idle`); **12** desafios semanais; reações em 11 categorias; `customSpeech` ponderado por `social`; idle actions ponderadas por traços; onboarding com contagens reais (31 acessórios / 34 conquistas); suíte de harmonia da fase.
 
 **Polish 15/07/2026 — Presença viva:** `showMouth: true` por padrão; cenas duo pet↔subpet; dwell/page-engage (`look-around`, `page-peek`, `tab-greet`, `soft-land`).
 

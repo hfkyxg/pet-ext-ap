@@ -103,7 +103,9 @@ function favSort(ids, category) {
    ===================================================== */
 function renderHeader() {
   const { level, into, next } = clawdLevelFromXp(S.xp);
+  const title = clawdTitleForLevel(level);
   $('xp-level').textContent = `Lv. ${level}`;
+  $('xp-level').title = title;
   $('xp-count').textContent = `${S.xp} XP`;
   $('coins-count').textContent = S.game.coins || 0;
   setTimeout(() => { $('xp-fill').style.width = `${Math.min(100, (into / next) * 100)}%`; }, 120);
@@ -122,6 +124,11 @@ function syncHeaderPetPreview() {
   preview.dataset.skin = S.skin || 'normal';
   preview.dataset.accHead = effective.head || 'none';
   preview.dataset.accFace = effective.face || 'none';
+  preview.dataset.accBody = effective.body || 'none';
+  preview.classList.toggle('has-wings', effective.body === 'wings');
+  preview.classList.toggle('has-cape', effective.body === 'cape');
+  preview.classList.toggle('has-armor', effective.body === 'armor');
+  preview.classList.toggle('has-propeller', effective.head === 'propeller');
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
   preview.setAttribute('aria-label', `${CLAWD_MODELS[S.model]?.label || 'Clássico'}, ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'}`);
@@ -150,7 +157,7 @@ function applyHeaderColor(color) {
   });
 }
 
-function createPetArtPreview({ model, faceStyle, skin, head = 'none', face = 'none', className = '' } = {}) {
+function createPetArtPreview({ model, faceStyle, skin, head = 'none', face = 'none', body = 'none', className = '' } = {}) {
   const preview = document.createElement('span');
   preview.className = `clawd-model-preview ${className}`.trim();
   preview.dataset.model = model || S.model || 'classic';
@@ -158,11 +165,16 @@ function createPetArtPreview({ model, faceStyle, skin, head = 'none', face = 'no
   preview.dataset.skin = skin || S.skin || 'normal';
   preview.dataset.accHead = head;
   preview.dataset.accFace = face;
+  preview.dataset.accBody = body;
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+  preview.classList.toggle('has-wings', body === 'wings');
+  preview.classList.toggle('has-cape', body === 'cape');
+  preview.classList.toggle('has-armor', body === 'armor');
+  preview.classList.toggle('has-propeller', head === 'propeller');
   preview.innerHTML = `
     <i class="pixel-sprite"></i><i class="pixel-legs"></i><i class="pet-eyes"></i><i class="face-detail"></i>
-    <i class="skin-mod"></i><i class="accessory acc-head"></i><i class="accessory acc-face"></i>`;
+    <i class="skin-mod"></i><i class="accessory acc-body"></i><i class="accessory acc-head"></i><i class="accessory acc-face"></i>`;
   return preview;
 }
 
@@ -199,12 +211,12 @@ function renderOutfitPreview() {
   preview.classList.toggle('has-wings', effective.body === 'wings');
   preview.classList.toggle('has-cape', effective.body === 'cape');
   preview.classList.toggle('has-armor', effective.body === 'armor');
+  preview.classList.toggle('has-propeller', effective.head === 'propeller');
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
   preview.style.setProperty('--jersey-color', S.jerseyColor || '#e74c3c');
   preview.setAttribute('data-tag-theme', S.tagTheme || 'light');
-  const namePreview = $('popup-name-preview');
-  if (namePreview) namePreview.textContent = S.name || "Claw'd";
+  syncPopupNameTag();
   preview.setAttribute('aria-label', equipped.length
     ? `Prévia do pet com ${equipped.join(' e ')}`
     : 'Prévia do pet sem acessórios');
@@ -212,6 +224,29 @@ function renderOutfitPreview() {
   $('outfit-preview-detail').textContent = automatic.length
     ? `${automatic.join(' + ')} temporário da profissão; sua escolha pessoal está salva.`
     : `${CLAWD_MODELS[S.model]?.label || 'Clássico'} · ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'} · ${S.smooth ? 'liso sem grade' : 'pixel-art'} · três slots combináveis`;
+}
+
+function syncPopupNameTag(name = S.name) {
+  const tag = $('popup-name-preview');
+  if (!tag) return;
+  let titleEl = $('popup-name-title');
+  let labelEl = $('popup-name-label');
+  if (!titleEl || !tag.contains(titleEl) || !labelEl || !tag.contains(labelEl)) {
+    tag.replaceChildren();
+    titleEl = document.createElement('span');
+    titleEl.className = 'name-title';
+    titleEl.id = 'popup-name-title';
+    labelEl = document.createElement('span');
+    labelEl.className = 'name-label';
+    labelEl.id = 'popup-name-label';
+    tag.append(titleEl, labelEl);
+  }
+  const level = clawdLevelFromXp(S.xp || 0).level;
+  const title = clawdTitleForLevel(level) || 'Novato';
+  const display = (name && String(name).trim()) || "Claw'd";
+  titleEl.textContent = title;
+  labelEl.textContent = display;
+  tag.setAttribute('aria-label', `${display}, ${title}`);
 }
 
 /* Busca stats ao vivo do content script */
@@ -344,8 +379,7 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
    ===================================================== */
 function renderNameArea() {
   $('input-name').value = S.name || "Claw'd";
-  const namePreview = $('popup-name-preview');
-  if (namePreview) namePreview.textContent = S.name || "Claw'd";
+  syncPopupNameTag();
   const dl = $('name-history');
   dl.innerHTML = '';
   (S.nicknameHistory || []).forEach(n => {
@@ -420,6 +454,28 @@ function renderColors() {
     favRow.appendChild(sw);
   });
   updateColorStar();
+  // presets de cor
+  const presetRow = $('color-presets');
+  if (presetRow) {
+    presetRow.innerHTML = '';
+    CLAWD_COLOR_PRESETS.forEach(preset => {
+      const chip = document.createElement('button');
+      chip.className = 'preset-chip' + (S.color === preset.color ? ' active' : '');
+      chip.textContent = preset.label;
+      chip.title = `${preset.label}: ${preset.color}`;
+      chip.addEventListener('click', () => {
+        $('input-color').value = preset.color;
+        $('input-eye-color').value = preset.eyeColor;
+        applyHeaderColor(preset.color);
+        setConfig('color', preset.color);
+        setConfig('eyeColor', preset.eyeColor);
+        $('color-hex').textContent = preset.color;
+        $('eye-color-hex').textContent = preset.eyeColor;
+        renderColors();
+      });
+      presetRow.appendChild(chip);
+    });
+  }
 }
 function updateColorStar() {
   const cur = $('input-color').value;
@@ -559,20 +615,19 @@ function renderAccessories() {
       card.appendChild(createPetArtPreview({
         head: slot === 'head' ? id : 'none',
         face: slot === 'face' ? id : 'none',
+        body: slot === 'body' ? id : 'none',
         className: 'accessory-art-preview'
       }));
-      /* body: mostra emoji como label visual se sem art */
-      if (slot === 'body' && def.emoji) {
-        const emojiEl = document.createElement('span');
-        emojiEl.className = 'acc-body-emoji';
-        emojiEl.textContent = def.emoji;
-        emojiEl.style.cssText = 'font-size:18px;display:block;margin-bottom:2px;';
-        card.insertBefore(emojiEl, card.firstChild);
-      }
       const name = document.createElement('span');
       name.className = 'acc-name';
       name.textContent = def.label;
       card.appendChild(name);
+      if (slot === 'body') {
+        const slotBadge = document.createElement('span');
+        slotBadge.className = 'acc-slot-badge';
+        slotBadge.textContent = 'CORPO';
+        card.appendChild(slotBadge);
+      }
       if (!unlocked) {
         const lock = document.createElement('span');
         lock.className = 'lock-badge';
@@ -1008,6 +1063,9 @@ function renderConfig() {
   $('blocked-sites').value = (set.blockedSites || []).join('\n');
   $('select-corner').value = set.startCorner || 'br';
   $('toggle-performance').checked = !!set.performanceMode;
+  $('toggle-no-particles').checked = !!set.noParticles;
+  $('toggle-no-idle').checked = !!set.noIdleVariations;
+  $('toggle-no-weather').checked = !!set.noWeather;
   document.querySelectorAll('#tag-theme-grid .mini-card').forEach(c => {
     c.classList.toggle('active', c.dataset.theme === (S.tagTheme || 'light'));
   });
@@ -1121,7 +1179,7 @@ function bindConfig() {
   /* v3.3: frases customizadas */
   const csEl = $('custom-speech');
   if (csEl) csEl.addEventListener('change', e => {
-    const lines = e.target.value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 20);
+    const lines = e.target.value.split('\n').map(s => clawdSanitizePlainText(s.trim(), 100)).filter(Boolean).slice(0, 20);
     persist(st => { st.customSpeech = lines; });
     S.customSpeech = lines;
   });
@@ -1139,6 +1197,18 @@ function bindConfig() {
   $('toggle-performance').addEventListener('change', e => {
     setSetting('performanceMode', e.target.checked);
     sendMsg({ action: 'updateSetting', key: 'performanceMode', value: e.target.checked });
+  });
+  $('toggle-no-particles').addEventListener('change', e => {
+    setSetting('noParticles', e.target.checked);
+    sendMsg({ action: 'updateSetting', key: 'noParticles', value: e.target.checked });
+  });
+  $('toggle-no-idle').addEventListener('change', e => {
+    setSetting('noIdleVariations', e.target.checked);
+    sendMsg({ action: 'updateSetting', key: 'noIdleVariations', value: e.target.checked });
+  });
+  $('toggle-no-weather').addEventListener('change', e => {
+    setSetting('noWeather', e.target.checked);
+    sendMsg({ action: 'updateSetting', key: 'noWeather', value: e.target.checked });
   });
   document.querySelectorAll('#tag-theme-grid .mini-card').forEach(c => {
     c.addEventListener('click', () => { setConfig('tagTheme', c.dataset.theme); renderConfig(); });
@@ -1167,7 +1237,12 @@ function bindConfig() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const data = clawdMigrateState(JSON.parse(reader.result));
+        const parsed = JSON.parse(reader.result);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          alert('❌ Arquivo inválido.');
+          return;
+        }
+        const data = clawdMigrateState(parsed);
         chrome.storage.local.set({ clawdState: data }, () => {
           scrubLastError();
           S = data;
@@ -1211,8 +1286,7 @@ function bindStatic() {
   $('input-name').addEventListener('input', (e) => {
     const val = e.target.value || "Claw'd";
     setConfig('name', val);
-    const namePreview = $('popup-name-preview');
-    if (namePreview) namePreview.textContent = val;
+    syncPopupNameTag(val);
     persist(st => {
       if (val && !st.nicknameHistory.includes(val)) {
         st.nicknameHistory.push(val);

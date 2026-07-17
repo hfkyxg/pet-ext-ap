@@ -25,11 +25,74 @@ var CLAWD_DAILY_QUESTS = [
 
 /* ---- Desafios Semanais (rotação por hash da semana ISO) ---- */
 var CLAWD_WEEKLY_CHALLENGES = [
-  { type: 'fish',    target: 8,  label: 'Pescador da Semana',    desc: 'Pesque 8 vezes nesta semana',          rewardXp: 80, rewardCoins: 20, badge: '🎣' },
-  { type: 'dance',   target: 10, label: 'Febre Semanal',         desc: 'Dance 10 vezes nesta semana',           rewardXp: 90, rewardCoins: 22, badge: '🕺' },
-  { type: 'pets',    target: 15, label: 'Carinhoso Demais',      desc: 'Dê carinho 15 vezes nesta semana',      rewardXp: 85, rewardCoins: 20, badge: '❤️'  },
-  { type: 'walk',    target: 20, label: 'Maratonista Digital',   desc: 'Faça o pet passear 20 vezes',           rewardXp: 95, rewardCoins: 25, badge: '🏃' }
+  { type: 'fish',       target: 8,  label: 'Pescador da Semana',   desc: 'Pesque 8 vezes nesta semana',            rewardXp: 80, rewardCoins: 20, badge: '🎣' },
+  { type: 'dance',      target: 10, label: 'Febre Semanal',        desc: 'Dance 10 vezes nesta semana',             rewardXp: 90, rewardCoins: 22, badge: '🕺' },
+  { type: 'pets',       target: 15, label: 'Carinhoso Demais',     desc: 'Dê carinho 15 vezes nesta semana',        rewardXp: 85, rewardCoins: 20, badge: '❤️' },
+  { type: 'walk',       target: 20, label: 'Maratonista Digital',  desc: 'Faça o pet passear 20 vezes',             rewardXp: 95, rewardCoins: 25, badge: '🏃' },
+  { type: 'goals',      target: 8,  label: 'Artilheiro Semanal',   desc: 'Marque 8 golaços nesta semana',          rewardXp: 100, rewardCoins: 26, badge: '⚽' },
+  { type: 'balloons',   target: 12, label: 'Caçador de Balões',    desc: 'Estoure 12 balões nesta semana',         rewardXp: 88, rewardCoins: 22, badge: '🎈' },
+  { type: 'keepy',      target: 80, label: 'Embaixadinha Master',  desc: 'Faça 80 embaixadinhas no total semanal', rewardXp: 110, rewardCoins: 28, badge: '🦵' },
+  { type: 'combo',      target: 8,  label: 'Combo Semanal',        desc: 'Complete 8 combos (≥3 ações)',           rewardXp: 95, rewardCoins: 24, badge: '🔥' },
+  { type: 'subpet',     target: 20, label: 'Dupla Dinâmica',       desc: 'Interaja 20 vezes com o sub-pet',        rewardXp: 90, rewardCoins: 22, badge: '🐕' },
+  { type: 'profession', target: 5,  label: 'Workaholic Pixel',     desc: 'Use profissões em 5 ciclos',             rewardXp: 85, rewardCoins: 20, badge: '💼' },
+  { type: 'feed',       target: 10, label: 'Chef da Semana',       desc: 'Alimente o pet 10 vezes',                rewardXp: 80, rewardCoins: 18, badge: '🍖' },
+  { type: 'play',       target: 10, label: 'Hora da Diversão',     desc: 'Brinque 10 vezes nesta semana',          rewardXp: 82, rewardCoins: 20, badge: '🎾' }
 ];
+
+/* ---- Contexto de página (hostname → categoria) — SSOT para content + docs ---- */
+var CLAWD_PAGE_CONTEXTS = {
+  coding:   ['github', 'gitlab', 'stackoverflow', 'codepen', 'replit', 'codesandbox', 'npmjs', 'pypi', 'developer.', 'mdn'],
+  music:    ['spotify', 'soundcloud', 'music.youtube', 'deezer', 'last.fm', 'letras.mus', 'bandcamp'],
+  video:    ['youtube.com', 'netflix', 'twitch', 'primevideo', 'disneyplus', 'vimeo'],
+  shopping: ['amazon', 'mercadolivre', 'shopee', 'aliexpress', 'magazineluiza', 'americanas'],
+  social:   ['twitter', 'x.com', 'instagram', 'facebook', 'tiktok', 'reddit', 'mastodon', 'linkedin'],
+  news:     ['g1.globo', 'uol.com', 'bbc', 'cnn', 'folha.uol', 'estadao', 'theguardian', 'nytimes'],
+  email:    ['gmail', 'mail.google', 'outlook', 'hotmail', 'yahoo.com', 'protonmail'],
+  gaming:   ['steam', 'steampowered', 'roblox', 'epicgames', 'itch.io', 'gog.com', 'gamespot', 'ign.com'],
+  health:   ['medscape', 'healthline', 'bula.ms', 'saude.gov', 'medical', 'hospital'],
+  learning: ['coursera', 'udemy', 'khanacademy', 'duolingo', 'alura', 'dio.me', 'edx.org']
+};
+
+/** Match de host com fronteira de domínio (evita 'x.com' dentro de 'roblox.com'). */
+function clawdHostMatchesDomain(hostname, needle) {
+  const host = String(hostname || '').toLowerCase();
+  const d = String(needle || '').toLowerCase();
+  if (!host || !d) return false;
+  if (d.endsWith('.')) return host.includes(d);
+  if (d.includes('.')) {
+    return host === d || host.startsWith(d + '.') || host.endsWith('.' + d) || host.includes('.' + d + '.');
+  }
+  const labels = host.split('.').filter(Boolean);
+  if (labels.some((l) => l === d)) return true;
+  if (host.startsWith(d + '.') || host.endsWith('.' + d) || host.includes('.' + d + '.')) return true;
+  /* tokens ≥4: steam→steampowered, sem permitir 'x' solto */
+  if (d.length >= 4 && labels.some((l) => l.startsWith(d))) return true;
+  return false;
+}
+
+/** Resolve categoria a partir do hostname (ou 'idle'). */
+function clawdPageContextFromHost(hostname) {
+  const url = String(hostname || '').toLowerCase();
+  for (const [ctx, domains] of Object.entries(CLAWD_PAGE_CONTEXTS)) {
+    if (domains.some((d) => clawdHostMatchesDomain(url, d))) return ctx;
+  }
+  return 'idle';
+}
+
+/** Reações de personalidade ao mudar de contexto (min = traço mínimo 0–10). */
+var CLAWD_CONTEXT_REACTIONS = {
+  gaming:   { trait: 'playful', min: 4, msg: 'Hora de jogar! 🎮', action: 'cheer' },
+  music:    { trait: 'social',  min: 5, msg: 'Música! 🎵', action: 'dance' },
+  social:   { trait: 'social',  min: 5, msg: 'Rede social! 📱', action: 'wave' },
+  shopping: { trait: 'playful', min: 3, msg: 'Comprando? 🛒', action: 'bounce' },
+  learning: { trait: 'curious', min: 5, msg: 'Aprendendo! 📚', action: 'meditate' },
+  coding:   { trait: 'curious', min: 4, msg: 'Codando! 💻', action: 'lookAround' },
+  video:    { trait: 'lazy',    min: 4, msg: 'Maratonando? 🍿', action: 'clap' },
+  news:     { trait: 'curious', min: 5, msg: 'Novidades! 📰', action: 'peek' },
+  email:    { trait: 'social',  min: 4, msg: 'Caixa de entrada! ✉️', action: 'stretch' },
+  health:   { trait: 'lazy',    min: 3, msg: 'Cuidando da saúde! 💊', action: 'meditate' },
+  idle:     { trait: 'curious', min: 8, msg: 'Explorando a web… 🌐', action: 'lookAround' }
+};
 
 function clawdDailyQuestForDate(date = new Date().toISOString().slice(0, 10)) {
   const hash = String(date).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
@@ -84,14 +147,20 @@ function clawdRegisterDailyProgress(state, type, amount = 1) {
 function clawdXpForLevel(n) {
   return Math.round(50 * Math.pow(n, 1.3));
 }
+var _clawdLevelCache = new Map();
 function clawdLevelFromXp(xp) {
+  const key = Number(xp) || 0;
+  if (_clawdLevelCache.has(key)) return _clawdLevelCache.get(key);
   let level = 1;
-  let remaining = xp;
+  let remaining = key;
   while (remaining >= clawdXpForLevel(level) && level < 99) {
     remaining -= clawdXpForLevel(level);
     level++;
   }
-  return { level, into: remaining, next: clawdXpForLevel(level) };
+  const result = { level, into: remaining, next: clawdXpForLevel(level) };
+  if (_clawdLevelCache.size > 200) _clawdLevelCache.clear();
+  _clawdLevelCache.set(key, result);
+  return result;
 }
 
 /* ---- Raridade de conquistas ---- */
@@ -1124,11 +1193,44 @@ var CLAWD_ACHIEVEMENTS = {
   /* Contadores de balão / keepyTotal (handoff tick 3) */
   balloon_novice:{ emoji: '🎈', label: 'Soprador',           desc: 'Estoure 5 balões',                  rarity: 'common',    check: (g) => (g.counters.balloonsPopped || 0) >= 5,    goal: 5,   counter: 'balloonsPopped' },
   balloon_party:{ emoji: '💥', label: 'Estoura-Festas',     desc: 'Estoure 25 balões',                 rarity: 'rare',      check: (g) => (g.counters.balloonsPopped || 0) >= 25,   goal: 25,  counter: 'balloonsPopped' },
-  keepy_miles:  { emoji: '⚽', label: 'Embaixador',         desc: '200 embaixadinhas no total',        rarity: 'rare',      check: (g) => (g.counters.keepyTotal || 0) >= 200,       goal: 200, counter: 'keepyTotal' }
+  keepy_miles:  { emoji: '⚽', label: 'Embaixador',         desc: '200 embaixadinhas no total',        rarity: 'rare',      check: (g) => (g.counters.keepyTotal || 0) >= 200,       goal: 200, counter: 'keepyTotal' },
+  /* Novas conquistas v3.4 — exploram features existentes */
+  social_butterfly:{ emoji: '🦋', label: 'Borboleta Social',  desc: 'Dar carinho 50 vezes',               rarity: 'rare',      check: (g) => (g.counters.pets || 0) >= 50,             goal: 50,  counter: 'pets' },
+  night_owl_ext:  { emoji: '🌙', label: 'Coruja Suprema',    desc: '100 interações noturnas',            rarity: 'epic',      check: (g) => (g.counters.nightInteractions || 0) >= 100, goal: 100, counter: 'nightInteractions' },
+  streak_master:  { emoji: '🔥', label: 'Mestre do Streak',  desc: 'Streak de 14 dias',                  rarity: 'epic',      check: (g) => (g.counters?.streakDays || 0) >= 14,      goal: 14,  counter: 'streakDays' },
+  fashion_queen:  { emoji: '👑', label: 'Rainha da Moda',    desc: 'Usar 15 acessórios diferentes',      rarity: 'epic',      check: (g) => (g.counters.accessoriesUsed || []).length >= 15, goal: 15, counter: 'accessoriesUsed' },
+  keepy_legend:   { emoji: '🏆', label: 'Lenda do Keepy',    desc: '1000 embaixadinhas no total',        rarity: 'legendary', check: (g) => (g.counters.keepyTotal || 0) >= 1000,     goal: 1000, counter: 'keepyTotal' },
+  balloon_master: { emoji: '🎊', label: 'Mestre dos Balões', desc: 'Estourar 100 balões',                rarity: 'epic',      check: (g) => (g.counters.balloonsPopped || 0) >= 100,  goal: 100, counter: 'balloonsPopped' }
 };
+
+/* ---- Títulos por nível ---- */
+var CLAWD_TITLES = [
+  { minLevel: 1,  maxLevel: 4,  label: 'Novato' },
+  { minLevel: 5,  maxLevel: 9,  label: 'Aventureiro' },
+  { minLevel: 10, maxLevel: 19, label: 'Veterano' },
+  { minLevel: 20, maxLevel: 29, label: 'Mestre' },
+  { minLevel: 30, maxLevel: 49, label: 'Lenda' },
+  { minLevel: 50, maxLevel: 99, label: 'Mítico' }
+];
+
+function clawdTitleForLevel(level) {
+  for (const t of CLAWD_TITLES) {
+    if (level >= t.minLevel && level <= t.maxLevel) return t.label;
+  }
+  return 'Novato';
+}
 
 /* ---- Cores padrão ---- */
 var CLAWD_COLORS = ['#c71515', '#d97757', '#C15F3C', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#e84393', '#1abc9c'];
+
+/* ---- Presets de cor (aplicação rápida) ---- */
+var CLAWD_COLOR_PRESETS = [
+  { id: 'classic',  label: 'Clássico',  color: '#c71515', eyeColor: '#08080b' },
+  { id: 'neon',     label: 'Neon',      color: '#00d4ff', eyeColor: '#ffffff' },
+  { id: 'natural',  label: 'Natural',   color: '#2ecc71', eyeColor: '#8B4513' },
+  { id: 'sakura',   label: 'Sakura',    color: '#e84393', eyeColor: '#c2185b' },
+  { id: 'cyber',    label: 'Cyber',     color: '#9b59b6', eyeColor: '#f1c40f' }
+];
 
 /* ---- Cores de camisa (Jogador) ---- */
 var CLAWD_JERSEYS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#ffffff', '#111111', '#9b59b6', '#e67e22'];
@@ -1148,7 +1250,8 @@ var CLAWD_CONFIG_KEYS = [
 var CLAWD_SETTING_KEYS = [
   'crossTab', 'travelFreq', 'footprints', 'sounds', 'soundVolume',
   'soundVolumeActions', 'soundVolumeAmbient',
-  'quietStart', 'quietEnd', 'blockedSites', 'startCorner', 'performanceMode'
+  'quietStart', 'quietEnd', 'blockedSites', 'startCorner', 'performanceMode',
+  'noParticles', 'noIdleVariations', 'noWeather'
 ];
 
 var CLAWD_RUNTIME_ACTIONS = [
@@ -1300,6 +1403,9 @@ function clawdSanitizeSettingValue(key, value) {
     case 'footprints':
     case 'sounds':
     case 'performanceMode':
+    case 'noParticles':
+    case 'noIdleVariations':
+    case 'noWeather':
       return !!value;
     case 'travelFreq':
       return CLAWD_TRAVEL_FREQS.includes(value) ? value : null;
@@ -1488,7 +1594,10 @@ function clawdDefaultState() {
       quietEnd: '',
       blockedSites: [],
       startCorner: 'br',           // br | bl | tr | tl
-      performanceMode: false
+      performanceMode: false,
+      noParticles: false,           // desliga partículas sem desligar tudo
+      noIdleVariations: false,      // desliga variações idle decorativas
+      noWeather: false              // desliga partículas sazonais
     },
     onboardingDone: false          // v5: true após primeiro uso do popup
   };
@@ -1709,6 +1818,11 @@ function clawdMigrateState(raw) {
       merged.weekly = clawdWeeklyChallengeForWeek(clawdISOWeek());
     }
     if (!Array.isArray(merged.customSpeech)) merged.customSpeech = [];
+    merged.customSpeech = merged.customSpeech
+      .filter(t => typeof t === 'string')
+      .map(t => clawdSanitizePlainText(t, 100))
+      .filter(Boolean)
+      .slice(0, 20);
     if (merged.particleColor === undefined) merged.particleColor = null;
     if (!merged.settings.soundVolumeActions) merged.settings.soundVolumeActions = 1.0;
     if (!merged.settings.soundVolumeAmbient) merged.settings.soundVolumeAmbient = 0.6;
@@ -1716,6 +1830,9 @@ function clawdMigrateState(raw) {
   /* Garantir campos v5 em qualquer versão (saves corrompidos parciais) */
   if (!merged.personality || typeof merged.personality !== 'object') {
     merged.personality = { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
+  } else {
+    merged.personality = clawdSanitizeConfigValue('personality', merged.personality)
+      || { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
   }
   if (merged.accessoryBody === undefined || merged.accessoryBody === null) merged.accessoryBody = 'none';
   if (!merged.weekly || typeof merged.weekly !== 'object') {
@@ -1723,6 +1840,11 @@ function clawdMigrateState(raw) {
   }
   clawdEnsureWeeklyChallenge(merged);
   if (!Array.isArray(merged.customSpeech)) merged.customSpeech = [];
+  merged.customSpeech = merged.customSpeech
+    .filter(t => typeof t === 'string')
+    .map(t => clawdSanitizePlainText(t, 100))
+    .filter(Boolean)
+    .slice(0, 20);
   if (merged.particleColor !== null && !clawdIsHexColor(merged.particleColor || '')) merged.particleColor = null;
   if (!merged.settings.soundVolumeActions) merged.settings.soundVolumeActions = 1.0;
   if (!merged.settings.soundVolumeAmbient) merged.settings.soundVolumeAmbient = 0.6;
@@ -1782,6 +1904,10 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_SCHEMA_VERSION,
     CLAWD_DAILY_QUESTS,
     CLAWD_WEEKLY_CHALLENGES,
+    CLAWD_PAGE_CONTEXTS,
+    CLAWD_CONTEXT_REACTIONS,
+    clawdPageContextFromHost,
+    clawdHostMatchesDomain,
     CLAWD_ACCESSORIES,
     CLAWD_MODELS,
     CLAWD_FACE_STYLES,
@@ -1802,6 +1928,7 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_ACHIEVEMENTS,
     CLAWD_RARITY,
     CLAWD_COLORS,
+    CLAWD_COLOR_PRESETS,
     clawdDailyQuestForDate,
     clawdEnsureDailyQuest,
     clawdRegisterDailyProgress,
@@ -1847,6 +1974,8 @@ if (typeof module !== 'undefined' && module.exports) {
     clawdValidatePortMessage,
     clawdValidateDownstreamPortMessage,
     CLAWD_IDLE_VARIATIONS,
-    CLAWD_KEYBOARD_SHORTCUTS
+    CLAWD_KEYBOARD_SHORTCUTS,
+    CLAWD_TITLES,
+    clawdTitleForLevel
   };
 }

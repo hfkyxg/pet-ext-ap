@@ -225,7 +225,42 @@ test('sprite padrão é estático e pernas só animam durante deslocamento', () 
   assert.match(styleSource, /#aic-clawd-node\.walking \.pixel-legs/);
   assert.match(styleSource, /#aic-clawd-node\.running \.pixel-legs/);
   assert.match(styleSource, /#aic-clawd-node\.keepy-uppy \.pixel-legs/);
-  assert.match(styleSource, /:not\(\.walking\):not\(\.running\):not\(\.keepy-uppy\) \.pixel-legs[\s\S]{0,120}animation:\s*none !important;/);
+  assert.match(styleSource, /#aic-clawd-node\.jumping \.pixel-legs/);
+  assert.match(styleSource, /:not\(\.walking\):not\(\.running\):not\(\.keepy-uppy\):not\(\.jumping\) \.pixel-legs[\s\S]{0,120}animation:\s*none !important;/);
+  assert.match(contentSource, /class="pixel-fx" id="aic-pixel-fx"/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-wave/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-arms/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-jump/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-tuck/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-dance/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-highfive/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-stretch/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-clap/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-sleep/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-roar/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-peek/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-sneak/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-bath/);
+  assert.match(styleSource, /@keyframes clawd-pixel-fx-celebrate/);
+  assert.match(styleSource, /#aic-clawd-node\.waving \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.walking \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.running \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.rolling \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.somersault \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.spinning \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.dance-1 \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.highfive \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.stretching \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.clapping \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.sleeping \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.roaring \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.peeking \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.sneaking \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.bathing \.pixel-fx/);
+  assert.match(styleSource, /#aic-clawd-node\.celebrate \.pixel-fx/);
+  assert.match(styleSource, /--clawd-fx-wave-a:/);
+  assert.match(styleSource, /--clawd-fx-arm-a:/);
+  assert.match(styleSource, /--clawd-legs-crouch:/);
   assert.match(contentSource, /startGlide\(velocityX, velocityY\)/);
   assert.match(contentSource, /this\.isDragging[\s\S]{0,1500}this\.setState\('walking'\)/);
   assert.match(contentSource, /const speed = Math\.hypot\(velocityX, velocityY\);[\s\S]{0,160}speed < 0\.35[\s\S]{0,120}this\.setState\('idle'\)/);
@@ -284,7 +319,7 @@ test('modo liso troca a grade por uma silhueta contínua do mesmo pet', () => {
   assert.doesNotMatch(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[^}]*blur\(/);
   assert.match(styleSource, /#aic-clawd-node\.smooth,[\s\S]*background-color:\s*transparent !important;[\s\S]*background-image:\s*none !important;/);
   assert.match(contentSource, /class="smooth-sprite" id="aic-smooth-sprite"/);
-  assert.match(styleSource, /#aic-clawd-node\.smooth \.pixel-legs\s*\{[\s\S]*display:\s*none !important;[\s\S]*box-shadow:\s*none !important;/);
+  assert.match(styleSource, /#aic-clawd-node\.smooth \.pixel-legs,[\s\S]*#aic-clawd-node\.smooth \.pixel-fx\s*\{[\s\S]*display:\s*none !important;[\s\S]*box-shadow:\s*none !important;/);
   assert.match(styleSource, /#aic-clawd-node\.smooth \.pixel-sprite\s*\{[\s\S]*display:\s*none !important;[\s\S]*box-shadow:\s*none !important;/);
   assert.match(styleSource, /#aic-clawd-node\.smooth \.smooth-sprite\s*\{\s*display:\s*block;/);
   assert.match(styleSource, /\.smooth-core\s*\{[\s\S]*width:\s*28px;[\s\S]*height:\s*22px;[\s\S]*background:\s*var\(--agent-color\);[\s\S]*border-radius:\s*0/);
@@ -539,6 +574,34 @@ test('estado padrão inclui onboardingDone (v3.4)', () => {
   const state = clawdDefaultState();
   assert.ok('onboardingDone' in state, 'estado default deve ter onboardingDone');
   assert.equal(state.onboardingDone, false, 'onboardingDone deve começar false');
+});
+
+test('CLAWD_PAGE_CONTEXTS + clawdPageContextFromHost (SSOT de contexto)', () => {
+  const {
+    CLAWD_PAGE_CONTEXTS,
+    CLAWD_CONTEXT_REACTIONS,
+    clawdPageContextFromHost
+  } = require('../src/shared/catalog.js');
+  assert.equal(Object.keys(CLAWD_PAGE_CONTEXTS).length, 10, '10 categorias mapeadas (+ idle implícito)');
+  assert.equal(clawdPageContextFromHost('github.com'), 'coding');
+  assert.equal(clawdPageContextFromHost('www.youtube.com'), 'video');
+  assert.equal(clawdPageContextFromHost('example.com'), 'idle', 'host desconhecido deve ser idle');
+  assert.equal(clawdPageContextFromHost(''), 'idle');
+  for (const ctx of Object.keys(CLAWD_CONTEXT_REACTIONS)) {
+    if (ctx === 'idle') continue;
+    assert.ok(CLAWD_PAGE_CONTEXTS[ctx] || ctx === 'idle', `reação sem mapa: ${ctx}`);
+  }
+  assert.ok(CLAWD_CONTEXT_REACTIONS.video && CLAWD_CONTEXT_REACTIONS.news, 'video/news devem reagir');
+});
+
+test('pool semanal expandida (≥10) e tipos alinhados às quests diárias', () => {
+  const { CLAWD_WEEKLY_CHALLENGES, CLAWD_DAILY_QUESTS } = require('../src/shared/catalog.js');
+  assert.ok(CLAWD_WEEKLY_CHALLENGES.length >= 10, `esperava ≥10 weekly, got ${CLAWD_WEEKLY_CHALLENGES.length}`);
+  const dailyTypes = new Set(CLAWD_DAILY_QUESTS.map((q) => q.type));
+  for (const w of CLAWD_WEEKLY_CHALLENGES) {
+    assert.ok(dailyTypes.has(w.type), `weekly type '${w.type}' deve existir nas quests diárias`);
+    assert.ok(w.target > 0 && w.rewardXp > 0, `desafio inválido: ${w.label}`);
+  }
 });
 
 test('novos acessórios v3.5b (star_clip, goggles) estão no catálogo com slots corretos', () => {

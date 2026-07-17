@@ -162,7 +162,7 @@ test('sprites de sub-pet cobrem todas as espécies e não duplicam no showcase',
 
 /* ---------- MISSÃO DIÁRIA ---------- */
 test('todo tipo de missão diária é uma fonte de progresso conhecida', () => {
-  const known = new Set(['pets', 'feed', 'play', 'dance', 'walk', 'fish', 'goals', 'bath', 'accessories', 'subpet', 'combo', 'profession']);
+  const known = new Set(['pets', 'feed', 'play', 'dance', 'walk', 'fish', 'goals', 'bath', 'accessories', 'subpet', 'combo', 'profession', 'balloons', 'keepy']);
   for (const q of CLAWD_DAILY_QUESTS) {
     assert.ok(known.has(q.type), `tipo de missão desconhecido: ${q.type}`);
     assert.ok(q.target > 0 && q.rewardXp > 0 && q.rewardCoins > 0, `recompensa inválida em ${q.type}`);
@@ -315,7 +315,10 @@ test('migração descarta label/tipo injetados na missão diária', () => {
   });
   assert.doesNotMatch(poisoned.daily.label, /</);
   assert.ok(CLAWD_DAILY_QUESTS.some(q => q.label === poisoned.daily.label));
-  assert.equal(poisoned.daily.progress, 2);
+  /* progresso preservado só até a meta canônica do dia (hash pode mudar com novas quests) */
+  assert.ok(poisoned.daily.progress >= 0);
+  assert.ok(poisoned.daily.progress <= poisoned.daily.target);
+  assert.equal(poisoned.daily.claimed, false);
 });
 
 test('content e background alinham cleanup DOM e harden mensagens', () => {
@@ -346,6 +349,60 @@ test('os contadores usados pelo futebol existem no estado padrão', () => {
   }
 });
 
+test('contadores de balão existem no estado e no motor (handoff gamificação)', () => {
+  const content = read('src/content/content.js');
+  const counters = clawdDefaultState().game.counters;
+  for (const key of ['balloons', 'balloonsPopped']) {
+    assert.ok(key in counters, `estado padrão não inicializa counters.${key}`);
+    assert.equal(counters[key], 0);
+    assert.ok(new RegExp(`counters\\.${key}`).test(content), `content.js não usa counters.${key}`);
+  }
+  const migrated = clawdMigrateState({ schemaVersion: 4, game: { counters: { goals: 1 } } });
+  assert.equal(migrated.game.counters.balloons, 0);
+  assert.equal(migrated.game.counters.balloonsPopped, 0);
+});
+
+test('conquistas de balão/keepy e missões usam os contadores novos', () => {
+  const content = read('src/content/content.js');
+  assert.ok(CLAWD_ACHIEVEMENTS.balloon_novice, 'balloon_novice ausente');
+  assert.ok(CLAWD_ACHIEVEMENTS.balloon_party, 'balloon_party ausente');
+  assert.ok(CLAWD_ACHIEVEMENTS.keepy_miles, 'keepy_miles ausente');
+  assert.equal(CLAWD_ACHIEVEMENTS.balloon_novice.counter, 'balloonsPopped');
+  assert.equal(CLAWD_ACHIEVEMENTS.keepy_miles.counter, 'keepyTotal');
+  assert.ok(CLAWD_DAILY_QUESTS.some(q => q.type === 'balloons'));
+  assert.ok(CLAWD_DAILY_QUESTS.some(q => q.type === 'keepy'));
+  assert.match(content, /registerDaily\('balloons'\)/);
+  assert.match(content, /registerDaily\('keepy'/);
+  assert.match(content, /registerDaily\(['"]subpet['"]\)|registerDaily\?\.\(['"]subpet['"]\)/);
+  /* polyglot alcançável: idle entra no histórico por padrão */
+  assert.ok(clawdDefaultState().game.counters.professionsUsed.includes('idle'));
+  const migrated = clawdMigrateState({ schemaVersion: 4, game: { counters: { professionsUsed: ['footballer'] } } });
+  assert.ok(migrated.game.counters.professionsUsed.includes('idle'));
+});
+
+test('CLAWD_PET_EXTRA_ACTIONS cobre kick/keepy/superdance fora do popup', () => {
+  const { CLAWD_ACTIONS, CLAWD_PET_EXTRA_ACTIONS, clawdValidateRuntimeMessage } = catalog;
+  assert.ok(CLAWD_PET_EXTRA_ACTIONS, 'CLAWD_PET_EXTRA_ACTIONS não exportado');
+  const extras = Object.keys(CLAWD_PET_EXTRA_ACTIONS);
+  assert.deepEqual(extras.sort(), ['kick', 'keepy', 'superdance'].sort());
+  for (const id of extras) {
+    assert.ok(!Object.prototype.hasOwnProperty.call(CLAWD_ACTIONS, id),
+      `extra ${id} não deve duplicar CLAWD_ACTIONS (vai para o grid do popup)`);
+    assert.equal(
+      clawdValidateRuntimeMessage({ action: 'triggerAction', value: id })?.value,
+      id,
+      `triggerAction deve aceitar extra ${id}`
+    );
+  }
+  const content = read('src/content/content.js');
+  const actionMap = content.slice(content.indexOf('_handleAction(action)'), content.indexOf('destroy(', content.indexOf('_handleAction(action)')));
+  for (const id of extras) {
+    assert.match(actionMap, new RegExp(`\\b${id}:\\s*\\(`), `extra sem handler: ${id}`);
+  }
+  assert.ok(Object.prototype.hasOwnProperty.call(CLAWD_ACTIONS, 'highfive'));
+  assert.ok(Object.prototype.hasOwnProperty.call(CLAWD_ACTIONS, 'lookAround'));
+});
+
 test('CLAWD_IDLE_VARIATIONS referencia keyframes existentes no CSS (v3.4)', () => {
   const { CLAWD_IDLE_VARIATIONS } = require('../src/shared/catalog.js');
   if (!CLAWD_IDLE_VARIATIONS || !CLAWD_IDLE_VARIATIONS.length) {
@@ -364,4 +421,50 @@ test('CLAWD_KEYBOARD_SHORTCUTS — todos os action ids existem em CLAWD_ACTIONS 
   for (const [key, actionId] of Object.entries(CLAWD_KEYBOARD_SHORTCUTS)) {
     assert.ok(actionIds.includes(actionId), `atalho ${key} aponta para action inexistente: '${actionId}'`);
   }
+});
+
+test('escalabilidade tick5 — save coalesce, particle timers e destroy limpam scroll idle', () => {
+  const content = read('src/content/content.js');
+  const arch = read('docs/ARCHITECTURE.md');
+  assert.match(content, /_flushSave\(\)/);
+  assert.match(content, /_saveInFlight/);
+  assert.match(content, /_saveDirty/);
+  assert.match(content, /setTimeout\(\(\) => this\._flushSave\(\), 350\)/);
+  assert.match(content, /_particleTimers/);
+  assert.match(content, /_scrollIdleTimer/);
+  assert.match(content, /'_idleVarTimer', '_scrollIdleTimer'/);
+  assert.match(content, /this\._particleTimers\.forEach\(clearTimeout\)/);
+  assert.match(content, /this\._timers\.length = 0/);
+  assert.match(arch, /Escalabilidade \(vanilla MV3/);
+  assert.match(arch, /Não fatiar `content\.js` em ES modules/);
+  assert.match(arch, /debounce 350/);
+  assert.match(arch, /_canSpawnFx` ≤ \*\*18\*\*/);
+});
+
+test('slot corpo: DOM, CSS pixel, popup preview e showcase CORPO', () => {
+  const content = read('src/content/content.js');
+  const style = read('src/content/style.css');
+  const popup = read('src/popup/popup.js');
+  const popupHtml = read('src/popup/popup.html');
+  const showcase = read('docs/showcase.js');
+  const docsHtml = read('docs/index.html');
+
+  assert.match(content, /class="accessory acc-body"/);
+  assert.match(content, /dataset\.accBody\s*=\s*effective\.body/);
+  assert.match(popupHtml, /accessory acc-body/);
+  assert.match(popup, /body:\s*slot === 'body' \? id : 'none'/);
+  assert.match(popup, /dataset\.accBody\s*=\s*body/);
+  assert.match(showcase, /slotLabel|corpo/);
+  assert.match(showcase, /acc-body/);
+  assert.match(docsHtml, /data-filter="body"/);
+
+  const bodyIds = Object.entries(CLAWD_ACCESSORIES)
+    .filter(([, a]) => a.slot === 'body')
+    .map(([id]) => id);
+  assert.ok(bodyIds.length >= 5, `esperava ≥5 body, got ${bodyIds.length}`);
+  for (const id of ['ribbon', 'wings', 'cape', 'armor', 'scarf_body']) {
+    assert.ok(bodyIds.includes(id), `body ausente: ${id}`);
+    assert.match(style, new RegExp(`\\[data-acc-body="${id}"\\] \\.acc-body\\s*\\{[\\s\\S]*?box-shadow:`));
+  }
+  assert.match(style, /clawd-cape-sway|clawd-wing-flap/);
 });

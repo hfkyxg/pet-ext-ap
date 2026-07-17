@@ -1,0 +1,38 @@
+name: Validate Claw'd
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dev dependencies
+        run: npm ci
+
+      - name: Syntax check
+        run: |
+          node --check src/shared/catalog.js
+          node --check src/content/content.js
+          node --check src/popup/popup.js
+          node --check src/background/background.js
+
+      - name: Run tests
+        run: node --test tests/*.test.js
+
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true

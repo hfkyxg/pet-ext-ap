@@ -18,7 +18,7 @@ const showcaseJs = read('docs/showcase.js');
 
 test('manifest v3.2 referencia apenas arquivos existentes', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.ok(['3.2.0', '3.3.0'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
+  assert.ok(['3.2.0', '3.3.0', '3.3.1'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
 
   const files = [
     manifest.background.service_worker,
@@ -171,7 +171,12 @@ test('documentação interativa é local, completa e ligada aos catálogos reais
   assert.match(showcaseJs, /previewPet\.dataset\.accFace/);
   assert.match(showcaseJs, /accessorySelect\.replaceChildren\(\)/);
   assert.match(showcaseJs, /Object\.entries\(accessories\)\.forEach/);
-  assert.match(showcaseHtml, /65\/65<\/b> contratos automatizados/);
+  /* contagem viva: todos os tests/*.test.js */
+  const testDir = path.join(__dirname);
+  const suiteCount = fs.readdirSync(testDir)
+    .filter((f) => f.endsWith('.test.js'))
+    .reduce((n, f) => n + [...fs.readFileSync(path.join(testDir, f), 'utf8').matchAll(/^\s*test\(/gm)].length, 0);
+  assert.match(showcaseHtml, new RegExp(`${suiteCount}/${suiteCount}</b> contratos automatizados`));
   assert.match(showcaseHtml, /não é um vídeo pré-gravado/);
   assert.doesNotMatch(showcaseHtml, /<video\b/i);
   assert.match(showcaseCss, /\.evidence-card-grid/);

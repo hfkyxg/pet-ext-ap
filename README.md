@@ -5,7 +5,7 @@
 <br/>
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-red?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Version](https://img.shields.io/badge/version-3.3-ff4757?style=for-the-badge)](./manifest.json)
+[![Version](https://img.shields.io/badge/version-3.3.1-ff4757?style=for-the-badge)](./manifest.json)
 [![License](https://img.shields.io/badge/license-MIT-2ecc71?style=for-the-badge)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f1c40f?style=for-the-badge&logo=javascript&logoColor=black)](./src/)
 
@@ -28,7 +28,7 @@ Passamos horas dentro do navegador — lendo, trabalhando, procrastinando — e 
 
 ### Pixel a pixel, de propósito
 
-O visual é deliberadamente **pixel-art numa grade de 4 px**. Cada modelo — Clássico, Mini, Pinças e Guardião — é uma silhueta desenhada célula a célula, com **corpo estático e pernas em camada própria**: elas só entram no ciclo de passos quando o pet realmente se desloca, então nada "escorrega" pela tela. Os olhos têm cor independente, piscam sozinhos e ganham quatro rostos (Clássico, Brilho, Focado, Sonolento). O pet principal e os acessórios são **CSS puro** (`box-shadow`); os **sub-pets** usam PNGs literais em [`src/shared/sprites/subpets/`](./src/shared/sprites/subpets/) (com fallback `box-shadow` se você personalizar a paleta) — o sheet canônico está em [`tests/sprite-out/Subpets-selection.png`](./tests/sprite-out/Subpets-selection.png). Tudo sincronizado ao *refresh rate* real via `requestAnimationFrame`.
+O visual é deliberadamente **pixel-art numa grade de 4 px**. Cada modelo — Clássico, Mini, Pinças e Guardião — é uma silhueta desenhada célula a célula, com **corpo estático**, **pernas em camada própria** (ciclo só no deslocamento) e **`.pixel-fx`** para poses de ação (aceno, pulo, dança, etc.) em frames `steps(1)`. Os olhos têm cor independente, piscam sozinhos e ganham quatro rostos (Clássico, Brilho, Focado, Sonolento). O pet principal e os acessórios são **CSS puro** (`box-shadow`); os **sub-pets** usam PNGs literais em [`src/shared/sprites/subpets/`](./src/shared/sprites/subpets/) (com fallback `box-shadow` se você personalizar a paleta) — o sheet canônico está em [`tests/sprite-out/Subpets-selection.png`](./tests/sprite-out/Subpets-selection.png). Tudo sincronizado ao *refresh rate* real via `requestAnimationFrame`.
 
 ### O gramado dentro do navegador ⚽
 
@@ -36,11 +36,11 @@ A alma brincalhona do Claw'd está na profissão **Jogador**. Aqui a bola não �
 
 ### Um elenco em harmonia
 
-Ao redor do futebol há um sistema inteiro que conversa entre si: **12 profissões** (Jogador, Tutor, Dev, Músico, Chef, Ninja, Pescador, Livre, Doutor, Artista, Gamer e Streamer), cada uma com uniforme temporário que *não* apaga acessórios pessoais; **24 acessórios** em três slots (cabeça, rosto, corpo); **sub-pets** com espécie, apelido e habilidades; **status estilo Tamagotchi** que geram emoções; e uma camada de **gamificação 2.0** com XP progressivo, sistema de combo, desafio semanal, 25 conquistas, 12 quests diárias e PixelCoins. Tudo compartilha o mesmo **catálogo único** (`src/shared/catalog.js`), então o popup e o pet real sempre mostram exatamente os mesmos dados.
+Ao redor do futebol há um sistema inteiro que conversa entre si: **12 profissões** (Jogador, Tutor, Dev, Músico, Chef, Ninja, Pescador, Livre, Doutor, Artista, Gamer e Streamer), cada uma com uniforme temporário que *não* apaga acessórios pessoais; **31 acessórios** em três slots (cabeça, rosto, corpo); **sub-pets** com espécie, apelido e habilidades; **status estilo Tamagotchi** que geram emoções; e uma camada de **gamificação 2.0** com XP progressivo, sistema de combo, **12 desafios semanais**, **34 conquistas**, **14 quests diárias** (inclui balões e embaixadinhas) e PixelCoins. Tudo compartilha o mesmo **catálogo único** (`src/shared/catalog.js`), então o popup e o pet real sempre mostram exatamente os mesmos dados.
 
 ### Feito para durar (e para hackear)
 
-Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; e **64 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
+Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; saves usam **coalesce**; e **117 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
 
 ### Novidades em v3.3
 
@@ -54,7 +54,7 @@ O Claw'd não quer sua atenção o tempo todo. Ele só quer estar lá, no rodap�
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
 
-A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **65/65 contratos**, **8/8 scripts**, **4 modelos**, **4 rostos**, **12 profissões**, **24 acessórios (3 slots)**, **28 ações**, **7 ações do subpet**, **25 conquistas**, **3/3 reloads limpos** e **0 erros de runtime**.
+A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **117/117 contratos**, **8/8 scripts**, **4 modelos**, **4 rostos**, **12 profissões**, **31 acessórios (3 slots)**, **30 ações** (+ kick/keepy/superdance fora do popup), **7 ações do subpet**, **34 conquistas**, **3/3 reloads limpos** e **0 erros de runtime**.
 
 ---
 
@@ -121,7 +121,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - **8 profissões**: Livre, Jogador, Tutor, Dev, Músico, Chef, Ninja e Pescador
 - Pescador monta um **lago interativo**, lança a vara, fisga e captura peixes
 - Jogador faz embaixadinhas; Tutor cria desafios; Dev digita; Músico toca riffs
-- **14 acessórios** em dois slots e nos dois renderizadores; os 7 chapéus têm detalhes, profundidade, área externa sem recorte e movimento sincronizado ao passo
+- **31 acessórios** em três slots (cabeça, rosto, corpo) nos dois renderizadores; chapéus com detalhes, profundidade, área externa sem recorte e movimento sincronizado ao passo
 - **Provador e cards ao vivo no popup** usam a arte CSS real do pet — inclusive modelos, skins, chapéus e óculos — e mostram os dois slots combinados
 - Trajes de profissão são temporários: entram automaticamente sem apagar o boné, chapéu ou acessório pessoal salvo
 
@@ -408,9 +408,9 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **64 testes automatizados** validam catálogos, schema v4, quatro modelos, quatro rostos, cor dos olhos, missões, sprite padrão, separação corpo/pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado, **bfcache/lastError**, **AudioContext pós-gesto**, **allowlist de mensagens**, **sites bloqueados sem substring**, **anti-poluição de protótipo** e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real **4/4 modelos e 4/4 rostos**, os 14 acessórios nos dois renderizadores, o provador pixel/liso do popup, a cor dos olhos, o controle persistente da boca, o movimento dos chapéus, 8 profissões e os estados esperados das ações do catálogo (**24** principais). Também prova que o corpo não morpha e apenas as pernas caminham, restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas **7** interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **117 testes automatizados** validam catálogos, schema v5, quatro modelos, quatro rostos, cor dos olhos, missões (incl. balões/keepy), sprite padrão, separação corpo/pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado, **bfcache/lastError**, **AudioContext pós-gesto**, **allowlist de mensagens**, **sites bloqueados sem substring**, **anti-poluição de protótipo**, **save coalesce / particle timers**, extras **kick/keepy/superdance** e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real **4/4 modelos e 4/4 rostos**, os acessórios nos dois renderizadores, o provador pixel/liso do popup, a cor dos olhos, o controle persistente da boca, o movimento dos chapéus, 12 profissões e os estados esperados das ações do catálogo (**30** no popup). Também prova que o corpo não morpha e apenas as pernas caminham, restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas **7** interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
-A vitrine também foi inspecionada em navegador real nos layouts desktop e móvel: player funcional, avanço automático, seleção direta das etapas lisa/subpet, 14 acessórios no laboratório, **zero logs de erro** e nenhuma rolagem horizontal em 375 px.
+A vitrine também foi inspecionada em navegador real nos layouts desktop e móvel: player funcional, avanço automático, seleção direta das etapas lisa/subpet, acessórios no laboratório, **zero logs de erro** e nenhuma rolagem horizontal em 375 px.
 
 O visual inicial continua exatamente o sprite compacto vermelho de referência: modelo Clássico, rosto Clássico, olhos `#08080b`, pixels nítidos, sem blur, escala 1.5×, skin normal e acessórios desligados. O navegador sincroniza deslocamentos ao refresh rate disponível; em monitores de 120/144/165 Hz o `requestAnimationFrame` acompanha essa cadência, enquanto o modo de baixo refresh reduz efeitos secundários.
 
@@ -450,8 +450,8 @@ node tests/tools/_crop-literal-sprites.mjs
 
 ### Checklist de PR
 
-- [ ] `node --test tests/*.test.js` verde (65 contratos)
-- [ ] Docs/manual/showcase coerentes com contagens reais (24 ações, 7 subpet, schema v4)
+- [ ] `node --test tests/*.test.js` verde (81 contratos)
+- [ ] Docs/manual/showcase coerentes com contagens reais (30 ações + extras, 31 acessórios, 34 conquistas, 14 quests, 12 weekly, schema v5)
 - [ ] Sem secrets (`.env`, credenciais) no diff
 - [ ] Após editar content/CSS: recarregar a extensão **e** a aba de teste
 

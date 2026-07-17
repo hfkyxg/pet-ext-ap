@@ -6,6 +6,7 @@
   const models = globalThis.CLAWD_MODELS || {};
   const faceStyles = globalThis.CLAWD_FACE_STYLES || {};
   const actions = globalThis.CLAWD_ACTIONS || {};
+  const achievements = globalThis.CLAWD_ACHIEVEMENTS || {};
   const subpets = globalThis.CLAWD_SUBPETS || {};
   const subpetActions = globalThis.CLAWD_SUBPET_ACTIONS || {};
   const subpetCatalog = globalThis.CLAWD_SUBPET_SPRITES || {};
@@ -137,6 +138,7 @@
 
   function renderAccessories() {
     const grid = $('accessory-grid');
+    const slotLabel = { head: 'cabeça', face: 'rosto', body: 'corpo' };
     Object.entries(accessories).forEach(([id, item]) => {
       const card = makeElement('article', 'accessory-card');
       const preview = makeElement('div', 'accessory-catalog-preview');
@@ -149,14 +151,19 @@
       previewPet.setAttribute('aria-hidden', 'true');
       previewPet.dataset.accHead = item.slot === 'head' ? id : 'none';
       previewPet.dataset.accFace = item.slot === 'face' ? id : 'none';
+      previewPet.dataset.accBody = item.slot === 'body' ? id : 'none';
+      previewPet.classList.toggle('has-wings', item.slot === 'body' && id === 'wings');
+      previewPet.classList.toggle('has-cape', item.slot === 'body' && id === 'cape');
+      previewPet.classList.toggle('has-armor', item.slot === 'body' && id === 'armor');
       previewAccessory.textContent = '';
-      previewAccessory.className = `accessory ${item.slot === 'head' ? 'acc-head' : 'acc-face'}`;
+      const layerClass = item.slot === 'head' ? 'acc-head' : item.slot === 'body' ? 'acc-body' : 'acc-face';
+      previewAccessory.className = `accessory ${layerClass}`;
       previewAccessory.removeAttribute('data-item');
       preview.appendChild(previewPet);
       card.dataset.slot = item.slot;
       card.dataset.accessory = id;
       card.append(
-        makeElement('small', '', item.slot === 'head' ? 'cabeça' : 'rosto'),
+        makeElement('small', '', slotLabel[item.slot] || item.slot),
         preview,
         makeElement('h4', '', item.label),
         makeElement('p', '', item.desc)
@@ -670,11 +677,12 @@
 
   function syncMetrics() {
     const counts = [Object.keys(actions).length, Object.keys(accessories).length, Object.keys(professions).length, Object.keys(subpets).length, Object.keys(subpetActions).length];
+    const achCount = Object.keys(achievements).length;
     document.querySelectorAll('.metrics strong').forEach((node, index) => {
       if (counts[index]) node.textContent = counts[index];
     });
-    $('evidence-catalog-counts').textContent = `${counts[2]} profissões · ${counts[1]} acessórios · ${counts[0]} ações`;
-    $('evidence-subpet-counts').textContent = `${counts[3]} subpets · ${counts[4]} ações`;
+    $('evidence-catalog-counts').textContent = `${counts[2]} profissões · ${counts[1]} acessórios · ${counts[0]} ações · ${achCount} conquistas`;
+    $('evidence-subpet-counts').textContent = `${counts[3]} subpets · ${counts[4]} ações · Schema v5`;
   }
 
   renderCapabilities();

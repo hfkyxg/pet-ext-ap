@@ -48,9 +48,9 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 
 ### 🎨 Aba Aparência
 
-- **Nome do pet** — digite e o name-tag muda na hora;
+- **Nome do pet** — digite e o name-tag muda na hora (mostra **título do nível** + nome);
 - **Modelo do pet** — escolha entre Clássico, Mini, Pinças e Guardião; o Clássico preserva exatamente a silhueta compacta original;
-- **Cor principal** — 8 cores prontas ou o seletor para qualquer cor;
+- **Cor principal** — cores prontas ou o seletor para qualquer cor;
 - **Rosto e olhos** — combine Clássico, Brilho, Focado ou Sonolento e escolha uma cor de olhos independente do corpo;
 - **Tamanho** — de 0.8× (mini) a 3× (gigante);
 - **Velocidade da animação** — deixe-o zen (0.5×) ou hiperativo (3×);
@@ -58,8 +58,8 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
 - **Exibir boca** — ligada por padrão; desligue para remover somente a boca (olhos, piscadas e balões de emoji continuam ativos);
 - **Skin do corpo** — Normal, Orelhas ou Robô, combinável com qualquer modelo e rosto;
-- **Provador ao vivo** — mostra a mesma arte CSS do pet e combina modelo + rosto + skin + cabeça + rosto/corpo antes de você fechar o popup;
-- **Acessórios** — 24 opções em **três slots** (cabeça, rosto, **corpo**), com miniaturas pixel-art reais, incluindo 11 chapéus redesenhados e sem recorte. Selecione ou passe o cursor para ler a descrição; os chapéus acompanham o passo e ficam parados em repouso.
+- **Provador ao vivo** — mostra a mesma arte CSS do pet e combina modelo + rosto + skin + cabeça + rosto/corpo antes de você fechar o popup; a etiqueta abaixo do preview espelha título + nome;
+- **Acessórios** — **31** opções em **três slots** (cabeça, rosto, **corpo**), com miniaturas pixel-art reais. Selecione ou passe o cursor para ler a descrição; chapéus acompanham o passo e ficam parados em repouso.
 
 #### Slot de Corpo (novo em v3.3)
 
@@ -133,7 +133,7 @@ O Pescador monta um lago e uma vara ao lado do pet. Depois de alguns segundos o 
 
 ### ⚡ Aba Ações
 
-Botões de comando imediato: 👋 **Acenar** · 🕺 **Dançar** · ❤️ **Carinho** · 🍖 **Alimentar** · 🎾 **Brincar** · 📸 **Posar** · 🫧 **Banho** · 😴 **Dormir** · ☀️ **Acordar** · 🎣 **Pescar** · 🦘 **Pular** · 🤾 **Esticar** · 🦁 **Rugir** · 🌀 **Girar** · 🎈 **Balão** · 🤗 **Abraçar** · 🤸 **Flip** · 🧘 **Meditar** · ⚡ **Elétrico** · 💤 **Cochilo** · e outras ações do catálogo (28 no total).
+Botões de comando imediato: 👋 **Acenar** · 🕺 **Dançar** · ❤️ **Carinho** · 🍖 **Alimentar** · 🎾 **Brincar** · 📸 **Posar** · 🫧 **Banho** · 😴 **Dormir** · ☀️ **Acordar** · 🎣 **Pescar** · 🦘 **Pular** · 🤾 **Esticar** · 🦁 **Rugir** · 🌀 **Girar** · 🎈 **Balão** · 🤗 **Abraçar** · 🤸 **Flip** · 🧘 **Meditar** · ⚡ **Elétrico** · 💤 **Cochilo** · e outras ações do catálogo (**30** no popup; kick/keepy/superdance via Jogador / motor).
 
 Abaixo deles:
 
@@ -142,7 +142,7 @@ Abaixo deles:
 
 ### 🎯 Missão diária
 
-Na aba **🏆 Conquistas**, uma missão muda diariamente. Ela acompanha ações reais (carinho, comida, brincadeira, dança, passeio, pesca, gols, banho, acessório, sub-pet, combo ou profissão), mostra o progresso em tempo real e libera XP + PixelCoins ao clicar em **Resgatar**. A recompensa só pode ser coletada uma vez por dia.
+Na aba **🏆 Conquistas**, uma missão muda diariamente. Ela acompanha ações reais (carinho, comida, brincadeira, dança, passeio, pesca, gols, banho, acessório, sub-pet, combo, profissão, **balões** ou **embaixadinhas**), mostra o progresso em tempo real e libera XP + PixelCoins ao clicar em **Resgatar**. A recompensa só pode ser coletada uma vez por dia.
 
 ### 🏅 Desafio Semanal (novo em v3.3)
 
@@ -197,7 +197,7 @@ Ainda não — por enquanto Chrome, Edge e Brave. Suporte a Firefox está nas id
 
 ## 7. Recursos avançados já disponíveis
 
-O Claw'd v3.3 inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **24 acessórios em 3 slots**, **12 profissões** com contexto de página, **28 ações**, **status e emoções** estilo Tamagotchi, sistema de **combo**, **desafio semanal**, **25 conquistas**, **12 quests diárias**, **traços de personalidade**, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas sazonais e o pet **passeando entre suas abas**. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md).
+O Claw'd v3.3 inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **31 acessórios em 3 slots**, **12 profissões** com contexto de página, **30 ações** no popup (+ kick/keepy/superdance), **status e emoções** estilo Tamagotchi, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade**, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas sazonais e o pet **passeando entre suas abas**. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md).
 
 ### Personalização avançada (v3.3)
 

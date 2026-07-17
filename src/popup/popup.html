@@ -12,9 +12,9 @@
   <!-- HEADER -->
   <header class="header">
     <div class="header-pet" id="header-pet-preview">
-      <span class="clawd-model-preview header-model-preview" id="mini-sprite" data-model="classic" data-face-style="classic" data-skin="normal" data-acc-head="none" data-acc-face="none" role="img" aria-label="Miniatura pixel-art do pet">
+      <span class="clawd-model-preview header-model-preview" id="mini-sprite" data-model="classic" data-face-style="classic" data-skin="normal" data-acc-head="none" data-acc-face="none" data-acc-body="none" role="img" aria-label="Miniatura pixel-art do pet">
         <i class="pixel-sprite"></i><i class="pixel-legs"></i><i class="pet-eyes"></i><i class="face-detail"></i>
-        <i class="skin-mod"></i><i class="accessory acc-head"></i><i class="accessory acc-face"></i>
+        <i class="skin-mod"></i><i class="accessory acc-body"></i><i class="accessory acc-head"></i><i class="accessory acc-face"></i>
       </span>
     </div>
     <div class="header-info">
@@ -57,8 +57,8 @@
       <p class="onboarding-sub">Seu novo companheiro de navegação pixel-art está pronto.</p>
       <div class="onboarding-features">
         <div class="onboarding-feature"><span>💼</span><div><b>Profissões</b><small>12 trabalhos com reações únicas a cada site</small></div></div>
-        <div class="onboarding-feature"><span>🎨</span><div><b>Acessórios</b><small>24 itens em 3 slots: cabeça, rosto e corpo</small></div></div>
-        <div class="onboarding-feature"><span>🏆</span><div><b>Conquistas</b><small>25 conquistas + desafio semanal rotativo</small></div></div>
+        <div class="onboarding-feature"><span>🎨</span><div><b>Acessórios</b><small>31 itens em 3 slots: cabeça, rosto e corpo</small></div></div>
+        <div class="onboarding-feature"><span>🏆</span><div><b>Conquistas</b><small>34 conquistas + 12 desafios semanais rotativos</small></div></div>
         <div class="onboarding-feature"><span>❤️</span><div><b>Interações</b><small>Clique, arraste, role — o pet sempre reage!</small></div></div>
       </div>
       <button class="btn-primary onboarding-start" id="onboarding-start">Começar! 🐾</button>
@@ -104,36 +104,40 @@
               <div class="accessory acc-head"></div><div class="accessory acc-face"></div>
               <div class="accessory acc-body"></div>
             </div>
-            <div class="name-tag" id="popup-name-preview" aria-hidden="true"></div>
+            <div class="name-tag" id="popup-name-preview" aria-hidden="true">
+              <span class="name-title" id="popup-name-title"></span>
+              <span class="name-label" id="popup-name-label"></span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <div class="control-group">
-      <label for="input-name">Nome do pet <button class="fav-star name-star" id="name-star" title="Favoritar apelido">☆</button></label>
+      <label for="input-name">Nome do pet <button type="button" class="fav-star name-star" id="name-star" title="Favoritar apelido">☆</button></label>
       <div class="input-row">
-        <input type="text" id="input-name" list="name-history" placeholder="Ex: Claw'd" maxlength="20">
+        <input type="text" id="input-name" list="name-history" placeholder="Ex: Claw'd" maxlength="20" autocomplete="off">
         <datalist id="name-history"></datalist>
       </div>
-      <div class="fav-nicks" id="fav-nicks"></div>
+      <div class="fav-nicks" id="fav-nicks" role="list" aria-label="Apelidos favoritos"></div>
     </div>
 
     <div class="control-group">
-      <label>Modelo do pet</label>
-      <div class="model-grid" id="model-grid"></div>
+      <span class="control-label" id="model-label">Modelo do pet</span>
+      <div class="model-grid" id="model-grid" role="listbox" aria-labelledby="model-label"></div>
       <p class="customization-description" id="model-description"></p>
     </div>
 
     <div class="control-group">
-      <label>Cor principal</label>
-      <div class="color-grid" id="fav-color-row" style="display:none"></div>
-      <div class="color-grid" id="color-grid"></div>
+      <span class="control-label" id="color-label">Cor principal</span>
+      <div class="color-grid" id="fav-color-row" style="display:none" role="listbox" aria-label="Cores favoritas"></div>
+      <div class="color-grid" id="color-grid" role="listbox" aria-labelledby="color-label"></div>
       <div class="input-row color-row">
-        <input type="color" id="input-color" value="#c71515" title="Cor customizada">
+        <input type="color" id="input-color" value="#c71515" title="Cor customizada" aria-labelledby="color-label">
         <span class="color-label" id="color-hex">#c71515</span>
-        <button class="fav-star" id="color-star" title="Favoritar esta cor">☆</button>
+        <button type="button" class="fav-star" id="color-star" title="Favoritar esta cor">☆</button>
       </div>
+      <div class="preset-row" id="color-presets"></div>
     </div>
 
     <div class="control-group">
@@ -426,6 +430,30 @@
         <span class="toggle-desc">Desativa partículas, 3D e sub-pet</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-performance"><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">✨ Sem partículas</span>
+        <span class="toggle-desc">Desativa apenas efeitos de partículas</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-no-particles"><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">💤 Sem variações idle</span>
+        <span class="toggle-desc">Desativa animações idle decorativas</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-no-idle"><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">🌧️ Sem clima sazonal</span>
+        <span class="toggle-desc">Desativa partículas de neve, folhas, etc.</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-no-weather"><span class="slider"></span></label>
     </div>
 
     <div class="control-group">

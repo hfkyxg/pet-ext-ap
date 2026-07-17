@@ -428,6 +428,7 @@
 #aic-clawd-node .accessory { z-index: 3; }
 #aic-clawd-node .acc-head  { z-index: 4; }
 #aic-clawd-node .acc-face  { z-index: 5; }
+#aic-clawd-node .acc-body  { z-index: 2; }
 #aic-clawd-node .jersey    { z-index: 2; }
 #aic-clawd-node .skin-mod  { z-index: 1; }
 #aic-clawd-node .laptop    { z-index: 4; display: none; }
@@ -1208,7 +1209,36 @@
   50% { transform: translateY(2px) rotate(3deg); }
 }
 #aic-clawd-node.emotion-glow .pet-body {
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--agent-color) 55%, transparent));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--agent-color) 35%, transparent));
+}
+
+/* Pop suave ao vestir acessório */
+#aic-clawd-node.accessory-equip-pop .sprite-stack {
+  animation: clawd-acc-equip-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes clawd-acc-equip-pop {
+  0% { transform: scale(0.92); filter: brightness(1.15); }
+  55% { transform: scale(1.06); filter: brightness(1.08); }
+  100% { transform: scale(1); filter: none; }
+}
+
+/* Hélice: brilho discreto (sem bloom vermelho agressivo) */
+#aic-clawd-node.has-propeller .acc-head::after {
+  filter: drop-shadow(0 0 2px rgba(241, 196, 15, 0.55));
+}
+#aic-clawd-node.has-propeller.walking .acc-head::after,
+#aic-clawd-node.has-propeller.running .acc-head::after {
+  animation-duration: 0.28s;
+}
+
+#aic-clawd-node.aic-reduced-motion.accessory-equip-pop .sprite-stack,
+#aic-clawd-node.aic-nofx.accessory-equip-pop .sprite-stack {
+  animation: none !important;
+}
+
+/* Faixa ninja: sem bloom agressivo — sombra curta e escura */
+[data-acc-head="ninjaband"] .acc-head {
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.35));
 }
 #aic-clawd-node[data-emotion="ecstatic"] .ground-shadow {
   animation: clawd-shadow-pulse 0.55s steps(1) infinite;
@@ -1685,6 +1715,30 @@
   white-space: nowrap;
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+#aic-clawd-node .name-title {
+  font-size: 8px;
+  font-weight: 400;
+  opacity: 0.6;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#aic-clawd-node .name-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #aic-clawd-node[data-tag-theme="dark"] .name-tag {
   background: rgba(20,20,32,0.92);
@@ -2553,12 +2607,38 @@
 /* O modo desempenho preserva a arte e corta somente animações cosméticas. */
 #aic-clawd-node.aic-nofx .acc-head,
 #aic-clawd-node.aic-nofx .acc-face,
+#aic-clawd-node.aic-nofx .acc-body,
 #aic-clawd-node.aic-nofx .acc-head::before,
 #aic-clawd-node.aic-nofx .acc-head::after,
 #aic-clawd-node.aic-nofx .acc-face::before,
 #aic-clawd-node.aic-nofx .acc-face::after {
   animation: none !important;
   will-change: auto !important;
+}
+#aic-clawd-node.aic-nofx .pixel-fx,
+#aic-clawd-node.aic-reduced-motion .pixel-fx {
+  animation: none !important;
+  box-shadow: none !important;
+}
+
+/* Classe espelhada via JS (prefers-reduced-motion ao vivo) — mesma suavidade do media query */
+#aic-clawd-node.aic-reduced-motion,
+#aic-clawd-node.aic-nofx {
+  will-change: auto !important;
+}
+#aic-clawd-node.aic-reduced-motion .pet-body,
+#aic-clawd-node.aic-reduced-motion .sprite-stack,
+#aic-clawd-node.aic-reduced-motion .speech-bubble,
+#aic-clawd-node.aic-reduced-motion .emotion-badge,
+#aic-clawd-node.aic-reduced-motion .acc-head,
+#aic-clawd-node.aic-reduced-motion .acc-face,
+#aic-clawd-node.aic-reduced-motion .acc-body,
+#aic-clawd-node.aic-reduced-motion .acc-head::before,
+#aic-clawd-node.aic-reduced-motion .acc-head::after,
+#aic-clawd-node.aic-reduced-motion .acc-face::before,
+#aic-clawd-node.aic-reduced-motion .acc-face::after {
+  animation: none !important;
+  transition: opacity 0.15s ease !important;
 }
 
 /* HOLDING SIGN (Tutor com plaquinha) */
@@ -2899,6 +2979,35 @@
   --clawd-legs-kick:
     8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
     24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-fx-wave-a:
+    -4px 8px var(--agent-color), -4px 4px var(--agent-color), -4px 0 var(--agent-color),
+    -8px 0 var(--agent-color), 0 0 var(--agent-color);
+  --clawd-fx-wave-b:
+    -4px 4px var(--agent-color), -4px 0 var(--agent-color), -4px -4px var(--agent-color),
+    -8px -4px var(--agent-color), 0 -4px var(--agent-color), -4px -8px var(--agent-color);
+  --clawd-fx-arm-a:
+    -4px 10px var(--agent-color), -4px 14px var(--agent-color), -8px 14px var(--agent-color);
+  --clawd-fx-arm-b:
+    40px 10px var(--agent-color), 40px 14px var(--agent-color), 44px 14px var(--agent-color);
+  --clawd-fx-jump-crouch:
+    4px 22px var(--agent-color), 36px 22px var(--agent-color),
+    8px 18px var(--agent-color), 32px 18px var(--agent-color);
+  --clawd-fx-jump-air:
+    -4px 8px var(--agent-color), 40px 8px var(--agent-color),
+    12px -4px var(--agent-color), 24px -4px var(--agent-color);
+  --clawd-fx-tuck:
+    4px 8px var(--agent-color), 36px 8px var(--agent-color),
+    8px 16px var(--agent-color), 32px 16px var(--agent-color),
+    16px 4px var(--agent-color), 20px 4px var(--agent-color);
+  --clawd-fx-spin:
+    -8px 12px var(--agent-color), 44px 12px var(--agent-color),
+    16px -4px var(--agent-color), 20px 28px var(--agent-color);
+  --clawd-legs-crouch:
+    8px 22px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 22px var(--agent-color),
+    8px 26px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 26px var(--agent-color);
+  --clawd-legs-air:
+    8px 20px var(--agent-color), 16px 22px var(--agent-color), 24px 22px var(--agent-color), 32px 20px var(--agent-color),
+    8px 24px var(--agent-color), 16px 26px var(--agent-color), 24px 26px var(--agent-color), 32px 24px var(--agent-color);
 }
 
 :is(#aic-clawd-node, .clawd-model-preview)[data-model="mini"] {
@@ -2921,6 +3030,28 @@
   --clawd-legs-kick:
     12px 24px var(--agent-color), 16px 24px var(--agent-color), 12px 28px var(--agent-color), 16px 28px var(--agent-color),
     24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 28px 28px var(--agent-color);
+  --clawd-fx-wave-a:
+    0 8px var(--agent-color), 0 4px var(--agent-color), 0 0 var(--agent-color), -4px 0 var(--agent-color);
+  --clawd-fx-wave-b:
+    0 4px var(--agent-color), 0 0 var(--agent-color), 0 -4px var(--agent-color), -4px -4px var(--agent-color), 0 -8px var(--agent-color);
+  --clawd-fx-arm-a:
+    0 12px var(--agent-color), 0 16px var(--agent-color);
+  --clawd-fx-arm-b:
+    36px 12px var(--agent-color), 40px 16px var(--agent-color);
+  --clawd-fx-jump-crouch:
+    8px 20px var(--agent-color), 32px 20px var(--agent-color);
+  --clawd-fx-jump-air:
+    0 8px var(--agent-color), 36px 8px var(--agent-color), 16px -4px var(--agent-color), 24px -4px var(--agent-color);
+  --clawd-fx-tuck:
+    8px 8px var(--agent-color), 32px 8px var(--agent-color), 12px 16px var(--agent-color), 28px 16px var(--agent-color);
+  --clawd-fx-spin:
+    -4px 12px var(--agent-color), 40px 12px var(--agent-color), 18px -4px var(--agent-color);
+  --clawd-legs-crouch:
+    12px 22px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 28px 22px var(--agent-color),
+    12px 26px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 28px 26px var(--agent-color);
+  --clawd-legs-air:
+    12px 20px var(--agent-color), 16px 22px var(--agent-color), 24px 22px var(--agent-color), 28px 20px var(--agent-color),
+    12px 24px var(--agent-color), 16px 26px var(--agent-color), 24px 26px var(--agent-color), 28px 24px var(--agent-color);
 }
 
 :is(#aic-clawd-node, .clawd-model-preview)[data-model="claws"] {
@@ -2943,6 +3074,28 @@
   --clawd-legs-kick:
     8px 24px var(--agent-color), 16px 24px var(--agent-color), 8px 28px var(--agent-color), 16px 28px var(--agent-color),
     24px 20px var(--agent-color), 28px 20px var(--agent-color), 24px 24px var(--agent-color), 32px 28px var(--agent-color);
+  --clawd-fx-wave-a:
+    -4px 4px var(--agent-color), -4px 0 var(--agent-color), -8px 0 var(--agent-color), 0 0 var(--agent-color);
+  --clawd-fx-wave-b:
+    -4px 0 var(--agent-color), -4px -4px var(--agent-color), -8px -4px var(--agent-color), -4px -8px var(--agent-color);
+  --clawd-fx-arm-a:
+    -4px 8px var(--agent-color), -4px 12px var(--agent-color);
+  --clawd-fx-arm-b:
+    40px 8px var(--agent-color), 44px 12px var(--agent-color);
+  --clawd-fx-jump-crouch:
+    0 20px var(--agent-color), 40px 20px var(--agent-color);
+  --clawd-fx-jump-air:
+    -4px 4px var(--agent-color), 40px 4px var(--agent-color), 16px -4px var(--agent-color);
+  --clawd-fx-tuck:
+    0 8px var(--agent-color), 40px 8px var(--agent-color), 8px 16px var(--agent-color), 32px 16px var(--agent-color);
+  --clawd-fx-spin:
+    -8px 8px var(--agent-color), 44px 8px var(--agent-color), 18px -4px var(--agent-color);
+  --clawd-legs-crouch:
+    8px 22px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 22px var(--agent-color),
+    8px 26px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 26px var(--agent-color);
+  --clawd-legs-air:
+    8px 20px var(--agent-color), 16px 22px var(--agent-color), 24px 22px var(--agent-color), 32px 20px var(--agent-color),
+    8px 24px var(--agent-color), 16px 26px var(--agent-color), 24px 26px var(--agent-color), 32px 24px var(--agent-color);
 }
 
 :is(#aic-clawd-node, .clawd-model-preview)[data-model="guardian"] {
@@ -2965,6 +3118,28 @@
   --clawd-legs-kick:
     4px 24px var(--agent-color), 12px 24px var(--agent-color), 4px 28px var(--agent-color), 12px 28px var(--agent-color),
     28px 20px var(--agent-color), 32px 20px var(--agent-color), 28px 24px var(--agent-color), 36px 28px var(--agent-color);
+  --clawd-fx-wave-a:
+    -4px 8px var(--agent-color), -4px 4px var(--agent-color), -4px 0 var(--agent-color), 0 0 var(--agent-color);
+  --clawd-fx-wave-b:
+    -4px 4px var(--agent-color), -4px 0 var(--agent-color), -4px -4px var(--agent-color), -8px -4px var(--agent-color);
+  --clawd-fx-arm-a:
+    -4px 12px var(--agent-color), -4px 16px var(--agent-color);
+  --clawd-fx-arm-b:
+    40px 12px var(--agent-color), 44px 16px var(--agent-color);
+  --clawd-fx-jump-crouch:
+    0 22px var(--agent-color), 40px 22px var(--agent-color);
+  --clawd-fx-jump-air:
+    -4px 8px var(--agent-color), 40px 8px var(--agent-color), 16px -4px var(--agent-color), 24px -4px var(--agent-color);
+  --clawd-fx-tuck:
+    0 8px var(--agent-color), 40px 8px var(--agent-color), 8px 16px var(--agent-color), 32px 16px var(--agent-color);
+  --clawd-fx-spin:
+    -8px 12px var(--agent-color), 44px 12px var(--agent-color), 18px -4px var(--agent-color);
+  --clawd-legs-crouch:
+    4px 22px var(--agent-color), 12px 24px var(--agent-color), 28px 24px var(--agent-color), 36px 22px var(--agent-color),
+    4px 26px var(--agent-color), 12px 28px var(--agent-color), 28px 28px var(--agent-color), 36px 26px var(--agent-color);
+  --clawd-legs-air:
+    4px 20px var(--agent-color), 12px 22px var(--agent-color), 28px 22px var(--agent-color), 36px 20px var(--agent-color),
+    4px 24px var(--agent-color), 12px 26px var(--agent-color), 28px 26px var(--agent-color), 36px 24px var(--agent-color);
 }
 
 @keyframes clawd-pixel-leg-cycle {
@@ -2976,9 +3151,81 @@
   0%, 100% { box-shadow: var(--clawd-legs-idle); }
   50% { box-shadow: var(--clawd-legs-kick); }
 }
+@keyframes clawd-pixel-leg-jump {
+  0% { box-shadow: var(--clawd-legs-crouch, var(--clawd-legs-idle)); }
+  35%, 70% { box-shadow: var(--clawd-legs-air, var(--clawd-legs-step-a)); }
+  100% { box-shadow: var(--clawd-legs-idle); }
+}
+@keyframes clawd-pixel-fx-wave {
+  0%, 100% { box-shadow: var(--clawd-fx-wave-a); opacity: 1; }
+  50% { box-shadow: var(--clawd-fx-wave-b); opacity: 1; }
+}
+@keyframes clawd-pixel-fx-arms {
+  0%, 50%, 100% { box-shadow: none; }
+  25% { box-shadow: var(--clawd-fx-arm-a); }
+  75% { box-shadow: var(--clawd-fx-arm-b); }
+}
+@keyframes clawd-pixel-fx-jump {
+  0% { box-shadow: var(--clawd-fx-jump-crouch); }
+  40%, 75% { box-shadow: var(--clawd-fx-jump-air); }
+  100% { box-shadow: none; }
+}
+@keyframes clawd-pixel-fx-tuck {
+  0%, 100% { box-shadow: var(--clawd-fx-tuck); }
+  50% { box-shadow: var(--clawd-fx-spin); }
+}
+@keyframes clawd-pixel-fx-spin {
+  0%, 100% { box-shadow: var(--clawd-fx-spin); }
+  50% { box-shadow: var(--clawd-fx-tuck); }
+}
+@keyframes clawd-pixel-fx-dance {
+  0%, 100% { box-shadow: var(--clawd-fx-arm-a); }
+  25% { box-shadow: var(--clawd-fx-wave-b); }
+  50% { box-shadow: var(--clawd-fx-arm-b); }
+  75% { box-shadow: var(--clawd-fx-wave-a); }
+}
+@keyframes clawd-pixel-fx-highfive {
+  0% { box-shadow: var(--clawd-fx-wave-a); }
+  35%, 70% { box-shadow: var(--clawd-fx-wave-b); }
+  100% { box-shadow: none; }
+}
+@keyframes clawd-pixel-fx-stretch {
+  0% { box-shadow: var(--clawd-fx-jump-crouch); }
+  45% { box-shadow: var(--clawd-fx-jump-air); }
+  100% { box-shadow: var(--clawd-fx-arm-a); }
+}
+@keyframes clawd-pixel-fx-clap {
+  0%, 100% { box-shadow: var(--clawd-fx-arm-a); }
+  50% { box-shadow: var(--clawd-fx-arm-b); }
+}
+@keyframes clawd-pixel-fx-sleep {
+  0%, 100% { box-shadow: var(--clawd-fx-tuck); }
+}
+@keyframes clawd-pixel-fx-roar {
+  0%, 100% { box-shadow: var(--clawd-fx-jump-air); }
+  50% { box-shadow: var(--clawd-fx-wave-b); }
+}
+@keyframes clawd-pixel-fx-peek {
+  0%, 100% { box-shadow: var(--clawd-fx-arm-a); }
+  50% { box-shadow: var(--clawd-fx-wave-a); }
+}
+@keyframes clawd-pixel-fx-sneak {
+  0%, 100% { box-shadow: var(--clawd-fx-tuck); }
+  50% { box-shadow: var(--clawd-fx-jump-crouch); }
+}
+@keyframes clawd-pixel-fx-bath {
+  0%, 100% { box-shadow: var(--clawd-fx-arm-a); }
+  33% { box-shadow: var(--clawd-fx-wave-a); }
+  66% { box-shadow: var(--clawd-fx-arm-b); }
+}
+@keyframes clawd-pixel-fx-celebrate {
+  0%, 100% { box-shadow: var(--clawd-fx-wave-b); }
+  50% { box-shadow: var(--clawd-fx-jump-air); }
+}
 
 :is(#aic-clawd-node, .clawd-model-preview) .pixel-sprite,
-:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs {
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-legs,
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-fx {
   position: absolute;
   top: 0;
   left: 0;
@@ -2996,6 +3243,12 @@
   box-shadow: var(--clawd-legs-idle);
   animation: none;
 }
+:is(#aic-clawd-node, .clawd-model-preview) .pixel-fx {
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: none;
+  animation: none;
+}
 #aic-clawd-node.walking .pixel-legs {
   animation: clawd-pixel-leg-cycle var(--clawd-step-duration, .42s) steps(1) infinite;
 }
@@ -3005,9 +3258,71 @@
 #aic-clawd-node.keepy-uppy .pixel-legs {
   animation: clawd-pixel-leg-kick var(--clawd-step-duration, .42s) steps(1) infinite;
 }
-#aic-clawd-node:not(.walking):not(.running):not(.keepy-uppy) .pixel-legs {
+#aic-clawd-node.jumping .pixel-legs {
+  animation: clawd-pixel-leg-jump 0.7s steps(1) forwards;
+}
+#aic-clawd-node:not(.walking):not(.running):not(.keepy-uppy):not(.jumping) .pixel-legs {
   animation: none !important;
   box-shadow: var(--clawd-legs-idle);
+}
+
+/* Camada de pose pixel — aceno / braços / pulo / rolamento / giros */
+#aic-clawd-node.waving .pixel-fx {
+  animation: clawd-pixel-fx-wave 0.45s steps(1) infinite;
+}
+#aic-clawd-node.walking .pixel-fx {
+  animation: clawd-pixel-fx-arms var(--clawd-step-duration, .42s) steps(1) infinite;
+}
+#aic-clawd-node.running .pixel-fx {
+  animation: clawd-pixel-fx-arms var(--clawd-run-duration, .18s) steps(1) infinite;
+}
+#aic-clawd-node.jumping .pixel-fx {
+  animation: clawd-pixel-fx-jump 0.7s steps(1) forwards;
+}
+#aic-clawd-node.rolling .pixel-fx,
+#aic-clawd-node.somersault .pixel-fx {
+  animation: clawd-pixel-fx-tuck 0.35s steps(1) infinite;
+}
+#aic-clawd-node.spinning .pixel-fx {
+  animation: clawd-pixel-fx-spin 0.28s steps(1) infinite;
+}
+#aic-clawd-node.dance-1 .pixel-fx,
+#aic-clawd-node.dance-3 .pixel-fx {
+  animation: clawd-pixel-fx-dance 0.4s steps(1) infinite;
+}
+#aic-clawd-node.dance-2 .pixel-fx {
+  animation: clawd-pixel-fx-spin 0.3s steps(1) infinite;
+}
+#aic-clawd-node.highfive .pixel-fx {
+  animation: clawd-pixel-fx-highfive 0.85s steps(1) forwards;
+}
+#aic-clawd-node.stretching .pixel-fx {
+  animation: clawd-pixel-fx-stretch 1.1s steps(1) forwards;
+}
+#aic-clawd-node.clapping .pixel-fx {
+  animation: clawd-pixel-fx-clap 0.28s steps(1) infinite;
+}
+#aic-clawd-node.sleeping .pixel-fx {
+  animation: clawd-pixel-fx-sleep 2.4s steps(1) infinite;
+}
+#aic-clawd-node.roaring .pixel-fx {
+  animation: clawd-pixel-fx-roar 0.45s steps(1) infinite;
+}
+#aic-clawd-node.peeking .pixel-fx {
+  animation: clawd-pixel-fx-peek 0.7s steps(1) infinite;
+}
+#aic-clawd-node.sneaking .pixel-fx {
+  animation: clawd-pixel-fx-sneak 0.55s steps(1) infinite;
+}
+#aic-clawd-node.bathing .pixel-fx {
+  animation: clawd-pixel-fx-bath 0.5s steps(1) infinite;
+}
+#aic-clawd-node.celebrate .pixel-fx {
+  animation: clawd-pixel-fx-celebrate 0.4s steps(1) infinite;
+}
+#aic-clawd-node:not(.waving):not(.walking):not(.running):not(.jumping):not(.rolling):not(.somersault):not(.spinning):not(.dance-1):not(.dance-2):not(.dance-3):not(.highfive):not(.stretching):not(.clapping):not(.sleeping):not(.roaring):not(.peeking):not(.sneaking):not(.bathing):not(.celebrate) .pixel-fx {
+  animation: none !important;
+  box-shadow: none !important;
 }
 #aic-clawd-node[data-clawd-owned="true"] .pixel-sprite,
 #aic-clawd-node.popup-outfit-pet .pixel-sprite { animation: none !important; }
@@ -3066,7 +3381,8 @@
 
 /* O renderizador contínuo espelha a grade do pixel por modelo (Welcome geometry). */
 #aic-clawd-node .smooth-core::after { opacity: 0; }
-#aic-clawd-node.smooth .pixel-legs {
+#aic-clawd-node.smooth .pixel-legs,
+#aic-clawd-node.smooth .pixel-fx {
   display: none !important;
   box-shadow: none !important;
   animation: none !important;
@@ -3346,6 +3662,7 @@
   pointer-events: none;
 }
 .clawd-model-preview .skin-mod { z-index: 1; }
+.clawd-model-preview .acc-body { z-index: 2; }
 .clawd-model-preview .acc-head { z-index: 4; }
 .clawd-model-preview .acc-face { z-index: 5; }
 
@@ -3746,7 +4063,7 @@
   animation: clawd-electric 0.7s ease-in-out both !important;
 }
 
-/* Asas: flutuação suave no idle */
+/* Asas: corpo flutua no idle — acessórios usam sway/flap próprios abaixo */
 #aic-clawd-node.has-wings.idle .pet-body,
 #aic-clawd-node.has-wings.idle .smooth-sprite {
   animation: clawd-float-idle 3s ease-in-out infinite !important;
@@ -3758,19 +4075,35 @@
   animation: clawd-rainbow-glow 3s linear infinite !important;
 }
 
-/* ---- Slot body: acessórios visuais ---- */
-#aic-clawd-node [data-acc-body="cape"] .acc-body::after,
-#aic-clawd-node.has-cape .acc-body::after {
-  content: '🦸';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%) scale(0.8);
-  font-size: 10px;
-  pointer-events: none;
+/* ---- Slot body: acessórios visuais + micro-animações ---- */
+#aic-clawd-node[data-acc-body="cape"] .acc-body,
+#aic-clawd-node.has-cape .acc-body {
+  animation: clawd-cape-sway 1.4s ease-in-out infinite !important;
+  transform-origin: 20px 4px;
+}
+#aic-clawd-node[data-acc-body="scarf_body"] .acc-body {
+  animation: clawd-scarf-wave 0.7s ease-in-out infinite !important;
+  transform-origin: 20px 0;
+}
+#aic-clawd-node[data-acc-body="wings"] .acc-body,
+#aic-clawd-node.has-wings .acc-body {
+  animation: clawd-wing-flap 1.1s ease-in-out infinite !important;
+  transform-origin: 20px 8px;
+}
+#aic-clawd-node[data-acc-body="ribbon"] .acc-body {
+  animation: clawd-accessory-sparkle 2.8s steps(2) infinite !important;
 }
 #aic-clawd-node.has-armor {
   filter: drop-shadow(0 2px 4px rgba(52,73,94,0.6)) !important;
+}
+
+@keyframes clawd-cape-sway {
+  0%, 100% { transform: rotate(-2deg) translateX(0); }
+  50% { transform: rotate(3deg) translateX(1px); }
+}
+@keyframes clawd-wing-flap {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(1.08) translateY(-1px); }
 }
 
 /* ---- Name-tag temas novos (v3.3) — aplicados diretamente em .name-tag ---- */
@@ -3859,6 +4192,12 @@
   #aic-clawd-node.electrified .smooth-sprite,
   #aic-clawd-node.has-wings.idle .pet-body,
   #aic-clawd-node.has-wings.idle .smooth-sprite,
+  #aic-clawd-node[data-acc-body="cape"] .acc-body,
+  #aic-clawd-node.has-cape .acc-body,
+  #aic-clawd-node[data-acc-body="scarf_body"] .acc-body,
+  #aic-clawd-node[data-acc-body="wings"] .acc-body,
+  #aic-clawd-node.has-wings .acc-body,
+  #aic-clawd-node[data-acc-body="ribbon"] .acc-body,
   #aic-clawd-node.rainbow-aura .pet-body,
   #aic-clawd-node.rainbow-aura .smooth-sprite,
   #aic-clawd-node.clawd-idle-look .pet-body,

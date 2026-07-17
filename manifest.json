@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claw'd: Companheiro de Navegação",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Mascote pixel-art interativo, personalizável e fluido para acompanhar sua navegação.",
   "permissions": [
     "storage",
@@ -36,6 +36,9 @@
       "32": "src/assets/icons/icon-32.png",
       "48": "src/assets/icons/icon-48.png"
     }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'"
   },
   "web_accessible_resources": [
     {

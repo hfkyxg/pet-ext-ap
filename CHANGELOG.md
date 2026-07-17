@@ -3,6 +3,26 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.3.1] — 2026-07-17
+
+### Adicionado
+
+- **Camada `.pixel-fx`** — poses pixel `steps(1)` para aceno, braços no andar/correr, pulo, rolamento, cambalhota, giro, dança, high-five, stretch, clap, sono, rugido, peek, sneak, banho e celebração (4 modelos)
+- **FX de acessório** — pop + sparks ao vestir; ambient de hélice/asas/capa/armadura; planeio real com asas
+- Suítes **harmony-phase** e **quality-fluid**; showcase **117/117**
+
+### Corrigido
+
+- **Name-tag** — `textContent` no `.name-tag` apagava o título de nível; agora título + nome em spans (`_syncNameTag` / `syncPopupNameTag`)
+- Slot **corpo** no DOM/CSS/popup/showcase; volumes Ações/Ambiente no áudio; `opts.count` nas partículas
+- Hover-pet com cooldown; coalesce click/dblclick na bola; reduced-motion nos FX
+
+### Alterado
+
+- Docs/manual/VALIDACAO alinhados à suíte **117/117** e ao catálogo vivo
+
+---
+
 ## [3.3.0] — 2026-07-16
 
 ### Adicionado
@@ -10,9 +30,9 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - **Slot body (3º acessório)** — ribbon, wings, cape, armor; `accessoryBody` no estado e no popup
 - **10 novos acessórios** — witch_hat, bunny_ears, party_hat, visor (head); monocle, mustache (face); ribbon, wings, cape, armor (body)
 - **4 novas profissões** — doctor 🩺, artist 🎨, gamer 🎮, streamer 📡 (total: 12)
-- **4 novas ações** — flip, meditate, electric, nap (total: 28)
-- **13 novas conquistas** — first_level, centurion, shopaholic, gourmet, dance_machine, marathon_fisher, fashion_victim, combo_king, legendary_pet, full_house, polyglot, night_owl, iron_will (total: 25)
-- **5 novos tipos de quest diária** — bath, accessories, subpet, combo, profession (total: 12)
+- **Ações expandídas** — flip, meditate, electric, nap, highfive, lookAround e demais até **30** no popup; extras **kick / keepy / superdance** via motor (`CLAWD_PET_EXTRA_ACTIONS`)
+- **Conquistas** — total **28** (incl. balloon_novice, balloon_party, keepy_miles + iron_will / night_owl / etc.)
+- **14 tipos de quest diária** — bath, accessories, subpet, combo, profession, **balloons**, **keepy** (+ base)
 - **Sistema de desafio semanal** — 4 desafios rotativos (hash ISO week), progress em `S.weekly`, claim com XP e badge
 - **Sistema de combo** — janela de 10s, balão a ×3, bônus de XP a ×5, conquista combo_king
 - **Traços de personalidade** — 5 dimensões (playful, lazy, curious, social, foodie) em `S.personality`
@@ -27,6 +47,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - **Campos de personalização** — cor de partícula (particleColor), voz customizada (customSpeech), volume por categoria (soundVolumeActions, soundVolumeAmbient)
 - **Multiplicadores de XP por profissão** — chef+feed ×1.5, fisher+fish ×1.5, footballer+keepy ×2, doctor+bath ×1.5
 - **Contador streakDays** — espelhado de `game.streak.days` para suportar conquista iron_will
+- **Contadores balloonsPopped / keepyTotal** — missões e conquistas de balão/embaixadinha
 
 ### Alterado
 
@@ -34,15 +55,16 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - `manifest.json` versão 3.2.0 → **3.3.0**
 - Manifest: permissão **alarms** adicionada
 - `clawdEffectiveAccessories()` retorna `body`, `userBody`, `bodySource`
-- `clawdDefaultState()` com novos campos: personality, accessoryBody, weekly, customSpeech, particleColor, soundVolumeActions, soundVolumeAmbient, counters.streakDays
+- `clawdDefaultState()` com novos campos: personality, accessoryBody, weekly, customSpeech, particleColor, soundVolumeActions, soundVolumeAmbient, counters.streakDays / balloonsPopped / keepyTotal
 - Popup: terceiro slot de acessório (body), seção de desafio semanal, novos sliders de volume, color picker de partícula, textarea de voz customizada
-- Showcase docs: 24→28 ações, 14→24 acessórios, 8→12 profissões, Schema v4→v5
+- Showcase / docs: **30** ações · **31** acessórios · **12** profissões · **28** conquistas · Schema v5 · **81/81** contratos
+- Save path: **coalesce** de persistência + limpeza de timers idle/scroll no destroy (tick escalabilidade)
 
 ### Corrigido
 
 - Conquista `iron_will` usa `counter: 'streakDays'` (mirror de `game.streak.days`) para ser verificável nos testes de integridade
 - `clawdMigrateState()` bloco v5 inicializa todos os campos novos sem apagar dados antigos
-
+- Badges/métricas da documentação interativa desalinhados (65→81, 24→31 acessórios, conquistas/quests)
 ---
 
 ## [3.2.1] — 2026-07-16 (loop M1→M2)

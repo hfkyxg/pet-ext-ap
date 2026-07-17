@@ -7,6 +7,24 @@
 
 (function clawdContentScope() {
 
+/* Global error handler — graceful degradation, no pet crash */
+try {
+  window.addEventListener('error', (event) => {
+    try {
+      if (window.__clawd && typeof window.__clawd.destroy === 'function') {
+        window.__clawd.destroy();
+      }
+    } catch (_) {}
+  }, { once: true });
+  window.addEventListener('unhandledrejection', (event) => {
+    try {
+      if (window.__clawd && typeof window.__clawd.destroy === 'function') {
+        window.__clawd.destroy();
+      }
+    } catch (_) {}
+  }, { once: true });
+} catch (_) {}
+
 /* =====================================================
    SUB-PET — sprites via CLAWD_SUBPET_SPRITES (catalog.js)
    ===================================================== */
@@ -1177,7 +1195,7 @@ class ClawdCompanion {
   }
 
   _canSpawnFx(count = 1) {
-    if (this._destroyed || document.hidden || this.S?.settings?.performanceMode) return false;
+    if (this._destroyed || document.hidden || this.S?.settings?.performanceMode || this.S?.settings?.noParticles) return false;
     return (this._activeParticles || 0) + count <= 18;
   }
 
@@ -1206,6 +1224,7 @@ class ClawdCompanion {
         <div class="sprite-stack" id="aic-stack">
           <div class="pixel-sprite" id="aic-sprite"></div>
           <div class="pixel-legs" id="aic-pixel-legs" aria-hidden="true"></div>
+          <div class="pixel-fx" id="aic-pixel-fx" aria-hidden="true"></div>
           <div class="smooth-sprite" id="aic-smooth-sprite" aria-hidden="true">
             <span class="smooth-core"></span>
             <span class="smooth-leg smooth-leg-1"></span>
@@ -1222,6 +1241,7 @@ class ClawdCompanion {
           <div class="skin-mod" id="aic-skin"></div>
           <div class="accessory acc-head" id="aic-acc-head"></div>
           <div class="accessory acc-face" id="aic-acc-face"></div>
+          <div class="accessory acc-body" id="aic-acc-body"></div>
           <div class="laptop" id="aic-laptop"></div>
           <div class="fishing-rod-layer" id="aic-fishing-rod"></div>
           <div class="balloon-layer" id="aic-balloon" title="Clique para estourar o balão!"></div>
@@ -1235,7 +1255,10 @@ class ClawdCompanion {
           <div class="profession-prop prop-gamer-ctrl" aria-hidden="true"></div>
           <div class="profession-prop prop-streamer-live" aria-hidden="true"></div>
         </div>
-        <div class="name-tag" id="aic-name-tag"></div>
+        <div class="name-tag" id="aic-name-tag">
+          <span class="name-title" id="aic-name-title"></span>
+          <span class="name-label" id="aic-name-label"></span>
+        </div>
       </div>
       <div class="pet-ball" id="aic-ball" title="Toque para embaixadinhas • duplo-clique para chutar a gol"></div>
       <div class="ground-shadow" id="aic-shadow"></div>
@@ -1243,6 +1266,8 @@ class ClawdCompanion {
     document.body.appendChild(this.node);
     this.bodyNode    = this.node.querySelector('#aic-pet-body');
     this.nameNode    = this.node.querySelector('#aic-name-tag');
+    this.titleNode   = this.node.querySelector('#aic-name-title');
+    this.labelNode   = this.node.querySelector('#aic-name-label');
     this.speechNode  = this.node.querySelector('#aic-speech');
     this.spriteNode  = this.node.querySelector('#aic-sprite');
     this.legsNode    = this.node.querySelector('#aic-pixel-legs');
@@ -1267,10 +1292,33 @@ class ClawdCompanion {
     if (corner.includes('r')) st.right = '20px'; else st.left = '20px';
   }
 
+  /* Etiqueta: título (nível) + nome — nunca usar textContent no .name-tag (apaga os spans) */
+  _syncNameTag() {
+    if (!this.nameNode) return;
+    if (!this.titleNode || !this.nameNode.contains(this.titleNode)
+        || !this.labelNode || !this.nameNode.contains(this.labelNode)) {
+      this.nameNode.replaceChildren();
+      this.titleNode = document.createElement('span');
+      this.titleNode.className = 'name-title';
+      this.titleNode.id = 'aic-name-title';
+      this.labelNode = document.createElement('span');
+      this.labelNode.className = 'name-label';
+      this.labelNode.id = 'aic-name-label';
+      this.nameNode.append(this.titleNode, this.labelNode);
+    }
+    const level = clawdLevelFromXp(this.S.xp || 0).level;
+    const title = clawdTitleForLevel(level) || 'Novato';
+    const name = (this.S.name && String(this.S.name).trim()) || "Claw'd";
+    this.titleNode.textContent = title;
+    this.labelNode.textContent = name;
+    this.nameNode.setAttribute('aria-label', `${name}, ${title}`);
+    this.node.setAttribute('aria-label', `${name}, pet virtual interativo`);
+  }
+
   applyAll() {
     const S = this.S;
     const animationSpeed = Math.max(0.5, parseFloat(S.animSpeed) || 1);
-    this.nameNode.textContent = S.name;
+    this._syncNameTag();
     if (clawdIsHexColor(S.color)) this.node.style.setProperty('--agent-color', S.color);
     if (clawdIsHexColor(S.eyeColor)) this.node.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
     this.node.style.setProperty('--agent-scale', parseFloat(S.scale));
@@ -1385,7 +1433,8 @@ class ClawdCompanion {
       ];
       visualKeys.forEach(key => { this.S[key] = fresh[key]; });
       const animationSpeed = Math.max(0.5, parseFloat(fresh.animSpeed) || 1);
-      this.nameNode.textContent = fresh.name || "Claw'd";
+      this.S.xp = fresh.xp;
+      this._syncNameTag();
       if (clawdIsHexColor(fresh.color)) this.node.style.setProperty('--agent-color', fresh.color);
       if (clawdIsHexColor(fresh.eyeColor)) this.node.style.setProperty('--agent-eye-color', fresh.eyeColor);
       this.node.style.setProperty('--agent-scale', parseFloat(fresh.scale) || 1.5);
@@ -1415,8 +1464,7 @@ class ClawdCompanion {
     this.S[key] = value;
     switch (key) {
       case 'name':
-        this.nameNode.textContent = value;
-        this.node.setAttribute('aria-label', `${value || "Claw'd"}, pet virtual interativo`);
+        this._syncNameTag();
         if (value && !this.S.nicknameHistory.includes(value)) {
           this.S.nicknameHistory.push(value);
           if (this.S.nicknameHistory.length > 12) this.S.nicknameHistory.shift();
@@ -1460,16 +1508,19 @@ class ClawdCompanion {
       case 'accessoryHead':
         this._syncAccessoryVisuals();
         this._trackAccessory(value);
+        this._pulseAccessoryEquipFx(value, 'head');
         this.registerDaily('accessories');
         break;
       case 'accessoryFace':
         this._syncAccessoryVisuals();
         this._trackAccessory(value);
+        this._pulseAccessoryEquipFx(value, 'face');
         this.registerDaily('accessories');
         break;
       case 'accessoryBody':
         this._syncAccessoryVisuals();
         this._trackAccessory(value);
+        this._pulseAccessoryEquipFx(value, 'body');
         this.registerDaily('accessories');
         break;
       case 'personality':
@@ -1550,6 +1601,7 @@ class ClawdCompanion {
   /* ---- Variações de Idle (v3.4) ---- */
   _doIdleVariation() {
     if (this._destroyed || this.state !== 'idle' || !this.node || this._reducedMotion) return;
+    if (this.S?.settings?.noIdleVariations || this.S?.settings?.performanceMode) return;
     if (!Array.isArray(CLAWD_IDLE_VARIATIONS) || !CLAWD_IDLE_VARIATIONS.length) return;
     const now = Date.now();
     const playful = (this.S.personality?.playful ?? 5);
@@ -1661,13 +1713,64 @@ class ClawdCompanion {
     this.node.dataset.userAccBody = effective.userBody;
     this.node.dataset.accessoryHeadSource = effective.headSource;
     this.node.dataset.accessoryFaceSource = effective.faceSource;
+    this.node.dataset.accessoryBodySource = effective.bodySource || 'personal';
     /* Asas: habilita animação de flutuação quando ativas */
     this.node.classList.toggle('has-wings', effective.body === 'wings');
     this.node.classList.toggle('has-cape', effective.body === 'cape');
     this.node.classList.toggle('has-armor', effective.body === 'armor');
+    this.node.classList.toggle('has-propeller', effective.head === 'propeller');
     this.node.classList.toggle('profession-headwear', !!effective.autoHead);
     this.node.classList.toggle('profession-facewear', !!effective.autoFace);
     return effective;
+  }
+
+  /* Feedback ao vestir: pop visual sempre; som só fora do quiet */
+  _pulseAccessoryEquipFx(id, slot) {
+    if (this._destroyed || !this.node || id === 'none') return;
+    this.node.classList.remove('accessory-equip-pop');
+    void this.node.offsetWidth;
+    this.node.classList.add('accessory-equip-pop');
+    clearTimeout(this._accEquipTimer);
+    this._accEquipTimer = setTimeout(() => this.node?.classList.remove('accessory-equip-pop'), 420);
+    if (!this.isQuiet()) {
+      const tones = {
+        head: [[720, 0.04], [880, 0.06]],
+        face: [[660, 0.04], [820, 0.05]],
+        body: [[520, 0.05], [700, 0.06], [880, 0.05]]
+      };
+      this.chime(tones[slot] || tones.face, 'actions');
+    }
+    if (this.S.settings.performanceMode || this.S.settings.noParticles) return;
+    const sparkMap = {
+      wings: ['#b8d8e8', '#ffffff', '#a8c8dc'],
+      cape: ['#e74c3c', '#c0392b', '#f5f5f5'],
+      armor: ['#95a5a6', '#b2bec3', '#636e72'],
+      propeller: ['#f1c40f', '#3498db', '#e74c3c'],
+      ribbon: ['#ff6b6b', '#e74c3c', '#ffffff'],
+      scarf_body: ['#e74c3c', '#c0392b', '#ffffff']
+    };
+    this.spawnPixelSparks(sparkMap[id] || ['#f1c40f', '#ffffff', '#fda7df'], { count: 5 });
+  }
+
+  /* Detalhe contínuo: hélice/asas/capa/armadura — orçamento baixo de partículas */
+  _tickAccessoryAmbientFx() {
+    if (this._destroyed || document.hidden || this._reducedMotion || this.S.settings.performanceMode || this.S.settings.noParticles) return;
+    if (!this.isVisible || this.state === 'sleeping') return;
+    const head = this.node?.dataset?.accHead;
+    const body = this.node?.dataset?.accBody;
+    const moving = this.state === 'walking' || this.state === 'running' || this.isAutoWalking;
+    if (head === 'propeller' && moving && Math.random() < 0.35) {
+      this.spawnPixelSparks(['#f1c40f', '#55a9dd', '#ef6258'], { count: 3 });
+    }
+    if (body === 'wings' && this.state === 'idle' && Math.random() < 0.22) {
+      this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#dfefff'], { count: 3 });
+    }
+    if (body === 'cape' && moving && Math.random() < 0.22) {
+      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#f5f5f5'], { count: 3 });
+    }
+    if (body === 'armor' && this.state === 'idle' && Math.random() < 0.12) {
+      this.spawnPixelSparks(['#b2bec3', '#95a5a6', '#ffffff'], { count: 2 });
+    }
   }
 
   _applyProfessionVisuals() {
@@ -1741,17 +1844,23 @@ class ClawdCompanion {
       return false;
     }
     this.cancelMovement();
+    const hasWings = this.node?.dataset?.accBody === 'wings' || this.node?.classList?.contains('has-wings');
+    const friction = hasWings ? 0.965 : 0.93;
+    const bounce = hasWings ? -0.72 : -0.62;
+    const dizzyAt = hasWings ? 18 : 14;
     const rect = this.node.getBoundingClientRect();
-    this._glide = { x: rect.left, y: rect.top, vx: velocityX, vy: velocityY, last: performance.now() };
+    this._glide = { x: rect.left, y: rect.top, vx: velocityX, vy: velocityY, last: performance.now(), wings: hasWings };
     this.isAutoWalking = true;
-    if (speed > 14) {
+    if (speed > dizzyAt) {
       this.setStateFor('dizzy', 1400);
-      this.showSpeech('Wheee—tontinho! 💫', 1400);
-      this.beep(420, 0.06, 'triangle');
-      setTimeout(() => this.beep(320, 0.08, 'triangle'), 90);
+      this.showSpeech(hasWings ? 'Planeiooo! 🪶' : 'Wheee—tontinho! 💫', 1400);
+      this.beep(420, 0.06, 'triangle', 'actions');
+      setTimeout(() => this.beep(320, 0.08, 'triangle', 'actions'), 90);
+      if (hasWings) this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#dfefff'], { count: 4 });
       if (this.subpet && Math.random() < 0.6) this.subpet.interact('startle', { force: true });
     } else {
       this.setState('walking');
+      if (hasWings && speed > 6) this.beep(880, 0.04, 'triangle', 'ambient');
     }
     const tick = (now) => {
       if (!this._glide) return;
@@ -1766,10 +1875,10 @@ class ClawdCompanion {
       g.y += g.vy * dt;
       const maxX = Math.max(10, window.innerWidth - 90);
       const maxY = Math.max(10, window.innerHeight - 140);
-      if (g.x <= 10 || g.x >= maxX) { g.x = Math.max(10, Math.min(maxX, g.x)); g.vx *= -0.62; }
-      if (g.y <= 10 || g.y >= maxY) { g.y = Math.max(10, Math.min(maxY, g.y)); g.vy *= -0.62; }
-      g.vx *= Math.pow(0.93, dt);
-      g.vy *= Math.pow(0.93, dt);
+      if (g.x <= 10 || g.x >= maxX) { g.x = Math.max(10, Math.min(maxX, g.x)); g.vx *= bounce; }
+      if (g.y <= 10 || g.y >= maxY) { g.y = Math.max(10, Math.min(maxY, g.y)); g.vy *= bounce; }
+      g.vx *= Math.pow(friction, dt);
+      g.vy *= Math.pow(friction, dt);
       this.stackNode.style.transform = g.vx < -0.2 ? 'scaleX(-1)' : '';
       this.updatePosition(g.x, g.y);
       if (Math.hypot(g.vx, g.vy) < 0.18) {
@@ -1880,8 +1989,20 @@ class ClawdCompanion {
     this.ballNode.addEventListener('mousedown', (e) => e.stopPropagation(), { signal });
     // Cada clique é um toque de embaixadinha imediato (resposta sem atraso).
     // Duplo-clique finaliza a sequência com um chute a gol (bônus de combo).
-    this.ballNode.addEventListener('click', (e) => { e.stopPropagation(); this.juggleTouch(); }, { signal });
-    this.ballNode.addEventListener('dblclick', (e) => { e.stopPropagation(); this.kickBall(); }, { signal });
+    this.ballNode.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearTimeout(this._ballClickTimer);
+      this._ballClickTimer = setTimeout(() => {
+        this._ballClickTimer = null;
+        this.juggleTouch();
+      }, 220);
+    }, { signal });
+    this.ballNode.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      clearTimeout(this._ballClickTimer);
+      this._ballClickTimer = null;
+      this.kickBall();
+    }, { signal });
     if (this.balloonNode) {
       this.balloonNode.addEventListener('mousedown', (e) => e.stopPropagation(), { signal });
       this.balloonNode.addEventListener('click', (e) => {
@@ -1965,13 +2086,15 @@ class ClawdCompanion {
         this.lookAtCursor(e.clientX, e.clientY);
         this._trackHoverShy(e);
 
-        // Petting mechanic: if mouse moves over pet multiple times quickly
+        // Petting: acumula movimento sobre o pet, com cooldown real (não a cada ~0.5s)
         const rect = this.node.getBoundingClientRect();
         if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
             petCount++;
             if (petCount > 30) {
                 petCount = 0;
-                if (this.state === 'idle') {
+                const nowPet = Date.now();
+                if (this.state === 'idle' && nowPet - (this._lastHoverPetAt || 0) > 2800) {
+                    this._lastHoverPetAt = nowPet;
                     this.giveAffection();
                 }
             }
@@ -2162,6 +2285,18 @@ class ClawdCompanion {
       mq.addEventListener?.('change', sync, { signal });
     } catch (_) { /* ignore */ }
 
+    // Preferência de movimento reduzido ao vivo (SO / acessibilidade)
+    try {
+      const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const syncMotion = () => {
+        this._reducedMotion = !!mqMotion.matches;
+        if (this.subpet) this.subpet._reducedMotion = this._reducedMotion;
+        this.node?.classList.toggle('aic-reduced-motion', this._reducedMotion);
+      };
+      syncMotion();
+      mqMotion.addEventListener?.('change', syncMotion, { signal });
+    } catch (_) { /* ignore */ }
+
     // Mouse sai da janela → "até logo"
     document.addEventListener('mouseleave', () => {
       if (!this.isVisible || this.isQuiet() || this.state !== 'idle') return;
@@ -2194,7 +2329,7 @@ class ClawdCompanion {
 
   lookAtCursor(mouseX, mouseY) {
     if (this.isDragging || this.state === 'sleeping' || this.isAutoWalking) return;
-    if (this.S.settings.performanceMode) return;
+    if (this.S.settings.performanceMode || this._reducedMotion) return;
     const rect = this.node.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -2258,7 +2393,7 @@ class ClawdCompanion {
     }
   }
 
-  beep(freq = 660, dur = 0.07, type = 'square') {
+  beep(freq = 660, dur = 0.07, type = 'square', channel = 'actions') {
     if (!this.S.settings.sounds || this.isQuiet() || !this._audioAllowed) return;
     try {
       const ctx = this._ensureAudioCtx();
@@ -2269,7 +2404,10 @@ class ClawdCompanion {
       const gain = ctx.createGain();
       osc.type = type;
       osc.frequency.value = freq;
-      const vol = Math.max(0.02, Math.min(1, this.S.settings.soundVolume || 0.45)) * 0.14;
+      const master = Math.max(0.02, Math.min(1, this.S.settings.soundVolume || 0.45));
+      const chKey = channel === 'ambient' ? 'soundVolumeAmbient' : 'soundVolumeActions';
+      const chVol = Math.max(0, Math.min(1, this.S.settings[chKey] ?? (channel === 'ambient' ? 0.6 : 1)));
+      const vol = master * chVol * 0.14;
       gain.gain.setValueAtTime(vol, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + Math.max(0.03, dur));
       osc.connect(gain).connect(ctx.destination);
@@ -2278,9 +2416,9 @@ class ClawdCompanion {
     } catch (_) { /* autoplay / AudioContext policy */ }
   }
 
-  chime(notes = [[660, 0.06], [880, 0.08]]) {
+  chime(notes = [[660, 0.06], [880, 0.08]], channel = 'actions') {
     notes.forEach(([f, d], i) => {
-      setTimeout(() => this.beep(f, d, i % 2 ? 'triangle' : 'square'), i * 70);
+      setTimeout(() => this.beep(f, d, i % 2 ? 'triangle' : 'square', channel), i * 70);
     });
   }
 
@@ -2305,6 +2443,10 @@ class ClawdCompanion {
     else if (streakDays >= 3) amount = Math.round(amount * 1.2);
     const before = clawdLevelFromXp(this.S.xp).level;
     this.S.xp += amount;
+    /* Feedback visual sutil para XP significativo */
+    if (amount >= 5 && !this.S.settings.performanceMode && !this.S.settings.noParticles) {
+      this.spawnParticles(['⭐', '✨'], { count: Math.min(4, Math.ceil(amount / 5)) });
+    }
     // PixelCoins: ~1 a cada 5 XP
     this.S.game.coinFrac = (this.S.game.coinFrac || 0) + amount / 5;
     const whole = Math.floor(this.S.game.coinFrac);
@@ -2320,6 +2462,7 @@ class ClawdCompanion {
   onLevelUp(level) {
     this.showSpeech(`🎖️ Level ${level}!`, 3500);
     this.spawnParticles(['🎉', '⭐', '✨', '🎊']);
+    this._syncNameTag();
     // Não interrompe animações curtas (spin/sneak/etc.); comemora quando o pet estiver livre.
     const busy = this.state && this.state !== 'idle' && this.state !== 'walking' && this.state !== 'sleeping';
     if (!busy) {
@@ -2565,17 +2708,17 @@ class ClawdCompanion {
     if (this.state === 'sleeping') { this.wakeUp(); return; }
     this.setStateFor('happy', 1600);
     this.showSpeech(this.getRandom('happy'));
-    this.spawnParticles();
-    this.spawnPixelSparks(['#ff6b81', '#fda7df', '#f1c40f', '#ffffff']);
+    const body = this.node?.dataset?.accBody;
+    if (body === 'wings') this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#fda7df'], { count: 5 });
+    else if (body === 'cape') this.spawnPixelSparks(['#e74c3c', '#fda7df', '#ffffff'], { count: 5 });
+    else this.spawnPixelSparks(['#ff6b81', '#fda7df', '#f1c40f', '#ffffff'], { count: 5 });
     this.bumpStat('happiness', 8);
     this.addXp(5);
-    this.beep(720);
-    this.chime([[660, 0.04], [880, 0.06]]);
+    this.chime([[660, 0.04], [880, 0.06]], 'actions');
     this.lastActivity = Date.now();
     const c = this.S.game.counters;
     c.pets = (c.pets || 0) + 1;
     this.registerDaily('pets');
-    clawdRegisterWeeklyProgress(this.S, 'pets');
     this.checkAchievements();
     this.updateEmotion(true);
     if (this.subpet && this.subpet.species === 'slime' && Math.random() < 0.35) {
@@ -2586,9 +2729,14 @@ class ClawdCompanion {
   }
 
   spawnParticles(emojis, opts = {}) {
-    if (this._destroyed || this.S.settings.performanceMode || document.hidden) return;
+    if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (typeof opts === 'number') opts = { count: opts };
     let pool = emojis || ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
-    const count = Math.min(8, Math.max(4, pool.length + 1));
+    const requested = Number(opts.count);
+    const fallback = Math.min(8, Math.max(4, pool.length + 1));
+    const count = Number.isFinite(requested)
+      ? Math.min(8, Math.max(1, Math.floor(requested)))
+      : fallback;
     if (!this._canSpawnFx(count)) return;
     const rect = this.node.getBoundingClientRect();
     /* v3.3: particleColor — glow colorido customizado nas partículas */
@@ -2638,12 +2786,18 @@ class ClawdCompanion {
   }
 
   /* Partículas pixel (bola/futebol/acessórios — sem emoji). */
-  spawnPixelSparks(colors) {
-    if (this._destroyed || this.S.settings.performanceMode || document.hidden) return;
-    if (!this._canSpawnFx(8)) return;
+  spawnPixelSparks(colors, opts = {}) {
+    if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (typeof opts === 'number') opts = { count: opts };
+    const requested = Number(opts.count);
+    const count = Number.isFinite(requested)
+      ? Math.min(8, Math.max(1, Math.floor(requested)))
+      : 4;
+    if (!this._canSpawnFx(count)) return;
     const rect = this.node.getBoundingClientRect();
-    const palette = colors || ['#27ae60', '#f5f5f5', '#1a1a2e', '#f1c40f', '#e74c3c'];
-    for (let i = 0; i < 8; i++) {
+    let palette = colors || ['#27ae60', '#f5f5f5', '#1a1a2e', '#f1c40f', '#e74c3c'];
+    if (this.S.particleColor) palette = [...palette, this.S.particleColor];
+    for (let i = 0; i < count; i++) {
       setTimeout(() => {
         if (this._destroyed || document.hidden) return;
         const el = document.createElement('div');
@@ -2675,7 +2829,7 @@ class ClawdCompanion {
     const pick = forced || moves[Math.floor(Math.random() * moves.length)];
     this._clearFreestyle();
     this.node.classList.add(pick);
-    this.spawnPixelSparks();
+    this.spawnPixelSparks(['#27ae60', '#f5f5f5', '#f1c40f'], { count: 4 });
     clearTimeout(this._freestyleTimer);
     this._freestyleTimer = setTimeout(() => {
       this._freestyleTimer = null;
@@ -2714,6 +2868,15 @@ class ClawdCompanion {
       const nick = favNicks[Math.floor(Math.random() * favNicks.length)];
       return `Pode me chamar de ${nick}! 🐾`;
     }
+    /* Voz customizada ponderada pelo traço social (personalização → gameplay) */
+    const custom = (this.S.customSpeech || []).filter((t) => typeof t === 'string' && t.trim());
+    if (custom.length && (state === 'idle' || state === 'happy' || state === 'curious')) {
+      const social = this.S.personality?.social ?? 5;
+      const chance = 0.12 + (social / 10) * 0.28; // ~12%…40%
+      if (Math.random() < chance) {
+        return custom[Math.floor(Math.random() * custom.length)];
+      }
+    }
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -2735,10 +2898,11 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('somersault', 1100);
     this.showSpeech('Cambalhota! 🤸', 1800);
-    this.spawnParticles(['✨', '💫', '🌪️']);
+    this.spawnParticles(['✨', '💫', '🌪️'], { count: 4 });
+    this.spawnPixelSparks(['#f1c40f', '#ffffff', '#3498db', this.S.color || '#c71515'], { count: 6 });
     this.bumpStat('energy', -3);
     this.addXp(2);
-    this.beep(590);
+    this.chime([[520, 0.04], [660, 0.05], [880, 0.06]], 'actions');
   }
 
   doFeed() {
@@ -2794,7 +2958,8 @@ class ClawdCompanion {
     const isDoctor = this.S.profession === 'doctor';
     this.setStateFor('bathing', 2500);
     this.showSpeech(isDoctor ? 'Banho medicinal! 🩺🫧' : 'Splish splash! 🫧', 2500);
-    this.spawnParticles(['🫧', '💧', '🧼', '✨']);
+    this.spawnParticles(['🫧', '💧', '🧼', '✨'], { count: 4 });
+    this.spawnPixelSparks(['#74b9ff', '#81ecec', '#ffffff', '#a29bfe'], { count: 5 });
     this.bumpStat('hygiene', isDoctor ? 100 : 100);
     if (isDoctor) this.bumpStat('hygiene', 3); // bônus de médico
     this.bumpStat('happiness', 8);
@@ -2809,15 +2974,16 @@ class ClawdCompanion {
   }
 
   doDance() {
-    // dança melhorada: 3 passos em sequência
+    // dança melhorada: 3 passos em sequência + poses pixel
     if (this.state === 'sleeping') this.wakeUp();
     const asMusician = this.S.profession === 'musician';
     this.showSpeech(asMusician ? 'Solo improvisado! 🎸' : 'Yeahh! 🕺', 3200);
-    this.spawnParticles(asMusician ? ['🎵', '🎶', '✨', '🎸'] : ['🎵', '🎶', '✨']);
+    this.spawnParticles(asMusician ? ['🎵', '🎶', '✨', '🎸'] : ['🎵', '🎶', '✨'], { count: 4 });
+    this.spawnPixelSparks(['#f1c40f', '#e84393', '#74b9ff', '#ffffff'], { count: 5 });
     if (asMusician) this._pulseProfessionFx('jamming', 3000);
     this.setState('dance-1');
     this.beep(660);
-    setTimeout(() => { if (this.state === 'dance-1') { this.node.classList.remove('dance-1'); this.state = 'dance-2'; this.node.classList.add('dance-2'); this.beep(770); } }, 900);
+    setTimeout(() => { if (this.state === 'dance-1') { this.node.classList.remove('dance-1'); this.state = 'dance-2'; this.node.classList.add('dance-2'); this.beep(770); this.spawnPixelSparks(['#a29bfe', '#ffffff'], { count: 3 }); } }, 900);
     setTimeout(() => { if (this.state === 'dance-2') { this.node.classList.remove('dance-2'); this.state = 'dance-3'; this.node.classList.add('dance-3'); this.beep(880); } }, 1800);
     setTimeout(() => { if (this.state === 'dance-3') this.setState('idle'); }, 2800);
     this.bumpStat('happiness', 6);
@@ -2825,7 +2991,6 @@ class ClawdCompanion {
     const c = this.S.game.counters;
     c.dances = (c.dances || 0) + 1;
     this.registerDaily('dance');
-    clawdRegisterWeeklyProgress(this.S, 'dance');
     if (c.dances >= 15) this.checkAchievements();
     this.checkAchievements();
   }
@@ -2857,37 +3022,41 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('jumping', 900);
     this.showSpeech('Pulou! ✨', 1200);
-    this.spawnParticles(['✨', '💨']);
-    this.spawnPixelSparks();
+    this.spawnParticles(['✨', '💨'], { count: 3 });
+    this.spawnPixelSparks(['#ffffff', '#f1c40f', '#3498db', this.S.color || '#c71515'], { count: 6 });
+    this._spawnWalkDust(4);
     this.bumpStat('energy', -3);
     this.bumpStat('happiness', 3);
     this.addXp(2);
-    this.chime([[520, 0.05], [780, 0.08]]);
+    this.chime([[520, 0.05], [780, 0.08]], 'actions');
   }
 
   doStretch() {
     if (this.state === 'sleeping') return;
     this.setStateFor('stretching', 1300);
     this.showSpeech('Ahhh... 🤾', 1500);
+    this.spawnPixelSparks(['#ffeaa7', '#ffffff', this.S.color || '#c71515'], { count: 3 });
     this.bumpStat('energy', 3);
-    this.beep(350, 0.1, 'triangle');
+    this.beep(350, 0.1, 'triangle', 'ambient');
   }
 
   doRoar() {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('roaring', 1700);
     this.showSpeech('RAAWR! 🦁', 2000);
-    this.spawnParticles(['💥', '⚡', '🔥']);
+    this.spawnParticles(['💥', '⚡', '🔥'], { count: 4 });
+    this.spawnPixelSparks(['#e74c3c', '#f1c40f', '#ffffff'], { count: 6 });
     this.bumpStat('happiness', 5);
     this.addXp(3);
-    this.beep(180, 0.2, 'sawtooth');
+    this.beep(180, 0.2, 'sawtooth', 'actions');
   }
 
   doHighFive() {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('highfive', 900);
     this.showSpeech('✋ HIGH FIVE!', 1500);
-    this.spawnParticles(['✋', '⭐', '✨']);
+    this.spawnParticles(['✋', '⭐', '✨'], { count: 3 });
+    this.spawnPixelSparks(['#f1c40f', '#ffffff', '#fd79a8'], { count: 5 });
     this.bumpStat('happiness', 6);
     this.addXp(2);
     this.beep(750, 0.06);
@@ -2898,10 +3067,11 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('spinning', 800);
     this.showSpeech('Wheee! 🌀', 1200);
-    this.spawnParticles(['🌀', '✨']);
+    this.spawnParticles(['🌀', '✨'], { count: 3 });
+    this.spawnPixelSparks(['#a29bfe', '#74b9ff', '#ffffff', this.S.color || '#c71515'], { count: 6 });
     this.bumpStat('happiness', 4);
     this.addXp(2);
-    this.chime([[520, 0.05], [720, 0.06], [920, 0.08]]);
+    this.chime([[520, 0.05], [720, 0.06], [920, 0.08]], 'actions');
   }
 
   doBounce() {
@@ -2939,16 +3109,18 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('sneaking', 1600);
     this.showSpeech('Shhh... 🥷', 1400);
+    this.spawnPixelSparks(['#2c3e50', '#636e72', '#b2bec3'], { count: 3 });
     this.bumpStat('energy', -2);
     this.addXp(2);
-    this.beep(220, 0.12, 'triangle');
+    this.beep(220, 0.12, 'triangle', 'ambient');
   }
 
   doClap() {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('clapping', 1100);
     this.showSpeech('👏👏', 1200);
-    this.spawnParticles(['👏', '✨']);
+    this.spawnParticles(['👏', '✨'], { count: 3 });
+    this.spawnPixelSparks(['#ffffff', '#f1c40f', '#fdcb6e'], { count: 4 });
     this.bumpStat('happiness', 5);
     this.addXp(2);
     this.beep(480, 0.04);
@@ -2960,18 +3132,21 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('peeking', 900);
     this.showSpeech('Olha só... 👀', 1200);
+    this.spawnPixelSparks(['#ffeaa7', '#ffffff', '#fdcb6e'], { count: 3 });
     this.addXp(1);
-    this.beep(710, 0.06, 'triangle');
+    this.beep(710, 0.06, 'triangle', 'ambient');
   }
 
   doRoll() {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('rolling', 900);
     this.showSpeech('Rolando! 🎱', 1200);
-    this.spawnParticles(['💫']);
+    this.spawnParticles(['💫'], { count: 2 });
+    this.spawnPixelSparks(['#636e72', '#b2bec3', '#ffffff', this.S.color || '#c71515'], { count: 5 });
+    this._spawnWalkDust(3);
     this.bumpStat('energy', -3);
     this.addXp(3);
-    this.chime([[400, 0.05], [500, 0.05], [600, 0.05], [700, 0.08]]);
+    this.chime([[400, 0.05], [500, 0.05], [600, 0.05], [700, 0.08]], 'actions');
   }
 
   doBalloon() {
@@ -3291,7 +3466,7 @@ class ClawdCompanion {
                     `${this._keepyCount}!`;
         this.showSpeech(msg, 1500);
         this.beep(700 + this._keepyCount * 4, 0.06);
-        this.spawnPixelSparks();
+        this.spawnPixelSparks(['#27ae60', '#f1c40f', '#ffffff'], { count: 5 });
       }
       const speed = Math.max(0.28, 0.68 - this._keepyCount * 0.006);
       if (this._keepy) {
@@ -3430,7 +3605,6 @@ class ClawdCompanion {
       const c = this.S.game.counters;
       c.fish = (c.fish || 0) + 1;
       this.registerDaily('fish');
-      clawdRegisterWeeklyProgress(this.S, 'fish');
       if (fish.rare) c.rareFish = (c.rareFish || 0) + 1;
       this.checkAchievements();
 
@@ -3531,47 +3705,31 @@ class ClawdCompanion {
 
   /* ---------- CONTEXTO DA PÁGINA / PROFISSÕES ---------- */
   _detectGeneralPageContext() {
-    const url = location.hostname.toLowerCase();
-    const map = {
-      coding:   ['github', 'gitlab', 'stackoverflow', 'codepen', 'replit', 'codesandbox', 'npmjs', 'pypi', 'developer.', 'mdn'],
-      music:    ['spotify', 'soundcloud', 'music.youtube', 'deezer', 'last.fm', 'letras.mus', 'bandcamp'],
-      video:    ['youtube.com', 'netflix', 'twitch', 'primevideo', 'disneyplus'],
-      shopping: ['amazon', 'mercadolivre', 'shopee', 'aliexpress', 'magazineluiza', 'americanas'],
-      social:   ['twitter', 'x.com', 'instagram', 'facebook', 'tiktok', 'reddit', 'mastodon'],
-      news:     ['g1.globo', 'uol.com', 'bbc', 'cnn', 'folha.uol', 'estadao', 'theguardian'],
-      email:    ['gmail', 'mail.google', 'outlook', 'hotmail', 'yahoo.com/mail', 'protonmail'],
-      gaming:   ['steam', 'roblox', 'epicgames', 'itch.io', 'gog.com', 'gamespot', 'ign.com'],
-      health:   ['medscape', 'healthline', 'bula.ms', 'saude', 'medical', 'hospital'],
-      learning: ['coursera', 'udemy', 'khanacademy', 'duolingo', 'alura', 'dio.me']
-    };
     const prevCtx = this._currentPageContext;
-    for (const [ctx, domains] of Object.entries(map)) {
-      if (domains.some(d => url.includes(d))) { this._currentPageContext = ctx; break; }
-    }
-    if (!this._currentPageContext || this._currentPageContext === prevCtx) {
-      this._currentPageContext = prevCtx || 'idle';
-    }
+    const next = (typeof clawdPageContextFromHost === 'function')
+      ? clawdPageContextFromHost(location.hostname)
+      : 'idle';
+    this._currentPageContext = next;
     if (prevCtx === undefined) return; // primeiro carregamento, sem reação
-    if (this._currentPageContext !== prevCtx) this._onContextChange(this._currentPageContext);
+    if (next !== prevCtx) this._onContextChange(next);
   }
 
   _onContextChange(ctx) {
     if (this._destroyed || !this.isVisible) return;
-    const playful = this.S.personality?.playful ?? 5;
-    const social  = this.S.personality?.social  ?? 5;
-    const curious = this.S.personality?.curious ?? 7;
-    const reactions = {
-      gaming:   { min: 4, trait: playful, msg: 'Hora de jogar! 🎮', action: 'cheer' },
-      music:    { min: 5, trait: social,  msg: 'Música! 🎵',         action: 'dance' },
-      social:   { min: 5, trait: social,  msg: 'Rede social! 📱',    action: 'wave' },
-      shopping: { min: 3, trait: playful, msg: 'Comprando? 🛒',      action: 'bounce' },
-      learning: { min: 5, trait: curious, msg: 'Aprendendo! 📚',     action: 'meditate' },
-      coding:   { min: 4, trait: curious, msg: 'Codando! 💻',        action: 'lookAround' }
-    };
+    if (this.isQuiet() || this.S?.settings?.performanceMode) return;
+    const now = Date.now();
+    /* Evita rajada de fala/ações ao pular entre abas — mantém ritmo fluido */
+    if (now - (this._lastContextReactAt || 0) < 8000) return;
+    const reactions = (typeof CLAWD_CONTEXT_REACTIONS !== 'undefined' && CLAWD_CONTEXT_REACTIONS)
+      ? CLAWD_CONTEXT_REACTIONS
+      : {};
     const r = reactions[ctx];
-    if (!r || r.trait < r.min) return;
+    if (!r) return;
+    const traitVal = this.S.personality?.[r.trait] ?? 5;
+    if (traitVal < r.min) return;
+    this._lastContextReactAt = now;
     setTimeout(() => {
-      if (this._destroyed || this.state !== 'idle') return;
+      if (this._destroyed || this.state !== 'idle' || this.isQuiet()) return;
       this.showSpeech(r.msg, 2500);
       this._handleAction(r.action);
     }, 1200);
@@ -3797,8 +3955,16 @@ class ClawdCompanion {
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
       const baseChance = this.emotion === 'joyful' ? 0.6 : 0.45;
       if (Math.random() > baseChance) return;
+      /* Pool ponderada por personalidade (playful → dance/jump; lazy → stretch/wink; curious → lookAround) */
+      const p = this.S.personality || {};
       const pool = ['wave', 'dance', 'somersault', 'keepy', 'jump', 'highfive', 'roar', 'balloon', 'hug', 'wink', 'clap', 'lookAround'];
-      const pick = this.getWeightedRandom(pool, this.S.favorites.actions);
+      const traitBoost = [];
+      if ((p.playful ?? 5) >= 7) traitBoost.push('dance', 'jump', 'somersault', 'balloon');
+      if ((p.lazy ?? 5) >= 7) traitBoost.push('wink', 'stretch', 'meditate');
+      if ((p.curious ?? 5) >= 7) traitBoost.push('lookAround', 'peek', 'clap');
+      if ((p.social ?? 5) >= 7) traitBoost.push('wave', 'highfive', 'hug');
+      const weightedPool = traitBoost.length ? pool.concat(traitBoost) : pool;
+      const pick = this.getWeightedRandom(weightedPool, this.S.favorites.actions);
       if (pick === 'keepy' && this.S.profession !== 'footballer') {
         this._handleAction('wave');
         return;
@@ -3808,6 +3974,9 @@ class ClawdCompanion {
 
     // Duo pet ↔ subpet — cenas periódicas quando ambos idle
     this._timers.push(setInterval(() => this._maybePlayDuoScene(), 32000));
+
+    // Ambient FX de acessórios (hélice / asas / capa)
+    this._timers.push(setInterval(() => this._tickAccessoryAmbientFx(), 4200));
 
     // Permanência na aba → engaja estrutura da página (45–90s)
     this._timers.push(setInterval(() => this._tickDwellEngage(), 8000));
@@ -3888,7 +4057,7 @@ class ClawdCompanion {
 
   /* v3.3: Clima ambiente sazonal */
   _spawnAmbientWeather() {
-    if (!this.isVisible || this.S.settings.performanceMode || document.hidden) return;
+    if (!this.isVisible || this.S.settings.performanceMode || this.S.settings.noWeather || document.hidden) return;
     if (!this._canSpawnFx(2)) return;
     const month = new Date().getMonth() + 1; // 1–12
     let pool = null;
@@ -3954,7 +4123,6 @@ class ClawdCompanion {
         const c = this.S.game.counters;
         c.walks = (c.walks || 0) + 1;
         this.registerDaily('walk');
-        clawdRegisterWeeklyProgress(this.S, 'walk');
         this.S.position = { x: parseFloat(this.node.style.left), y: parseFloat(this.node.style.top) };
         this.checkAchievements();
         this.save();
@@ -4663,7 +4831,12 @@ class ClawdCompanion {
   _handleAction(action) {
     this.lastActivity = Date.now();
     const map = {
-      wave:       () => { this.setStateFor('waving', 2200); this.showSpeech('Oi! 👋'); this.chime([[600, 0.05], [800, 0.07]]); },
+      wave:       () => {
+        this.setStateFor('waving', 2200);
+        this.showSpeech('Oi! 👋');
+        this.chime([[600, 0.05], [800, 0.07]], 'actions');
+        this.spawnPixelSparks(['#f1c40f', '#ffffff', '#fda7df'], { count: 4 });
+      },
       dance:      () => this.doDance(),
       happy:      () => this.giveAffection(),
       feed:       () => this.doFeed(),
@@ -4846,12 +5019,12 @@ class ClawdCompanion {
       '_speechTimer', '_stateTimer', '_saveTimer', '_clickTimer', '_holdTimer',
       '_wakeStretchTimer', '_fishTimer', '_fishBiteTimer', '_fishCatchTimer',
       '_emotionTimer', '_shinyTimer', '_keepy', '_juggleDrop', '_juggleIdleTimer',
-      '_profFxTimer', '_equipFxTimer', '_freestyleTimer', '_balloonTimer', '_balloonPopFx',
+      '_profFxTimer', '_equipFxTimer', '_accEquipTimer', '_freestyleTimer', '_balloonTimer', '_balloonPopFx',
       '_pendingCelebrate', '_duoTimer', '_dwellWalkTimer', '_dwellActionTimer',
       /* v3.3 */
       '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer',
       /* v3.4 / tick5 */
-      '_idleVarTimer', '_scrollIdleTimer'
+      '_idleVarTimer', '_scrollIdleTimer', '_ballClickTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
