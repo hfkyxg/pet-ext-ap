@@ -24,16 +24,63 @@
       </div>
       <div class="xp-area">
         <span class="xp-level" id="xp-level">Lv. 1</span>
-        <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+        <div class="xp-bar" role="progressbar" id="xp-bar" aria-label="Progresso de XP" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="xp-fill" id="xp-fill"></div>
+          <span class="xp-bar-label" id="xp-bar-label">0/100 · 0%</span>
+        </div>
         <span class="xp-count" id="xp-count">0 XP</span>
         <span class="streak-pill" id="streak-pill" style="display:none" title="Dias seguidos com o pet ativo">🔥 <span id="streak-count">0</span>d</span>
       </div>
-      <!-- Medidores Tamagotchi — todos clicáveis -->
+      <!-- Medidores Tamagotchi — clicáveis, com % ao vivo -->
       <div class="stats-row" id="stats-row">
-        <button type="button" class="stat stat-action" data-stat-action="happy" data-stat-key="happiness" title="Felicidade — clique para dar carinho" aria-label="Felicidade — clique para dar carinho"><span aria-hidden="true">❤️</span><div class="stat-bar" role="progressbar" aria-label="Felicidade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-happiness"></div></div></button>
-        <button type="button" class="stat stat-action" data-stat-action="feed" data-stat-key="hunger" id="stat-feed-btn" title="Saciedade — clique para alimentar" aria-label="Saciedade — clique para alimentar"><span aria-hidden="true">🍖</span><div class="stat-bar" role="progressbar" aria-label="Saciedade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-hunger"></div></div></button>
-        <button type="button" class="stat stat-action" data-stat-action="play" data-stat-key="energy" title="Energia — clique para brincar" aria-label="Energia — clique para brincar"><span aria-hidden="true">⚡</span><div class="stat-bar" role="progressbar" aria-label="Energia" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-energy"></div></div></button>
-        <button type="button" class="stat stat-action" data-stat-action="bath" data-stat-key="hygiene" title="Higiene — clique para banho" aria-label="Higiene — clique para banho"><span aria-hidden="true">🧼</span><div class="stat-bar" role="progressbar" aria-label="Higiene" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-hygiene"></div></div></button>
+        <button type="button" class="stat stat-action" data-stat-action="happy" data-stat-key="happiness" data-stat-delta="+12" title="Felicidade — clique para dar carinho" aria-label="Felicidade — clique para dar carinho">
+          <span class="stat-ico" aria-hidden="true">❤️</span>
+          <div class="stat-track">
+            <div class="stat-bar" role="progressbar" aria-label="Felicidade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="stat-fill" id="stat-happiness"></div>
+            </div>
+            <span class="stat-value" id="stat-happiness-val">0%</span>
+          </div>
+          <span class="stat-delta" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="stat stat-action" data-stat-action="feed" data-stat-key="hunger" data-stat-delta="+18" id="stat-feed-btn" title="Saciedade — clique para alimentar" aria-label="Saciedade — clique para alimentar">
+          <span class="stat-ico" aria-hidden="true">🍖</span>
+          <div class="stat-track">
+            <div class="stat-bar" role="progressbar" aria-label="Saciedade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="stat-fill" id="stat-hunger"></div>
+            </div>
+            <span class="stat-value" id="stat-hunger-val">0%</span>
+          </div>
+          <span class="stat-delta" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="stat stat-action" data-stat-action="play" data-stat-key="energy" data-stat-delta="+10" title="Energia — clique para brincar" aria-label="Energia — clique para brincar">
+          <span class="stat-ico" aria-hidden="true">⚡</span>
+          <div class="stat-track">
+            <div class="stat-bar" role="progressbar" aria-label="Energia" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="stat-fill" id="stat-energy"></div>
+            </div>
+            <span class="stat-value" id="stat-energy-val">0%</span>
+          </div>
+          <span class="stat-delta" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="stat stat-action" data-stat-action="bath" data-stat-key="hygiene" data-stat-delta="+15" title="Higiene — clique para banho" aria-label="Higiene — clique para banho">
+          <span class="stat-ico" aria-hidden="true">🧼</span>
+          <div class="stat-track">
+            <div class="stat-bar" role="progressbar" aria-label="Higiene" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="stat-fill" id="stat-hygiene"></div>
+            </div>
+            <span class="stat-value" id="stat-hygiene-val">0%</span>
+          </div>
+          <span class="stat-delta" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="quick-actions" id="quick-actions" aria-label="Ações rápidas">
+        <button type="button" class="btn-quick" data-quick-action="wave" title="Acenar (Alt+…)"><span aria-hidden="true">👋</span><small>Oi</small></button>
+        <button type="button" class="btn-quick" data-quick-action="dance" title="Dançar"><span aria-hidden="true">🕺</span><small>Dança</small></button>
+        <button type="button" class="btn-quick" data-quick-action="pose" title="Pose (Alt+P)"><span aria-hidden="true">📸</span><small>Pose</small></button>
+        <button type="button" class="btn-quick" data-quick-action="sleep" title="Dormir (Alt+Z)"><span aria-hidden="true">😴</span><small>Sono</small></button>
+        <button type="button" class="btn-quick" data-quick-action="balloon" title="Balão"><span aria-hidden="true">🎈</span><small>Balão</small></button>
+        <button type="button" class="btn-quick" data-quick-action="cheer" title="Torcer"><span aria-hidden="true">🎉</span><small>Yeah</small></button>
       </div>
       <div class="header-dock-row">
         <button type="button" class="btn-dock" id="btn-open-studio" title="Abre o studio flutuante na página (arraste para mover)">📌 Studio na página</button>

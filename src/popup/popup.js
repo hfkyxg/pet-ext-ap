@@ -106,11 +106,44 @@ function favSort(ids, category) {
 function renderHeader() {
   const { level, into, next } = clawdLevelFromXp(S.xp);
   const title = clawdTitleForLevel(level);
-  $('xp-level').textContent = `Lv. ${level}`;
-  $('xp-level').title = title;
+  const pct = next > 0 ? Math.min(100, Math.round((into / next) * 100)) : 100;
+  const levelEl = $('xp-level');
+  const prevLevel = Number(levelEl.dataset.level || 0);
+  levelEl.textContent = `Lv. ${level}`;
+  levelEl.title = `${title} · ${into}/${next} XP neste nível`;
+  levelEl.dataset.level = String(level);
+  if (prevLevel && prevLevel !== level) {
+    levelEl.classList.remove('xp-level-bump');
+    void levelEl.offsetWidth;
+    levelEl.classList.add('xp-level-bump');
+  }
+
   $('xp-count').textContent = `${S.xp} XP`;
-  $('coins-count').textContent = S.game.coins || 0;
-  setTimeout(() => { $('xp-fill').style.width = `${Math.min(100, (into / next) * 100)}%`; }, 120);
+  const barLabel = $('xp-bar-label');
+  if (barLabel) barLabel.textContent = `${into}/${next} · ${pct}%`;
+  const xpBar = $('xp-bar');
+  if (xpBar) {
+    xpBar.setAttribute('aria-valuenow', String(pct));
+    xpBar.setAttribute('aria-valuetext', `${into} de ${next} XP até o próximo nível (${pct}%)`);
+  }
+
+  const coins = S.game.coins || 0;
+  const coinsEl = $('coins-count');
+  const prevCoins = Number(coinsEl.dataset.prev || coins);
+  coinsEl.textContent = coins;
+  coinsEl.dataset.prev = String(coins);
+  const coinsPill = $('coins-pill');
+  if (coinsPill && coins !== prevCoins) {
+    coinsPill.classList.remove('coins-bump');
+    void coinsPill.offsetWidth;
+    coinsPill.classList.add('coins-bump');
+  }
+
+  const fill = $('xp-fill');
+  requestAnimationFrame(() => {
+    fill.style.width = `${pct}%`;
+    fill.classList.toggle('xp-near', pct >= 85);
+  });
   renderStats(S.stats);
   if (S.color) applyHeaderColor(S.color);
   syncHeaderPetPreview();
@@ -138,18 +171,35 @@ function syncHeaderPetPreview() {
 
 function renderStats(stats) {
   const meta = {
-    happiness: { id: 'stat-happiness', label: 'Felicidade', hint: 'clique para dar carinho' },
-    hunger: { id: 'stat-hunger', label: 'Saciedade', hint: 'clique para alimentar' },
-    energy: { id: 'stat-energy', label: 'Energia', hint: 'clique para brincar' },
-    hygiene: { id: 'stat-hygiene', label: 'Higiene', hint: 'clique para banho' }
+    happiness: { id: 'stat-happiness', label: 'Felicidade', hint: 'clique para dar carinho', tone: 'love' },
+    hunger: { id: 'stat-hunger', label: 'Saciedade', hint: 'clique para alimentar', tone: 'food' },
+    energy: { id: 'stat-energy', label: 'Energia', hint: 'clique para brincar', tone: 'energy' },
+    hygiene: { id: 'stat-hygiene', label: 'Higiene', hint: 'clique para banho', tone: 'clean' }
   };
   Object.entries(meta).forEach(([key, info]) => {
-    const v = Math.round(stats[key] ?? 0);
+    const v = Math.max(0, Math.min(100, Math.round(stats[key] ?? 0)));
     const el = $(info.id);
     if (!el) return;
+    const prev = Number(el.dataset.prev ?? v);
     el.style.width = `${v}%`;
+    el.dataset.prev = String(v);
     el.classList.toggle('low', v < 30);
+    el.classList.toggle('mid', v >= 30 && v < 70);
+    el.classList.toggle('high', v >= 70);
+    el.classList.toggle(`tone-${info.tone}`, true);
+    if (v !== prev) {
+      el.classList.remove('stat-fill-flash');
+      void el.offsetWidth;
+      el.classList.add('stat-fill-flash');
+    }
     el.parentElement?.setAttribute('aria-valuenow', String(v));
+    el.parentElement?.setAttribute('aria-valuetext', `${info.label} ${v} por cento`);
+    const valEl = $(`${info.id}-val`);
+    if (valEl) {
+      valEl.textContent = `${v}%`;
+      valEl.classList.toggle('low', v < 30);
+      valEl.classList.toggle('high', v >= 70);
+    }
     const btn = el.closest('.stat-action');
     if (btn) {
       const title = `${info.label}: ${v}% — ${info.hint}`;
@@ -157,8 +207,21 @@ function renderStats(stats) {
       btn.setAttribute('aria-label', title);
       btn.classList.toggle('stat-critical', v < 30);
       btn.classList.toggle('stat-good', v >= 70);
+      btn.classList.toggle('stat-warn', v >= 30 && v < 50);
     }
   });
+}
+
+function showStatDelta(btn) {
+  const delta = btn?.querySelector('.stat-delta');
+  if (!delta) return;
+  const text = btn.dataset.statDelta || '+';
+  delta.textContent = text;
+  delta.classList.remove('show');
+  void delta.offsetWidth;
+  delta.classList.add('show');
+  clearTimeout(delta._t);
+  delta._t = setTimeout(() => delta.classList.remove('show'), 700);
 }
 
 function showStatusFeedback(text, { error = false } = {}) {
@@ -176,6 +239,7 @@ function pulseStatButton(btn) {
   btn.classList.remove('stat-pulse');
   void btn.offsetWidth;
   btn.classList.add('stat-pulse');
+  showStatDelta(btn);
   setTimeout(() => btn.classList.remove('stat-pulse'), 450);
 }
 
@@ -312,11 +376,23 @@ function pollLiveStats() {
         scrubLastError();
         if (!res) return;
         renderStats(res.stats);
-        $('coins-count').textContent = res.coins;
+        S.stats = res.stats || S.stats;
+        if (res.xp != null) S.xp = res.xp;
+        if (res.coins != null) S.game.coins = res.coins;
         const { level, into, next } = clawdLevelFromXp(res.xp);
+        const pct = next > 0 ? Math.min(100, Math.round((into / next) * 100)) : 100;
         $('xp-level').textContent = `Lv. ${level}`;
+        $('xp-level').title = `${clawdTitleForLevel(level)} · ${into}/${next} XP neste nível`;
         $('xp-count').textContent = `${res.xp} XP`;
-        $('xp-fill').style.width = `${Math.min(100, (into / next) * 100)}%`;
+        $('coins-count').textContent = res.coins;
+        $('xp-fill').style.width = `${pct}%`;
+        const barLabel = $('xp-bar-label');
+        if (barLabel) barLabel.textContent = `${into}/${next} · ${pct}%`;
+        const xpBar = $('xp-bar');
+        if (xpBar) {
+          xpBar.setAttribute('aria-valuenow', String(pct));
+          xpBar.setAttribute('aria-valuetext', `${into} de ${next} XP até o próximo nível (${pct}%)`);
+        }
         const rec = $('keepy-record');
         if (rec) rec.querySelector('b').textContent = res.keepyRecord;
         if (res.daily) renderDailyQuest(res.daily);
@@ -333,6 +409,7 @@ function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
   if (!box || !daily) return;
   const progress = Math.min(daily.progress || 0, daily.target);
   const done = progress >= daily.target;
+  const pct = daily.target ? Math.round(progress / daily.target * 100) : 0;
   box.replaceChildren();
 
   const top = document.createElement('div');
@@ -340,7 +417,7 @@ function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
   const title = document.createElement('span');
   title.textContent = '🎯 Missão diária';
   const progressEl = document.createElement('b');
-  progressEl.textContent = `${progress}/${daily.target}`;
+  progressEl.textContent = `${progress}/${daily.target} · ${pct}%`;
   top.appendChild(title);
   top.appendChild(progressEl);
 
@@ -350,8 +427,12 @@ function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
 
   const bar = document.createElement('div');
   bar.className = 'daily-bar';
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-valuenow', String(pct));
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', '100');
   const fill = document.createElement('div');
-  fill.style.width = `${Math.round(progress / daily.target * 100)}%`;
+  fill.style.width = `${pct}%`;
   bar.appendChild(fill);
 
   const button = document.createElement('button');
@@ -379,6 +460,7 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
   if (!box || !weekly) return;
   const progress = Math.min(weekly.progress || 0, weekly.target);
   const done = progress >= weekly.target;
+  const pct = weekly.target ? Math.round(progress / weekly.target * 100) : 0;
   box.replaceChildren();
 
   const top = document.createElement('div');
@@ -386,7 +468,7 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
   const title = document.createElement('span');
   title.textContent = `${weekly.badge || '🏆'} Desafio semanal`;
   const progressEl = document.createElement('b');
-  progressEl.textContent = `${progress}/${weekly.target}`;
+  progressEl.textContent = `${progress}/${weekly.target} · ${pct}%`;
   top.appendChild(title);
   top.appendChild(progressEl);
 
@@ -402,8 +484,12 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
   const bar = document.createElement('div');
   bar.className = 'daily-bar';
   bar.style.background = 'rgba(155,89,182,0.2)';
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-valuenow', String(pct));
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', '100');
   const fill = document.createElement('div');
-  fill.style.cssText = `width:${Math.round(progress / weekly.target * 100)}%; background: #9b59b6;`;
+  fill.style.cssText = `width:${pct}%; background: #9b59b6;`;
   bar.appendChild(fill);
 
   const button = document.createElement('button');
@@ -1493,8 +1579,33 @@ function bindStatic() {
       pulseStatButton(btn);
       sendMsg({ action: 'triggerAction', value: action });
       showStatusFeedback(STAT_FEEDBACK[action] || 'Ação enviada!');
+      /* otimista: sobe o medidor local até o content sincronizar */
+      const key = btn.dataset.statKey;
+      const bump = Number(String(btn.dataset.statDelta || '+10').replace('+', '')) || 10;
+      if (key && S.stats) {
+        S.stats[key] = Math.min(100, (S.stats[key] || 0) + bump * 0.35);
+        renderStats(S.stats);
+      }
     };
     btn.addEventListener('click', run);
+  });
+
+  // Ações rápidas no header
+  const QUICK_FEEDBACK = {
+    wave: 'Acenando 👋', dance: 'Hora de dançar 🕺', pose: 'Pose! 📸',
+    sleep: 'ZzZz… 😴', balloon: 'Balão 🎈', cheer: 'Yeah! 🎉'
+  };
+  document.querySelectorAll('.btn-quick').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.quickAction;
+      if (!action) return;
+      btn.classList.remove('quick-pulse');
+      void btn.offsetWidth;
+      btn.classList.add('quick-pulse');
+      sendMsg({ action: 'triggerAction', value: action });
+      showStatusFeedback(QUICK_FEEDBACK[action] || 'Ação enviada!');
+      setTimeout(() => btn.classList.remove('quick-pulse'), 400);
+    });
   });
 
   // Studio na página + janela destacável

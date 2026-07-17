@@ -64,7 +64,7 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 
 #### Status clicáveis
 
-Na barra de status (felicidade / saciedade / energia / higiene), **clique no medidor** para disparar a ação correspondente: carinho, alimentar, brincar ou banho — sem precisar ir à aba Ações.
+Na barra de status (felicidade / saciedade / energia / higiene), **clique no medidor** para disparar a ação correspondente: carinho, alimentar, brincar ou banho — sem precisar ir à aba Ações. Cada barra mostra a **porcentagem ao vivo**; a barra de XP exibe `atual/próximo · %` até o próximo nível. Abaixo há **ações rápidas** (aceno, dança, pose, sono, balão, torcida).
 
 #### Slot de Corpo (novo em v3.3)
 

@@ -489,10 +489,15 @@ test('status interativos: medidores clicáveis no popup', () => {
   assert.match(popupHtml, /data-stat-action="happy"/, 'felicidade deve disparar carinho');
   assert.match(popupHtml, /data-stat-action="play"/, 'energia deve disparar play');
   assert.match(popupHtml, /data-stat-action="bath"/, 'higiene deve disparar bath');
+  assert.match(popupHtml, /stat-happiness-val|stat-value/, 'medidores devem mostrar %');
+  assert.match(popupHtml, /xp-bar-label/, 'barra de XP deve mostrar into/next e %');
+  assert.match(popupHtml, /quick-actions|btn-quick/, 'header deve ter ações rápidas');
   assert.match(popupHtml, /btn-open-studio|btn-detach-window/, 'popup deve oferecer studio/janela móvel');
   assert.match(popup, /stat-action/, 'popup.js deve vincular .stat-action');
   assert.match(popup, /triggerAction/, 'popup deve disparar triggerAction ao clicar status');
   assert.match(popup, /openStudio|detachPopupWindow/, 'popup deve abrir studio ou janela destacável');
+  assert.match(popup, /xp-bar-label|into \/ next|into\/next/, 'JS atualiza label de XP');
+  assert.match(popup, /btn-quick|quick-action/, 'JS vincula ações rápidas');
 });
 
 test('slot corpo: DOM, CSS pixel, popup preview e showcase CORPO', () => {
