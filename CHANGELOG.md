@@ -21,11 +21,18 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - **Ambient FX ribbon** — partículas rosas no idle ao usar laço de pescoço
 - **Ambient FX scarf_body** — partículas vermelhas ao andar com cachecol corpo
 - **Classes has-ribbon / has-scarf-body** — toggles em `_syncAccessoryVisuals()` para consistência com has-wings/has-cape/has-armor
+- **Sparks de acessório ampliados** — mapa de cores ao vestir crown/halo/headphones/medal/etc.
+- **3 contratos** de ownership da bola (pé direito, pixel sem blur, kick/roll → direita)
 
 ### Alterado
 
 - `will-change: transform` adicionado ao `.pet-body` durante `.walking` e `.running`
 - `_syncAccessoryVisuals()` agora gerencia 5 classes `has-*` para todos os acessórios de corpo
+- **Bola do Jogador** no **pé direito** (longe do subpet); chuteira alinhada; kick/roll/doPlay para a direita
+- Bola mais **pixel-art** (sem `drop-shadow` suave); animações keepy/kick mais fluidas; área de toque maior
+- Contador de embaixadinhas ao lado direito; pó de caminhada respeita `particleColor`
+- Suíte **153/153**; badge do showcase e docs/VALIDACAO alinhados
+- Ninja: hosts de contexto (hackthebox, tryhackme, security…); `--clawd-accent` no popup/preview
 
 ---
 

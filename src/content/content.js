@@ -1159,7 +1159,7 @@ class ClawdCompanion {
       engineer:   ['github', 'gitlab', 'stackoverflow', 'developer.', 'docs.', 'mdn', 'npmjs', 'pypi'],
       musician:   ['spotify', 'music.youtube', 'soundcloud', 'deezer', 'last.fm', 'letras.mus'],
       chef:       ['tudogostoso', 'receitas', 'panelinha', 'allrecipes', 'cybercook', 'recipe'],
-      ninja:      [],
+      ninja:      ['hackthebox', 'tryhackme', 'ctftime', 'kali', 'exploit', 'security', 'hacker', 'cybersecurity'],
       fisher:     ['pesca', 'fishing', 'natureza', 'aquarius', 'peixe', 'lake', 'rio', 'mar', 'oceano', 'aqua'],
       /* v3.3: novas profissões */
       doctor:     ['medscape', 'healthline', 'bula.ms', 'saude', 'health', 'medical', 'hospital', 'farmacia', 'clinica'],
@@ -1418,6 +1418,7 @@ class ClawdCompanion {
     if (clawdIsHexColor(S.color)) {
       this.node.style.setProperty('--agent-color', S.color);
       this.node.style.setProperty('--clawd-glow', S.color + '70');
+      this.node.style.setProperty('--clawd-accent', S.color);
     }
     if (clawdIsHexColor(S.eyeColor)) this.node.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
     this.node.style.setProperty('--agent-scale', parseFloat(S.scale));
@@ -1865,12 +1866,23 @@ class ClawdCompanion {
     }
     if (this.S.settings.performanceMode || this.S.settings.noParticles) return;
     const sparkMap = {
-      wings: ['#b8d8e8', '#ffffff', '#a8c8dc'],
-      cape: ['#e74c3c', '#c0392b', '#f5f5f5'],
-      armor: ['#95a5a6', '#b2bec3', '#636e72'],
-      propeller: ['#f1c40f', '#3498db', '#e74c3c'],
-      ribbon: ['#ff6b6b', '#e74c3c', '#ffffff'],
-      scarf_body: ['#e74c3c', '#c0392b', '#ffffff']
+      wings:      ['#b8d8e8', '#ffffff', '#a8c8dc'],
+      cape:       ['#e74c3c', '#c0392b', '#f5f5f5'],
+      armor:      ['#95a5a6', '#b2bec3', '#636e72'],
+      propeller:  ['#f1c40f', '#3498db', '#e74c3c'],
+      ribbon:     ['#ff6b6b', '#e74c3c', '#ffffff'],
+      scarf_body: ['#e74c3c', '#c0392b', '#ffffff'],
+      crown:      ['#f1c40f', '#ffd700', '#ffffff'],
+      halo:       ['#ffeaa7', '#f1c40f', '#ffffff'],
+      star_clip:  ['#fdcb6e', '#e17055', '#ffffff'],
+      party_hat:  ['#fd79a8', '#74b9ff', '#55efc4'],
+      witch_hat:  ['#6c5ce7', '#a29bfe', '#fd79a8'],
+      bunny_ears: ['#fd79a8', '#ffffff', '#e84393'],
+      medal:      ['#f1c40f', '#e17055', '#ffffff'],
+      glasses:    ['#74b9ff', '#0984e3', '#ffffff'],
+      headphones: ['#636e72', '#b2bec3', '#74b9ff'],
+      scarf:      ['#e74c3c', '#c0392b', '#ffffff'],
+      bow:        ['#fd79a8', '#e84393', '#ffffff'],
     };
     this.spawnPixelSparks(sparkMap[id] || ['#f1c40f', '#ffffff', '#fda7df'], { count: 5 });
   }
@@ -3020,6 +3032,10 @@ class ClawdCompanion {
           left:${rect.left + 10 + Math.random() * 28}px;
           top:${rect.bottom - 10 + Math.random() * 4}px;
         `;
+        if (this.S.particleColor) {
+          el.style.background = this.S.particleColor + 'aa';
+          el.style.boxShadow = `3px 0 ${this.S.particleColor}77, -2px 1px ${this.S.particleColor}55`;
+        }
         document.body.appendChild(el);
         this._trackParticle(el, 520, true);
       }, i * 45);
@@ -3176,12 +3192,12 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('excited', 2500);
     this.showSpeech('Bola! 🎾', 2000);
-    // bolinha genérica temporária
+    // bolinha sai do pé direito do pet (longe do subpet à esquerda)
     const rect = this.node.getBoundingClientRect();
     const ball = document.createElement('div');
     ball.className = 'aic-toyball';
-    ball.style.left = `${rect.left + 30}px`;
-    ball.style.top = `${rect.top + 20}px`;
+    ball.style.left = `${rect.left + rect.width * 0.72}px`;
+    ball.style.top = `${rect.top + rect.height * 0.55}px`;
     document.body.appendChild(ball);
     setTimeout(() => ball.remove(), 2000);
     this.bumpStat('happiness', 6);
@@ -3492,6 +3508,7 @@ class ClawdCompanion {
         dust.className = 'aic-dust';
         dust.style.left = `${currentX + (dx < 0 ? 60 : -6)}px`;
         dust.style.top = `${rect.top + 70}px`;
+        if (this.S.particleColor) dust.style.background = this.S.particleColor + 'aa';
         document.body.appendChild(dust);
         this._trackParticle(dust, 600);
       }
@@ -3543,8 +3560,19 @@ class ClawdCompanion {
     this.registerDaily('goals');
     this.checkAchievements();
     this.save();
+    // Cachorro busca só depois do chute — e mira o destino à direita do pet
     if (this.subpet && this.subpet.species === 'dog') {
-      this.subpet.fetchBall(this.ballNode.getBoundingClientRect());
+      const kickTarget = this.ballNode.getBoundingClientRect();
+      setTimeout(() => {
+        this.subpet?.fetchBall?.({
+          left: kickTarget.left + 220,
+          top: kickTarget.top,
+          width: kickTarget.width,
+          height: kickTarget.height,
+          right: kickTarget.left + 220,
+          bottom: kickTarget.bottom,
+        });
+      }, 700);
     }
     setTimeout(() => this.ballNode.classList.remove('kicked'), 1400);
   }
@@ -3612,15 +3640,14 @@ class ClawdCompanion {
     const combo = this._juggleCombo;
     this._recordKeepy(finalCount, combo);
     this._resetJuggle();
-    // bola rola, pet corre atrás
+    // bola rola para a direita (longe do subpet); pet corre atrás
     this.ballNode.classList.remove('kicked');
     this.ballNode.classList.add('rolling');
     this.showSpeech(finalCount >= 10 ? `Ufa! ${finalCount} embaixadinhas! 😅` : 'Ops! 😅', 1600);
     this.beep(240, 0.14);
     const rect = this.node.getBoundingClientRect();
-    const dir = Math.random() < 0.5 ? -120 : 120;
     setTimeout(() => {
-      this.startRun(Math.max(10, rect.left + dir));
+      this.startRun(Math.max(10, rect.left + 140));
       setTimeout(() => this.ballNode.classList.remove('rolling'), 1200);
     }, 500);
   }

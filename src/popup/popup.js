@@ -277,9 +277,12 @@ function applyHeaderColor(color) {
   document.querySelector('.header-pet').style.borderColor = color;
   document.querySelector('.header-pet').style.boxShadow = `0 0 16px ${color}55`;
   $('mini-sprite').style.setProperty('--agent-color', color);
+  $('mini-sprite').style.setProperty('--clawd-accent', color);
   $('aic-clawd-node')?.style.setProperty('--agent-color', color);
+  $('aic-clawd-node')?.style.setProperty('--clawd-accent', color);
   document.querySelectorAll('.clawd-model-preview').forEach(preview => {
     preview.style.setProperty('--agent-color', color);
+    preview.style.setProperty('--clawd-accent', color);
   });
 }
 
@@ -308,6 +311,7 @@ function updatePreviewPalette() {
   document.querySelectorAll('.clawd-model-preview').forEach(preview => {
     preview.style.setProperty('--agent-color', S.color || '#c71515');
     preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+    preview.style.setProperty('--clawd-accent', S.color || '#c71515');
   });
 }
 

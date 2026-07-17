@@ -1,15 +1,16 @@
 # Relatório de Validação — Claw'd v3.7
 
-**Data:** 17 de julho de 2026 (v3.7.0 — hover pixel-art, click ring, speed lines, walk dust, partículas emocionais, ripple popup, skin/face animations, ambient FX completo)  
+**Data:** 17 de julho de 2026 (revalidação completa — interações, ações, animações, acessórios + polish da bola no pé direito)  
 **Ambiente:** Windows · Node.js 24 · Edge/Chromium com perfil isolado  
-**Marco:** **150/150** contratos — animações, interações, ações 100%, acessórios, popup UX, mecânicas avançadas
+**Marco:** **153/153** contratos — animações, interações, ações 100%, acessórios, popup UX, mecânicas avançadas, ownership da bola
 
 ## Resultado
 
 - Verificações de sintaxe: **aprovadas** (`catalog`, `content`, `popup`, `background`, `showcase`);
-- Suíte `node:test`: **150/150 testes aprovados** (catálogo, extensão, integridade, harmonia, qualidade-fluida, validação-completa);
+- Suíte `node:test`: **153/153 testes aprovados** (catálogo, extensão, integridade, harmonia, qualidade-fluida, validação-completa);
 - `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** (inclui **100%** das 30 ações no map `_handleAction`);
 - Smoke test em navegador Chromium/Edge real: **aprovado** (`runtimeErrors: 0`, `invalidContextErrors: 0`, `reloads: [1,1,1]`);
+- Audit pontual bola/acessórios: **AUDIT_OK** (bola `left: 48px`, sem drop-shadow, kick/roll à direita, 31 acessórios CSS);
 - Assets: **8/8** PNGs em `src/shared/sprites/subpets/` com `image.url` no catálogo.
 
 ## Matriz de validação (fases 1–6)
@@ -22,10 +23,11 @@
 | **4** | 31 acessórios CSS, uniforme sem destruir pessoal, props | ✅ | `validation-complete` + integrity slot body |
 | **5** | Studio/detach, status×4, shop/claim, quiet/block, migrate | ✅ | `validation-complete` + integrity status |
 | **6** | Combo 10s, streak, daily 14 / weekly 12, cross-tab, SFX | ✅ | `validation-complete` + quality-fluid volumes |
+| **7** | Bola no pé direito, pixel sem blur, kick/roll → direita | ✅ | 3 contratos novos em `validation-complete` |
 
-## Contratos novos (validação completa — 20 testes)
+## Contratos novos (validação completa)
 
-Arquivo: `tests/validation-complete.test.js`
+Arquivo: `tests/validation-complete.test.js` — **23** contratos no arquivo (20 originais + 3 polish bola).
 
 | Contrato | Status |
 |----------|--------|
@@ -49,6 +51,9 @@ Arquivo: `tests/validation-complete.test.js`
 | Combo 10s / exclusões / XP / conquista | ✅ |
 | Streak + daily 14 / weekly 12 | ✅ |
 | Cross-tab SW + subpets 8×7 + SFX dual | ✅ |
+| Bola no pé direito (≥40px) + chuteira alinhada | ✅ |
+| Bola pixel sem drop-shadow; kick/roll à direita | ✅ |
+| Headphones + skins `ball_beach` / `ball_gold` | ✅ |
 
 ## Contagens vivas (SSOT `catalog.js`)
 
@@ -64,26 +69,17 @@ Arquivo: `tests/validation-complete.test.js`
 | Daily / weekly | **14** / **12** |
 | Schema | **v5** |
 | Popup header / docs | **v3.7** |
+| Contratos automatizados | **153** |
 
-## Checklist v3.7 — animações e interações
+## Smoke runtime (amostra)
 
-| Item | Verificado |
+| Área | Resultado |
 |------|-----------|
-| Hover pixel-art: sombra + brightness ao passar mouse no pet | ✅ |
-| Click ring: anel expansivo ao pressionar o pet | ✅ |
-| Speed lines: linhas brancas horizontais ao correr | ✅ |
-| Walk dust trail: pó de poeira ao caminhar via `_doAutoWalk()` | ✅ |
-| Partículas emocionais: corações (joyful), estrelas (ecstatic), azul (sad/peppy) | ✅ |
-| Ripple nos botões de ação do popup | ✅ |
-| Flash dourado na XP bar ao subir de nível | ✅ |
-| Skin `glow`: brilho ciano pulsante | ✅ |
-| Skin `robot`: scan-line steps(2) | ✅ |
-| Rosto `sparkle`: cintilação nos olhos | ✅ |
-| Rosto `heart`: pulsação do coração | ✅ |
-| `ribbon` e `scarf_body`: partículas ambiente | ✅ |
-| `has-ribbon` / `has-scarf-body` classes em `_syncAccessoryVisuals()` | ✅ |
-| `prefers-reduced-motion`: ring/speed-lines/scan desativados | ✅ |
-| `will-change: transform` no `.pet-body` durante walking/running | ✅ |
+| Ações disparadas no pet | 30 estados coerentes (wave→holding-balloon→…) |
+| Popup | 8 abas · 12 profissões · 30 ações · 31 acessórios (16+12+6) · 34 conquistas |
+| Outfit pixel/smooth | paint box-shadow presente; remoção OK |
+| Subpet | 6 interações + override + remoção limpa |
+| Reloads | `[1,1,1]` · `runtimeErrors: 0` |
 
 ## Checklist smoke manual (5 min)
 
@@ -93,12 +89,13 @@ Arquivo: `tests/validation-complete.test.js`
 - [ ] Auto-walk → rastro de pó atrás das patas
 - [ ] Correr → speed lines brancas + rastro mais intenso
 - [ ] Carinho (1 clique) → cambalhota (2) → superdance (3+)
+- [ ] Profissão Jogador → bola no **pé direito** (longe do subpet)
+- [ ] Toque na bola → embaixadinhas; duplo-clique → chute à direita
+- [ ] Acessório fones (`headphones`) = conchas cinza laterais
 - [ ] 1 acessório body abaixo do rosto
 - [ ] Profissão Dev + foco em input → laptop
 - [ ] Studio na página arrastável / janela `?detached=1`
-- [ ] Status feed/happy/play/bath no popup → ver ripple no botão
-- [ ] Skin glow → pulsação ciano suave
-- [ ] Rosto sparkle → olhos cintilando
+- [ ] Status feed/happy/play/bath no popup → ripple no botão
 
 ## Comandos reproduzíveis
 

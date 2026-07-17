@@ -12,7 +12,7 @@ Extensão Chrome MV3 **vanilla** (sem bundler). Há um `package.json` só para s
 | **UI** | `src/popup/*` | Controles, preview, studio in-page / janela destacável; messaging tipado. |
 | **Assets** | `src/assets/`, `src/shared/sprites/` | Ícones, banners SVG, PNGs de sub-pets (`web_accessible_resources`). |
 | **Docs / Labs** | `docs/` | Vitrine HTML, arquitetura e markdown de produto em `docs/md/`. |
-| **Testes** | `tests/*.test.js` (**150**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs` | Contratos, ecosystem estático e smoke Edge. |
+| **Testes** | `tests/*.test.js` (**153**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs` | Contratos, ecosystem estático e smoke Edge. |
 
 ```
 manifest.json
@@ -119,7 +119,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 | PNGs canônicos dos sub-pets | `node tests/tools/crop-literal-sprites.mjs` |
 | Frames/preview (não sobrescreve pacote) | `node tests/tools/make-sprites.mjs` |
 | Ícones da extensão | `node tests/tools/make-icons.mjs` |
-| Suíte de contratos | `npm test` (**150**) |
+| Suíte de contratos | `npm test` (**153**) |
 | Ecosystem estático | `npm run ecosystem` |
 | Smoke Edge | `npm run smoke` |
 

@@ -1,7 +1,28 @@
-# 🚀 Claw'd — Registro de entregas v3.2, v3.3 e v3.6
+# 🚀 Claw'd — Registro de entregas v3.2–v3.7
 
-> Documento histórico das entregas das versões v3.2, v3.3 e v3.6 (não é roadmap aberto).
+> Documento histórico das entregas das versões v3.2–v3.7 (não é roadmap aberto).
 > Os blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção.
+
+---
+
+## v3.7 — Animações + polish da bola (2026-07-17)
+
+### Entregas v3.7
+
+| Módulo | Entrega | Tipo | Estado |
+|--------|---------|------|--------|
+| **CSS** | Hover pixel, click ring, speed lines, skins glow/robot, faces sparkle/heart | feature | ✅ |
+| **CSS** | Bola no pé direito; pixel sem drop-shadow; kick/roll → direita; chuteira alinhada | polish | ✅ |
+| **JS** | Walk dust, partículas emocionais, sparks de acessório ampliados, doPlay spawn direita | feature | ✅ |
+| **JS** | `--clawd-accent`; ninja hosts de contexto; particleColor no pó | polish | ✅ |
+| **Tests** | +3 contratos ownership/pixel da bola → suíte **153/153** | qualidade | ✅ |
+| **Docs** | VALIDACAO, README, MANUAL, CHANGELOG, showcase badge | docs | ✅ |
+
+### Resumo técnico
+
+- **Ownership visual**: `.pet-ball` `left: 48px` (pé direito); subpet permanece à esquerda — evita impressão de que o coelho joga a bola
+- **Pixel-art**: `box-shadow` em grade 2px; `filter: none` (sem blur); área `::before` de toque maior
+- **Suite**: 150 → **153/153** contratos automatizados
 
 ---
 
@@ -30,7 +51,7 @@
 - **Hover glow**: `drop-shadow(0 0 5px --clawd-glow)` + `brightness(1.06)` no `.smooth:hover` — derivado de hex color `+70` (44% alpha)
 - **RAF orphan guard**: `cancelAnimationFrame + return` se `!document.body.contains(node)` no tick do SubPet
 - **A11y**: `srStatusNode` atualiza textContent com label de emoção legível em PT-BR ao mudar de estado
-- **Suite**: 123 → 130 → **150/150** contratos automatizados
+- **Suite**: 123 → 130 → 150 → **153/153** contratos automatizados
 
 ---
 

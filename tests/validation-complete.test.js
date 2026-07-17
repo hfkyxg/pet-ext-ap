@@ -282,3 +282,33 @@ test('validação: cross-tab travel + footprints no SW; subpets 8×7; SFX dual',
   assert.match(content, /soundVolumeActions|soundVolumeAmbient|'actions'/);
   assert.match(content, /master\s*<=\s*0\)\s*return/);
 });
+
+/* ---------- Polish bola / ownership (pé direito, longe do subpet) ---------- */
+test('validação: bola no pé direito do pet (não sobre o subpet)', () => {
+  const block = style.match(/#aic-clawd-node \.pet-ball \{[\s\S]*?\n\}/);
+  assert.ok(block, '.pet-ball ausente');
+  const left = block[0].match(/left:\s*(-?\d+)px/);
+  assert.ok(left, 'left da bola ausente');
+  assert.ok(Number(left[1]) >= 40, `bola deve ficar à direita (>=40px), got ${left[1]}`);
+  assert.match(style, /\.prop-footballer-boot \{[\s\S]{0,60}left:\s*4\dpx/);
+  assert.match(style, /#aic-clawd-node\.smooth\.has-ball \.pet-ball \{[\s\S]{0,80}left:\s*4\dpx/);
+});
+
+test('validação: bola pixel-art sem blur; kick/roll para a direita', () => {
+  const ballHead = style.slice(style.indexOf('#aic-clawd-node .pet-ball {'), style.indexOf('#aic-clawd-node .pet-ball {') + 900);
+  assert.doesNotMatch(ballHead, /filter:\s*drop-shadow/);
+  assert.match(style, /clawd-ball-kick[\s\S]{0,280}translate\(\s*\d+px/);
+  assert.match(style, /clawd-ball-roll[\s\S]{0,120}translate\(\s*\d+px/);
+  assert.match(style, /@keyframes clawd-ball-keepy/);
+  assert.match(style, /@keyframes clawd-ball-juggle/);
+  assert.match(content, /juggleTouch\(\)/);
+  assert.match(content, /doPlay\(\)[\s\S]{0,500}0\.72/);
+});
+
+test('validação: headphones (fones) e skins beach/gold da bola', () => {
+  assert.ok(CLAWD_ACCESSORIES.headphones);
+  assert.equal(CLAWD_ACCESSORIES.headphones.slot, 'face');
+  assert.match(style, /data-acc-face="headphones"[\s\S]{0,200}box-shadow:/);
+  assert.match(style, /data-ball-skin="ball_beach"/);
+  assert.match(style, /data-ball-skin="ball_gold"/);
+});
