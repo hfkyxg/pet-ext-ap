@@ -365,6 +365,8 @@
 #aic-clawd-node[data-clawd-owned="true"].dragging {
   will-change: transform, left, top;
 }
+#aic-clawd-node.walking .pet-body,
+#aic-clawd-node.running .pet-body { will-change: transform; }
 #aic-clawd-node[data-clawd-owned="true"].dragging,
 #aic-clawd-node[data-clawd-owned="true"].pressing {
   transition: opacity 0.35s ease;
@@ -939,6 +941,44 @@
   animation: none !important;
   transform: scale(0.92, 1.06);
   transition: transform .08s ease-out;
+}
+/* Hover estado pixel-art (modo não-smooth) */
+#aic-clawd-node:not(.smooth):not(.dragging):not(.sleeping):hover .pet-body {
+  filter: brightness(1.07) drop-shadow(0 2px 4px rgba(0,0,0,0.22));
+  transition: filter 0.18s ease;
+}
+/* Ring de clique — expande e some ao pressionar */
+#aic-clawd-node.pressing::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 36px; height: 36px;
+  margin-left: -18px; margin-top: -18px;
+  border-radius: 50%;
+  border: 2px solid var(--clawd-accent, #e74c3c);
+  pointer-events: none;
+  animation: clawd-click-ring 0.42s ease-out forwards;
+  z-index: 10;
+}
+@keyframes clawd-click-ring {
+  0%   { transform: scale(0.3); opacity: 0.75; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+/* Speed lines ao correr */
+#aic-clawd-node.running:not(.aic-reduced-motion)::before {
+  content: '';
+  position: absolute;
+  left: -18px; top: 14px;
+  width: 14px; height: 2px;
+  background: rgba(255,255,255,0.6);
+  box-shadow: 0 7px rgba(255,255,255,0.38), 0 13px rgba(255,255,255,0.2);
+  pointer-events: none;
+  animation: clawd-speed-lines 0.22s linear infinite;
+  z-index: 1;
+}
+@keyframes clawd-speed-lines {
+  0%   { transform: translateX(0); opacity: 0.6; }
+  100% { transform: translateX(-16px); opacity: 0; }
 }
 #aic-clawd-node.outlined .sprite-stack {
   filter:

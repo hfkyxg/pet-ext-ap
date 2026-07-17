@@ -905,6 +905,28 @@ button.stat-action.stat-pulse {
   40% { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
+button.stat-action.stat-ripple { position: relative; overflow: hidden; }
+button.stat-action.stat-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.22);
+  border-radius: inherit;
+  animation: clawd-btn-ripple 0.38s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes clawd-btn-ripple {
+  0%   { transform: scale(0.2); opacity: 1; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+.stat-fill.xp-levelup-flash {
+  animation: clawd-xp-levelup 0.55s ease-out forwards;
+}
+@keyframes clawd-xp-levelup {
+  0%   { filter: brightness(1); }
+  30%  { filter: brightness(2) saturate(1.4); }
+  100% { filter: brightness(1); }
+}
 .stat-delta {
   position: absolute;
   right: 6px;

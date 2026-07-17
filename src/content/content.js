@@ -2904,6 +2904,17 @@ class ClawdCompanion {
       if (this.emotion === 'ecstatic') this.showSpeech(this.getRandom('ecstatic'), 3000);
       if (this.emotion === 'peppy') this.showSpeech(this.getRandom('peppy'), 2800);
       if (this.emotion === 'grubby') this.showSpeech(this.getRandom('grubby'), 3000);
+      if (!this.S.settings.noParticles && !this.S.settings.performanceMode && !this._reducedMotion) {
+        const emotionPalettes = {
+          joyful:   ['#fd79a8', '#e84393', '#ffffff'],
+          ecstatic: ['#f1c40f', '#ffeaa7', '#fd79a8'],
+          peppy:    ['#74b9ff', '#55a9dd', '#ffffff'],
+          sad:      ['#74b9ff', '#0984e3', '#dfe6e9'],
+        };
+        if (emotionPalettes[this.emotion]) {
+          this.spawnPixelSparks(emotionPalettes[this.emotion], { count: 3 });
+        }
+      }
     }
   }
 
@@ -4366,6 +4377,9 @@ class ClawdCompanion {
 
       this.updatePosition(startX + dx * progress, startY + dy * progress);
 
+      if (Math.random() < 0.22 && !this.S.settings.performanceMode && !this._reducedMotion) {
+        this._spawnWalkDust(2);
+      }
       if (progress < 1) {
         this._motionRaf = requestAnimationFrame(step);
       } else {

@@ -1,6 +1,6 @@
-# Relatório de Validação — Claw'd v3.6
+# Relatório de Validação — Claw'd v3.7
 
-**Data:** 17 de julho de 2026 (v3.6.0 — validação completa fases 0–7)  
+**Data:** 17 de julho de 2026 (v3.7.0 — hover pixel-art, click ring, speed lines, walk dust, partículas emocionais, ripple popup, skin/face animations, ambient FX completo)  
 **Ambiente:** Windows · Node.js 24 · Edge/Chromium com perfil isolado  
 **Marco:** **150/150** contratos — animações, interações, ações 100%, acessórios, popup UX, mecânicas avançadas
 
@@ -63,16 +63,42 @@ Arquivo: `tests/validation-complete.test.js`
 | Conquistas | **34** |
 | Daily / weekly | **14** / **12** |
 | Schema | **v5** |
-| Popup header / docs | **v3.6** |
+| Popup header / docs | **v3.7** |
+
+## Checklist v3.7 — animações e interações
+
+| Item | Verificado |
+|------|-----------|
+| Hover pixel-art: sombra + brightness ao passar mouse no pet | ✅ |
+| Click ring: anel expansivo ao pressionar o pet | ✅ |
+| Speed lines: linhas brancas horizontais ao correr | ✅ |
+| Walk dust trail: pó de poeira ao caminhar via `_doAutoWalk()` | ✅ |
+| Partículas emocionais: corações (joyful), estrelas (ecstatic), azul (sad/peppy) | ✅ |
+| Ripple nos botões de ação do popup | ✅ |
+| Flash dourado na XP bar ao subir de nível | ✅ |
+| Skin `glow`: brilho ciano pulsante | ✅ |
+| Skin `robot`: scan-line steps(2) | ✅ |
+| Rosto `sparkle`: cintilação nos olhos | ✅ |
+| Rosto `heart`: pulsação do coração | ✅ |
+| `ribbon` e `scarf_body`: partículas ambiente | ✅ |
+| `has-ribbon` / `has-scarf-body` classes em `_syncAccessoryVisuals()` | ✅ |
+| `prefers-reduced-motion`: ring/speed-lines/scan desativados | ✅ |
+| `will-change: transform` no `.pet-body` durante walking/running | ✅ |
 
 ## Checklist smoke manual (5 min)
 
 - [ ] Idle estático (sem pernas box-shadow no idle)
+- [ ] Hover no pet (pixel mode) → sombra + brightness sutil
+- [ ] Clique no pet → ring expansivo vermelho
+- [ ] Auto-walk → rastro de pó atrás das patas
+- [ ] Correr → speed lines brancas + rastro mais intenso
 - [ ] Carinho (1 clique) → cambalhota (2) → superdance (3+)
 - [ ] 1 acessório body abaixo do rosto
 - [ ] Profissão Dev + foco em input → laptop
 - [ ] Studio na página arrastável / janela `?detached=1`
-- [ ] Status feed/happy/play/bath no popup
+- [ ] Status feed/happy/play/bath no popup → ver ripple no botão
+- [ ] Skin glow → pulsação ciano suave
+- [ ] Rosto sparkle → olhos cintilando
 
 ## Comandos reproduzíveis
 

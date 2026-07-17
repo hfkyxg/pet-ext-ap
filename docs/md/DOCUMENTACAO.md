@@ -381,4 +381,34 @@ Os **150 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 
 ---
 
+## 10. Novidades v3.6 / v3.7
+
+### v3.6 — Props, Studio, Personalidade, A11y
+
+| Feature | Detalhe técnico |
+|---------|----------------|
+| **CLAWD_TIMINGS** | Objeto em `catalog.js` com 8 constantes (`SUBPET_INTERACTION_MS`, `STAT_DECAY_MS`, `STORAGE_DEBOUNCE_MS`, `PARTICLE_MAX: 18`, `SETTLE_EPS_PX: 0.5`, `DOUBLE_CLICK_WINDOW_MS: 220`, `RANDOM_ACTION_MS: 25000`, `DUO_SCENE_MS: 32000`). Elimina magic numbers em `content.js` e `popup.js`. |
+| **Props animados (12)** | Cada profissão tem um `<div class="profession-prop ...">` no template. Keyframes: `clawd-chef-stir`, `clawd-cursor-blink`, `clawd-boot-tap`, `clawd-bobber`, `clawd-note-float`, `clawd-glint`, `clawd-smoke-puff`, `clawd-steam`. Opacidade 0 por padrão; ativados via `.cooking`, `.typing`, `.keepy-uppy`, etc. |
+| **Studio in-page** | `openStudio()` injeta painel flutuante arrastável; `?detached=1` abre em janela popup separada. |
+| **Personalidade adaptativa** | `S.personality.playful/lazy/bold` lidos em `_scheduleInteraction()` e `_decayStats()` para ajustar intervalo e velocidade de decay. |
+| **A11y live region** | `<div role="status" aria-live="polite" class="clawd-sr-only">` em `#aic-clawd-node`; atualizado em `updateEmotion()`. CSS `.clawd-sr-only`: `position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0)`. |
+| **SubPet RAF guard** | `_loop()` do SubPet verifica `document.body.contains(this._node)` antes de continuar; termina silenciosamente ao detectar nó removido. |
+
+### v3.7 — Animações, Partículas e Interações
+
+| Feature | Detalhe técnico |
+|---------|----------------|
+| **Hover pixel-art** | `#aic-clawd-node:not(.smooth):not(.dragging):hover .pet-body { filter: brightness(1.07) drop-shadow(...); transition: filter 0.18s ease; }` — GPU-friendly via `filter`. |
+| **Click ring** | `.pressing::after` com `@keyframes clawd-click-ring` (scale 0.3→2.4, opacity 0.75→0, 0.42s). Disparado automaticamente pela classe `.pressing` que já existia. |
+| **Speed lines** | `.running:not(.aic-reduced-motion)::before` com `@keyframes clawd-speed-lines` (translateX 0→-16px, 0.22s linear infinite). |
+| **Walk dust trail** | `_spawnWalkDust(2)` chamado com 22% probabilidade por frame dentro do `_doAutoWalk()` RAF step. O método já tem throttle interno de 280ms — sem risco de over-spawn. |
+| **Partículas emocionais** | Adicionadas em `updateEmotion()`: joyful→rosa, ecstatic→dourado, peppy→azul, sad→azul. Respeitam `noParticles`, `performanceMode` e `_reducedMotion`. |
+| **Ripple botões popup** | `pulseStatButton()` adiciona classe `stat-ripple` → `::after` com `clawd-btn-ripple` (scale 0.2→2.8, 0.38s). |
+| **XP level-up flash** | Em `renderHeader()`, ao detectar mudança de nível, aplica `xp-levelup-flash` na `.stat-fill` da barra de XP (`clawd-xp-levelup`, brightness 1→2→1, 0.55s). |
+| **Skin animations** | `glow`: `clawd-skin-glow-pulse` 2.4s ease-in-out (brightness + cyan drop-shadow). `robot`: `clawd-skin-robot-scan` 2s steps(2) (brightness step). Ambos usam `:not(.aic-reduced-motion)` no seletor. |
+| **Face animations** | `sparkle`: `clawd-face-sparkle-twinkle` 1.6s nos olhos. `heart`: `clawd-face-heart-pulse` 1.2s scale no coração. Idem reduced-motion guard. |
+| **Ambient FX completo** | `ribbon` (idle 8%), `scarf_body` (moving 8%) adicionados ao `_tickAccessoryAmbientFx()`. Classes `has-ribbon` / `has-scarf-body` adicionadas ao `_syncAccessoryVisuals()`. |
+
+---
+
 *Documentação Técnica — Claw'd · atualizada em 17/07/2026*

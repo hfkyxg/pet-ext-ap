@@ -3,6 +3,32 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.7.0] — 2026-07-17
+
+### Adicionado
+
+- **Hover pixel-art** — `brightness(1.07) + drop-shadow` ao passar mouse no pet em modo não-smooth
+- **Click ring** — anel expansivo (scale 0.3→2.4, opacity fade) via `::after` na classe `.pressing`
+- **Speed lines** — linhas horizontais brancas via `::before` em `.running` (GPU-friendly, `will-change: transform` no `.pet-body`)
+- **Walk dust trail** — `_spawnWalkDust(2)` com 22% de probabilidade por frame no `_doAutoWalk()` RAF
+- **Partículas emocionais** — corações (joyful), estrelas (ecstatic), azul (peppy/sad) em `updateEmotion()` ao mudar emoção
+- **Ripple nos botões** — `stat-ripple` + `::after` com `clawd-btn-ripple` em todos os botões de ação do popup
+- **Flash XP level-up** — `xp-levelup-flash` com `clawd-xp-levelup` na barra de XP ao subir de nível
+- **Skin glow** — keyframe `clawd-skin-glow-pulse` (brightness + drop-shadow pulsante 2.4s)
+- **Skin robot** — keyframe `clawd-skin-robot-scan` (scan-line steps(2) 2s)
+- **Face sparkle** — keyframe `clawd-face-sparkle-twinkle` (brilho 1.6s nos olhos)
+- **Face heart** — keyframe `clawd-face-heart-pulse` (scale 1→1.15 1.2s no coração)
+- **Ambient FX ribbon** — partículas rosas no idle ao usar laço de pescoço
+- **Ambient FX scarf_body** — partículas vermelhas ao andar com cachecol corpo
+- **Classes has-ribbon / has-scarf-body** — toggles em `_syncAccessoryVisuals()` para consistência com has-wings/has-cape/has-armor
+
+### Alterado
+
+- `will-change: transform` adicionado ao `.pet-body` durante `.walking` e `.running`
+- `_syncAccessoryVisuals()` agora gerencia 5 classes `has-*` para todos os acessórios de corpo
+
+---
+
 ## [3.6.0] — 2026-07-17
 
 ### Adicionado

@@ -116,6 +116,13 @@ function renderHeader() {
     levelEl.classList.remove('xp-level-bump');
     void levelEl.offsetWidth;
     levelEl.classList.add('xp-level-bump');
+    const xpFill = document.querySelector('#xp-bar .stat-fill, .stat-xp-bar .stat-fill, [data-stat="xp"] .stat-fill');
+    if (xpFill) {
+      xpFill.classList.remove('xp-levelup-flash');
+      void xpFill.offsetWidth;
+      xpFill.classList.add('xp-levelup-flash');
+      setTimeout(() => xpFill.classList.remove('xp-levelup-flash'), 600);
+    }
   }
 
   $('xp-count').textContent = `${S.xp} XP`;
@@ -236,11 +243,12 @@ function showStatusFeedback(text, { error = false } = {}) {
 
 function pulseStatButton(btn) {
   if (!btn) return;
-  btn.classList.remove('stat-pulse');
+  btn.classList.remove('stat-pulse', 'stat-ripple');
   void btn.offsetWidth;
-  btn.classList.add('stat-pulse');
+  btn.classList.add('stat-pulse', 'stat-ripple');
   showStatDelta(btn);
   setTimeout(() => btn.classList.remove('stat-pulse'), 450);
+  setTimeout(() => btn.classList.remove('stat-ripple'), 400);
 }
 
 function activatePopupTab(tabId) {

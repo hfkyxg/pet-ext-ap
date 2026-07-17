@@ -121,7 +121,7 @@ test('README e documentação identificam a versão e o ano atuais', () => {
   const docs = `${read('docs/md/DOCUMENTACAO.md')}\n${read('docs/md/MANUAL.md')}`;
   const banner = read('src/assets/pet-banner.svg');
   const modelGallery = read('src/assets/pet-states.svg');
-  assert.match(readme, /version-3\.[23]/);
+  assert.match(readme, /version-3\.[2-9]/);
   assert.match(readme, /MIT © 2026/);
   assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
   assert.match(docs, /2026/);
