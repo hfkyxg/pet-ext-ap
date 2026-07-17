@@ -27,7 +27,7 @@ function clawdEnsureDailyQuest(state, date = new Date().toISOString().slice(0, 1
 }
 
 function clawdRegisterDailyProgress(state, type, amount = 1) {
-  const quest = clawdEnsureDailyQuest(state);
+  const quest = clawdEnsureDailyQuest(state, state.daily && state.daily.date);
   if (quest.type !== type || quest.claimed) return quest;
   quest.progress = Math.min(quest.target, (quest.progress || 0) + amount);
   return quest;
@@ -87,7 +87,8 @@ var CLAWD_FACE_STYLES = {
   classic: { label: 'Clássico',  badge: '•', desc: 'Olhos quadrados fiéis ao sprite original.' },
   sparkle: { label: 'Brilho',    badge: '✦', desc: 'Reflexos pixelados que deixam o olhar mais vivo.' },
   focused: { label: 'Focado',    badge: '⌁', desc: 'Sobrancelhas angulares para uma expressão determinada.' },
-  sleepy:  { label: 'Sonolento', badge: '–', desc: 'Olhos em traço, calmos mesmo durante o repouso.' }
+  sleepy:  { label: 'Sonolento', badge: '–', desc: 'Olhos em traço, calmos mesmo durante o repouso.' },
+  drool:   { label: 'Babão',     badge: '~', desc: 'Expressão derp com a boca aberta e uma babinha pingando.' }
 };
 
 var CLAWD_SKINS = {

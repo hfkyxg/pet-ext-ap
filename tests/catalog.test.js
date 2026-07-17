@@ -61,7 +61,7 @@ test('migração preserva saves antigos e adiciona missão sem corromper sub-pet
 
 test('modelos, rostos e cor dos olhos são versionados e validados', () => {
   assert.deepEqual(Object.keys(CLAWD_MODELS), ['classic', 'mini', 'claws', 'guardian']);
-  assert.deepEqual(Object.keys(CLAWD_FACE_STYLES), ['classic', 'sparkle', 'focused', 'sleepy']);
+  assert.deepEqual(Object.keys(CLAWD_FACE_STYLES), ['classic', 'sparkle', 'focused', 'sleepy', 'drool']);
   assert.deepEqual(Object.keys(CLAWD_SKINS), ['normal', 'droopy', 'robot']);
   const defaults = clawdDefaultState();
   assert.deepEqual(
@@ -234,6 +234,17 @@ test('cada modelo possui silhueta pixel, pernas próprias e variante lisa', () =
   for (const id of Object.keys(CLAWD_FACE_STYLES).filter(id => id !== 'classic')) {
     assert.match(styleSource, new RegExp(`data-face-style="${id}"`), `rosto sem CSS: ${id}`);
   }
+});
+
+test('a babinha existe, pinga no sono e usa apenas GPU (transform/opacity)', () => {
+  assert.ok(CLAWD_FACE_STYLES.drool, 'rosto drool ausente do catálogo');
+  assert.match(styleSource, /@keyframes clawd-drool-drip/, 'keyframe da babinha ausente');
+  assert.match(styleSource, /\.sleeping \.emotion-mouth::before[\s\S]{0,320}clawd-drool-drip/, 'baba não pinga no estado sleeping');
+  const dripBlock = styleSource.match(/@keyframes clawd-drool-drip\s*\{[\s\S]*?\n\}/);
+  assert.ok(dripBlock, 'bloco de keyframe da babinha ilegível');
+  assert.match(dripBlock[0], /transform:/, 'babinha precisa acionar transform');
+  assert.match(dripBlock[0], /opacity:/, 'babinha precisa animar opacity');
+  assert.doesNotMatch(dripBlock[0], /\b(left|top|width|height|margin)\s*:/, 'babinha deve animar só transform/opacity');
 });
 
 test('keyframes internos são isolados do CSS das páginas visitadas', () => {

@@ -963,6 +963,28 @@
 #aic-clawd-node.happy .emotion-mouth::after,
 #aic-clawd-node.celebrate .emotion-mouth::after { opacity: .9; }
 
+/* --- BABINHA (drool) --- gota que pinga só no sono, GPU (transform/opacity) --- */
+@keyframes clawd-drool-drip {
+  0%, 100% { transform: translateY(0) scaleY(1); opacity: .4; }
+  50%      { transform: translateY(3px) scaleY(1.4); opacity: .85; }
+}
+#aic-clawd-node.sleeping .emotion-mouth::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 2px;
+  height: 3px;
+  margin-left: -1px;
+  border-radius: 0 0 2px 2px;
+  background: #bfe3ff;
+  box-shadow: 0 1px 1px rgba(90,160,220,0.35);
+  opacity: .6;
+  transform-origin: top center;
+  animation: clawd-drool-drip 2.4s ease-in-out infinite;
+}
+#aic-clawd-node.mouth-hidden.sleeping .emotion-mouth::before { display: none; }
+
 /* --- ETIQUETA DE NOME (+ temas) --- */
 #aic-clawd-node .name-tag {
   font-family: 'Courier New', Courier, monospace;
@@ -2447,6 +2469,30 @@
   height: 1px;
   box-shadow: 16px 0 var(--agent-eye-color);
 }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="drool"] .emotion-mouth {
+  left: 19px;
+  top: 8px;
+  width: 6px;
+  height: 5px;
+  border: 2px solid #211418;
+  border-radius: 0 0 40% 40%;
+  opacity: .9;
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="drool"] .face-detail::after {
+  content: '';
+  position: absolute;
+  left: 24px;
+  top: 12px;
+  width: 2px;
+  height: 4px;
+  border-radius: 0 0 2px 2px;
+  background: #bfe3ff;
+  box-shadow: 0 1px 1px rgba(90,160,220,0.35);
+  opacity: .75;
+  transform-origin: top center;
+  animation: clawd-drool-drip 2.4s ease-in-out infinite;
+}
+#aic-clawd-node.mouth-hidden[data-face-style="drool"] .emotion-mouth { display: none !important; }
 #aic-clawd-node .blink-line {
   background: var(--agent-eye-color);
   box-shadow: 16px 0 var(--agent-eye-color);
@@ -2509,4 +2555,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   #aic-clawd-node .pixel-legs { animation-duration: 4s !important; animation-iteration-count: 1 !important; }
+  #aic-clawd-node.sleeping .emotion-mouth::before,
+  :is(#aic-clawd-node, .clawd-model-preview)[data-face-style="drool"] .face-detail::after {
+    animation: none !important;
+    transform: translateY(1px);
+    opacity: .6;
+  }
 }
