@@ -1,7 +1,36 @@
-# 🚀 Claw'd — Registro de entregas v3.2 e v3.3
+# 🚀 Claw'd — Registro de entregas v3.2, v3.3 e v3.6
 
-> Documento histórico das entregas das versões v3.2 e v3.3 (não é roadmap aberto).
+> Documento histórico das entregas das versões v3.2, v3.3 e v3.6 (não é roadmap aberto).
 > Os blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção.
+
+---
+
+## v3.6 — Polish Completo: Animações, Performance e A11y (2026-07-17)
+
+### Entregas v3.6
+
+| Módulo | Entrega | Tipo | Estado |
+|--------|---------|------|--------|
+| **CSS** | Props de profissão animados: chef-stir, cursor-blink, boot-tap | feature | ✅ |
+| **CSS** | Hover glow reativo em modo Smooth (`--clawd-glow`) | feature | ✅ |
+| **CSS** | `.clawd-sr-only` (screen-reader only visually hidden) | a11y | ✅ |
+| **JS** | `CLAWD_TIMINGS` centralizado em catalog.js + export | perf | ✅ |
+| **JS** | SubPet RAF guard — `document.body.contains()` antes de tick | bug fix | ✅ |
+| **JS** | SubPet interação ajustada por `personality.playful/lazy` | feature | ✅ |
+| **JS** | `--clawd-glow` sincronizado com cor primária do pet | feature | ✅ |
+| **JS** | Live region `aria-live="polite"` para mudanças de emoção | a11y | ✅ |
+| **HTML** | `stat-feed-btn` — saciedade clicável para feed rápido | UX | ✅ |
+| **Tests** | 4 novos testes de integridade (TIMINGS, props, A11y, feed) | qualidade | ✅ |
+| **Docs** | CHANGELOG, README, MELHORIAS, VALIDACAO, docs/index.html | docs | ✅ |
+
+### Resumo técnico
+
+- **Magic numbers eliminados**: `28000`, `350`, `60000`, `18`, `0.5`, `25000`, `32000` → `CLAWD_TIMINGS.*`
+- **Props animator**: engineer + footballer sem props visuais agora têm keyframes dedicados; chef pan stir soma ao steam existente
+- **Hover glow**: `drop-shadow(0 0 5px --clawd-glow)` + `brightness(1.06)` no `.smooth:hover` — derivado de hex color `+70` (44% alpha)
+- **RAF orphan guard**: `cancelAnimationFrame + return` se `!document.body.contains(node)` no tick do SubPet
+- **A11y**: `srStatusNode` atualiza textContent com label de emoção legível em PT-BR ao mudar de estado
+- **Suite**: 123 → 130 → **150/150** contratos automatizados
 
 ---
 
@@ -44,9 +73,9 @@
 
 **Marco v3.2 — Estúdio pixel-art:** quatro silhuetas (`classic`, `mini`, `claws`, `guardian`) × quatro rostos, olhos independentes e skins combináveis. O corpo virou uma camada estática; apenas as pernas mudam de frame quando o pet realmente se desloca ou chuta. Popup, runtime, modo liso e documentação usam o mesmo catálogo visual.
 
-**Polish 15/07/2026 — Sub-pets unificados + PNG:** `CLAWD_SUBPET_SPRITES` no catálogo (grade 12×10 @ 4px, frames idle/walk/sleep), PNGs literais do sheet em `src/shared/sprites/subpets/` via `web_accessible_resources`, fallback `box-shadow` sob paleta custom, animações no wrapper `.subpet-motion`, especiais reforçados; crops via `tests/tools/_crop-literal-sprites.mjs` (`_make-sprites` não sobrescreve o pacote sem `WRITE_PKG_SPRITES=1`).
+**Polish 15/07/2026 — Sub-pets unificados + PNG:** `CLAWD_SUBPET_SPRITES` no catálogo (grade 12×10 @ 4px, frames idle/walk/sleep), PNGs literais do sheet em `src/shared/sprites/subpets/` via `web_accessible_resources`, fallback `box-shadow` sob paleta custom, animações no wrapper `.subpet-motion`, especiais reforçados; crops via `tests/tools/crop-literal-sprites.mjs` (`make-sprites` não sobrescreve o pacote sem `WRITE_PKG_SPRITES=1`).
 
-**Polish 17/07/2026 — Pixel-fx + name-tag + qualidade:** camada `.pixel-fx` com poses `steps(1)` (aceno, andar, pulo, dança, rugido, banho, etc.); name-tag com título de nível + nome (fix do `textContent` que apagava spans); FX de acessório/ambient; volumes Ações/Ambiente; suíte **117/117**.
+**Polish 17/07/2026 — Pixel-fx + name-tag + qualidade:** camada `.pixel-fx` com poses `steps(1)` (aceno, andar, pulo, dança, rugido, banho, etc.); name-tag com título de nível + nome (fix do `textContent` que apagava spans); FX de acessório/ambient; volumes Ações/Ambiente; suíte alinhada ao gate vivo (**130+** contratos).
 
 **Polish 15/07/2026 — Segurança, performance e integridade:** allowlist de mensagens, sanitização de storage/DOM, bfcache sem `Unchecked runtime.lastError`, AudioContext só após gesto, particles com teto, heartbeat 2,5 s, sites bloqueados por host/subdomínio, ações principais e **7 ações** de sub-pet; suíte histórica **65/65** (superseded — ver polish 16/07).
 
@@ -162,7 +191,7 @@ subpets: {
 | `style.css` | Keyframes isolados `clawd-subpet-*`, direção preservada e movimento reduzido |
 | `popup.html/js` | Aba "🐕 Pets", corpo/olhos, apelido e painel de sete ações |
 | `catalog.js` | `CLAWD_SUBPET_SPRITES` + `image.url`, `CLAWD_SUBPET_ACTIONS`, defaults e migração de `eyeColors` |
-| `src/shared/sprites/subpets/*.png` | Bitmaps literais do sheet (`_crop-literal-sprites.mjs`; `_make-sprites` não sobrescreve sem `WRITE_PKG_SPRITES=1`) |
+| `src/shared/sprites/subpets/*.png` | Bitmaps literais do sheet (`crop-literal-sprites.mjs`; `make-sprites` não sobrescreve sem `WRITE_PKG_SPRITES=1`) |
 
 ### Critérios de aceite
 - [x] Sub-pet segue o Claw'd suavemente em qualquer página.

@@ -6,6 +6,18 @@
 
 var CLAWD_SCHEMA_VERSION = 5;
 
+/* ---- Constantes de timing centralizadas (usadas por content.js e testes) ---- */
+var CLAWD_TIMINGS = {
+  SUBPET_INTERACTION_MS:  28000,  /* intervalo base da ação espontânea do subpet */
+  STAT_DECAY_MS:          60000,  /* tick de decaimento de stats */
+  STORAGE_DEBOUNCE_MS:      350,  /* janela de coalescing antes do flush para o storage */
+  PARTICLE_MAX:              18,  /* limite concorrente de partículas */
+  SETTLE_EPS_PX:            0.5,  /* distância mínima para considerar o subpet parado */
+  DOUBLE_CLICK_WINDOW_MS:   220,  /* janela de duplo clique */
+  RANDOM_ACTION_MS:       25000,  /* tick de ação aleatória do pet principal */
+  DUO_SCENE_MS:           32000,  /* tick do duo pet↔subpet */
+};
+
 var CLAWD_DAILY_QUESTS = [
   { type: 'pets',       target: 3, label: 'Dê carinho ao Claw\'d 3 vezes',         rewardXp: 18, rewardCoins: 4 },
   { type: 'feed',       target: 2, label: 'Alimente seu companheiro 2 vezes',        rewardXp: 16, rewardCoins: 4 },
@@ -91,7 +103,7 @@ var CLAWD_CONTEXT_REACTIONS = {
   news:     { trait: 'curious', min: 5, msg: 'Novidades! 📰', action: 'peek' },
   email:    { trait: 'social',  min: 4, msg: 'Caixa de entrada! ✉️', action: 'stretch' },
   health:   { trait: 'lazy',    min: 3, msg: 'Cuidando da saúde! 💊', action: 'meditate' },
-  idle:     { trait: 'curious', min: 8, msg: 'Explorando a web… 🌐', action: 'lookAround' }
+  idle:     { trait: 'curious', min: 6, msg: 'Explorando a web… 🌐', action: 'lookAround' }
 };
 
 function clawdDailyQuestForDate(date = new Date().toISOString().slice(0, 10)) {
@@ -225,13 +237,21 @@ var CLAWD_FACE_STYLES = {
   classic: { label: 'Clássico',  badge: '•', desc: 'Olhos quadrados fiéis ao sprite original.' },
   sparkle: { label: 'Brilho',    badge: '✦', desc: 'Reflexos pixelados que deixam o olhar mais vivo.' },
   focused: { label: 'Focado',    badge: '⌁', desc: 'Sobrancelhas angulares para uma expressão determinada.' },
-  sleepy:  { label: 'Sonolento', badge: '–', desc: 'Olhos em traço, calmos mesmo durante o repouso.' }
+  sleepy:  { label: 'Sonolento', badge: '–', desc: 'Olhos em traço, calmos mesmo durante o repouso.' },
+  wink:    { label: 'Piscadela', badge: '◠', desc: 'Um olho fechado — carisma travesso.' },
+  cute:    { label: 'Fofinho',   badge: '♡', desc: 'Olhos maiores e brilho suave nas bochechas.' },
+  angry:   { label: 'Bravo',     badge: '▼', desc: 'Sobrancelhas em V — temperamento pixelado.' },
+  heart:   { label: 'Apaixonado', badge: '❤', desc: 'Pupilas em coração, look de romance.' }
 };
 
 var CLAWD_SKINS = {
-  normal: { label: 'Normal', desc: 'Silhueta limpa, sem detalhes adicionais.' },
-  droopy: { label: 'Orelhas', desc: 'Detalhes laterais caídos em pixel-art.' },
-  robot:  { label: 'Robô', desc: 'Antena, luz de status e parafusos metálicos.' }
+  normal:   { label: 'Normal',   desc: 'Silhueta limpa, sem detalhes adicionais.' },
+  droopy:   { label: 'Orelhas',  desc: 'Detalhes laterais caídos em pixel-art.' },
+  robot:    { label: 'Robô',     desc: 'Antena, luz de status e parafusos metálicos.' },
+  freckles: { label: 'Sardas',   desc: 'Pontinhos pixelados nas bochechas.' },
+  stripes:  { label: 'Listras',  desc: 'Faixas laterais no corpo, estilo mascote.' },
+  spots:    { label: 'Bolinha',  desc: 'Manchas tipo dálmata no corpo.' },
+  glow:     { label: 'Neon',     desc: 'Faixa de status luminosa no peito.' }
 };
 
 /* ---- Profissões ---- */
@@ -1154,7 +1174,6 @@ var CLAWD_SHOP = {
   armor:      { emoji: '🛡️', label: 'Armadura',            price: 100, kind: 'accessory' },
   /* Novos acessórios v3.5 */
   horns:      { emoji: '😈', label: 'Chifrinhos',           price: 40,  kind: 'accessory' },
-  blush:      { emoji: '🥰', label: 'Blush Animê',          price: 20,  kind: 'accessory' },
   scarf_body: { emoji: '🧣', label: 'Cachecol Corpo',       price: 35,  kind: 'accessory' },
   star_clip:  { emoji: '⭐', label: 'Grampo Estrela',       price: 25,  kind: 'accessory' },
   goggles:    { emoji: '🥽', label: 'Óculos Aventura',      price: 45,  kind: 'accessory' }
@@ -1238,6 +1257,8 @@ var CLAWD_JERSEYS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#ffffff', '#11
 var CLAWD_TAG_THEMES = ['light', 'dark', 'neon', 'invisible', 'rainbow', 'holographic', 'minimal'];
 var CLAWD_TRAVEL_FREQS = ['rarely', 'sometimes', 'always'];
 var CLAWD_START_CORNERS = ['br', 'bl', 'tr', 'tl'];
+var CLAWD_STUDIO_CORNERS = ['br', 'bl', 'tr', 'tl', 'free'];
+var CLAWD_POPUP_TABS = ['appearance', 'profession', 'behavior', 'actions', 'pets', 'shop', 'achievements', 'config'];
 var CLAWD_BALL_SKINS = ['classic', 'ball_gold', 'ball_beach'];
 
 var CLAWD_CONFIG_KEYS = [
@@ -1251,21 +1272,26 @@ var CLAWD_SETTING_KEYS = [
   'crossTab', 'travelFreq', 'footprints', 'sounds', 'soundVolume',
   'soundVolumeActions', 'soundVolumeAmbient',
   'quietStart', 'quietEnd', 'blockedSites', 'startCorner', 'performanceMode',
-  'noParticles', 'noIdleVariations', 'noWeather'
+  'noParticles', 'noIdleVariations', 'noWeather', 'noAmbientSparks',
+  'lastPopupTab', 'studioCorner', 'studioLeft', 'studioTop'
 ];
 
 var CLAWD_RUNTIME_ACTIONS = [
   'healthcheck', 'toggleVisibility', 'resetPosition', 'updateConfig',
   'updateSetting', 'triggerAction', 'setSubpet', 'setSubpetColor',
   'setSubpetEyeColor', 'triggerSubpetAction', 'claimDailyQuest', 'claimWeeklyChallenge',
-  'weeklyReset', 'getStatus'
+  'weeklyReset', 'getStatus', 'openStudio', 'closeStudio'
 ];
 
 /* ---- Variações de Idle (v3.4) ---- */
 var CLAWD_IDLE_VARIATIONS = [
   { id: 'look',    keyframe: 'clawd-idle-look',    durationMs: 1800, cooldownMs: 15000 },
   { id: 'scratch', keyframe: 'clawd-idle-scratch',  durationMs: 1200, cooldownMs: 20000 },
-  { id: 'taptoe',  keyframe: 'clawd-idle-taptoe',   durationMs:  900, cooldownMs: 25000 }
+  { id: 'taptoe',  keyframe: 'clawd-idle-taptoe',   durationMs:  900, cooldownMs: 25000 },
+  { id: 'sway',    keyframe: 'clawd-idle-sway',     durationMs: 1400, cooldownMs: 18000 },
+  { id: 'nudge',   keyframe: 'clawd-idle-nudge',    durationMs: 1000, cooldownMs: 22000 },
+  { id: 'hop',     keyframe: 'clawd-idle-hop',      durationMs:  800, cooldownMs: 20000 },
+  { id: 'shimmy',  keyframe: 'clawd-idle-shimmy',   durationMs: 1100, cooldownMs: 24000 }
 ];
 
 /* ---- Atalhos de Teclado (v3.4) ---- */
@@ -1285,7 +1311,7 @@ var CLAWD_DOM_CLEANUP_SELECTORS = [
   '#aic-clawd-node', '.aic-subpet', '#aic-footprints', '.aic-toast',
   '.aic-lake', '.aic-fishing-line', '.aic-fish-caught', '.aic-goalpost',
   '.aic-toyball', '.aic-dust', '.aic-particle', '.aic-pixel-spark',
-  '.aic-walk-dust', '.aic-subpet-particle'
+  '.aic-walk-dust', '.aic-subpet-particle', '#aic-clawd-studio'
 ].join(',');
 
 function clawdIsHexColor(value) {
@@ -1368,7 +1394,8 @@ function clawdSanitizeConfigValue(key, value) {
       if (value === 'none') return 'none';
       return Object.prototype.hasOwnProperty.call(CLAWD_ACCESSORIES, value) ? value : null;
     case 'particleColor':
-      if (value === null || value === '') return null;
+      // '' / null / 'default' = limpar cor custom (sentinel 'default' passa pelo canal de mensagens)
+      if (value === null || value === '' || value === 'default') return 'default';
       return clawdIsHexColor(value) ? value.toLowerCase() : null;
     case 'scale': {
       const n = Number(value);
@@ -1406,11 +1433,21 @@ function clawdSanitizeSettingValue(key, value) {
     case 'noParticles':
     case 'noIdleVariations':
     case 'noWeather':
+    case 'noAmbientSparks':
       return !!value;
     case 'travelFreq':
       return CLAWD_TRAVEL_FREQS.includes(value) ? value : null;
     case 'startCorner':
       return CLAWD_START_CORNERS.includes(value) ? value : null;
+    case 'studioCorner':
+      return CLAWD_STUDIO_CORNERS.includes(value) ? value : null;
+    case 'lastPopupTab':
+      return CLAWD_POPUP_TABS.includes(value) ? value : null;
+    case 'studioLeft':
+    case 'studioTop': {
+      const n = Number(value);
+      return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
+    }
     case 'soundVolume':
     case 'soundVolumeActions':
     case 'soundVolumeAmbient': {
@@ -1444,6 +1481,8 @@ function clawdValidateRuntimeMessage(request) {
     case 'claimWeeklyChallenge':
     case 'weeklyReset':
     case 'getStatus':
+    case 'openStudio':
+    case 'closeStudio':
       return { action };
 
     case 'updateConfig': {
@@ -1597,7 +1636,12 @@ function clawdDefaultState() {
       performanceMode: false,
       noParticles: false,           // desliga partículas sem desligar tudo
       noIdleVariations: false,      // desliga variações idle decorativas
-      noWeather: false              // desliga partículas sazonais
+      noWeather: false,             // desliga partículas sazonais
+      noAmbientSparks: false,       // desliga faíscas contínuas de acessório (hélice/asas/capa)
+      lastPopupTab: 'appearance',   // última aba do menu
+      studioCorner: 'br',           // canto do painel in-page (br|bl|tr|tl|free)
+      studioLeft: 72,               // % quando studioCorner === 'free'
+      studioTop: 18
     },
     onboardingDone: false          // v5: true após primeiro uso do popup
   };
@@ -1824,8 +1868,12 @@ function clawdMigrateState(raw) {
       .filter(Boolean)
       .slice(0, 20);
     if (merged.particleColor === undefined) merged.particleColor = null;
-    if (!merged.settings.soundVolumeActions) merged.settings.soundVolumeActions = 1.0;
-    if (!merged.settings.soundVolumeAmbient) merged.settings.soundVolumeAmbient = 0.6;
+    if (merged.settings.soundVolumeActions == null || !Number.isFinite(Number(merged.settings.soundVolumeActions))) {
+      merged.settings.soundVolumeActions = 1.0;
+    }
+    if (merged.settings.soundVolumeAmbient == null || !Number.isFinite(Number(merged.settings.soundVolumeAmbient))) {
+      merged.settings.soundVolumeAmbient = 0.6;
+    }
   }
   /* Garantir campos v5 em qualquer versão (saves corrompidos parciais) */
   if (!merged.personality || typeof merged.personality !== 'object') {
@@ -1845,9 +1893,14 @@ function clawdMigrateState(raw) {
     .map(t => clawdSanitizePlainText(t, 100))
     .filter(Boolean)
     .slice(0, 20);
+  if (merged.particleColor === 'default' || merged.particleColor === '') merged.particleColor = null;
   if (merged.particleColor !== null && !clawdIsHexColor(merged.particleColor || '')) merged.particleColor = null;
-  if (!merged.settings.soundVolumeActions) merged.settings.soundVolumeActions = 1.0;
-  if (!merged.settings.soundVolumeAmbient) merged.settings.soundVolumeAmbient = 0.6;
+  if (merged.settings.soundVolumeActions == null || !Number.isFinite(Number(merged.settings.soundVolumeActions))) {
+    merged.settings.soundVolumeActions = 1.0;
+  }
+  if (merged.settings.soundVolumeAmbient == null || !Number.isFinite(Number(merged.settings.soundVolumeAmbient))) {
+    merged.settings.soundVolumeAmbient = 0.6;
+  }
   merged.schemaVersion = CLAWD_SCHEMA_VERSION;
   return merged;
 }
@@ -1948,6 +2001,8 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_TAG_THEMES,
     CLAWD_TRAVEL_FREQS,
     CLAWD_START_CORNERS,
+    CLAWD_STUDIO_CORNERS,
+    CLAWD_POPUP_TABS,
     CLAWD_BALL_SKINS,
     CLAWD_CONFIG_KEYS,
     CLAWD_SETTING_KEYS,
@@ -1976,6 +2031,7 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_IDLE_VARIATIONS,
     CLAWD_KEYBOARD_SHORTCUTS,
     CLAWD_TITLES,
-    clawdTitleForLevel
+    clawdTitleForLevel,
+    CLAWD_TIMINGS
   };
 }

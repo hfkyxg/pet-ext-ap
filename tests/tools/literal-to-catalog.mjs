@@ -1,6 +1,6 @@
 /**
  * Extrai sprites LITERAIS do sheet anexado (6px/célula) e injeta no catálogo.
- * node tests/tools/_literal-to-catalog.mjs
+ * node tests/tools/literal-to-catalog.mjs
  */
 import fs from 'fs';
 import path from 'path';
@@ -289,7 +289,7 @@ for (const card of CARDS) {
   CLAWD_SUBPET_SPRITES[card.id] = { colors: COLORS[card.id], frames };
 }
 
-// --- PNG preview + catalog inject (from _make-sprites.mjs) ---
+// --- PNG preview + catalog inject (from make-sprites.mjs) ---
 function crc32(buf) {
   let c = ~0;
   for (let i = 0; i < buf.length; i++) {
@@ -390,7 +390,7 @@ for (const [id, sp] of Object.entries(CLAWD_SUBPET_SPRITES)) {
 
 const outDir = path.join(testsDir, 'sprite-out');
 fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(path.join(outDir, '_all.png'), renderSheet(CLAWD_SUBPET_SPRITES));
+fs.writeFileSync(path.join(outDir, 'all.png'), renderSheet(CLAWD_SUBPET_SPRITES));
 fs.writeFileSync(path.join(outDir, 'literal-injected.json'), JSON.stringify(
   Object.fromEntries(Object.entries(CLAWD_SUBPET_SPRITES).map(([id, s]) => [id, s.frames.idle[0]])), null, 2
 ));
@@ -413,4 +413,4 @@ catalog = catalog.slice(0, injectFrom) + comment +
   Object.entries(CLAWD_SUBPET_SPRITES).map(([id, s]) => spriteToJs(id, s)).join(',\n') +
   '\n};\n\n' + catalog.slice(end);
 fs.writeFileSync(catalogPath, catalog);
-console.log('OK literal subpets injected → catalog.js + sprite-out/_all.png');
+console.log('OK literal subpets injected → catalog.js + sprite-out/all.png');

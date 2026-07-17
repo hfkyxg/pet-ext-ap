@@ -47,9 +47,10 @@ function persist(mutator) {
 function setConfig(key, value) {
   const safe = clawdSanitizeConfigValue(key, value);
   if (safe === null) return;
-  S[key] = safe;
+  const stored = key === 'particleColor' && safe === 'default' ? null : safe;
+  S[key] = stored;
   sendMsg({ action: 'updateConfig', key, value: safe });
-  persist(st => { st[key] = safe; });
+  persist(st => { st[key] = stored; });
   if (['color', 'eyeColor', 'model', 'faceStyle', 'smooth', 'outline', 'skin', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace', 'accessoryBody'].includes(key)) {
     syncHeaderPetPreview();
     renderOutfitPreview();
@@ -61,6 +62,7 @@ function setSetting(key, value) {
   if (safe === null) return;
   S.settings[key] = safe;
   persist(st => { st.settings[key] = safe; });
+  sendMsg({ action: 'updateSetting', key, value: safe });
 }
 
 /* ---- FAVORITOS ---- */
@@ -135,14 +137,66 @@ function syncHeaderPetPreview() {
 }
 
 function renderStats(stats) {
-  const map = { happiness: 'stat-happiness', hunger: 'stat-hunger', energy: 'stat-energy', hygiene: 'stat-hygiene' };
-  Object.entries(map).forEach(([key, id]) => {
+  const meta = {
+    happiness: { id: 'stat-happiness', label: 'Felicidade', hint: 'clique para dar carinho' },
+    hunger: { id: 'stat-hunger', label: 'Saciedade', hint: 'clique para alimentar' },
+    energy: { id: 'stat-energy', label: 'Energia', hint: 'clique para brincar' },
+    hygiene: { id: 'stat-hygiene', label: 'Higiene', hint: 'clique para banho' }
+  };
+  Object.entries(meta).forEach(([key, info]) => {
     const v = Math.round(stats[key] ?? 0);
-    const el = $(id);
+    const el = $(info.id);
+    if (!el) return;
     el.style.width = `${v}%`;
     el.classList.toggle('low', v < 30);
-    /* atualiza aria-valuenow no progressbar pai */
     el.parentElement?.setAttribute('aria-valuenow', String(v));
+    const btn = el.closest('.stat-action');
+    if (btn) {
+      const title = `${info.label}: ${v}% — ${info.hint}`;
+      btn.title = title;
+      btn.setAttribute('aria-label', title);
+      btn.classList.toggle('stat-critical', v < 30);
+      btn.classList.toggle('stat-good', v >= 70);
+    }
+  });
+}
+
+function showStatusFeedback(text, { error = false } = {}) {
+  const pill = $('status-pill');
+  if (!pill) return;
+  pill.style.display = '';
+  pill.classList.toggle('error', !!error);
+  $('status-text').textContent = text;
+  clearTimeout(showStatusFeedback._t);
+  showStatusFeedback._t = setTimeout(() => { pill.style.display = 'none'; }, 2200);
+}
+
+function pulseStatButton(btn) {
+  if (!btn) return;
+  btn.classList.remove('stat-pulse');
+  void btn.offsetWidth;
+  btn.classList.add('stat-pulse');
+  setTimeout(() => btn.classList.remove('stat-pulse'), 450);
+}
+
+function activatePopupTab(tabId) {
+  if (!CLAWD_POPUP_TABS.includes(tabId)) tabId = 'appearance';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tabId}`));
+}
+
+function openStudioOnPage() {
+  sendMsg({ action: 'openStudio' });
+  showStatusFeedback('Studio aberto na página — arraste o cabeçalho para mover');
+}
+
+function detachPopupWindow() {
+  const url = chrome.runtime.getURL('src/popup/popup.html?detached=1');
+  chrome.windows.create({ url, type: 'popup', width: 380, height: 640, focused: true }, () => {
+    scrubLastError();
+    if (!new URLSearchParams(location.search).has('detached')) {
+      try { window.close(); } catch (_) { /* toolbar popup */ }
+    }
   });
 }
 
@@ -408,6 +462,7 @@ function renderFavNicks() {
     chip.addEventListener('click', () => {
       $('input-name').value = n;
       setConfig('name', n);
+      syncPopupNameTag(n);
       updateNameStar();
     });
     box.appendChild(chip);
@@ -980,6 +1035,10 @@ function renderShop() {
       btn.textContent = equipped ? 'Equipada ✓' : 'Equipar';
       btn.disabled = equipped;
       btn.addEventListener('click', () => { setConfig('ballSkin', id); renderShop(); });
+    } else if (def.kind === 'decor') {
+      btn.textContent = 'Decoração ativa ✓';
+      btn.disabled = true;
+      btn.title = id === 'cushion' ? 'Almofada pixel aparece sob o pet na página' : 'Item decorativo ativo';
     } else {
       btn.textContent = 'Decoração ✓';
       btn.disabled = true;
@@ -1066,18 +1125,17 @@ function renderConfig() {
   $('toggle-no-particles').checked = !!set.noParticles;
   $('toggle-no-idle').checked = !!set.noIdleVariations;
   $('toggle-no-weather').checked = !!set.noWeather;
+  const ambientEl = $('toggle-no-ambient-sparks');
+  if (ambientEl) ambientEl.checked = !!set.noAmbientSparks;
   document.querySelectorAll('#tag-theme-grid .mini-card').forEach(c => {
     c.classList.toggle('active', c.dataset.theme === (S.tagTheme || 'light'));
-  });
-  document.querySelectorAll('#skin-grid .mini-card').forEach(c => {
-    c.classList.toggle('active', c.dataset.skin === (S.skin || 'normal'));
   });
 }
 
 /** Chirp 8-bit no popup ao ajustar volume (feedback imediato do nível). */
 let _popupAudioCtx = null;
 let _volPreviewTimer = null;
-function previewVolumeChirp(vol) {
+function previewVolumeChirp(vol, channel = 'master') {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
@@ -1086,11 +1144,20 @@ function previewVolumeChirp(vol) {
     }
     const ctx = _popupAudioCtx;
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const masterRaw = parseFloat($('range-volume')?.value);
+    const master = Number.isFinite(masterRaw) ? Math.max(0, Math.min(1, masterRaw)) : 0.4;
+    if (master <= 0) return;
+    const chRaw = Number(vol);
+    const ch = Number.isFinite(chRaw) ? Math.max(0, Math.min(1, chRaw)) : (channel === 'ambient' ? 0.6 : 1);
+    if (channel !== 'master' && ch <= 0) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = 620 + Math.round((vol || 0) * 280);
-    const level = Math.max(0.02, Math.min(1, vol || 0.4)) * 0.13;
+    osc.type = channel === 'ambient' ? 'sine' : 'triangle';
+    const base = channel === 'ambient' ? 420 : (channel === 'actions' ? 700 : 620);
+    const span = channel === 'ambient' ? 160 : 280;
+    const mix = channel === 'master' ? master : ch;
+    osc.frequency.value = base + Math.round(mix * span);
+    const level = Math.max(0.0001, master * (channel === 'master' ? 1 : ch) * 0.13);
     gain.gain.setValueAtTime(level, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.09);
     osc.connect(gain).connect(ctx.destination);
@@ -1151,12 +1218,18 @@ function bindConfig() {
     const v = parseFloat(e.target.value);
     $('volume-actions-badge').textContent = `${Math.round(v * 100)}%`;
     setSetting('soundVolumeActions', v);
+    if (!$('toggle-sounds').checked) return;
+    clearTimeout(_volPreviewTimer);
+    _volPreviewTimer = setTimeout(() => previewVolumeChirp(v, 'actions'), 50);
   });
   const rbEl = $('range-volume-ambient');
   if (rbEl) rbEl.addEventListener('input', e => {
     const v = parseFloat(e.target.value);
     $('volume-ambient-badge').textContent = `${Math.round(v * 100)}%`;
     setSetting('soundVolumeAmbient', v);
+    if (!$('toggle-sounds').checked) return;
+    clearTimeout(_volPreviewTimer);
+    _volPreviewTimer = setTimeout(() => previewVolumeChirp(v, 'ambient'), 50);
   });
   /* v3.3: cor de partículas */
   const pcEl = $('input-particle-color');
@@ -1174,7 +1247,7 @@ function bindConfig() {
     if (pcEl2) pcEl2.value = '#f1c40f';
     const hexEl = $('particle-color-hex');
     if (hexEl) hexEl.textContent = '(padrão)';
-    setConfig('particleColor', null);
+    setConfig('particleColor', 'default');
   });
   /* v3.3: frases customizadas */
   const csEl = $('custom-speech');
@@ -1196,25 +1269,22 @@ function bindConfig() {
   $('select-corner').addEventListener('change', e => setSetting('startCorner', e.target.value));
   $('toggle-performance').addEventListener('change', e => {
     setSetting('performanceMode', e.target.checked);
-    sendMsg({ action: 'updateSetting', key: 'performanceMode', value: e.target.checked });
   });
   $('toggle-no-particles').addEventListener('change', e => {
     setSetting('noParticles', e.target.checked);
-    sendMsg({ action: 'updateSetting', key: 'noParticles', value: e.target.checked });
   });
   $('toggle-no-idle').addEventListener('change', e => {
     setSetting('noIdleVariations', e.target.checked);
-    sendMsg({ action: 'updateSetting', key: 'noIdleVariations', value: e.target.checked });
   });
   $('toggle-no-weather').addEventListener('change', e => {
     setSetting('noWeather', e.target.checked);
-    sendMsg({ action: 'updateSetting', key: 'noWeather', value: e.target.checked });
+  });
+  const ambientToggle = $('toggle-no-ambient-sparks');
+  if (ambientToggle) ambientToggle.addEventListener('change', e => {
+    setSetting('noAmbientSparks', e.target.checked);
   });
   document.querySelectorAll('#tag-theme-grid .mini-card').forEach(c => {
     c.addEventListener('click', () => { setConfig('tagTheme', c.dataset.theme); renderConfig(); });
-  });
-  document.querySelectorAll('#skin-grid .mini-card').forEach(c => {
-    c.addEventListener('click', () => { setConfig('skin', c.dataset.skin); renderConfig(); });
   });
 
   // Export / Import / Reset
@@ -1272,28 +1342,36 @@ function bindConfig() {
    BINDINGS ESTÁTICOS
    ===================================================== */
 function bindStatic() {
-  // Tabs
+  // Tabs + lembrar última aba
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      $(`tab-${tab.dataset.tab}`).classList.add('active');
+      activatePopupTab(tab.dataset.tab);
+      setSetting('lastPopupTab', tab.dataset.tab);
     });
   });
 
-  // Nome + histórico + favorito
+  // Nome + histórico + favorito (debounce evita race storage ↔ content)
+  let _nameInputTimer = null;
   $('input-name').addEventListener('input', (e) => {
     const val = e.target.value || "Claw'd";
+    syncPopupNameTag(val);
+    updateNameStar();
+    clearTimeout(_nameInputTimer);
+    _nameInputTimer = setTimeout(() => {
+      setConfig('name', val);
+      persist(st => {
+        if (val && !st.nicknameHistory.includes(val)) {
+          st.nicknameHistory.push(val);
+          if (st.nicknameHistory.length > 12) st.nicknameHistory.shift();
+        }
+      });
+    }, 220);
+  });
+  $('input-name').addEventListener('change', (e) => {
+    const val = e.target.value || "Claw'd";
+    clearTimeout(_nameInputTimer);
     setConfig('name', val);
     syncPopupNameTag(val);
-    persist(st => {
-      if (val && !st.nicknameHistory.includes(val)) {
-        st.nicknameHistory.push(val);
-        if (st.nicknameHistory.length > 12) st.nicknameHistory.shift();
-      }
-    });
-    updateNameStar();
   });
   $('name-star').addEventListener('click', () => {
     const cur = $('input-name').value.trim();
@@ -1377,6 +1455,39 @@ function bindStatic() {
     });
   });
 
+  // Status interativos: felicidade / comida / energia / higiene
+  const STAT_FEEDBACK = {
+    happy: 'Carinho enviado ❤️',
+    feed: 'Hora do lanche 🍖',
+    play: 'Vamos brincar! ⚡',
+    bath: 'Banho liberado 🧼'
+  };
+  document.querySelectorAll('.stat-action').forEach(btn => {
+    const run = () => {
+      const action = btn.dataset.statAction;
+      if (!action) return;
+      pulseStatButton(btn);
+      sendMsg({ action: 'triggerAction', value: action });
+      showStatusFeedback(STAT_FEEDBACK[action] || 'Ação enviada!');
+    };
+    btn.addEventListener('click', run);
+  });
+
+  // Studio na página + janela destacável
+  const openStudioBtns = ['btn-open-studio', 'btn-open-studio-actions']
+    .map(id => $(id))
+    .filter(Boolean);
+  openStudioBtns.forEach(btn => btn.addEventListener('click', openStudioOnPage));
+  const detachBtn = $('btn-detach-window');
+  if (detachBtn) {
+    if (new URLSearchParams(location.search).has('detached')) {
+      detachBtn.style.display = 'none';
+      document.body.classList.add('popup-detached');
+    } else {
+      detachBtn.addEventListener('click', detachPopupWindow);
+    }
+  }
+
   // Sistema
   $('btn-toggle').addEventListener('click', () => sendMsg({ action: 'toggleVisibility' }));
   $('btn-reset').addEventListener('click', () => sendMsg({ action: 'resetPosition' }));
@@ -1458,9 +1569,9 @@ function updateContextBar(status) {
   if (!bar) return;
   const prof = status?.profession || S.profession || 'idle';
   const ctx  = status?.pageContext || 'idle';
-  const profData = (CLAWD_PROFESSIONS || []).find(p => p.id === prof);
-  const emoji = profData ? (profData.emoji || '💼') : '💼';
-  const label = profData ? (profData.label || 'Livre') : 'Livre';
+  const profData = CLAWD_PROFESSIONS[prof] || CLAWD_PROFESSIONS.idle;
+  const emoji = profData?.emoji || '💼';
+  const label = profData?.label || 'Livre';
   $('context-bar-profession').textContent = `${emoji} ${label}`;
   $('context-bar-page').textContent = ctx;
   bar.style.display = 'flex';
@@ -1471,6 +1582,7 @@ chrome.storage.local.get(['clawdState'], (res) => {
   S = clawdMigrateState(res.clawdState);
   bindStatic();
   renderAll();
+  activatePopupTab(S.settings?.lastPopupTab || 'appearance');
   if (!S.onboardingDone) showOnboarding();
   updateContextBar(null);
   pollLiveStats();

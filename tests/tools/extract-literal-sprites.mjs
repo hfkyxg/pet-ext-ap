@@ -1,8 +1,8 @@
 /**
  * Extrai pixels LITERAIS do sheet anexado → frames do catálogo.
  * Fonte preferida: assets Subpets-selection…png (ou tests/sprite-out/ref-literal-rgba.png)
- * node tests/tools/_extract-literal-sprites.mjs
- * node tests/tools/_extract-literal-sprites.mjs --inject
+ * node tests/tools/extract-literal-sprites.mjs
+ * node tests/tools/extract-literal-sprites.mjs --inject
  */
 import fs from 'fs';
 import path from 'path';
@@ -465,8 +465,8 @@ ORDER.forEach((id, i) => {
 const outDir = path.join(testsDir, 'sprite-out');
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'literal-frames.json'), JSON.stringify({ frames, meta }, null, 2));
-fs.writeFileSync(path.join(outDir, '_literal-preview.png'), renderPreview(frames, PALETTES));
-console.log('\nwrote literal-frames.json + _literal-preview.png');
+fs.writeFileSync(path.join(outDir, 'literal-preview.png'), renderPreview(frames, PALETTES));
+console.log('\nwrote literal-frames.json + literal-preview.png');
 
 if (INJECT) {
   // injeta via _make-sprites pattern: atualiza frames stand + derivados

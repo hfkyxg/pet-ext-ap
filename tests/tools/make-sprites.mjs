@@ -2,13 +2,13 @@
  * Atualiza frames/cores no catalog.js + preview em tests/sprite-out/.
  *
  * IMPORTANTE — PNGs do pacote (src/shared/sprites/subpets/*.png):
- *   Fonte canônica = crops do sheet via `node tests/tools/_crop-literal-sprites.mjs`
+ *   Fonte canônica = crops do sheet via `node tests/tools/crop-literal-sprites.mjs`
  *   (Subpets-selection.png). Por padrão ESTE script NÃO sobrescreve esses PNGs,
  *   para não destruir a fidelidade ao sheet. Só escreve no pacote se
  *   WRITE_PKG_SPRITES=1 (ou LITERAL_SHEET=0 com WRITE_PKG_SPRITES=1).
  *
- * node tests/tools/_make-sprites.mjs
- * WRITE_PKG_SPRITES=1 node tests/tools/_make-sprites.mjs   # força PNGs do pacote
+ * node tests/tools/make-sprites.mjs
+ * WRITE_PKG_SPRITES=1 node tests/tools/make-sprites.mjs   # força PNGs do pacote
  */
 import fs from 'fs';
 import path from 'path';
@@ -646,7 +646,7 @@ function renderTransparent(id, sprite, scale = 8) {
 
 const outDir = path.join(testsDir, 'sprite-out');
 fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(path.join(outDir, '_all.png'), renderSheet(CLAWD_SUBPET_SPRITES));
+fs.writeFileSync(path.join(outDir, 'all.png'), renderSheet(CLAWD_SUBPET_SPRITES));
 
 // Preview em sprite-out sempre; pacote só com WRITE_PKG_SPRITES=1
 const WRITE_PKG_SPRITES = process.env.WRITE_PKG_SPRITES === '1';
@@ -660,7 +660,7 @@ for (const [id, sp] of Object.entries(CLAWD_SUBPET_SPRITES)) {
   }
 }
 if (!WRITE_PKG_SPRITES) {
-  console.log('skip package PNGs (canonical = _crop-literal-sprites.mjs from Subpets-selection.png)');
+  console.log('skip package PNGs (canonical = crop-literal-sprites.mjs from Subpets-selection.png)');
   console.log('set WRITE_PKG_SPRITES=1 only if you intentionally want to overwrite sheet crops');
 }
 

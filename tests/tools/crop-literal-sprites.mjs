@@ -6,11 +6,11 @@
  * 3) Recupera olhos: buracos cor-de-card/escuros ENCAIXADOS entre corpo → #111111
  * 4) Quantiza na grade nativa (16px/célula) — cores literais do PNG
  * 5) Upscale NN → src/shared/sprites/subpets/<id>.png
- * 6) Gera tests/sprite-out/_literal-proof.png (sheet vs pacote)
+ * 6) Gera tests/sprite-out/literal-proof.png (sheet vs pacote)
  *
  * Ordem no sheet: dog, cat, bird, rabbit, dragon, dino, ghost, slime
  *
- * node tests/tools/_crop-literal-sprites.mjs
+ * node tests/tools/crop-literal-sprites.mjs
  */
 import fs from 'fs';
 import path from 'path';
@@ -562,10 +562,10 @@ ORDER.forEach((id, i) => {
 });
 
 const proof = makeProof(img, boxes, packedMap);
-fs.writeFileSync(path.join(previewDir, '_literal-proof.png'), pngRGBA(proof.w, proof.h, proof.rgba));
+fs.writeFileSync(path.join(previewDir, 'literal-proof.png'), pngRGBA(proof.w, proof.h, proof.rgba));
 fs.writeFileSync(path.join(previewDir, 'literal-crop-meta.json'), JSON.stringify(meta, null, 2));
 
 console.log('OK literal crops →', outDir);
-console.log('proof →', path.join(previewDir, '_literal-proof.png'));
-console.log('Próximo: node tests/tools/_inject-image-meta.mjs');
-console.log('NÃO rode _make-sprites.mjs para PNGs do pacote — WRITE_PKG_SPRITES=1 sobrescreve.');
+console.log('proof →', path.join(previewDir, 'literal-proof.png'));
+console.log('Próximo: node tests/tools/inject-image-meta.mjs');
+console.log('NÃO rode make-sprites.mjs para PNGs do pacote — WRITE_PKG_SPRITES=1 sobrescreve.');

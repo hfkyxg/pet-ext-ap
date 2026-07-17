@@ -1,6 +1,6 @@
 # Arquitetura — Claw'd
 
-Extensão Chrome MV3 **vanilla** (sem bundler, sem `package.json`). Este documento descreve as camadas e os padrões **já presentes** no código — sem forçar reescrita OOP.
+Extensão Chrome MV3 **vanilla** (sem bundler). Há um `package.json` só para scripts de **dev** (`check` / `test` / `ecosystem` / `smoke` / eslint) — o runtime da extensão não depende dele.
 
 ## Camadas
 
@@ -9,10 +9,10 @@ Extensão Chrome MV3 **vanilla** (sem bundler, sem `package.json`). Este documen
 | **Catálogo (SSOT)** | `src/shared/catalog.js` | Fonte única de verdade: modelos, rostos, acessórios, profissões, sub-pets, loja, conquistas, migrações e helpers de estado. Carrega **antes** de `content.js` (lista no `manifest.json`). |
 | **Runtime** | `src/content/content.js` + `style.css` | Motor do mascote na página: DOM, animação (`rAF`), interações, stats, áudio. |
 | **Presença** | `src/background/background.js` | Service worker: bootstrap de storage, reinjeção segura, healthcheck cross-tab. |
-| **UI** | `src/popup/*` | Controles e preview; fala com a aba via mensagens tipadas. |
+| **UI** | `src/popup/*` | Controles, preview, studio in-page / janela destacável; messaging tipado. |
 | **Assets** | `src/assets/`, `src/shared/sprites/` | Ícones, banners SVG, PNGs de sub-pets (`web_accessible_resources`). |
 | **Docs / Labs** | `docs/` | Vitrine HTML, arquitetura e markdown de produto em `docs/md/`. |
-| **Testes** | `tests/*.test.js`, `runtime-smoke.mjs` | Contratos e smoke; geradores one-off em `tests/tools/`. |
+| **Testes** | `tests/*.test.js` (**150**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs` | Contratos, ecosystem estático e smoke Edge. |
 
 ```
 manifest.json
@@ -116,10 +116,12 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 
 | Tarefa | Comando |
 |--------|---------|
-| PNGs canônicos dos sub-pets | `node tests/tools/_crop-literal-sprites.mjs` |
-| Frames/preview (não sobrescreve pacote) | `node tests/tools/_make-sprites.mjs` |
-| Ícones da extensão | `node tests/tools/_make-icons.mjs` |
-| Suíte de contratos | `node --test tests/*.test.js` |
+| PNGs canônicos dos sub-pets | `node tests/tools/crop-literal-sprites.mjs` |
+| Frames/preview (não sobrescreve pacote) | `node tests/tools/make-sprites.mjs` |
+| Ícones da extensão | `node tests/tools/make-icons.mjs` |
+| Suíte de contratos | `npm test` (**150**) |
+| Ecosystem estático | `npm run ecosystem` |
+| Smoke Edge | `npm run smoke` |
 
 Detalhes de uso: [README da pasta tools](../tests/tools/README.md) · índice de docs: [docs/README.md](./README.md).
 

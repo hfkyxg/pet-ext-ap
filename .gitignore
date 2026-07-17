@@ -14,11 +14,18 @@ Desktop.ini
 *~
 
 # Artefatos de smoke / perfis isolados
-tests/_shots/
+tests/shots/
 tests/sprite-out/
 .edge-profile*/
 .tmp/
 tmp/
+
+# Lixo / scratch local (não versionar)
+.mimocode/
+dbquery*.py
+distill_query.py
+_dbquery*.py
+_distill_query.py
 
 # Segredos locais
 .env

@@ -9,7 +9,7 @@ import { join, resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const outDir = join(root, 'tests', '_shots');
+const outDir = join(root, 'tests', 'shots');
 const edgePath = process.env.EDGE_PATH
   || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const MIME = {
@@ -138,7 +138,7 @@ async function main() {
   const debugPort = await freePort();
   const child = spawn(edgePath, [
     `--remote-debugging-port=${debugPort}`,
-    `--user-data-dir=${join(outDir, `edge-refix-${debugPort}`)}`,
+    `--user-data-dir=${join(root, '.tmp', `edge-refix-${debugPort}`)}`,
     '--no-first-run',
     '--disable-extensions',
     '--window-size=1440,1100',

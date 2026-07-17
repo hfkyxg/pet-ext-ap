@@ -109,6 +109,8 @@ test('harmonia: motor usa SSOT de contexto (sem mapa local duplicado)', () => {
   /* reset para idle: next = host helper, não sticky prevCtx */
   assert.match(content, /const next = .*clawdPageContextFromHost/s);
   assert.match(content, /if \(next !== prevCtx\) this\._onContextChange\(next\)/);
+  /* profissão: match com fronteira de domínio (não só includes) */
+  assert.match(content, /clawdHostMatchesDomain\(url,\s*k\)/);
 });
 
 test('harmonia: mudança coding→idle não gruda no contexto anterior (contrato lógico)', () => {

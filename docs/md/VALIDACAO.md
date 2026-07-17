@@ -1,79 +1,85 @@
-# Relatório de Validação — Claw'd v3.3
+# Relatório de Validação — Claw'd v3.6
 
-**Data:** 17 de julho de 2026 (v3.3.1 — polish pixel-fx + name-tag + qualidade)  
+**Data:** 17 de julho de 2026 (v3.6.0 — validação completa fases 0–7)  
 **Ambiente:** Windows · Node.js 24 · Edge/Chromium com perfil isolado  
-**Marco:** Docs alinhados ao catálogo vivo + suíte de qualidade/fluidez (**117/117**)
+**Marco:** **150/150** contratos — animações, interações, ações 100%, acessórios, popup UX, mecânicas avançadas
 
 ## Resultado
 
 - Verificações de sintaxe: **aprovadas** (`catalog`, `content`, `popup`, `background`, `showcase`);
-- Suíte `node:test`: **117/117 testes aprovados** (catálogo, extensão, integridade, harmonia e qualidade-fluida);
-- Smoke test em navegador Chromium/Edge real: **aprovado** (`runtimeErrors: 0`, `invalidContextErrors: 0`, `reloads: [1,1,1]`, `mouthToggleChecked: true`);
+- Suíte `node:test`: **150/150 testes aprovados** (catálogo, extensão, integridade, harmonia, qualidade-fluida, validação-completa);
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** (inclui **100%** das 30 ações no map `_handleAction`);
+- Smoke test em navegador Chromium/Edge real: **aprovado** (`runtimeErrors: 0`, `invalidContextErrors: 0`, `reloads: [1,1,1]`);
 - Assets: **8/8** PNGs em `src/shared/sprites/subpets/` com `image.url` no catálogo.
+
+## Matriz de validação (fases 1–6)
+
+| Fase | Domínio | Status | Evidência |
+|------|---------|--------|-----------|
+| **1** | Animações / skins / idle×7 / body Y / reduced-motion | ✅ | `validation-complete` + quality-fluid + ecosystem §4 |
+| **2** | Clique 1/2/3+/5, atalhos Alt+F/H/P/Z, bola/balão, focusin Dev | ✅ | `validation-complete` (tantrum via `_rapidClickCount`, laptop só engineer) |
+| **3** | 30 ações + 3 extras no `_handleAction` (100%) | ✅ | `validation-complete` + ecosystem §9 + smoke ações |
+| **4** | 31 acessórios CSS, uniforme sem destruir pessoal, props | ✅ | `validation-complete` + integrity slot body |
+| **5** | Studio/detach, status×4, shop/claim, quiet/block, migrate | ✅ | `validation-complete` + integrity status |
+| **6** | Combo 10s, streak, daily 14 / weekly 12, cross-tab, SFX | ✅ | `validation-complete` + quality-fluid volumes |
+
+## Contratos novos (validação completa — 20 testes)
+
+Arquivo: `tests/validation-complete.test.js`
+
+| Contrato | Status |
+|----------|--------|
+| Skins ×7 pintam `.skin-mod` | ✅ |
+| Idle ×7 keyframe + `!important` | ✅ |
+| Body accessories Y peito/pescoço + capa z-index | ✅ |
+| Reduced-motion / performanceMode / nofx | ✅ |
+| Clique → carinho / cambalhota / superdance / tantrum | ✅ |
+| Atalhos Alt+F/H/P/Z + bola/balão | ✅ |
+| focusin engineer→typing; demais→curious; laptop gated | ✅ |
+| 100% `CLAWD_ACTIONS` + extras no map | ✅ |
+| Amostra por família (social/movimento/care/special) | ✅ |
+| 31 acessórios com box-shadow pixel | ✅ |
+| Uniforme não destrói acessórios pessoais | ✅ |
+| Props de profissão DOM+CSS | ✅ |
+| Studio + detached + allowlist `openStudio` | ✅ |
+| 4 status clicáveis | ✅ |
+| Shop inventário + claim daily/weekly mensagem | ✅ |
+| Quiet/block sanitize + personality 5 traits | ✅ |
+| Migrate round-trip inventário shop + schema v5 | ✅ |
+| Combo 10s / exclusões / XP / conquista | ✅ |
+| Streak + daily 14 / weekly 12 | ✅ |
+| Cross-tab SW + subpets 8×7 + SFX dual | ✅ |
 
 ## Contagens vivas (SSOT `catalog.js`)
 
 | Entidade | Qtd |
 |----------|-----|
 | Ações no popup (`CLAWD_ACTIONS`) | **30** |
-| Extras motor (`CLAWD_PET_EXTRA_ACTIONS`: kick, keepy, superdance) | **3** |
+| Extras motor (`CLAWD_PET_EXTRA_ACTIONS`) | **3** |
 | Acessórios (3 slots) | **31** |
+| Rostos / skins / idle variations | **8** / **7** / **7** |
 | Profissões | **12** |
 | Sub-pets / ações de sub-pet | **8** / **7** |
 | Conquistas | **34** |
-| Tipos de missão diária (incl. balloons, keepy) | **14** |
-| Desafios semanais | **12** |
-| Contextos de página | **10** + idle |
+| Daily / weekly | **14** / **12** |
 | Schema | **v5** |
+| Popup header / docs | **v3.6** |
 
-## Loop polish — ticks 1–6 (roadmap completo)
+## Checklist smoke manual (5 min)
 
-| Tick | Foco | Entrega |
-|------|------|---------|
-| **1** | Segurança | Allowlist de mensagens, sanitização storage/DOM, hosts bloqueados sem substring, AudioContext pós-gesto, bfcache/`lastError` |
-| **2** | Animações | Idle variations, keyframes flip/meditate/electric/nap, partículas sazonais, presença viva |
-| **3** | Ações (30) | Catálogo popup em **30**; extras kick/keepy/superdance fora do popup (`CLAWD_PET_EXTRA_ACTIONS`) |
-| **4** | Gamificação | Contadores `balloonsPopped` / `keepyTotal`; conquistas de balão/keepy; quests balloons + keepy |
-| **5** | Escalabilidade | Save coalesce, tetos de partículas, destroy limpa scroll/idle timers |
-| **6** | Docs alignment | README, md/*, showcase `data-count`/badges e contratos de teste → **81/81** (histórico); suíte atual **99/99** |
-
-## Ciclo v3.3 — módulos entregues
-
-| Módulo | Foco | Status |
-|--------|------|--------|
-| **M1** | Segurança / privacidade / bugs críticos + micro-perf | **feito** |
-| **M2** | Performance (rAF spring skip, particle caps, idle timers) | **feito** |
-| **M3** | Gamificação 2.0 (combo, weekly, achievements, quests) | **feito** |
-| **M4** | Profissões + Acessórios 2.0 (4 profs, 10 accs, slot body) | **feito** |
-| **M5** | Animações / partículas sazonais / detecção de contexto | **feito** |
-| **M6** | Docs sync + suíte completa + Schema v5 + smoke | **feito** |
-
-## Checklist v3.3 + polish
-
-| Item | Verificado |
-|------|-----------|
-| Slot body (ribbon, wings, cape, armor) CSS + JS + popup | ✅ |
-| Sistema de combo: janela, balão, XP bônus, conquista | ✅ |
-| Desafio semanal: alarm background, hash ISO week, claim | ✅ |
-| 34 conquistas — iron_will + balloon/keepy + expansão | ✅ |
-| Schema v5: clawdMigrateState bloco v<5 sem perda de dados | ✅ |
-| Save coalesce + particle/scroll idle limpos em destroy() | ✅ |
-| 4 novas profissões detectam domínio e reagem ao contexto | ✅ |
-| Partículas sazonais: neve/folhas/flores/vagalumes por mês | ✅ |
-| Showcase metrics: 30 ações · 31 acessórios · 34 conquistas · 117/117 | ✅ |
-| Harmonia fase: contexto SSOT, weekly 12, personality sanitize, onboarding vivo | ✅ |
-| Qualidade fluida: FX cap, rAF settle, throttle contexto, reduced-motion ao vivo | ✅ |
-| Pixel-fx: poses steps(1) em ações + name-tag título/nome | ✅ |
+- [ ] Idle estático (sem pernas box-shadow no idle)
+- [ ] Carinho (1 clique) → cambalhota (2) → superdance (3+)
+- [ ] 1 acessório body abaixo do rosto
+- [ ] Profissão Dev + foco em input → laptop
+- [ ] Studio na página arrastável / janela `?detached=1`
+- [ ] Status feed/happy/play/bath no popup
 
 ## Comandos reproduzíveis
 
 ```powershell
-node --check src/shared/catalog.js
-node --check src/content/content.js
-node --check src/popup/popup.js
-node --check src/background/background.js
-node --check docs/showcase.js
-node --test tests/*.test.js
+npm run check
+npm test
+node tests/tools/validate-ecosystem.mjs
 node tests/runtime-smoke.mjs
 ```
 
@@ -82,13 +88,11 @@ node tests/runtime-smoke.mjs
 | Tema | Garantia |
 |------|----------|
 | Mensagens | Allowlist + sanitize (SSOT catalog); content em `switch` validado |
-| Storage | Migrate em load/save/`setSubpet`; sem `__proto__` via `clawdAssignPlain`; **save coalesce** |
+| Storage | Migrate em load/save; inventário só IDs de loja; **save coalesce** |
 | DOM | Speech/toast/nome/missão via `textContent` |
 | Sites bloqueados | Hostname DNS + match exato/subdomínio |
-| Áudio | Sem `AudioContext` até gesto |
-| Porta / bfcache | Validators + `travelComplete` só origem + scrub `lastError` |
-| FX | Cap de partículas; sem spawn se hidden / `performanceMode` |
-| rAF | Subpet **pausa** com aba oculta (não spin) |
+| Áudio | Sem `AudioContext` até gesto; volumes actions/ambient; mute master |
+| FX | Cap de partículas; sem spawn se hidden / `performanceMode` / reduced-motion |
 
 ## Limite do teste
 

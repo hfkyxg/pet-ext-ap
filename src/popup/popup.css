@@ -804,6 +804,69 @@ input[type="color"] {
 }
 .stat { display: flex; align-items: center; gap: 4px; }
 .stat span { font-size: 10px; }
+button.stat-action {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  margin: 0;
+  padding: 3px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+button.stat-action:hover,
+button.stat-action:focus-visible {
+  background: color-mix(in srgb, var(--accent, #c71515) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent, #c71515) 28%, transparent);
+  outline: none;
+}
+button.stat-action:active { transform: scale(0.97); }
+button.stat-action.stat-critical {
+  border-color: color-mix(in srgb, #e74c3c 45%, transparent);
+  background: color-mix(in srgb, #e74c3c 10%, transparent);
+}
+button.stat-action.stat-good .stat-fill {
+  box-shadow: 0 0 6px color-mix(in srgb, #2ecc71 55%, transparent);
+}
+button.stat-action.stat-pulse {
+  animation: clawd-stat-pulse 0.45s ease;
+}
+@keyframes clawd-stat-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.header-dock-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.btn-dock {
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface, #fff) 88%, var(--accent, #c71515));
+  color: inherit;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 5px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-dock:hover,
+.btn-dock:focus-visible {
+  border-color: var(--accent, #c71515);
+  outline: none;
+}
+body.popup-detached {
+  min-height: 100vh;
+}
 .stat-bar {
   flex: 1;
   height: 5px;

@@ -19,7 +19,7 @@
     </div>
     <div class="header-info">
       <div class="header-top">
-        <h1 class="brand">Claw'd <span class="version">v3.3</span></h1>
+        <h1 class="brand">Claw'd <span class="version">v3.6</span></h1>
         <span class="coins-pill" id="coins-pill" title="PixelCoins">🪙 <span id="coins-count">0</span></span>
       </div>
       <div class="xp-area">
@@ -28,12 +28,16 @@
         <span class="xp-count" id="xp-count">0 XP</span>
         <span class="streak-pill" id="streak-pill" style="display:none" title="Dias seguidos com o pet ativo">🔥 <span id="streak-count">0</span>d</span>
       </div>
-      <!-- Medidores Tamagotchi -->
+      <!-- Medidores Tamagotchi — todos clicáveis -->
       <div class="stats-row" id="stats-row">
-        <div class="stat" title="Felicidade"><span aria-hidden="true">❤️</span><div class="stat-bar" role="progressbar" aria-label="Felicidade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-happiness"></div></div></div>
-        <div class="stat" title="Saciedade"><span aria-hidden="true">🍖</span><div class="stat-bar" role="progressbar" aria-label="Saciedade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-hunger"></div></div></div>
-        <div class="stat" title="Energia"><span aria-hidden="true">⚡</span><div class="stat-bar" role="progressbar" aria-label="Energia" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-energy"></div></div></div>
-        <div class="stat" title="Higiene"><span aria-hidden="true">🧼</span><div class="stat-bar" role="progressbar" aria-label="Higiene" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-hygiene"></div></div></div>
+        <button type="button" class="stat stat-action" data-stat-action="happy" data-stat-key="happiness" title="Felicidade — clique para dar carinho" aria-label="Felicidade — clique para dar carinho"><span aria-hidden="true">❤️</span><div class="stat-bar" role="progressbar" aria-label="Felicidade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-happiness"></div></div></button>
+        <button type="button" class="stat stat-action" data-stat-action="feed" data-stat-key="hunger" id="stat-feed-btn" title="Saciedade — clique para alimentar" aria-label="Saciedade — clique para alimentar"><span aria-hidden="true">🍖</span><div class="stat-bar" role="progressbar" aria-label="Saciedade" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-hunger"></div></div></button>
+        <button type="button" class="stat stat-action" data-stat-action="play" data-stat-key="energy" title="Energia — clique para brincar" aria-label="Energia — clique para brincar"><span aria-hidden="true">⚡</span><div class="stat-bar" role="progressbar" aria-label="Energia" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-energy"></div></div></button>
+        <button type="button" class="stat stat-action" data-stat-action="bath" data-stat-key="hygiene" title="Higiene — clique para banho" aria-label="Higiene — clique para banho"><span aria-hidden="true">🧼</span><div class="stat-bar" role="progressbar" aria-label="Higiene" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><div class="stat-fill" id="stat-hygiene"></div></div></button>
+      </div>
+      <div class="header-dock-row">
+        <button type="button" class="btn-dock" id="btn-open-studio" title="Abre o studio flutuante na página (arraste para mover)">📌 Studio na página</button>
+        <button type="button" class="btn-dock" id="btn-detach-window" title="Abre o menu numa janela que você pode mover pela tela">🪟 Janela solta</button>
       </div>
     </div>
   </header>
@@ -84,10 +88,10 @@
       <div class="outfit-preview-copy">
         <span class="outfit-preview-kicker">Provador ao vivo</span>
         <strong id="outfit-preview-title">Seu visual atual</strong>
-        <small id="outfit-preview-detail">Dois slots combináveis</small>
+        <small id="outfit-preview-detail">Três slots combináveis</small>
       </div>
       <div class="outfit-preview-stage">
-        <div class="popup-outfit-pet" id="aic-clawd-node" data-model="classic" data-face-style="classic" data-acc-head="none" data-acc-face="none" data-skin="normal" role="img" aria-label="Prévia do visual do pet">
+        <div class="popup-outfit-pet" id="aic-clawd-node" data-model="classic" data-face-style="classic" data-acc-head="none" data-acc-face="none" data-acc-body="none" data-skin="normal" role="img" aria-label="Prévia do visual do pet">
           <div class="pet-body">
             <div class="sprite-stack">
               <div class="pixel-sprite"></div>
@@ -158,7 +162,7 @@
 
     <div class="control-group">
       <label for="range-speed">Velocidade da animação <span class="value-badge" id="speed-badge">1×</span></label>
-      <input type="range" id="range-speed" min="0.5" max="3" step="0.25" value="1">
+      <input type="range" id="range-speed" min="0.5" max="2" step="0.25" value="1">
     </div>
 
     <div class="control-group">
@@ -315,6 +319,7 @@
     <div class="divider"></div>
     <button id="btn-toggle" class="btn btn-outline"><span>👁️</span> Mostrar / Ocultar</button>
     <button id="btn-reset" class="btn btn-outline"><span>🔄</span> Resgatar pet</button>
+    <button id="btn-open-studio-actions" class="btn btn-outline"><span>📌</span> Studio na página</button>
   </div>
 
   <!-- PAINEL SUB-PETS -->
@@ -454,6 +459,14 @@
         <span class="toggle-desc">Desativa partículas de neve, folhas, etc.</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-no-weather"><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-label">✨ Sem faíscas de acessório</span>
+        <span class="toggle-desc">Desativa sparkles contínuos de hélice, asas e capa</span>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="toggle-no-ambient-sparks"><span class="slider"></span></label>
     </div>
 
     <div class="control-group">

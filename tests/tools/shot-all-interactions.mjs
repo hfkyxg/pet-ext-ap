@@ -1,6 +1,6 @@
 /**
  * Captura visual de todas as interações do showcase (18 steps + lab + subpets).
- * Sobe HTTP estático local, abre Edge via CDP e grava PNGs em tests/_shots/.
+ * Sobe HTTP estático local, abre Edge via CDP e grava PNGs em tests/shots/.
  */
 import { spawn } from 'node:child_process';
 import { createServer as createHttpServer } from 'node:http';
@@ -10,7 +10,7 @@ import { join, resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const outDir = join(root, 'tests', '_shots');
+const outDir = join(root, 'tests', 'shots');
 const edgePath = process.env.EDGE_PATH
   || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
   || 'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe';
@@ -150,7 +150,7 @@ async function main() {
   console.log('serving', docsUrl);
 
   const debugPort = await freePort();
-  const userData = join(outDir, `edge-all-${debugPort}`);
+  const userData = join(root, '.tmp', `edge-all-${debugPort}`);
   const child = spawn(edgePath, [
     `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${userData}`,
@@ -362,7 +362,7 @@ async function main() {
     demoSteps: stepMeta.length,
     subpets: speciesList,
     subpetActions: actions,
-    outDir: 'tests/_shots',
+    outDir: 'tests/shots',
   };
   await writeFile(join(outDir, '_inventory.json'), JSON.stringify(inventory, null, 2));
   console.log('inventory written');

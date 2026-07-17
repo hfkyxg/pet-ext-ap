@@ -63,10 +63,22 @@ test('migração preserva saves antigos e adiciona missão sem corromper sub-pet
   assert.ok(state.daily.date);
 });
 
+test('migração preserva volume 0 de canais (não trata como falsy)', () => {
+  const muted = clawdMigrateState({
+    schemaVersion: 4,
+    settings: { soundVolumeActions: 0, soundVolumeAmbient: 0, soundVolume: 0.5 }
+  });
+  assert.equal(muted.settings.soundVolumeActions, 0);
+  assert.equal(muted.settings.soundVolumeAmbient, 0);
+  const missing = clawdMigrateState({ schemaVersion: 4, settings: { soundVolume: 0.4 } });
+  assert.equal(missing.settings.soundVolumeActions, 1.0);
+  assert.equal(missing.settings.soundVolumeAmbient, 0.6);
+});
+
 test('modelos, rostos e cor dos olhos são versionados e validados', () => {
   assert.deepEqual(Object.keys(CLAWD_MODELS), ['classic', 'mini', 'claws', 'guardian']);
-  assert.deepEqual(Object.keys(CLAWD_FACE_STYLES), ['classic', 'sparkle', 'focused', 'sleepy']);
-  assert.deepEqual(Object.keys(CLAWD_SKINS), ['normal', 'droopy', 'robot']);
+  assert.deepEqual(Object.keys(CLAWD_FACE_STYLES), ['classic', 'sparkle', 'focused', 'sleepy', 'wink', 'cute', 'angry', 'heart']);
+  assert.deepEqual(Object.keys(CLAWD_SKINS), ['normal', 'droopy', 'robot', 'freckles', 'stripes', 'spots', 'glow']);
   const defaults = clawdDefaultState();
   assert.deepEqual(
     { model: defaults.model, faceStyle: defaults.faceStyle, eyeColor: defaults.eyeColor },
@@ -211,7 +223,7 @@ test('sub-pet e deslocamentos não usam timer fixo para renderizar frames', () =
   assert.match(contentSource, /measureRefreshRate\(\)/);
   assert.match(contentSource, /requestAnimationFrame\(step\)/);
   // clique enfileirado ainda resolve em carinho (bloco pode crescer com birra/rapid-click)
-  assert.match(contentSource, /_queuePetClick\(\)[\s\S]{0,900}this\.giveAffection\(\)/);
+  assert.match(contentSource, /_queuePetClick\(\)[\s\S]{0,1200}this\.giveAffection\(\)/);
   assert.match(contentSource, /if \(diffX < 5 && diffY < 5\) \{\s*this\._queuePetClick\(\)/);
 });
 

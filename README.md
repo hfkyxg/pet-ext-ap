@@ -14,7 +14,7 @@ Ele anda, desliza, reage, dorme, pisca, demonstra emoções e cuida de seus pró
 
 [Instalar](#-instalação) · [Funcionalidades](#-funcionalidades) · [Personalização](#-personalização) · [Validação](#-validação) · [Contribuir](#-contribuição)
 
-🌐 **Explore:** [Índice de docs](./docs/README.md) · [Arquitetura](./docs/ARCHITECTURE.md) · [Documentação Interativa](./docs/index.html) · [Documentação Técnica](./docs/md/DOCUMENTACAO.md) · [Manual](./docs/md/MANUAL.md) · [Validação](./docs/md/VALIDACAO.md) · [Melhorias v3.3](./docs/md/MELHORIAS.md) · [CHANGELOG](./CHANGELOG.md)
+🌐 **Explore:** [Índice de docs](./docs/README.md) · [Arquitetura](./docs/ARCHITECTURE.md) · [Documentação Interativa](./docs/index.html) · [Documentação Técnica](./docs/md/DOCUMENTACAO.md) · [Manual](./docs/md/MANUAL.md) · [Validação](./docs/md/VALIDACAO.md) · [Melhorias](./docs/md/MELHORIAS.md) · [CHANGELOG](./CHANGELOG.md)
 
 </div>
 
@@ -28,7 +28,7 @@ Passamos horas dentro do navegador — lendo, trabalhando, procrastinando — e 
 
 ### Pixel a pixel, de propósito
 
-O visual é deliberadamente **pixel-art numa grade de 4 px**. Cada modelo — Clássico, Mini, Pinças e Guardião — é uma silhueta desenhada célula a célula, com **corpo estático**, **pernas em camada própria** (ciclo só no deslocamento) e **`.pixel-fx`** para poses de ação (aceno, pulo, dança, etc.) em frames `steps(1)`. Os olhos têm cor independente, piscam sozinhos e ganham quatro rostos (Clássico, Brilho, Focado, Sonolento). O pet principal e os acessórios são **CSS puro** (`box-shadow`); os **sub-pets** usam PNGs literais em [`src/shared/sprites/subpets/`](./src/shared/sprites/subpets/) (com fallback `box-shadow` se você personalizar a paleta) — o sheet canônico está em [`tests/sprite-out/Subpets-selection.png`](./tests/sprite-out/Subpets-selection.png). Tudo sincronizado ao *refresh rate* real via `requestAnimationFrame`.
+O visual é deliberadamente **pixel-art numa grade de 4 px**. Cada modelo — Clássico, Mini, Pinças e Guardião — é uma silhueta desenhada célula a célula, com **corpo estático**, **pernas em camada própria** (ciclo só no deslocamento) e **`.pixel-fx`** para poses de ação (aceno, pulo, dança, etc.) em frames `steps(1)`. Os olhos têm cor independente, piscam sozinhos e ganham **oito rostos** (Clássico, Brilho, Focado, Sonolento, Piscadela, Fofinho, Bravo e Apaixonado). O pet principal e os acessórios são **CSS puro** (`box-shadow`); os **sub-pets** usam PNGs literais em [`src/shared/sprites/subpets/`](./src/shared/sprites/subpets/) (com fallback `box-shadow` se você personalizar a paleta) — o sheet canônico está em [`tests/sprite-out/Subpets-selection.png`](./tests/sprite-out/Subpets-selection.png). Tudo sincronizado ao *refresh rate* real via `requestAnimationFrame`.
 
 ### O gramado dentro do navegador ⚽
 
@@ -40,7 +40,11 @@ Ao redor do futebol há um sistema inteiro que conversa entre si: **12 profissõ
 
 ### Feito para durar (e para hackear)
 
-Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; saves usam **coalesce**; e **117 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
+Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; saves usam **coalesce**; e **150 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
+
+### Novidades em v3.6
+
+A versão 3.6 trouxe **polish completo de animações e interações**: props de profissão agora animam — o chef mexe a frigideira, o dev pisca um cursor verde, o jogador exibe a chuteira com tap-bounce. O **hover glow** no modo Smooth reflete a cor primária do pet via `--clawd-glow`. O SubPet ganhou **guard de ownership** no RAF (sem loops órfãos) e **frequência de interação adaptativa** baseada em personalidade (`playful`/`lazy`). Os **4 medidores de status** no popup são clicáveis (carinho / alimentar / brincar / banho). Personalização móvel via **Studio in-page** arrastável e janela destacável (`?detached=1`). Laptop só aparece no **Dev digitando**; acessórios de corpo ficam no peito/pescoço. Validação ponta a ponta: **150/150** contratos + ecosystem 100% das ações no motor.
 
 ### Novidades em v3.3
 
@@ -54,7 +58,7 @@ O Claw'd não quer sua atenção o tempo todo. Ele só quer estar lá, no rodap�
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
 
-A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **117/117 contratos**, **8/8 scripts**, **4 modelos**, **4 rostos**, **12 profissões**, **31 acessórios (3 slots)**, **30 ações** (+ kick/keepy/superdance fora do popup), **7 ações do subpet**, **34 conquistas**, **3/3 reloads limpos** e **0 erros de runtime**.
+A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **150/150 contratos**, **8/8 scripts**, **4 modelos**, **8 rostos**, **12 profissões**, **31 acessórios (3 slots)**, **30 ações** (+ kick/keepy/superdance fora do popup), **7 ações do subpet**, **34 conquistas**, **3/3 reloads limpos** e **0 erros de runtime**.
 
 ---
 
@@ -89,7 +93,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 - Sprite padrão fiel ao modelo compacto vermelho de referência
 - **4 modelos pixel-art**: Clássico, Mini, Pinças e Guardião, todos na grade de 4 px
 - **Pernas em camada própria**: estáticas em repouso e em ciclo somente durante movimento
-- **4 rostos e olhos com cor independente**: Clássico, Brilho, Focado e Sonolento
+- **8 rostos e olhos com cor independente**: Clássico, Brilho, Focado, Sonolento, Piscadela, Fofinho, Bravo e Apaixonado
 - Piscada independente, expressões faciais e **balão de emojis**
 - Efeito **3D perspective** ao seguir o cursor
 - **Partículas** de ❤️ ✨ ⭐ ao receber carinho
@@ -263,7 +267,7 @@ pet-ext-ap/
 │   ├── extension.test.js      # Manifest, popup, documentação e reload seguro
 │   ├── integrity.test.js      # Harmonia entre catálogo e motor
 │   ├── runtime-smoke.mjs      # Chromium real, interações e reloads
-│   └── tools/                 # Geradores one-off (_crop, _make-sprites, shots…)
+│   └── tools/                 # Geradores one-off (crop, make-sprites, shots…)
 ├── docs/
 │   ├── README.md              # Índice da documentação
 │   ├── ARCHITECTURE.md        # Camadas e padrões (SSOT, Facade, Strategy…)
@@ -375,15 +379,16 @@ chrome.storage.local.set({
 
 ## 🗺️ Estado atual e próximos passos
 
-O núcleo da v3.2 está implementado e validado: quatro silhuetas, quatro rostos, olhos independentes, favoritos, sub-pets, profissões contextuais, dois slots de acessórios, pixel art em camadas, stats, cross-tab, loja, conquistas e missão diária. O plano detalhado e as ideias de expansão estão em [MELHORIAS.md](./docs/md/MELHORIAS.md):
+O núcleo da **v3.6** está implementado e validado: quatro silhuetas, **oito rostos**, sete skins, olhos independentes, favoritos, sub-pets, 12 profissões, **31 acessórios em 3 slots**, pixel art em camadas, status clicáveis, studio móvel, cross-tab, loja, conquistas e missão diária. O registro histórico e ideias de expansão estão em [MELHORIAS.md](./docs/md/MELHORIAS.md):
 
 | Área | Destaques |
 |------|-----------|
 | ⭐ **Favoritos** | Favorite ações, profissões, acessórios, cores e apelidos — favoritos ganham prioridade |
 | 🐕 **Sub-Pets** | Oito espécies com apelido, corpo/olhos customizáveis, sprites pixel-art, sete ações ao vivo e habilidades próprias |
-| 🎬 **Animações & Acessórios** | Corpo/pernas separados, 2 slots e 7 chapéus refinados; ações extras (balão, abraço, spin…) |
+| 🎬 **Animações & Acessórios** | Corpo/pernas separados, 3 slots (31 itens), body no peito/pescoço; ações extras (balão, abraço, spin…) |
+| 📌 **Studio & popup** | Studio in-page arrastável, janela destacável, 4 status clicáveis, 8 abas |
 | 🔐 **Segurança & Runtime** | Allowlist de mensagens, sanitização de storage/DOM, cores hex-only, sites bloqueados por host exato, áudio pós-gesto, bfcache sem `lastError` |
-| 🧬 **Modelos & Rostos** | 4 silhuetas × 4 rostos, cor de olhos independente e Clássico fiel à referência |
+| 🧬 **Modelos & Rostos** | 4 silhuetas × 8 rostos, 7 skins, cor de olhos independente e Clássico fiel à referência |
 | 😊 **Status & Emoções** | Felicidade, fome, energia e higiene estilo Tamagotchi, com emoções derivadas |
 | 💼 **Profissões 2.0** | Embaixadinhas com contador e recorde, desafios do Tutor, digitação do Dev + novas profissões |
 | 🎮 **Gamificação** | Curva de XP progressiva, PixelCoins, lojinha, conquistas, streak e missão diária resgatável |
@@ -408,7 +413,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **117 testes automatizados** validam catálogos, schema v5, quatro modelos, quatro rostos, cor dos olhos, missões (incl. balões/keepy), sprite padrão, separação corpo/pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup, movimento adaptativo, isolamento de CSS, contexto MV3 invalidado, **bfcache/lastError**, **AudioContext pós-gesto**, **allowlist de mensagens**, **sites bloqueados sem substring**, **anti-poluição de protótipo**, **save coalesce / particle timers**, extras **kick/keepy/superdance** e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real **4/4 modelos e 4/4 rostos**, os acessórios nos dois renderizadores, o provador pixel/liso do popup, a cor dos olhos, o controle persistente da boca, o movimento dos chapéus, 12 profissões e os estados esperados das ações do catálogo (**30** no popup). Também prova que o corpo não morpha e apenas as pernas caminham, restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas **7** interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **150 testes automatizados** validam catálogos, schema v5, quatro modelos, **oito rostos**, sete skins, cor dos olhos, missões (incl. balões/keepy), sprite padrão, separação corpo/pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup (studio/status), movimento adaptativo, isolamento de CSS, contexto MV3 invalidado, **bfcache/lastError**, **AudioContext pós-gesto**, **allowlist de mensagens**, **sites bloqueados sem substring**, **anti-poluição de protótipo**, **save coalesce / particle timers**, extras **kick/keepy/superdance**, **100% das ações no `_handleAction`**, combo/streak/claim e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real **4/4 modelos e 8/8 rostos**, os acessórios nos dois renderizadores, o provador pixel/liso do popup, a cor dos olhos, o controle persistente da boca, o movimento dos chapéus, 12 profissões e os estados esperados das ações do catálogo (**30** no popup). Também prova que o corpo não morpha e apenas as pernas caminham, restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas **7** interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 A vitrine também foi inspecionada em navegador real nos layouts desktop e móvel: player funcional, avanço automático, seleção direta das etapas lisa/subpet, acessórios no laboratório, **zero logs de erro** e nenhuma rolagem horizontal em 375 px.
 
@@ -436,21 +441,21 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Não há `package.json` nem build step: Node 18+ basta. O smoke abre o Edge/Chromium com a extensão descompactada (`EDGE_PATH` se o Edge não estiver no caminho padrão).
+Não há `package.json` de runtime nem build step: Node 18+ basta para a suíte. Scripts úteis: `npm test`, `npm run check`, `node tests/tools/validate-ecosystem.mjs`. O smoke abre o Edge/Chromium com a extensão descompactada (`EDGE_PATH` se o Edge não estiver no caminho padrão).
 
 ### Regenerar sprites de sub-pets
 
 A arte canônica dos PNGs do pacote vem do sheet literal:
 
 ```powershell
-node tests/tools/_crop-literal-sprites.mjs
+node tests/tools/crop-literal-sprites.mjs
 ```
 
-`node tests/tools/_make-sprites.mjs` atualiza frames/preview em `tests/sprite-out/` e o catálogo, mas **não** sobrescreve `src/shared/sprites/subpets/*.png` a menos que você force `WRITE_PKG_SPRITES=1`. Depois rode `node --test tests/*.test.js` para confirmar que docs/métricas e assets continuam alinhados.
+`node tests/tools/make-sprites.mjs` atualiza frames/preview em `tests/sprite-out/` e o catálogo, mas **não** sobrescreve `src/shared/sprites/subpets/*.png` a menos que você force `WRITE_PKG_SPRITES=1`. Depois rode `node --test tests/*.test.js` para confirmar que docs/métricas e assets continuam alinhados.
 
 ### Checklist de PR
 
-- [ ] `node --test tests/*.test.js` verde (81 contratos)
+- [ ] `node --test tests/*.test.js` verde (150 contratos)
 - [ ] Docs/manual/showcase coerentes com contagens reais (30 ações + extras, 31 acessórios, 34 conquistas, 14 quests, 12 weekly, schema v5)
 - [ ] Sem secrets (`.env`, credenciais) no diff
 - [ ] Após editar content/CSS: recarregar a extensão **e** a aba de teste

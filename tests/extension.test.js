@@ -279,12 +279,12 @@ test('cada sub-pet tem PNG empacotado e image.url coerente', () => {
   );
 });
 
-test('_make-sprites não sobrescreve PNGs do pacote sem WRITE_PKG_SPRITES=1', () => {
-  const makeSprites = read('tests/tools/_make-sprites.mjs');
+test('make-sprites não sobrescreve PNGs do pacote sem WRITE_PKG_SPRITES=1', () => {
+  const makeSprites = read('tests/tools/make-sprites.mjs');
   assert.match(makeSprites, /WRITE_PKG_SPRITES\s*=\s*process\.env\.WRITE_PKG_SPRITES\s*===\s*'1'/);
   assert.match(makeSprites, /if\s*\(\s*WRITE_PKG_SPRITES\s*\)/);
   assert.match(makeSprites, /skip package PNGs/);
-  assert.match(makeSprites, /_crop-literal-sprites/);
+  assert.match(makeSprites, /crop-literal-sprites/);
 });
 
 test('popup.html contém elementos de onboarding e context-bar (v3.4)', () => {
@@ -293,6 +293,9 @@ test('popup.html contém elementos de onboarding e context-bar (v3.4)', () => {
   assert.match(popupHtml, /id="onboarding-start"/, 'botão de início do onboarding deve existir');
   assert.match(popupHtml, /role="progressbar"/, 'barras de stat devem ter role progressbar');
   assert.match(popupHtml, /aria-label="Felicidade"/, 'barra de felicidade deve ter aria-label');
+  assert.match(popupJs, /function updateContextBar/);
+  assert.match(popupJs, /CLAWD_PROFESSIONS\[prof\]/);
+  assert.doesNotMatch(popupJs, /CLAWD_PROFESSIONS\s*\|\|\s*\[\]\)\.find/);
 });
 
 test('content.js contém handlers de interação v3.4', () => {

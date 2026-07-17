@@ -90,6 +90,6 @@ export default [
     }
   },
   {
-    ignores: ['docs/', 'tests/tools/', 'tests/_shots/', 'tests/sprite-out/']
+    ignores: ['docs/', 'tests/tools/', 'tests/shots/', 'tests/sprite-out/']
   }
 ];

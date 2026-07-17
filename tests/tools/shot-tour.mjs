@@ -9,7 +9,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const outDir = join(root, 'tests', '_shots');
+const outDir = join(root, 'tests', 'shots');
 const edgePath = process.env.EDGE_PATH
   || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const DOCS = process.env.CLAWD_DOCS_URL || 'http://localhost:63654/docs/';
@@ -83,7 +83,7 @@ async function screenshot(cdp, name) {
 async function main() {
   await mkdir(outDir, { recursive: true });
   const port = await freePort();
-  const userData = join(outDir, `edge-profile-${port}`);
+  const userData = join(root, '.tmp', `edge-profile-${port}`);
   const child = spawn(edgePath, [
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${userData}`,

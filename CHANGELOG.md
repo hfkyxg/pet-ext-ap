@@ -3,23 +3,47 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.6.0] — 2026-07-17
+
+### Adicionado
+
+- **CLAWD_TIMINGS** — constante centralizada no catálogo com intervalos críticos; elimina magic numbers em `content.js` e `popup.js`
+- **Props animados** — engineer (cursor piscante), footballer (chuteira), chef (stir), fisher (boia); laptop **somente** em Dev digitando
+- **Studio in-page + janela destacável** — personalização móvel (`openStudio` / `?detached=1`)
+- **4 status clicáveis** no popup — happy / feed / play / bath
+- **Hover glow reativo** — modo Smooth com `drop-shadow` via `--clawd-glow`
+- **A11y live region** — `role="status" aria-live="polite"` + `.clawd-sr-only`
+- **Validação completa** — `tests/validation-complete.test.js` (20 contratos) + ecosystem **100%** das 30 ações no `_handleAction`
+- **SubPet RAF guard** + frequência adaptativa por personalidade
+- Body accessories reposicionados (peito/pescoço; capa atrás)
+
+### Alterado
+
+- Suíte **150/150**; popup header **v3.6**; docs/manual/README/VALIDACAO alinhados (8 rostos · 7 skins · 7 idle)
+- Tools em `tests/tools/` sem prefixo `_` (Chrome MV3 reserva `_` no pacote)
+
+---
+
 ## [3.3.1] — 2026-07-17
 
 ### Adicionado
 
 - **Camada `.pixel-fx`** — poses pixel `steps(1)` para aceno, braços no andar/correr, pulo, rolamento, cambalhota, giro, dança, high-five, stretch, clap, sono, rugido, peek, sneak, banho e celebração (4 modelos)
 - **FX de acessório** — pop + sparks ao vestir; ambient de hélice/asas/capa/armadura; planeio real com asas
-- Suítes **harmony-phase** e **quality-fluid**; showcase **117/117**
+- Suítes **harmony-phase** e **quality-fluid**; showcase **123/123**
+- **Perf/inteligência** — reserva de teto FX (`_reserveFx`), lookAtCursor por rAF+proximidade, `will-change` só ao mover, idle variation sempre reagenda, contexto reage no 1º load, visibilidade unificada por away-time
+- **Sprites fluidos** — ações (roll/spin/cheer/…) e idle variations vencem breathe; aba oculta pausa CSS; subpet settle-wake + FX release + sync no spawn
 
 ### Corrigido
 
 - **Name-tag** — `textContent` no `.name-tag` apagava o título de nível; agora título + nome em spans (`_syncNameTag` / `syncPopupNameTag`)
 - Slot **corpo** no DOM/CSS/popup/showcase; volumes Ações/Ambiente no áudio; `opts.count` nas partículas
 - Hover-pet com cooldown; coalesce click/dblclick na bola; reduced-motion nos FX
+- **SFX/FX polish** — play/pose/bath/wake/birra com beep/chime; mute real (volume 0); migrate preserva canais em 0; pó/clima respeitam reduced-motion; preview dos sliders Ações/Ambiente no popup
 
 ### Alterado
 
-- Docs/manual/VALIDACAO alinhados à suíte **117/117** e ao catálogo vivo
+- Docs/manual/VALIDACAO alinhados à suíte **123/123** e ao catálogo vivo
 
 ---
 
@@ -94,7 +118,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 
 - Oito PNGs de sub-pet em `src/shared/sprites/subpets/` (`web_accessible_resources`), crops literais do sheet
 - Metadados `image:{}` em `CLAWD_SUBPET_SPRITES` + helpers `clawdSubPetImageUrl` / `clawdSubPetBounds`
-- Pipeline `tests/tools/_crop-literal-sprites.mjs` (fonte canônica dos PNGs) e `tests/tools/_make-sprites.mjs` (frames/preview; pacote só com `WRITE_PKG_SPRITES=1`)
+- Pipeline `tests/tools/crop-literal-sprites.mjs` (fonte canônica dos PNGs) e `tests/tools/make-sprites.mjs` (frames/preview; pacote só com `WRITE_PKG_SPRITES=1`)
 - Sons de interação do sub-pet (`_sfx`) respeitando gesto do usuário e horário de silêncio
 - Cenas **duo** pet↔subpet e engajamento após **dwell** na página (`look-around`, `page-peek`, `tab-greet`, `soft-land`)
 - Prévia sonora no slider de volume do popup (chirp 8-bit ao ajustar / religar Sons)
@@ -114,7 +138,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 ### Segurança / qualidade
 
 - Allowlist de mensagens, AudioContext pós-gesto, sites bloqueados sem substring
-- `_make-sprites` não sobrescreve PNGs do pacote sem `WRITE_PKG_SPRITES=1`
+- `make-sprites` não sobrescreve PNGs do pacote sem `WRITE_PKG_SPRITES=1`
 - Smoke Chromium: 0 erros de runtime, 3 reloads com 1 pet
 
 ## [3.1.x] e anteriores

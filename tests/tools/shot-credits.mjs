@@ -5,7 +5,7 @@ import { join } from 'node:path';
 
 const edgePath = process.env.EDGE_PATH
   || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-const out = join('tests', '_shots', '16-credits-faixa.png');
+const out = join('tests', 'shots', '16-credits-faixa.png');
 
 function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -24,11 +24,11 @@ async function freePort() {
 }
 
 async function main() {
-  await mkdir(join('tests', '_shots'), { recursive: true });
+  await mkdir(join('tests', 'shots'), { recursive: true });
   const port = await freePort();
   const child = spawn(edgePath, [
     `--remote-debugging-port=${port}`,
-    `--user-data-dir=tests/_shots/edge-cf-${port}`,
+    `--user-data-dir=.tmp/edge-cf-${port}`,
     '--no-first-run',
     '--window-size=1200,900',
     'about:blank',

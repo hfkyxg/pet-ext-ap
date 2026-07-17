@@ -51,28 +51,32 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Nome do pet** — digite e o name-tag muda na hora (mostra **título do nível** + nome);
 - **Modelo do pet** — escolha entre Clássico, Mini, Pinças e Guardião; o Clássico preserva exatamente a silhueta compacta original;
 - **Cor principal** — cores prontas ou o seletor para qualquer cor;
-- **Rosto e olhos** — combine Clássico, Brilho, Focado ou Sonolento e escolha uma cor de olhos independente do corpo;
+- **Rosto e olhos** — **8 rostos** (Clássico, Brilho, Focado, Sonolento, Piscadela, Fofinho, Bravo, Apaixonado) e cor de olhos independente do corpo;
 - **Tamanho** — de 0.8× (mini) a 3× (gigante);
 - **Velocidade da animação** — deixe-o zen (0.5×) ou hiperativo (3×);
 - **Visual liso** — conserva a geometria angular do pet, mas usa superfícies contínuas no lugar das células quadradas; não exibe grade ou textura e não transforma o Claw'd em slime;
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
 - **Exibir boca** — ligada por padrão; desligue para remover somente a boca (olhos, piscadas e balões de emoji continuam ativos);
-- **Skin do corpo** — Normal, Orelhas ou Robô, combinável com qualquer modelo e rosto;
+- **Skin do corpo** — **7 skins** (Normal, Orelhas caídas, Robô, Sardas, Listras, Manchas, Brilho), combinável com qualquer modelo e rosto;
 - **Provador ao vivo** — mostra a mesma arte CSS do pet e combina modelo + rosto + skin + cabeça + rosto/corpo antes de você fechar o popup; a etiqueta abaixo do preview espelha título + nome;
+- **Studio na página** — botão para abrir o painel de personalização **sobre a página** (arrastável pelos cantos ou posição livre); ou **janela destacável** (`popup.html?detached=1`) para não depender do popup da barra;
 - **Acessórios** — **31** opções em **três slots** (cabeça, rosto, **corpo**), com miniaturas pixel-art reais. Selecione ou passe o cursor para ler a descrição; chapéus acompanham o passo e ficam parados em repouso.
+
+#### Status clicáveis
+
+Na barra de status (felicidade / saciedade / energia / higiene), **clique no medidor** para disparar a ação correspondente: carinho, alimentar, brincar ou banho — sem precisar ir à aba Ações.
 
 #### Slot de Corpo (novo em v3.3)
 
-O terceiro slot veste o corpo inteiro do pet e combina com qualquer cabeça ou rosto:
+O terceiro slot veste o **peito/pescoço** (abaixo do rosto) e combina com qualquer cabeça ou rosto:
 
 | Acessório | Desbloqueio | Efeito especial |
 |-----------|-------------|-----------------|
-| 🎀 **Ribbon** | Grátis | Laço no pescoço |
-| 🪽 **Wings** | Nível 15 | Animação de levitação suave no idle |
-| 🦸 **Cape** | Loja (80 coins) | Capa flutuante ao caminhar |
-| 🛡️ **Armor** | Loja (100 coins) | Armadura completa |
-
-Wings ativa automaticamente a animação `clawd-float-idle` quando o pet está parado.
+| 🎀 **Ribbon** | Grátis | Laço no peito/pescoço |
+| 🪽 **Wings** | Nível 15 | Asas laterais + levitação suave no idle |
+| 🦸 **Cape** | Loja (80 coins) | Capa atrás do corpo ao caminhar |
+| 🛡️ **Armor** | Loja (100 coins) | Armadura abaixo dos olhos |
+| 🧣 **Scarf (corpo)** | Catálogo | Cachecol no pescoço |
 
 ### 💼 Aba Profissão
 
@@ -193,11 +197,38 @@ Não. Nenhum dado sai do seu navegador: não há servidores, contas nem rastream
 **Ele funciona no Firefox?**
 Ainda não — por enquanto Chrome, Edge e Brave. Suporte a Firefox está nas ideias de contribuição.
 
+**O prop da profissão não aparece (frigideira, cursor, chuteira…)**
+Confirme que o pet está no estado correto: chef animado aparece só durante a ação `cooking` (quando o pet está em modo chef em um site de culinária ou via ação manual). O cursor do dev pisca sempre que a profissão "Dev" está ativa.
+
+**O leitor de tela não anuncia as emoções.**
+As mudanças de emoção são anunciadas via `aria-live="polite"` — elas só aparecem quando a emoção MUDA (ex: de "contente" para "com fome"). Certifique-se de que o leitor de tela está configurado para regiões live.
+
+**O sub-pet some após fechar e reabrir a aba.**
+Normal — o sub-pet é recriado a cada carga da página. Ele volta automaticamente se estiver ativo (`subpets.active` definido no estado).
+
 ---
 
-## 7. Recursos avançados já disponíveis
+## 7. Atalhos de teclado
 
-O Claw'd v3.3 inclui **4 modelos × 4 rostos**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **31 acessórios em 3 slots**, **12 profissões** com contexto de página, **30 ações** no popup (+ kick/keepy/superdance), **status e emoções** estilo Tamagotchi, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade**, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas sazonais e o pet **passeando entre suas abas**. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md).
+| Atalho | Ação |
+|--------|------|
+| `Alt + F` | Dar comida ao pet (alimentar) |
+| `Alt + H` | Carinho — pet pula de alegria |
+| `Alt + P` | Pose — pet congela com brilho dourado |
+| `Alt + Z` | Dormir / Acordar (toggle) |
+| `Enter` / `Espaço` no pet | Igual a um clique |
+| Clique no emoji 🍖 (popup) | Alimentar rapidamente sem sair do popup |
+| Clique nos medidores de status | Carinho / alimentar / brincar / banho |
+| `Enter` / `Espaço` no 🍖 | Mesmo efeito via teclado |
+| Botão Studio / Destacar | Painel móvel na página ou janela destacável |
+
+> **Dica Dev:** com a profissão **Dev (engineer)**, ao focar um campo de texto o pet entra em `typing` e mostra o laptop. Nas outras profissões ele só fica curioso.
+
+---
+
+## 8. Recursos avançados já disponíveis
+
+O Claw'd v3.6 inclui **4 modelos × 8 rostos × 7 skins**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **31 acessórios em 3 slots**, **12 profissões** com contexto de página e props animados únicos, **30 ações** no popup (+ kick/keepy/superdance), **status clicáveis** e emoções estilo Tamagotchi com anúncio acessível, **Studio in-page** + janela destacável, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade** que afetam o comportamento real do sub-pet, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas sazonais e o pet **passeando entre suas abas**. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md). Validação atual: [VALIDACAO.md](./VALIDACAO.md) (**150/150**).
 
 ### Personalização avançada (v3.3)
 

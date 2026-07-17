@@ -2,7 +2,7 @@
  * Gera ícones PNG do Claw'd (rosto clássico vermelho) para o Chrome.
  * Fonte: grade do pet-classic em src/assets/pet-banner.svg (14×12 células).
  *
- * node tests/tools/_make-icons.mjs
+ * node tests/tools/make-icons.mjs
  */
 import fs from 'fs';
 import path from 'path';

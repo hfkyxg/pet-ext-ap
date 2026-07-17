@@ -330,7 +330,7 @@ test('content e background alinham cleanup DOM e harden mensagens', () => {
   assert.match(content, /_canSpawnFx/);
   assert.match(content, /_pauseRaf/);
   assert.match(content, /SETTLE_EPS|_writePos/);
-  assert.match(content, /\+ count <= 18/);
+  assert.match(content, /\+ count <= CLAWD_TIMINGS\.PARTICLE_MAX/);
   assert.doesNotMatch(content, /speechNode\.innerHTML\s*=/);
   assert.doesNotMatch(content, /el\.innerHTML\s*=\s*`[\s\S]*aic-toast/);
   assert.doesNotMatch(content, /Object\.assign\(/);
@@ -429,16 +429,66 @@ test('escalabilidade tick5 — save coalesce, particle timers e destroy limpam s
   assert.match(content, /_flushSave\(\)/);
   assert.match(content, /_saveInFlight/);
   assert.match(content, /_saveDirty/);
-  assert.match(content, /setTimeout\(\(\) => this\._flushSave\(\), 350\)/);
+  assert.match(content, /setTimeout\(\(\) => this\._flushSave\(\), CLAWD_TIMINGS\.STORAGE_DEBOUNCE_MS\)/);
   assert.match(content, /_particleTimers/);
   assert.match(content, /_scrollIdleTimer/);
-  assert.match(content, /'_idleVarTimer', '_scrollIdleTimer'/);
+  assert.match(content, /'_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer'/);
   assert.match(content, /this\._particleTimers\.forEach\(clearTimeout\)/);
   assert.match(content, /this\._timers\.length = 0/);
   assert.match(arch, /Escalabilidade \(vanilla MV3/);
   assert.match(arch, /Não fatiar `content\.js` em ES modules/);
   assert.match(arch, /debounce 350/);
   assert.match(arch, /_canSpawnFx` ≤ \*\*18\*\*/);
+});
+
+test('CLAWD_TIMINGS exportado com todas as chaves obrigatórias', () => {
+  const { CLAWD_TIMINGS } = require('../src/shared/catalog.js');
+  assert.ok(CLAWD_TIMINGS, 'CLAWD_TIMINGS deve ser exportado');
+  const required = ['SUBPET_INTERACTION_MS', 'STAT_DECAY_MS', 'STORAGE_DEBOUNCE_MS', 'PARTICLE_MAX', 'SETTLE_EPS_PX', 'DOUBLE_CLICK_WINDOW_MS', 'RANDOM_ACTION_MS', 'DUO_SCENE_MS'];
+  for (const key of required) {
+    assert.ok(typeof CLAWD_TIMINGS[key] === 'number', `CLAWD_TIMINGS.${key} deve ser número`);
+    assert.ok(CLAWD_TIMINGS[key] > 0, `CLAWD_TIMINGS.${key} deve ser > 0`);
+  }
+});
+
+test('novas props de profissão: engineer e footballer têm CSS + DOM', () => {
+  const content = read('src/content/content.js');
+  const style = read('src/content/style.css');
+  assert.match(content, /prop-engineer-code/, 'DOM deve ter prop-engineer-code');
+  assert.match(content, /prop-footballer-boot/, 'DOM deve ter prop-footballer-boot');
+  assert.match(content, /prop-fisher-bobber/, 'DOM deve ter prop-fisher-bobber');
+  assert.match(style, /\.prop-engineer-code/, 'CSS deve estilizar prop-engineer-code');
+  assert.match(style, /\.prop-footballer-boot/, 'CSS deve estilizar prop-footballer-boot');
+  assert.match(style, /\.prop-fisher-bobber/, 'CSS deve estilizar prop-fisher-bobber');
+  assert.match(style, /data-profession="engineer"\]\.typing \.laptop/, 'laptop só no Dev digitando');
+  assert.match(style, /clawd-cursor-blink/, 'CSS deve ter keyframe clawd-cursor-blink');
+  assert.match(style, /clawd-boot-tap/, 'CSS deve ter keyframe clawd-boot-tap');
+  assert.match(style, /clawd-chef-stir/, 'CSS deve ter keyframe clawd-chef-stir');
+});
+
+test('A11y: live region e sr-only presentes no DOM do pet', () => {
+  const content = read('src/content/content.js');
+  const style = read('src/content/style.css');
+  assert.match(content, /aria-live="polite"/, 'DOM deve ter aria-live=polite');
+  assert.match(content, /role="status"/, 'DOM deve ter role=status');
+  assert.match(content, /clawd-sr-only/, 'DOM deve usar classe clawd-sr-only');
+  assert.match(style, /\.clawd-sr-only/, 'CSS deve definir .clawd-sr-only');
+  assert.match(style, /overflow:\s*hidden/, 'clawd-sr-only deve ter overflow hidden');
+});
+
+test('status interativos: medidores clicáveis no popup', () => {
+  const popupHtml = read('src/popup/popup.html');
+  const popup = read('src/popup/popup.js');
+  assert.match(popupHtml, /stat-feed-btn/, 'popup.html deve ter stat-feed-btn');
+  assert.match(popupHtml, /stat-action/, 'medidores devem usar classe stat-action');
+  assert.match(popupHtml, /data-stat-action="feed"/, 'saciedade deve disparar feed');
+  assert.match(popupHtml, /data-stat-action="happy"/, 'felicidade deve disparar carinho');
+  assert.match(popupHtml, /data-stat-action="play"/, 'energia deve disparar play');
+  assert.match(popupHtml, /data-stat-action="bath"/, 'higiene deve disparar bath');
+  assert.match(popupHtml, /btn-open-studio|btn-detach-window/, 'popup deve oferecer studio/janela móvel');
+  assert.match(popup, /stat-action/, 'popup.js deve vincular .stat-action');
+  assert.match(popup, /triggerAction/, 'popup deve disparar triggerAction ao clicar status');
+  assert.match(popup, /openStudio|detachPopupWindow/, 'popup deve abrir studio ou janela destacável');
 });
 
 test('slot corpo: DOM, CSS pixel, popup preview e showcase CORPO', () => {

@@ -15,12 +15,16 @@ const popupCss = read('src/popup/popup.css');
 const popupHtml = read('src/popup/popup.html');
 const popupJs = read('src/popup/popup.js');
 const catalog = require('../src/shared/catalog.js');
+const catalogSource = read('src/shared/catalog.js');
 
 /* ---------- PERFORMANCE ---------- */
 
 test('qualidade: FX com teto, pause em aba oculta e modo desempenho', () => {
   assert.match(content, /_canSpawnFx\(/);
-  assert.match(content, /\+\s*count\s*<=\s*18|count\s*<=\s*18/);
+  assert.match(content, /\+\s*count\s*<=\s*(18|CLAWD_TIMINGS\.PARTICLE_MAX)|count\s*<=\s*(18|CLAWD_TIMINGS\.PARTICLE_MAX)/);
+  assert.match(content, /_reserveFx\(/);
+  assert.match(content, /_releaseFx\(/);
+  assert.match(content, /_trackParticle\([^)]*reserved/);
   assert.match(content, /performanceMode/);
   assert.match(content, /noParticles/);
   assert.match(content, /document\.hidden/);
@@ -41,7 +45,7 @@ test('qualidade: save coalesce (debounce + in-flight + skip unchanged)', () => {
   assert.match(content, /_flushSave\(\)/);
   assert.match(content, /_saveInFlight/);
   assert.match(content, /_saveDirty/);
-  assert.match(content, /setTimeout\(\(\) => this\._flushSave\(\),\s*350\)/);
+  assert.match(content, /setTimeout\(\(\) => this\._flushSave\(\),\s*(350|CLAWD_TIMINGS\.STORAGE_DEBOUNCE_MS)\)/);
   assert.match(content, /unchanged/);
 });
 
@@ -63,6 +67,30 @@ test('qualidade: prefers-reduced-motion no CSS e sync ao vivo no JS', () => {
   assert.match(content, /mqMotion\.addEventListener/);
   assert.match(style, /\.aic-reduced-motion/);
   assert.match(popupCss, /prefers-reduced-motion:\s*reduce/);
+  /* reduce zera legs/fx (não só alonga duração) */
+  assert.match(style, /prefers-reduced-motion:\s*reduce[\s\S]{0,400}\.pixel-legs/);
+  assert.match(style, /prefers-reduced-motion:\s*reduce[\s\S]{0,500}animation:\s*none !important/);
+});
+
+test('qualidade: sprites pet — ações vencem breathe; idle variations !important', () => {
+  assert.match(style, /:not\(\.rolling\):not\(\.spinning\).*clawd-idle-look|:not\(\.clawd-idle-look\)/);
+  assert.match(style, /clawd-idle-look[\s\S]{0,80}!important/);
+  assert.match(style, /#aic-clawd-node\.rolling \.pet-body[\s\S]{0,120}!important/);
+  assert.match(style, /#aic-clawd-node\.spinning \.pet-body[\s\S]{0,120}!important/);
+  assert.match(style, /#aic-clawd-node\.cheering \.pet-body[\s\S]{0,120}!important/);
+  assert.match(style, /\.pixel-fx[\s\S]{0,40}clawd-pixel-fx-wave|clawd-pixel-fx-wave/);
+  assert.match(style, /aic-tab-hidden[\s\S]{0,200}animation-play-state:\s*paused/);
+  assert.match(style, /aic-nofx \.pixel-legs|aic-reduced-motion \.pixel-legs/);
+});
+
+test('qualidade: subpet — sync spawn, FX release, settle wake, vanish', () => {
+  assert.match(content, /new SubPet\(this,\s*want\);\s*\n\s*this\.subpet\.onOwnerState\(this\.state\)/);
+  assert.match(content, /_fxPending/);
+  assert.match(content, /_armSettleWake\(/);
+  assert.match(content, /_clearSettleWake\(/);
+  assert.match(content, /_beginInteraction\('vanishing',\s*'vanishing'\)/);
+  assert.match(content, /paintCadence|_useBitmap\(\)/);
+  assert.match(content, /being-petted.*duo-play|duo-play.*being-petted/);
 });
 
 test('qualidade: contexto reage com throttle (sem spam ao trocar abas)', () => {
@@ -70,6 +98,27 @@ test('qualidade: contexto reage com throttle (sem spam ao trocar abas)', () => {
   assert.match(content, /<\s*8000/);
   assert.match(content, /performanceMode\) return/);
   assert.match(content, /isQuiet\(\).*return|_onContextChange[\s\S]*isQuiet/s);
+  /* primeiro load em contexto ≠ idle agenda reação (não silencia para sempre) */
+  assert.match(content, /prevCtx === undefined[\s\S]{0,280}_onContextChange\(next\)/s);
+});
+
+test('qualidade: idle variation sempre reagenda; visibilidade única por away-time', () => {
+  assert.match(content, /_scheduleIdleVariation\(/);
+  assert.match(content, /finally\s*\{\s*this\._scheduleIdleVariation\(\)/);
+  assert.match(content, /_setupVisibilityReaction\(\)\s*\{\s*\/\* no-op/);
+  assert.match(content, /hiddenFor < 45000/);
+  assert.match(content, /hiddenFor > 1800000/);
+  assert.match(content, /doCheer\(\)/);
+  assert.doesNotMatch(content, /doCelebrate\?\.\(\)/);
+});
+
+test('qualidade: lookAtCursor rAF+proximidade; will-change só ao mover', () => {
+  assert.match(content, /_applyLookAtCursor\(/);
+  assert.match(content, /_lookRaf/);
+  assert.match(content, /dist > 320/);
+  assert.match(content, /_syncMovingHint\(/);
+  assert.match(style, /\.aic-moving[\s\S]{0,80}will-change:\s*transform/);
+  assert.doesNotMatch(style, /#aic-clawd-node\[data-clawd-owned="true"\]\s*\{[^}]*will-change:\s*transform,\s*left,\s*top/s);
 });
 
 /* ---------- INTERATIVO / INTUITIVO ---------- */
@@ -176,4 +225,78 @@ test('qualidade: contagens vivas batem com onboarding (harmonia UX)', () => {
   assert.match(popupHtml, new RegExp(`${acc} itens`));
   assert.match(popupHtml, new RegExp(`${ach} conquistas`));
   assert.match(popupHtml, new RegExp(`${weekly} desafios`));
+});
+
+test('qualidade: ações antes mudas têm SFX; pó/clima respeitam reduced-motion', () => {
+  const playIdx = content.indexOf('\n  doPlay() {');
+  assert.ok(playIdx > 0);
+  assert.match(content.slice(playIdx, playIdx + 900), /chime\(/);
+  const poseIdx = content.indexOf('\n  doPose() {');
+  assert.ok(poseIdx > 0);
+  assert.match(content.slice(poseIdx, poseIdx + 400), /beep\(/);
+  const bathIdx = content.indexOf('\n  doBath() {');
+  assert.ok(bathIdx > 0);
+  assert.match(content.slice(bathIdx, bathIdx + 700), /chime\(/);
+  const wakeIdx = content.indexOf('\n  wakeUp() {');
+  assert.ok(wakeIdx > 0);
+  assert.match(content.slice(wakeIdx, wakeIdx + 500), /chime\(/);
+  assert.match(content, /_spawnWalkDust\(count[\s\S]{0,120}_reducedMotion/);
+  assert.match(content, /_spawnAmbientWeather\(\)[\s\S]{0,180}_reducedMotion/);
+  assert.match(content, /!this\._reducedMotion && this\._canSpawnFx\(1\)/);
+  assert.match(popupJs, /previewVolumeChirp\(v,\s*'actions'\)/);
+  assert.match(popupJs, /previewVolumeChirp\(v,\s*'ambient'\)/);
+  assert.match(content, /master <= 0\) return/);
+});
+
+test('qualidade: nome na etiqueta sem race; rostos/skins/idle novos', () => {
+  const flushIdx = content.indexOf('_flushSave()');
+  assert.ok(flushIdx > 0);
+  const flushSlice = content.slice(flushIdx, flushIdx + 2200);
+  assert.match(flushSlice, /nicknameHistory/);
+  assert.match(flushSlice, /stored\.name|this\.S\.name = stored\.name/);
+  assert.match(flushSlice, /_syncNameTag\(\)/);
+  assert.doesNotMatch(flushSlice, /popupOwned/);
+  assert.match(popupJs, /syncPopupNameTag\(n\)/);
+  assert.match(popupJs, /_nameInputTimer|nameInputTimer/);
+  assert.match(style, /data-face-style="wink"/);
+  assert.match(style, /data-face-style="cute"/);
+  assert.match(style, /data-skin="freckles"/);
+  assert.match(style, /data-skin="stripes"/);
+  assert.match(style, /@keyframes clawd-idle-sway/);
+  assert.match(style, /@keyframes clawd-idle-nudge/);
+  assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'sway'));
+  assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'nudge'));
+  assert.match(popupHtml, /toggle-no-ambient-sparks/);
+  assert.match(content, /noAmbientSparks/);
+});
+
+test('qualidade: asas flutuam no idle; limpar particleColor; blush não é pago', () => {
+  assert.match(style, /has-wings\[data-state="idle"\]/);
+  assert.doesNotMatch(style, /has-wings\.idle /);
+  assert.match(catalogSource, /particleColor[\s\S]{0,180}return 'default'/);
+  assert.match(popupJs, /setConfig\('particleColor',\s*'default'\)/);
+  assert.match(content, /case 'particleColor':[\s\S]{0,120}null/);
+  assert.equal(catalog.CLAWD_ACCESSORIES.blush.unlock.type, 'free');
+  assert.equal(catalog.CLAWD_SHOP.blush, undefined);
+  assert.match(style, /has-cushion/);
+  assert.match(content, /has-cushion/);
+  assert.match(popupHtml, /max="2"/);
+  assert.match(popupHtml, /data-acc-body="none"/);
+});
+
+test('qualidade: curious vence breathe; shiny nofx; rostos/skins/idle expandidos', () => {
+  assert.match(style, /:not\(\.curious\)/);
+  assert.match(style, /\.curious \.pet-body[\s\S]{0,200}!important/);
+  assert.match(style, /aic-nofx\.shiny|\.aic-nofx\.shiny/);
+  assert.match(content, /rainbow-aura/);
+  assert.match(style, /data-face-style="angry"/);
+  assert.match(style, /data-face-style="heart"/);
+  assert.match(style, /data-skin="spots"/);
+  assert.match(style, /data-skin="glow"/);
+  assert.match(style, /@keyframes clawd-idle-hop/);
+  assert.match(style, /@keyframes clawd-idle-shimmy/);
+  assert.ok(catalog.CLAWD_FACE_STYLES.angry && catalog.CLAWD_FACE_STYLES.heart);
+  assert.ok(catalog.CLAWD_SKINS.spots && catalog.CLAWD_SKINS.glow);
+  assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'hop'));
+  assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'shimmy'));
 });

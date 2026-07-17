@@ -300,12 +300,17 @@ class SubPet {
   _burst(emojis, count = 5) {
     if (!this.node || this.owner?._destroyed || this.owner?.S?.settings?.performanceMode) return;
     if (this._reducedMotion || document.hidden) return;
-    if (!this.owner?._canSpawnFx?.(count)) return;
+    if (!this.owner?._reserveFx?.(count)) return;
+    this._fxPending = (this._fxPending || 0) + count;
     const rect = this.node.getBoundingClientRect();
     const pool = emojis || ['✨', '⭐', '💫'];
     for (let i = 0; i < count; i++) {
       this._later(() => {
-        if (!this.node || document.hidden) return;
+        this._fxPending = Math.max(0, (this._fxPending || 1) - 1);
+        if (!this.node || document.hidden || this.owner?._destroyed) {
+          this.owner?._releaseFx?.(1);
+          return;
+        }
         const el = document.createElement('div');
         el.className = 'aic-particle aic-subpet-particle';
         el.style.cssText = `
@@ -319,7 +324,7 @@ class SubPet {
         `;
         el.textContent = pool[Math.floor(Math.random() * pool.length)];
         document.body.appendChild(el);
-        this.owner._trackParticle(el, 1200);
+        this.owner._trackParticle(el, 1200, true);
       }, i * 70);
     }
   }
@@ -327,12 +332,17 @@ class SubPet {
   _spark(colors, count = 6) {
     if (!this.node || this.owner?._destroyed || this.owner?.S?.settings?.performanceMode) return;
     if (this._reducedMotion || document.hidden) return;
-    if (!this.owner?._canSpawnFx?.(count)) return;
+    if (!this.owner?._reserveFx?.(count)) return;
+    this._fxPending = (this._fxPending || 0) + count;
     const rect = this.node.getBoundingClientRect();
     const palette = colors || [this.color, this.eyeColor, '#f1c40f', '#ffffff'];
     for (let i = 0; i < count; i++) {
       this._later(() => {
-        if (!this.node || document.hidden) return;
+        this._fxPending = Math.max(0, (this._fxPending || 1) - 1);
+        if (!this.node || document.hidden || this.owner?._destroyed) {
+          this.owner?._releaseFx?.(1);
+          return;
+        }
         const el = document.createElement('div');
         el.className = 'aic-pixel-spark';
         const sx = `${(Math.random() - 0.5) * 36}px`;
@@ -345,7 +355,7 @@ class SubPet {
           --spark-x:${sx}; --spark-y:${sy};
         `;
         document.body.appendChild(el);
-        this.owner._trackParticle(el, 900);
+        this.owner._trackParticle(el, 900, true);
       }, i * 35);
     }
   }
@@ -394,7 +404,8 @@ class SubPet {
       'playing', 'cuddling', 'racing', 'spinning', 'celebrating',
       'exploring', 'vanishing', 'fire', 'split', 'perching', 'eating', 'cheering',
       'flying', 'summoning', 'wagging', 'double-hop', 'heavy-stomp', 'phasing', 'singing',
-      'watching-balloon', 'duo-hug', 'startled', 'tapped', 'settling', 'sleep-settle'
+      'watching-balloon', 'duo-hug', 'startled', 'tapped', 'settling', 'sleep-settle',
+      'being-petted', 'duo-play', 'nap-sync'
     );
     this._perch = false;
   }
@@ -436,8 +447,11 @@ class SubPet {
     }
     this.node.classList.toggle('owner-walking', state === 'walking');
     this.node.classList.toggle('owner-running', state === 'running');
-    this.node.classList.toggle('cheering', state === 'keepy-uppy');
+    this.node.classList.toggle('cheering', state === 'keepy-uppy' || state === 'celebrate' || state === 'cheering');
     if (state === 'eating') this.interact('eat', { force: true });
+    if (state === 'celebrate' && !this._interactionBusy) {
+      this.interact('celebrate', { force: false });
+    }
   }
 
   _setState(state) {
@@ -556,6 +570,7 @@ class SubPet {
 
   _pauseRaf() {
     this._rafPaused = true;
+    this._clearSettleWake();
     if (this._raf != null) {
       cancelAnimationFrame(this._raf);
       this._raf = null;
@@ -565,8 +580,53 @@ class SubPet {
   _resumeRaf() {
     if (!this.node || this._raf != null || document.hidden) return;
     if (this.state === 'sleeping') return;
+    this._clearSettleWake();
     this._rafPaused = false;
     this._loop();
+  }
+
+  _clearSettleWake() {
+    if (this._settleWakeTimer) {
+      clearInterval(this._settleWakeTimer);
+      this._settleWakeTimer = null;
+    }
+  }
+
+  /* Quando o follow está settled, para o rAF e acorda só se o dono se mover */
+  _armSettleWake() {
+    if (this._settleWakeTimer || !this.node) return;
+    this._settleWakeTimer = setInterval(() => {
+      if (!this.node || document.hidden || this.state === 'sleeping') return;
+      if (this._interactionBusy
+        || this.state === 'racing' || this.state === 'exploring'
+        || this.state === 'flying' || this.state === 'special') {
+        this._clearSettleWake();
+        this._resumeRaf();
+        return;
+      }
+      const ownerRun = this.owner.state === 'running';
+      const ownerWalk = this.owner.state === 'walking' || this.owner.state === 'keepy-uppy';
+      if (ownerRun || ownerWalk) {
+        this._clearSettleWake();
+        this._resumeRaf();
+        return;
+      }
+      /* pássaro/dragão em follow orbitam — precisam do rAF contínuo */
+      if ((this.species === 'bird' || this.species === 'dragon')
+        && this.state === 'following' && !this._reducedMotion && !this.owner.isQuiet?.()) {
+        this._clearSettleWake();
+        this._resumeRaf();
+        return;
+      }
+      const rect = this.owner.node?.getBoundingClientRect();
+      if (!rect) return;
+      const tx = rect.left - this.bounds.width - 8;
+      const ty = rect.top + rect.height * 0.28;
+      if (Math.hypot(tx - this.x, ty - this.y) >= 0.5) {
+        this._clearSettleWake();
+        this._resumeRaf();
+      }
+    }, 180);
   }
 
   _writePos(left, top) {
@@ -585,9 +645,9 @@ class SubPet {
   _loop() {
     if (this._raf != null) return;
     const quiet = () => this._reducedMotion || this.owner.isQuiet?.();
-    const SETTLE_EPS = 0.5;
+    const SETTLE_EPS = CLAWD_TIMINGS.SETTLE_EPS_PX;
     const tick = () => {
-      if (!this.node) return;
+      if (!this.node || !document.body.contains(this.node)) { cancelAnimationFrame(this._raf); this._raf = null; return; }
       if (document.hidden || this.state === 'sleeping') {
         this._rafPaused = true;
         this._raf = null;
@@ -605,11 +665,12 @@ class SubPet {
         : ownerRun ? 80
         : ownerWalk || moving ? 100
         : 160;
-      if ((moving || flyingAnim || this.state === 'special') && now - this._lastPaint >= paintGap) {
+      const paintCadence = !this._useBitmap();
+      if (paintCadence && (moving || flyingAnim || this.state === 'special') && now - this._lastPaint >= paintGap) {
         this._paint();
         this._lastPaint = now;
-      } else if (!moving && !flyingAnim && this.state === 'following' && now - this._lastPaint >= 520) {
-        // pisca idle (2 frames)
+      } else if (paintCadence && !moving && !flyingAnim && this.state === 'following' && now - this._lastPaint >= 520) {
+        // pisca idle (2 frames) — só no path pixel/box-shadow
         this._paint();
         this._lastPaint = now;
       }
@@ -645,7 +706,7 @@ class SubPet {
       const dist = Math.hypot(tx - this.x, ty - this.y);
       const ownerBusy = ownerRun || ownerWalk || moving || flyingAnim
         || this.state === 'racing' || this.state === 'exploring' || this.state === 'special' || this.state === 'flying';
-      // Spring settled: sem write de posição (só idle paint acima).
+      // Spring settled: sem write de posição — pausa rAF até o dono se mover.
       if (!ownerBusy && dist < SETTLE_EPS) {
         const wasMoving = this.node.classList.contains('moving');
         if (wasMoving) {
@@ -656,7 +717,9 @@ class SubPet {
           }
         }
         this._lastX = this.x;
-        this._raf = requestAnimationFrame(tick);
+        this._raf = null;
+        this._rafPaused = true;
+        this._armSettleWake();
         return;
       }
       const speciesBoost = this.species === 'rabbit' ? 0.055
@@ -713,12 +776,15 @@ class SubPet {
         this.wakeUp();
       }
       if (this.owner.state !== 'idle') return;
-      const chance = this.owner.emotion === 'joyful' ? 0.78 : 0.48;
+      const p = this.owner.S?.personality || {};
+      const baseChance = this.owner.emotion === 'joyful' ? 0.78 : 0.48;
+      const personalityMod = (p.playful ?? 5) >= 7 ? 0.18 : (p.lazy ?? 5) >= 7 ? -0.16 : 0;
+      const chance = Math.min(0.92, Math.max(0.18, baseChance + personalityMod));
       if (Math.random() > chance) return;
       const pool = this._speciesPool();
       const pick = pool[Math.floor(Math.random() * pool.length)];
       this.interact(pick);
-    }, 28000);
+    }, CLAWD_TIMINGS.SUBPET_INTERACTION_MS);
   }
 
   interact(kind, { force = false } = {}) {
@@ -762,7 +828,7 @@ class SubPet {
         this._finishInteractionAfter(2800);
         break;
       case 'vanish':
-        this._beginInteraction('vanishing', 'phasing');
+        this._beginInteraction('vanishing', 'vanishing');
         this.say('Buu~ 👻');
         this._burst(['👻', '✨', '💨'], 5);
         this._sfx('phase');
@@ -824,6 +890,7 @@ class SubPet {
         this._beginInteraction('playing', 'playing');
         this.say('Balãooo! 🎈');
         this._burst(['🎈', '✨'], 4);
+        this._sfx('play');
         this.node?.classList.add('watching-balloon');
         setTimeout(() => this.node?.classList.remove('watching-balloon'), 2200);
         this._finishInteractionAfter(2200);
@@ -832,6 +899,7 @@ class SubPet {
         this._beginInteraction('cuddling', 'cuddling');
         this.say('🤗💕');
         this._burst(['🫶', '💖', '✨'], 5);
+        this._sfx('cuddle');
         this.node?.classList.add('duo-hug');
         setTimeout(() => this.node?.classList.remove('duo-hug'), 1800);
         this.owner.setStateFor?.('hugging', 1800);
@@ -843,6 +911,7 @@ class SubPet {
         this._beginInteraction('playing', 'playing');
         this.say('Eek! 💥');
         this._burst(['💥', '🌀'], 4);
+        this._sfx('stomp');
         this.node?.classList.add('startled');
         setTimeout(() => this.node?.classList.remove('startled'), 900);
         this._finishInteractionAfter(900);
@@ -966,6 +1035,7 @@ class SubPet {
 
   destroy() {
     this._pauseRaf();
+    this._clearSettleWake();
     clearInterval(this._interactTimer);
     clearInterval(this._blinkTimer);
     clearTimeout(this._sayTimer);
@@ -975,6 +1045,11 @@ class SubPet {
     this._actionTimers.forEach(clearTimeout);
     this._actionTimers.clear();
     this._interactionEndTimer = null;
+    /* Libera slots FX reservados e ainda não spawnados */
+    if (this._fxPending && this.owner?._releaseFx) {
+      this.owner._releaseFx(this._fxPending);
+      this._fxPending = 0;
+    }
     this._removeClone();
     if (this.node) this.node.remove();
     this.node = null;
@@ -1196,16 +1271,32 @@ class ClawdCompanion {
 
   _canSpawnFx(count = 1) {
     if (this._destroyed || document.hidden || this.S?.settings?.performanceMode || this.S?.settings?.noParticles) return false;
-    return (this._activeParticles || 0) + count <= 18;
+    return (this._activeParticles || 0) + count <= CLAWD_TIMINGS.PARTICLE_MAX;
   }
 
-  _trackParticle(el, ttl) {
-    this._activeParticles = (this._activeParticles || 0) + 1;
+  /* Reserva slots do teto antes de setTimeouts de spawn (evita overshoot) */
+  _reserveFx(count = 1) {
+    if (!this._canSpawnFx(count)) return false;
+    this._activeParticles = (this._activeParticles || 0) + count;
+    return true;
+  }
+
+  _releaseFx(count = 1) {
+    this._activeParticles = Math.max(0, (this._activeParticles || 0) - count);
+  }
+
+  _trackParticle(el, ttl, reserved = false) {
+    if (!reserved) {
+      if (!this._reserveFx(1)) {
+        try { el.remove(); } catch (_) {}
+        return;
+      }
+    }
     if (!this._particleTimers) this._particleTimers = new Set();
     const timer = setTimeout(() => {
       this._particleTimers.delete(timer);
       try { el.remove(); } catch (_) {}
-      this._activeParticles = Math.max(0, (this._activeParticles || 1) - 1);
+      this._releaseFx(1);
     }, ttl);
     this._particleTimers.add(timer);
   }
@@ -1220,6 +1311,7 @@ class ClawdCompanion {
     this.node.innerHTML = `
       <div class="speech-bubble" id="aic-speech"></div>
       <div class="emotion-badge" id="aic-emotion"></div>
+      <div id="aic-sr-status" role="status" aria-live="polite" aria-atomic="true" class="clawd-sr-only"></div>
       <div class="pet-body" id="aic-pet-body">
         <div class="sprite-stack" id="aic-stack">
           <div class="pixel-sprite" id="aic-sprite"></div>
@@ -1254,6 +1346,9 @@ class ClawdCompanion {
           <div class="profession-prop prop-artist-brush" aria-hidden="true"></div>
           <div class="profession-prop prop-gamer-ctrl" aria-hidden="true"></div>
           <div class="profession-prop prop-streamer-live" aria-hidden="true"></div>
+          <div class="profession-prop prop-engineer-code" aria-hidden="true"></div>
+          <div class="profession-prop prop-footballer-boot" aria-hidden="true"></div>
+          <div class="profession-prop prop-fisher-bobber" aria-hidden="true"></div>
         </div>
         <div class="name-tag" id="aic-name-tag">
           <span class="name-title" id="aic-name-title"></span>
@@ -1274,6 +1369,7 @@ class ClawdCompanion {
     this.shadowNode  = this.node.querySelector('#aic-shadow');
     this.ballNode    = this.node.querySelector('#aic-ball');
     this.emotionNode = this.node.querySelector('#aic-emotion');
+    this.srStatusNode = this.node.querySelector('#aic-sr-status');
     this.balloonNode = this.node.querySelector('#aic-balloon');
     this.stackNode   = this.node.querySelector('#aic-stack');
     this.node.style.animation = 'clawd-pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both';
@@ -1319,7 +1415,10 @@ class ClawdCompanion {
     const S = this.S;
     const animationSpeed = Math.max(0.5, parseFloat(S.animSpeed) || 1);
     this._syncNameTag();
-    if (clawdIsHexColor(S.color)) this.node.style.setProperty('--agent-color', S.color);
+    if (clawdIsHexColor(S.color)) {
+      this.node.style.setProperty('--agent-color', S.color);
+      this.node.style.setProperty('--clawd-glow', S.color + '70');
+    }
     if (clawdIsHexColor(S.eyeColor)) this.node.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
     this.node.style.setProperty('--agent-scale', parseFloat(S.scale));
     if (clawdIsHexColor(S.jerseyColor)) this.node.style.setProperty('--jersey-color', S.jerseyColor);
@@ -1335,6 +1434,8 @@ class ClawdCompanion {
     this.node.setAttribute('data-skin', S.skin || 'normal');
     this.node.setAttribute('data-tag-theme', S.tagTheme || 'light');
     this.node.setAttribute('data-ball-skin', S.ballSkin || 'classic');
+    this.node.classList.toggle('has-cushion', (S.game?.inventory || []).includes('cushion'));
+    this.node.classList.toggle('rainbow-aura', clawdLevelFromXp(S.xp || 0).level >= 30);
     this._applyProfessionVisuals();
     this.updateEmotion(true);
   }
@@ -1363,9 +1464,9 @@ class ClawdCompanion {
 
   /* ---------- PERSISTÊNCIA ---------- */
   save() {
-    // Debounce 350ms + coalescing: rajadas (XP/stats/ações) viram um flush.
+    // Debounce + coalescing: rajadas (XP/stats/ações) viram um flush.
     clearTimeout(this._saveTimer);
-    this._saveTimer = setTimeout(() => this._flushSave(), 350);
+    this._saveTimer = setTimeout(() => this._flushSave(), CLAWD_TIMINGS.STORAGE_DEBOUNCE_MS);
   }
 
   _flushSave() {
@@ -1392,6 +1493,10 @@ class ClawdCompanion {
       this.S.settings = clawdPlainMerge(this.S.settings, stored.settings);
       this.S.subpets = stored.subpets;
       this.S.game.inventory = stored.game.inventory;
+      // Nome: o popup digita e persiste; o motor não deve sobrescrever com valor antigo em memória
+      if (Object.prototype.hasOwnProperty.call(stored, 'name')) this.S.name = stored.name;
+      if (Array.isArray(stored.nicknameHistory)) this.S.nicknameHistory = stored.nicknameHistory;
+      this._syncNameTag();
       const next = clawdMigrateState(this.S);
       let unchanged = false;
       try {
@@ -1435,7 +1540,10 @@ class ClawdCompanion {
       const animationSpeed = Math.max(0.5, parseFloat(fresh.animSpeed) || 1);
       this.S.xp = fresh.xp;
       this._syncNameTag();
-      if (clawdIsHexColor(fresh.color)) this.node.style.setProperty('--agent-color', fresh.color);
+      if (clawdIsHexColor(fresh.color)) {
+        this.node.style.setProperty('--agent-color', fresh.color);
+        this.node.style.setProperty('--clawd-glow', fresh.color + '70');
+      }
       if (clawdIsHexColor(fresh.eyeColor)) this.node.style.setProperty('--agent-eye-color', fresh.eyeColor);
       this.node.style.setProperty('--agent-scale', parseFloat(fresh.scale) || 1.5);
       if (clawdIsHexColor(fresh.jerseyColor)) this.node.style.setProperty('--jersey-color', fresh.jerseyColor);
@@ -1450,6 +1558,8 @@ class ClawdCompanion {
       this.node.setAttribute('data-tag-theme', fresh.tagTheme || 'light');
       this.node.setAttribute('data-ball-skin', fresh.ballSkin || 'classic');
       this.node.classList.toggle('aic-nofx', !!fresh.settings.performanceMode);
+      this.node.classList.toggle('has-cushion', (fresh.game?.inventory || []).includes('cushion'));
+      this.node.classList.toggle('rainbow-aura', clawdLevelFromXp(fresh.xp || 0).level >= 30);
       this._applyProfessionVisuals();
       // Reconciliamos o objeto inteiro: desbloqueios, apelidos, cores e pet ativo
       // podem mudar juntos pelo popup. Atualizações parciais deixavam a lista de
@@ -1470,7 +1580,12 @@ class ClawdCompanion {
           if (this.S.nicknameHistory.length > 12) this.S.nicknameHistory.shift();
         }
         break;
-      case 'color':   if (clawdIsHexColor(value)) this.node.style.setProperty('--agent-color', value); break;
+      case 'color':
+        if (clawdIsHexColor(value)) {
+          this.node.style.setProperty('--agent-color', value);
+          this.node.style.setProperty('--clawd-glow', value + '70');
+        }
+        break;
       case 'eyeColor': if (clawdIsHexColor(value)) this.node.style.setProperty('--agent-eye-color', value); break;
       case 'model': this.node.setAttribute('data-model', value); break;
       case 'faceStyle': this.node.setAttribute('data-face-style', value); break;
@@ -1505,6 +1620,9 @@ class ClawdCompanion {
       case 'tagTheme': this.node.setAttribute('data-tag-theme', value); break;
       case 'jerseyColor': if (clawdIsHexColor(value)) this.node.style.setProperty('--jersey-color', value); break;
       case 'ballSkin': this.node.setAttribute('data-ball-skin', value); break;
+      case 'particleColor':
+        this.S.particleColor = (value === 'default' || value === '' || value == null) ? null : value;
+        break;
       case 'accessoryHead':
         this._syncAccessoryVisuals();
         this._trackAccessory(value);
@@ -1543,7 +1661,12 @@ class ClawdCompanion {
         }
         break;
     }
+    // Nome: o popup já persiste; salvar aqui causa RMW race e reverte a etiqueta
+    if (key === 'name') return;
     this.save();
+    if (this._studioEl?.isConnected && ['color', 'faceStyle', 'skin', 'model'].includes(key)) {
+      this._refreshStudio();
+    }
   }
 
   registerDaily(type, amount = 1) {
@@ -1599,39 +1722,57 @@ class ClawdCompanion {
   }
 
   /* ---- Variações de Idle (v3.4) ---- */
-  _doIdleVariation() {
-    if (this._destroyed || this.state !== 'idle' || !this.node || this._reducedMotion) return;
-    if (this.S?.settings?.noIdleVariations || this.S?.settings?.performanceMode) return;
-    if (!Array.isArray(CLAWD_IDLE_VARIATIONS) || !CLAWD_IDLE_VARIATIONS.length) return;
-    const now = Date.now();
+  _scheduleIdleVariation() {
+    if (this._destroyed) return;
     const playful = (this.S.personality?.playful ?? 5);
-    /* filtrar por cooldown individual */
-    const available = CLAWD_IDLE_VARIATIONS.filter(v => {
-      const last = this._idleVarLastTime?.[v.id] || 0;
-      return (now - last) >= v.cooldownMs;
-    });
-    if (!available.length) return;
-    /* playful alto → pesa para variações mais energéticas */
-    const pick = available[Math.floor(Math.random() * available.length)];
-    if (!this._idleVarLastTime) this._idleVarLastTime = {};
-    this._idleVarLastTime[pick.id] = now;
-    const cls = pick.keyframe.replace('@keyframes ', '');
-    this.node.classList.add(cls);
-    setTimeout(() => this.node?.classList.remove(cls), pick.durationMs + 200);
-    /* agendamento para próxima variação baseado em personalidade */
     const baseInterval = Math.max(8000, 22000 - playful * 1000);
     const jitter = Math.random() * 6000;
     if (this._idleVarTimer) clearTimeout(this._idleVarTimer);
     this._idleVarTimer = setTimeout(() => this._doIdleVariation(), baseInterval + jitter);
   }
 
-  /* ---- Reação ao Scroll (v3.4) ---- */
+  _doIdleVariation() {
+    try {
+      if (this._destroyed || this.state !== 'idle' || !this.node || this._reducedMotion) return;
+      if (this.S?.settings?.noIdleVariations || this.S?.settings?.performanceMode) return;
+      if (!Array.isArray(CLAWD_IDLE_VARIATIONS) || !CLAWD_IDLE_VARIATIONS.length) return;
+      const now = Date.now();
+      const playful = (this.S.personality?.playful ?? 5);
+      const available = CLAWD_IDLE_VARIATIONS.filter(v => {
+        const last = this._idleVarLastTime?.[v.id] || 0;
+        return (now - last) >= v.cooldownMs;
+      });
+      if (!available.length) return;
+      /* playful alto → prefere variações mais curtas/energéticas */
+      let pool = available;
+      if (playful >= 7) {
+        const energetic = available.filter(v => (v.durationMs || 2000) <= 2200);
+        if (energetic.length) pool = energetic.concat(available);
+      }
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      if (!this._idleVarLastTime) this._idleVarLastTime = {};
+      this._idleVarLastTime[pick.id] = now;
+      const cls = pick.keyframe.replace('@keyframes ', '');
+      this.node.classList.add(cls);
+      clearTimeout(this._idleVarClearTimer);
+      this._idleVarClearTimer = setTimeout(() => this.node?.classList.remove(cls), pick.durationMs + 200);
+    } finally {
+      this._scheduleIdleVariation();
+    }
+  }
+
+  /* ---- Reação ao Scroll (v3.4) — único caminho: velocidade real ---- */
   _setupScrollReaction() {
     let lastScrollY = window.scrollY;
     let lastScrollTime = Date.now();
     this._scrollReacting = false;
     this._scrollHandler = () => {
       if (this._destroyed) return;
+      this.lastActivity = Date.now();
+      if (this.state === 'sleeping') {
+        this.wakeUp();
+        return;
+      }
       const now = Date.now();
       const dy = Math.abs(window.scrollY - lastScrollY);
       const dt = Math.max(now - lastScrollTime, 1);
@@ -1642,12 +1783,10 @@ class ClawdCompanion {
         this._scrollReacting = true;
         if (this.state === 'idle' || this.state === 'walking') {
           this.setState('excited');
-          /* Partículas de velocidade conforme personalidade */
           const curious = this.S.personality?.curious ?? 7;
           if (curious >= 5 && this._canSpawnFx(2)) {
-            this.spawnParticles(['⚡', '💨']);
+            this.spawnParticles(['⚡', '💨'], { count: 2 });
           }
-          /* Scroll muito rápido (>3000px/s) → corrida horizontal */
           let dashed = false;
           if (speed > 3000 && (this.S.personality?.playful ?? 5) >= 4) {
             setTimeout(() => {
@@ -1670,27 +1809,9 @@ class ClawdCompanion {
     window.addEventListener('scroll', this._scrollHandler, { passive: true });
   }
 
-  /* ---- Reação ao Retorno de Aba (v3.4) ---- */
+  /* Visibilidade unificada em bindEvents (AbortController) — evita handler duplicado */
   _setupVisibilityReaction() {
-    this._tabHiddenAt = null;
-    this._visibilityHandler = () => {
-      if (this._destroyed) return;
-      if (document.hidden) {
-        this._tabHiddenAt = Date.now();
-      } else {
-        const away = this._tabHiddenAt ? Date.now() - this._tabHiddenAt : 0;
-        this._tabHiddenAt = null;
-        if (away > 1800000) {
-          this.showSpeech('Que saudade! 🥺', 3000);
-          this.doCelebrate?.();
-        } else if (away > 300000) {
-          this.showSpeech('Você voltou! 😊', 2500);
-        } else if (this.state === 'sleeping') {
-          this._handleAction('wake');
-        }
-      }
-    };
-    document.addEventListener('visibilitychange', this._visibilityHandler);
+    /* no-op: saudação por away-time vive em bindEvents.visibilitychange */
   }
 
   _trackAccessory(id) {
@@ -1718,6 +1839,8 @@ class ClawdCompanion {
     this.node.classList.toggle('has-wings', effective.body === 'wings');
     this.node.classList.toggle('has-cape', effective.body === 'cape');
     this.node.classList.toggle('has-armor', effective.body === 'armor');
+    this.node.classList.toggle('has-ribbon', effective.body === 'ribbon');
+    this.node.classList.toggle('has-scarf-body', effective.body === 'scarf_body');
     this.node.classList.toggle('has-propeller', effective.head === 'propeller');
     this.node.classList.toggle('profession-headwear', !!effective.autoHead);
     this.node.classList.toggle('profession-facewear', !!effective.autoFace);
@@ -1755,21 +1878,28 @@ class ClawdCompanion {
   /* Detalhe contínuo: hélice/asas/capa/armadura — orçamento baixo de partículas */
   _tickAccessoryAmbientFx() {
     if (this._destroyed || document.hidden || this._reducedMotion || this.S.settings.performanceMode || this.S.settings.noParticles) return;
+    if (this.S.settings.noAmbientSparks) return;
     if (!this.isVisible || this.state === 'sleeping') return;
     const head = this.node?.dataset?.accHead;
     const body = this.node?.dataset?.accBody;
     const moving = this.state === 'walking' || this.state === 'running' || this.isAutoWalking;
-    if (head === 'propeller' && moving && Math.random() < 0.35) {
-      this.spawnPixelSparks(['#f1c40f', '#55a9dd', '#ef6258'], { count: 3 });
+    if (head === 'propeller' && moving && Math.random() < 0.18) {
+      this.spawnPixelSparks(['#f1c40f', '#55a9dd', '#ef6258'], { count: 2 });
     }
-    if (body === 'wings' && this.state === 'idle' && Math.random() < 0.22) {
-      this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#dfefff'], { count: 3 });
+    if (body === 'wings' && this.state === 'idle' && Math.random() < 0.1) {
+      this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#dfefff'], { count: 2 });
     }
-    if (body === 'cape' && moving && Math.random() < 0.22) {
-      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#f5f5f5'], { count: 3 });
+    if (body === 'cape' && moving && Math.random() < 0.1) {
+      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#f5f5f5'], { count: 2 });
     }
-    if (body === 'armor' && this.state === 'idle' && Math.random() < 0.12) {
-      this.spawnPixelSparks(['#b2bec3', '#95a5a6', '#ffffff'], { count: 2 });
+    if (body === 'armor' && this.state === 'idle' && Math.random() < 0.06) {
+      this.spawnPixelSparks(['#b2bec3', '#95a5a6', '#ffffff'], { count: 1 });
+    }
+    if (body === 'ribbon' && this.state === 'idle' && Math.random() < 0.08) {
+      this.spawnPixelSparks(['#ff6b6b', '#e74c3c', '#ffffff'], { count: 1 });
+    }
+    if (body === 'scarf_body' && moving && Math.random() < 0.08) {
+      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#ffffff'], { count: 1 });
     }
   }
 
@@ -1906,6 +2036,7 @@ class ClawdCompanion {
     this.state = newState;
     this.node.dataset.state = newState;
     if (newState !== 'idle') this.node.classList.add(newState);
+    this._syncMovingHint();
     const stateEmoji = {
       happy: '🥰', excited: '🤩', sleeping: '😴', waving: '👋', eating: '😋',
       celebrate: '🎉', yawning: '🥱', shy: '🙈', tantrum: '😤', bathing: '🫧',
@@ -1950,6 +2081,8 @@ class ClawdCompanion {
       this.setStateFor('tantrum', 2500);
       this.showSpeech('Para! 😤', 2000);
       this.spawnParticles(['💢', '😤', '⚡'], 4);
+      this.beep(160, 0.1, 'sawtooth', 'actions');
+      setTimeout(() => this.beep(120, 0.12, 'triangle', 'actions'), 90);
       return;
     }
 
@@ -2060,7 +2193,7 @@ class ClawdCompanion {
         const speed = Math.sqrt(
           Math.pow(e.clientX - this._lastMX, 2) + Math.pow(e.clientY - this._lastMY, 2)
         );
-        if (speed > 18 && !this.S.settings.performanceMode && this._canSpawnFx(1)) {
+        if (speed > 18 && !this.S.settings.performanceMode && !this._reducedMotion && this._canSpawnFx(1)) {
           const rect = this.node.getBoundingClientRect();
           const dust = document.createElement('div');
           dust.className = 'aic-dust';
@@ -2080,6 +2213,7 @@ class ClawdCompanion {
         if (this.state !== 'walking' && this.state !== 'running') this.setState('walking');
         this.node.classList.add('dragging');
         this.node.classList.remove('pressing');
+        this._syncMovingHint();
         this.updatePosition(e.clientX - this.offsetX, e.clientY - this.offsetY);
         this.lastActivity = Date.now();
       } else {
@@ -2109,6 +2243,7 @@ class ClawdCompanion {
       if (!this.isDragging) return;
       this.isDragging = false;
       this.node.classList.remove('pressing', 'dragging');
+      this._syncMovingHint();
       const diffX = Math.abs(e.clientX - this.startX);
       const diffY = Math.abs(e.clientY - this.startY);
       if (diffX < 5 && diffY < 5) {
@@ -2167,6 +2302,7 @@ class ClawdCompanion {
       if (!this.isDragging) return;
       this.isDragging = false;
       this.node.classList.remove('pressing', 'dragging');
+      this._syncMovingHint();
       const t = e.changedTouches[0];
       if (Math.abs(t.clientX - this.startX) < 10 && Math.abs(t.clientY - this.startY) < 10) {
         this._queuePetClick();
@@ -2175,36 +2311,23 @@ class ClawdCompanion {
       }
     }, { signal });
 
-    // Scroll — anima e às vezes leva o sub-pet a explorar
-    let scrollBursts = 0;
+    // Scroll leve: só marca atividade (reação visual fica no handler por velocidade)
     document.addEventListener('scroll', () => {
       this.lastActivity = Date.now();
-      if (this.state === 'sleeping') { this.wakeUp(); return; }
-      scrollBursts++;
-      if (this.state === 'idle') {
-        this.setState('excited');
-        clearTimeout(this._scrollIdleTimer);
-        this._scrollIdleTimer = setTimeout(() => {
-          this._scrollIdleTimer = null;
-          if (this._destroyed) return;
-          if (this.state === 'excited') this.setState('idle');
-          if (scrollBursts >= 10 && this.subpet && Math.random() < 0.55) {
-            this.subpet.interact('explore', { force: true });
-            this.showSpeech('Rolando a página! 📜', 1600);
-          }
-          scrollBursts = 0;
-        }, 900);
-      }
     }, { passive: true, signal });
 
-    // "Você voltou!" ao retornar à aba — saudação com bounce + duo
+    // "Você voltou!" — saudação conforme tempo fora (único handler)
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         this._dwellHiddenAt = Date.now();
         this._cancelDwellEngage();
+        this.node?.classList.add('aic-tab-hidden');
+        this.subpet?.node?.classList.add('aic-tab-hidden');
         if (this.subpet) this.subpet._pauseRaf();
         return;
       }
+      this.node?.classList.remove('aic-tab-hidden');
+      this.subpet?.node?.classList.remove('aic-tab-hidden');
       if (this.subpet) this.subpet._resumeRaf();
       const hiddenFor = this._dwellHiddenAt ? Date.now() - this._dwellHiddenAt : 0;
       this._dwellHiddenAt = 0;
@@ -2213,11 +2336,21 @@ class ClawdCompanion {
       if (!this.isVisible || this.isQuiet()) return;
       this.lastActivity = Date.now();
       if (this.state === 'sleeping') this.wakeUp();
-      this.showSpeech(hiddenFor > 120000 ? 'Saudades! Voltei com tudo! 🎉' : 'Você voltou! 🎉', 2200);
-      this._pulseAnimClass('tab-greet', 750);
-      this.setStateFor('waving', 1800);
-      if (this.subpet) this.subpet.interact('celebrate', { force: true });
-      // Após longo tempo fora: engaja a página mais cedo
+      /* < 45s: silêncio; 45s–5min: aceno leve; 5–30min: volta; >30min: celebração */
+      if (hiddenFor < 45000) return;
+      if (hiddenFor > 1800000) {
+        this.showSpeech('Que saudade! 🥺', 3000);
+        this.doCheer();
+        if (this.subpet) this.subpet.interact('celebrate', { force: true });
+      } else if (hiddenFor > 300000) {
+        this.showSpeech('Você voltou! 🎉', 2200);
+        this._pulseAnimClass('tab-greet', 750);
+        this.setStateFor('waving', 1800);
+        if (this.subpet) this.subpet.interact('celebrate', { force: true });
+      } else {
+        this._pulseAnimClass('tab-greet', 600);
+        this.setStateFor('waving', 1300);
+      }
       if (hiddenFor > 180000) {
         setTimeout(() => {
           if (!document.hidden && this.isVisible && !this.isQuiet()) this._engagePageStructure({ force: true });
@@ -2251,7 +2384,7 @@ class ClawdCompanion {
       this.beep(710, 0.05, 'triangle');
     }, { signal });
 
-    // Foco em campos → "ajuda a digitar"
+    // Foco em campos → Dev digita; demais só comentam
     document.addEventListener('focusin', (e) => {
       const t = e.target;
       if (!(t instanceof HTMLElement)) return;
@@ -2260,9 +2393,15 @@ class ClawdCompanion {
       if (!this.isVisible || this.isQuiet() || this.state !== 'idle') return;
       if (Date.now() - (this._lastFocusReact || 0) < 22000) return;
       this._lastFocusReact = Date.now();
-      this.setStateFor('typing', 2600);
-      this.showSpeech('Boa sorte digitando! ⌨️', 2200);
-      this.chime([[480, 0.04], [600, 0.05]]);
+      if (this.S.profession === 'engineer') {
+        this.setStateFor('typing', 2600);
+        this.showSpeech('Boa sorte digitando! ⌨️', 2200);
+        this.chime([[480, 0.04], [600, 0.05], [720, 0.04]], 'actions');
+      } else {
+        this.setStateFor('curious', 1400);
+        this.showSpeech(this.getRandom('curious') || 'Hmm… ✍️', 1600);
+        this.beep(560, 0.04, 'triangle', 'actions');
+      }
     }, { signal });
 
     // Clique na página (fora do pet) → aceno ocasional
@@ -2330,21 +2469,58 @@ class ClawdCompanion {
   lookAtCursor(mouseX, mouseY) {
     if (this.isDragging || this.state === 'sleeping' || this.isAutoWalking) return;
     if (this.S.settings.performanceMode || this._reducedMotion) return;
+    this._pendingLookX = mouseX;
+    this._pendingLookY = mouseY;
+    if (this._lookRaf) return;
+    this._lookRaf = requestAnimationFrame(() => {
+      this._lookRaf = null;
+      this._applyLookAtCursor(this._pendingLookX, this._pendingLookY);
+    });
+  }
+
+  _applyLookAtCursor(mouseX, mouseY) {
+    if (this._destroyed || !this.node || this.isDragging) return;
+    if (this.state === 'sleeping' || this.isAutoWalking) return;
     const rect = this.node.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const targetRx = Math.max(-10, Math.min(10, (mouseY - cy) * 0.028));
-    const targetRy = Math.max(-10, Math.min(10, (mouseX - cx) * 0.028));
-    this._lookRx = this._lookRx == null ? 0 : this._lookRx;
-    this._lookRy = this._lookRy == null ? 0 : this._lookRy;
-    this._lookRx += (targetRx - this._lookRx) * 0.22;
-    this._lookRy += (targetRy - this._lookRy) * 0.22;
+    const dist = Math.hypot(mouseX - cx, mouseY - cy);
+    /* Longe demais: só relaxa o olhar (sem write a cada pixel) */
+    if (dist > 320) {
+      if (!this._lookRx && !this._lookRy) return;
+      this._lookRx *= 0.72;
+      this._lookRy *= 0.72;
+      if (Math.abs(this._lookRx) < 0.15 && Math.abs(this._lookRy) < 0.15) {
+        this._lookRx = 0;
+        this._lookRy = 0;
+        if (this._lookWriteRx !== '0.00' || this._lookWriteRy !== '0.00') {
+          this._lookWriteRx = '0.00';
+          this._lookWriteRy = '0.00';
+          this.node.style.transform = '';
+        }
+        return;
+      }
+    } else {
+      const targetRx = Math.max(-10, Math.min(10, (mouseY - cy) * 0.028));
+      const targetRy = Math.max(-10, Math.min(10, (mouseX - cx) * 0.028));
+      this._lookRx = this._lookRx == null ? 0 : this._lookRx;
+      this._lookRy = this._lookRy == null ? 0 : this._lookRy;
+      this._lookRx += (targetRx - this._lookRx) * 0.22;
+      this._lookRy += (targetRy - this._lookRy) * 0.22;
+    }
     const rx = (-this._lookRx).toFixed(2);
     const ry = this._lookRy.toFixed(2);
     if (rx === this._lookWriteRx && ry === this._lookWriteRy) return;
     this._lookWriteRx = rx;
     this._lookWriteRy = ry;
     this.node.style.transform = `perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+
+  _syncMovingHint() {
+    if (!this.node) return;
+    const moving = this.isDragging || this.isAutoWalking
+      || this.state === 'walking' || this.state === 'running';
+    this.node.classList.toggle('aic-moving', !!moving);
   }
 
   /* ---------- QUIET HOURS ---------- */
@@ -2400,14 +2576,17 @@ class ClawdCompanion {
       if (!ctx || ctx.state === 'closed') return;
       // Ainda suspenso = sem gesto válido; silencia sem avisar no console.
       if (ctx.state !== 'running') return;
+      const masterRaw = Number(this.S.settings.soundVolume);
+      const master = Number.isFinite(masterRaw) ? Math.max(0, Math.min(1, masterRaw)) : 0.45;
+      if (master <= 0) return; /* mute real pelo slider master */
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = type;
       osc.frequency.value = freq;
-      const master = Math.max(0.02, Math.min(1, this.S.settings.soundVolume || 0.45));
       const chKey = channel === 'ambient' ? 'soundVolumeAmbient' : 'soundVolumeActions';
       const chVol = Math.max(0, Math.min(1, this.S.settings[chKey] ?? (channel === 'ambient' ? 0.6 : 1)));
-      const vol = master * chVol * 0.14;
+      if (chVol <= 0) return;
+      const vol = Math.max(0.0001, master * chVol * 0.14);
       gain.gain.setValueAtTime(vol, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + Math.max(0.03, dur));
       osc.connect(gain).connect(ctx.destination);
@@ -2494,6 +2673,16 @@ class ClawdCompanion {
       this.S.game.inventory.push('crown');
       setTimeout(() => this.spawnParticles(['👑', '🌟', '✨', '🎊', '💫']), 400);
       this.toast('', { rarity: 'legendary', icon: '👑', title: 'Coroa Desbloqueada!', desc: 'Você é rei/rainha do nível 20!' });
+    }
+    // Aura arco-íris permanente a partir do nível 30
+    if (level >= 30) {
+      this.node?.classList.add('rainbow-aura');
+      if (level === 30) {
+        this.toast('', { rarity: 'legendary', icon: '🌈', title: 'Aura Arco-íris!', desc: 'Nível 30 — brilho lendário ativado.' });
+        setTimeout(() => this.spawnParticles(['🌈', '✨', '🌟', '💫']), 400);
+      }
+    } else {
+      this.node?.classList.remove('rainbow-aura');
     }
     // Desbloqueio de sub-pets por nível
     let newly = 0;
@@ -2672,7 +2861,16 @@ class ClawdCompanion {
     this.emotionNode.textContent = badges[this.emotion] || '🙂';
     this.node.setAttribute('data-emotion', this.emotion);
     this.node.classList.toggle('emotion-glow', /joyful|ecstatic|peppy/.test(this.emotion));
-    if (!silent && prev !== this.emotion) this.showEmotionEmoji(badges[this.emotion] || '🙂', 3600);
+    if (!silent && prev !== this.emotion) {
+      this.showEmotionEmoji(badges[this.emotion] || '🙂', 3600);
+      if (this.srStatusNode) {
+        const labels = {
+          sleepy: 'Com sono', hungry: 'Com fome', joyful: 'Alegre', sad: 'Triste',
+          content: 'Contente', ecstatic: 'Extasiado', peppy: 'Animado', grubby: 'Precisando de banho'
+        };
+        this.srStatusNode.textContent = `Claw'd: ${labels[this.emotion] || this.emotion}`;
+      }
+    }
     if (!silent && prev !== this.emotion && this.isVisible && !this.isQuiet()) {
       if (this.emotion === 'hungry') this.showSpeech(this.getRandom('hungry'), 3000);
       if (this.emotion === 'sad') this.showSpeech(this.getRandom('sad'), 3000);
@@ -2705,7 +2903,7 @@ class ClawdCompanion {
 
   /* ---------- INTERAÇÕES BÁSICAS ---------- */
   giveAffection() {
-    if (this.state === 'sleeping') { this.wakeUp(); return; }
+    if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('happy', 1600);
     this.showSpeech(this.getRandom('happy'));
     const body = this.node?.dataset?.accBody;
@@ -2737,14 +2935,17 @@ class ClawdCompanion {
     const count = Number.isFinite(requested)
       ? Math.min(8, Math.max(1, Math.floor(requested)))
       : fallback;
-    if (!this._canSpawnFx(count)) return;
+    if (!this._reserveFx(count)) return;
     const rect = this.node.getBoundingClientRect();
     /* v3.3: particleColor — glow colorido customizado nas partículas */
     const pColor = this.S.particleColor;
     const glowStyle = pColor ? `filter:drop-shadow(0 0 4px ${pColor});` : '';
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
-        if (this._destroyed || document.hidden) return;
+        if (this._destroyed || document.hidden) {
+          this._releaseFx(1);
+          return;
+        }
         const el = document.createElement('div');
         el.className = 'aic-particle';
         el.style.cssText = `
@@ -2759,20 +2960,23 @@ class ClawdCompanion {
         `;
         el.textContent = pool[Math.floor(Math.random() * pool.length)];
         document.body.appendChild(el);
-        this._trackParticle(el, 1400);
+        this._trackParticle(el, 1400, true);
       }, i * 80);
     }
   }
 
   _spawnWalkDust(count = 3) {
-    if (this._destroyed || this.S.settings.performanceMode || document.hidden) return;
+    if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
     if (Date.now() - (this._lastWalkDust || 0) < 280) return;
-    if (!this._canSpawnFx(count)) return;
+    if (!this._reserveFx(count)) return;
     this._lastWalkDust = Date.now();
     const rect = this.node.getBoundingClientRect();
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
-        if (this._destroyed || document.hidden) return;
+        if (this._destroyed || document.hidden) {
+          this._releaseFx(1);
+          return;
+        }
         const el = document.createElement('div');
         el.className = 'aic-walk-dust';
         el.style.cssText = `
@@ -2780,7 +2984,7 @@ class ClawdCompanion {
           top:${rect.bottom - 10 + Math.random() * 4}px;
         `;
         document.body.appendChild(el);
-        this._trackParticle(el, 520);
+        this._trackParticle(el, 520, true);
       }, i * 45);
     }
   }
@@ -2793,13 +2997,16 @@ class ClawdCompanion {
     const count = Number.isFinite(requested)
       ? Math.min(8, Math.max(1, Math.floor(requested)))
       : 4;
-    if (!this._canSpawnFx(count)) return;
+    if (!this._reserveFx(count)) return;
     const rect = this.node.getBoundingClientRect();
     let palette = colors || ['#27ae60', '#f5f5f5', '#1a1a2e', '#f1c40f', '#e74c3c'];
     if (this.S.particleColor) palette = [...palette, this.S.particleColor];
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
-        if (this._destroyed || document.hidden) return;
+        if (this._destroyed || document.hidden) {
+          this._releaseFx(1);
+          return;
+        }
         const el = document.createElement('div');
         el.className = 'aic-pixel-spark';
         const sx = `${(Math.random() - 0.5) * 48}px`;
@@ -2812,7 +3019,7 @@ class ClawdCompanion {
           --spark-x:${sx}; --spark-y:${sy};
         `;
         document.body.appendChild(el);
-        this._trackParticle(el, 950);
+        this._trackParticle(el, 950, true);
       }, i * 40);
     }
   }
@@ -2883,6 +3090,7 @@ class ClawdCompanion {
   wakeUp() {
     this.setState('idle');
     this.showSpeech('Bom dia! ☀️');
+    this.chime([[500, 0.04], [720, 0.06]], 'actions');
     if (this.subpet) this.subpet.wakeUp('Acordamos juntos! ✨');
     this.lastActivity = Date.now();
     // estica ao acordar
@@ -2943,6 +3151,8 @@ class ClawdCompanion {
     this.registerDaily('play');
     this.bumpStat('energy', -4);
     this.addXp(3);
+    this.chime([[520, 0.04], [660, 0.05], [820, 0.06]], 'actions');
+    this.spawnParticles(['🎾', '✨', '⭐'], { count: 3 });
     if (this.subpet) this.subpet.interact('play');
   }
 
@@ -2950,6 +3160,7 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('pose', 3000);
     this.showSpeech('📸 Diz xis!', 3000);
+    this.beep(880, 0.06, 'triangle', 'actions');
     this.spawnParticles(['✨', '📸', '⭐']);
   }
 
@@ -2960,6 +3171,7 @@ class ClawdCompanion {
     this.showSpeech(isDoctor ? 'Banho medicinal! 🩺🫧' : 'Splish splash! 🫧', 2500);
     this.spawnParticles(['🫧', '💧', '🧼', '✨'], { count: 4 });
     this.spawnPixelSparks(['#74b9ff', '#81ecec', '#ffffff', '#a29bfe'], { count: 5 });
+    this.chime([[480, 0.04], [600, 0.05], [740, 0.06]], 'actions');
     this.bumpStat('hygiene', isDoctor ? 100 : 100);
     if (isDoctor) this.bumpStat('hygiene', 3); // bônus de médico
     this.bumpStat('happiness', 8);
@@ -2968,7 +3180,7 @@ class ClawdCompanion {
     this.addXp(Math.round(xpBase * xpMult));
     this.node.classList.add('shiny');
     clearTimeout(this._shinyTimer);
-    this._shinyTimer = setTimeout(() => this.node.classList.remove('shiny'), 60000);
+    this._shinyTimer = setTimeout(() => this.node.classList.remove('shiny'), 12000);
     this.updateEmotion(true);
     this.registerDaily('bath');
   }
@@ -3238,7 +3450,7 @@ class ClawdCompanion {
 
       this.updatePosition(currentX, rect.top);
 
-      if (Math.random() < 0.15 && !this.S.settings.performanceMode && this._canSpawnFx(1)) {
+      if (Math.random() < 0.15 && !this.S.settings.performanceMode && !this._reducedMotion && this._canSpawnFx(1)) {
         const dust = document.createElement('div');
         dust.className = 'aic-dust';
         dust.style.left = `${currentX + (dx < 0 ? 60 : -6)}px`;
@@ -3710,7 +3922,16 @@ class ClawdCompanion {
       ? clawdPageContextFromHost(location.hostname)
       : 'idle';
     this._currentPageContext = next;
-    if (prevCtx === undefined) return; // primeiro carregamento, sem reação
+    /* Primeiro load: reage após settle (desbloqueia CLAWD_CONTEXT_REACTIONS) */
+    if (prevCtx === undefined) {
+      if (next !== 'idle') {
+        setTimeout(() => {
+          if (this._destroyed || this._currentPageContext !== next) return;
+          this._onContextChange(next);
+        }, 1600);
+      }
+      return;
+    }
     if (next !== prevCtx) this._onContextChange(next);
   }
 
@@ -3744,7 +3965,10 @@ class ClawdCompanion {
     if (prof === 'idle') return;
     const url = location.hostname.toLowerCase();
     const keywords = this._contextMap[prof] || [];
-    const match = keywords.some(k => url.includes(k));
+    const match = keywords.some(k =>
+      (typeof clawdHostMatchesDomain === 'function' && clawdHostMatchesDomain(url, k))
+      || url.includes(k)
+    );
 
     // Easter egg 404 (Dev)
     if (prof === 'engineer' && /404|not found|página não encontrada/i.test(document.title)) {
@@ -3925,17 +4149,19 @@ class ClawdCompanion {
         this._lastTantrum = Date.now();
         this.setStateFor('tantrum', 2500);
         this.showSpeech('Hmpf! 😡🍖', 2500);
+        this.beep(160, 0.1, 'sawtooth', 'actions');
+        setTimeout(() => this.beep(120, 0.12, 'triangle', 'actions'), 90);
       }
     }, 5000));
 
-    // Decaimento de stats — a cada 60s
+    // Decaimento de stats
     this._timers.push(setInterval(() => {
       if (document.hidden) return;
       this.decayStats(1);
       this.S.stats.lastStatsUpdate = Date.now();
       this.updateEmotion();
       this.save();
-    }, 60000));
+    }, CLAWD_TIMINGS.STAT_DECAY_MS));
 
     // Fala aleatória — a cada ~40s
     this._timers.push(setInterval(() => {
@@ -3970,13 +4196,13 @@ class ClawdCompanion {
         return;
       }
       this._handleAction(pick);
-    }, 25000));
+    }, CLAWD_TIMINGS.RANDOM_ACTION_MS));
 
     // Duo pet ↔ subpet — cenas periódicas quando ambos idle
-    this._timers.push(setInterval(() => this._maybePlayDuoScene(), 32000));
+    this._timers.push(setInterval(() => this._maybePlayDuoScene(), CLAWD_TIMINGS.DUO_SCENE_MS));
 
     // Ambient FX de acessórios (hélice / asas / capa)
-    this._timers.push(setInterval(() => this._tickAccessoryAmbientFx(), 4200));
+    this._timers.push(setInterval(() => this._tickAccessoryAmbientFx(), 9000));
 
     // Permanência na aba → engaja estrutura da página (45–90s)
     this._timers.push(setInterval(() => this._tickDwellEngage(), 8000));
@@ -4057,8 +4283,7 @@ class ClawdCompanion {
 
   /* v3.3: Clima ambiente sazonal */
   _spawnAmbientWeather() {
-    if (!this.isVisible || this.S.settings.performanceMode || this.S.settings.noWeather || document.hidden) return;
-    if (!this._canSpawnFx(2)) return;
+    if (!this.isVisible || this.S.settings.performanceMode || this.S.settings.noWeather || document.hidden || this._reducedMotion) return;
     const month = new Date().getMonth() + 1; // 1–12
     let pool = null;
     if (month === 12 || month === 1)  pool = ['❄️', '🌨️', '⛄'];
@@ -4067,9 +4292,13 @@ class ClawdCompanion {
     else if (month >= 6 && month <= 7) pool = ['✨', '🌟', '🔆'];
     if (!pool) return;
     const count = 1 + Math.floor(Math.random() * 2);
+    if (!this._reserveFx(count)) return;
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
-        if (this._destroyed || document.hidden || !this._canSpawnFx(1)) return;
+        if (this._destroyed || document.hidden) {
+          this._releaseFx(1);
+          return;
+        }
         const el = document.createElement('div');
         el.className = 'aic-particle';
         el.style.cssText = `
@@ -4084,7 +4313,7 @@ class ClawdCompanion {
         `;
         el.textContent = pool[Math.floor(Math.random() * pool.length)];
         document.body.appendChild(el);
-        this._trackParticle(el, 2200);
+        this._trackParticle(el, 2200, true);
       }, i * 400);
     }
   }
@@ -4533,6 +4762,7 @@ class ClawdCompanion {
     }
     if (want && !this.subpet && unlocked && this.isVisible && !petHidden) {
       this.subpet = new SubPet(this, want);
+      this.subpet.onOwnerState(this.state);
       const name = this.S.subpets.names[want];
       if (name) setTimeout(() => this.subpet && this.subpet.say(`${name}! 🐾`), 1500);
       else setTimeout(() => this.subpet && this.subpet.say(`${CLAWD_SUBPETS[want]?.label || 'Companheiro'}! 🐾`), 900);
@@ -4814,6 +5044,7 @@ class ClawdCompanion {
             combo: this._comboCount,
             personality: this.S.personality,
             streakDays: this.S.game?.streak?.days || 0,
+            studioOpen: !!this._studioEl?.isConnected,
             subpet: this.subpet ? {
               species: this.subpet.species,
               state: this.subpet.state,
@@ -4822,10 +5053,254 @@ class ClawdCompanion {
             } : null
           });
           return true;
+        case 'openStudio':
+          this.openStudio();
+          sendResponse({ ok: true });
+          return true;
+        case 'closeStudio':
+          this.closeStudio();
+          sendResponse({ ok: true });
+          return true;
       }
       return false;
     });
     this._safeChrome(() => chrome.runtime.onMessage.addListener(this._messageListener));
+  }
+
+  openStudio() {
+    if (this._destroyed) return;
+    if (this._studioEl?.isConnected) {
+      this._refreshStudio();
+      this._studioEl.classList.add('aic-studio-flash');
+      setTimeout(() => this._studioEl?.classList.remove('aic-studio-flash'), 400);
+      return;
+    }
+    const panel = document.createElement('aside');
+    panel.id = 'aic-clawd-studio';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', "Studio de personalização do Claw'd");
+    panel.innerHTML = `
+      <header class="aic-studio-head" data-drag-handle="1">
+        <strong>Studio Claw'd</strong>
+        <span class="aic-studio-hint">arraste · cantos</span>
+        <button type="button" class="aic-studio-close" title="Fechar" aria-label="Fechar studio">×</button>
+      </header>
+      <div class="aic-studio-corners" role="group" aria-label="Posição do studio">
+        <button type="button" data-corner="tl" title="Canto superior esquerdo">↖</button>
+        <button type="button" data-corner="tr" title="Canto superior direito">↗</button>
+        <button type="button" data-corner="bl" title="Canto inferior esquerdo">↙</button>
+        <button type="button" data-corner="br" title="Canto inferior direito">↘</button>
+      </div>
+      <div class="aic-studio-stats" aria-label="Status do pet"></div>
+      <div class="aic-studio-section">
+        <span class="aic-studio-label">Cores</span>
+        <div class="aic-studio-swatches" data-studio="colors"></div>
+      </div>
+      <div class="aic-studio-section">
+        <span class="aic-studio-label">Rosto</span>
+        <div class="aic-studio-chips" data-studio="faces"></div>
+      </div>
+      <div class="aic-studio-section">
+        <span class="aic-studio-label">Pele</span>
+        <div class="aic-studio-chips" data-studio="skins"></div>
+      </div>
+      <p class="aic-studio-foot">Menu completo: ícone da extensão · Janela solta no popup</p>
+    `;
+    document.documentElement.appendChild(panel);
+    this._studioEl = panel;
+    this._bindStudio(panel);
+    this._applyStudioPosition(panel);
+    this._refreshStudio();
+  }
+
+  closeStudio() {
+    if (this._studioDragCleanup) {
+      this._studioDragCleanup();
+      this._studioDragCleanup = null;
+    }
+    if (this._studioEl) {
+      this._studioEl.remove();
+      this._studioEl = null;
+    }
+  }
+
+  _bindStudio(panel) {
+    panel.querySelector('.aic-studio-close')?.addEventListener('click', () => this.closeStudio());
+
+    panel.querySelectorAll('[data-corner]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const corner = btn.dataset.corner;
+        this.S.settings.studioCorner = corner;
+        panel.style.left = '';
+        panel.style.top = '';
+        panel.style.right = '';
+        panel.style.bottom = '';
+        this._applyStudioPosition(panel);
+        this.save();
+      });
+    });
+
+    const head = panel.querySelector('[data-drag-handle]');
+    if (head) {
+      let dragging = false;
+      let startX = 0;
+      let startY = 0;
+      let originLeft = 0;
+      let originTop = 0;
+      const onMove = (e) => {
+        if (!dragging || !this._studioEl) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const left = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, originLeft + dx));
+        const top = Math.max(8, Math.min(window.innerHeight - panel.offsetHeight - 8, originTop + dy));
+        panel.style.left = `${left}px`;
+        panel.style.top = `${top}px`;
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        panel.dataset.corner = 'free';
+      };
+      const onUp = () => {
+        if (!dragging) return;
+        dragging = false;
+        head.classList.remove('dragging');
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        const rect = panel.getBoundingClientRect();
+        const leftPct = Math.round((rect.left / window.innerWidth) * 1000) / 10;
+        const topPct = Math.round((rect.top / window.innerHeight) * 1000) / 10;
+        this.S.settings.studioCorner = 'free';
+        this.S.settings.studioLeft = Math.max(0, Math.min(100, leftPct));
+        this.S.settings.studioTop = Math.max(0, Math.min(100, topPct));
+        this._applyStudioPosition(panel);
+        this.save();
+      };
+      head.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        if (e.target.closest('button')) return;
+        dragging = true;
+        head.classList.add('dragging');
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = panel.getBoundingClientRect();
+        originLeft = rect.left;
+        originTop = rect.top;
+        panel.dataset.corner = 'free';
+        panel.style.left = `${rect.left}px`;
+        panel.style.top = `${rect.top}px`;
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+      });
+      this._studioDragCleanup = () => {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      };
+    }
+
+    panel.addEventListener('click', (e) => {
+      const actionBtn = e.target.closest('[data-studio-action]');
+      if (actionBtn) {
+        const action = actionBtn.dataset.studioAction;
+        actionBtn.classList.add('pulse');
+        setTimeout(() => actionBtn.classList.remove('pulse'), 400);
+        this._handleAction(action);
+        setTimeout(() => this._refreshStudioStats(), 350);
+        return;
+      }
+      const colorBtn = e.target.closest('[data-studio-color]');
+      if (colorBtn) {
+        this.applyConfig('color', colorBtn.dataset.studioColor);
+        this._refreshStudio();
+        return;
+      }
+      const faceBtn = e.target.closest('[data-studio-face]');
+      if (faceBtn) {
+        this.applyConfig('faceStyle', faceBtn.dataset.studioFace);
+        this._refreshStudio();
+        return;
+      }
+      const skinBtn = e.target.closest('[data-studio-skin]');
+      if (skinBtn) {
+        this.applyConfig('skin', skinBtn.dataset.studioSkin);
+        this._refreshStudio();
+      }
+    });
+  }
+
+  _applyStudioPosition(panel) {
+    if (!panel) return;
+    const corner = CLAWD_STUDIO_CORNERS.includes(this.S.settings.studioCorner)
+      ? this.S.settings.studioCorner
+      : 'br';
+    panel.dataset.corner = corner;
+    if (corner === 'free') {
+      const left = Number.isFinite(this.S.settings.studioLeft) ? this.S.settings.studioLeft : 72;
+      const top = Number.isFinite(this.S.settings.studioTop) ? this.S.settings.studioTop : 18;
+      panel.style.left = `${left}%`;
+      panel.style.top = `${top}%`;
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+    } else {
+      panel.style.left = '';
+      panel.style.top = '';
+      panel.style.right = '';
+      panel.style.bottom = '';
+    }
+    panel.querySelectorAll('[data-corner]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.corner === corner);
+    });
+  }
+
+  _refreshStudio() {
+    if (!this._studioEl?.isConnected) return;
+    this._refreshStudioStats();
+    const colorsHost = this._studioEl.querySelector('[data-studio="colors"]');
+    if (colorsHost) {
+      colorsHost.innerHTML = CLAWD_COLORS.map(c => `
+        <button type="button" class="aic-studio-swatch${(this.S.color || '').toLowerCase() === c.toLowerCase() ? ' active' : ''}"
+          data-studio-color="${c}" style="--swatch:${c}" title="${c}" aria-label="Cor ${c}"></button>
+      `).join('');
+    }
+    const facesHost = this._studioEl.querySelector('[data-studio="faces"]');
+    if (facesHost) {
+      facesHost.innerHTML = Object.entries(CLAWD_FACE_STYLES).map(([id, def]) => `
+        <button type="button" class="aic-studio-chip${this.S.faceStyle === id ? ' active' : ''}"
+          data-studio-face="${id}" title="${def.label || id}">${def.badge || '•'}</button>
+      `).join('');
+    }
+    const skinsHost = this._studioEl.querySelector('[data-studio="skins"]');
+    if (skinsHost) {
+      skinsHost.innerHTML = Object.entries(CLAWD_SKINS).map(([id, def]) => `
+        <button type="button" class="aic-studio-chip${this.S.skin === id ? ' active' : ''}"
+          data-studio-skin="${id}" title="${def.label || id}">${(def.label || id).slice(0, 3)}</button>
+      `).join('');
+    }
+  }
+
+  _refreshStudioStats() {
+    const host = this._studioEl?.querySelector('.aic-studio-stats');
+    if (!host) return;
+    const stats = this.S.stats || {};
+    const items = [
+      { key: 'happiness', action: 'happy', emoji: '❤️', label: 'Felicidade', hint: 'carinho' },
+      { key: 'hunger', action: 'feed', emoji: '🍖', label: 'Saciedade', hint: 'alimentar' },
+      { key: 'energy', action: 'play', emoji: '⚡', label: 'Energia', hint: 'brincar' },
+      { key: 'hygiene', action: 'bath', emoji: '🧼', label: 'Higiene', hint: 'banho' }
+    ];
+    host.innerHTML = items.map(item => {
+      const v = Math.round(stats[item.key] ?? 0);
+      const low = v < 30 ? ' low' : '';
+      const crit = v < 30 ? ' critical' : (v >= 70 ? ' good' : '');
+      return `
+        <button type="button" class="aic-studio-stat${crit}" data-studio-action="${item.action}"
+          title="${item.label}: ${v}% — clique para ${item.hint}"
+          aria-label="${item.label}: ${v}% — clique para ${item.hint}">
+          <span aria-hidden="true">${item.emoji}</span>
+          <span class="aic-studio-bar"><i class="aic-studio-fill${low}" style="width:${v}%"></i></span>
+          <em>${v}%</em>
+        </button>`;
+    }).join('');
   }
 
   _handleAction(action) {
@@ -5024,7 +5499,7 @@ class ClawdCompanion {
       /* v3.3 */
       '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer',
       /* v3.4 / tick5 */
-      '_idleVarTimer', '_scrollIdleTimer', '_ballClickTimer'
+      '_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer', '_ballClickTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
@@ -5048,9 +5523,11 @@ class ClawdCompanion {
     cancelAnimationFrame(this._refreshMeasureRaf);
     cancelAnimationFrame(this._motionRaf);
     cancelAnimationFrame(this._glideRaf);
+    cancelAnimationFrame(this._lookRaf);
     this._refreshMeasureRaf = null;
     this._motionRaf = null;
     this._glideRaf = null;
+    this._lookRaf = null;
 
     if (!skipExtensionApis && this._hasExtensionContext()) {
       if (this._storageListener) {
@@ -5071,6 +5548,8 @@ class ClawdCompanion {
       this.subpet.destroy();
       this.subpet = null;
     }
+
+    this.closeStudio();
 
     document.querySelectorAll(CLAWD_DOM_CLEANUP_SELECTORS).forEach(el => el.remove());
 
