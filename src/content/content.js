@@ -1498,11 +1498,26 @@ class ClawdCompanion {
     if (html) { this.speechNode.innerHTML = text; this.speechNode.classList.add('interactive'); }
     else { this.speechNode.textContent = text; this.speechNode.classList.remove('interactive'); }
     this.speechNode.classList.add('visible');
+    this._clampSpeechBubble();
     clearTimeout(this._speechTimer);
     if (duration > 0) {
       this._speechTimer = setTimeout(() => {
-        this.speechNode.classList.remove('visible', 'interactive');
+        this.speechNode.classList.remove('visible', 'interactive', 'flip-left', 'below');
       }, duration);
+    }
+  }
+
+  // Mantém o balão dentro da viewport: o balão cresce para a esquerda por padrão,
+  // então perto da borda esquerda ele vira (cresce para a direita); estourou o topo,
+  // desce para baixo do pet.
+  _clampSpeechBubble() {
+    const bubble = this.speechNode;
+    bubble.classList.remove('flip-left', 'below');
+    if (bubble.getBoundingClientRect().left < 4) {
+      bubble.classList.add('flip-left');
+    }
+    if (bubble.getBoundingClientRect().top < 4) {
+      bubble.classList.add('below');
     }
   }
 
@@ -2035,6 +2050,11 @@ class ClawdCompanion {
   }
 
   stopFishing() {
+    // sem pescaria ativa não há o que limpar — e limpar aqui apagava o balão
+    // de fala a cada mudança de config (applyConfig 'profession' chama stopFishing)
+    const wasFishing = this._fishing || this._lakeEl || this._fishingLineEl ||
+      this.state === 'fishing' || this.state === 'reeling';
+    if (!wasFishing) return;
     this._fishing = false;
     clearTimeout(this._fishTimer);
     clearTimeout(this._fishBiteTimer);

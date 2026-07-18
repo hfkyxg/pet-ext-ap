@@ -836,8 +836,10 @@
 /* --- BADGE DE EMOÇÃO --- */
 #aic-clawd-node .emotion-badge {
   position: absolute;
-  top: -62px;
-  left: -24px;
+  /* acompanha a altura do corpo escalado: -62px acima do nó na escala padrão 1.5 */
+  top: auto;
+  bottom: calc(22px + 60px * var(--agent-scale, 1.5));
+  left: calc(9px - 22px * var(--agent-scale, 1.5));
   min-width: 28px;
   min-height: 28px;
   display: grid;
@@ -1024,8 +1026,9 @@
 /* --- BALÃO DE FALA --- */
 #aic-clawd-node .speech-bubble {
   position: absolute;
-  bottom: 95px;
-  right: -8px;
+  /* ancora acima da cabeça em qualquer escala: 95px na escala padrão 1.5 */
+  bottom: calc(5px + 60px * var(--agent-scale, 1.5));
+  right: calc(10px - 12px * var(--agent-scale, 1.5));
   min-width: 80px;
   max-width: 190px;
   background: #fff;
@@ -1071,6 +1074,31 @@
   z-index: 1;
 }
 #aic-clawd-node .speech-bubble.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+/* Clamping de viewport: vira para a esquerda quando estoura a borda direita */
+#aic-clawd-node .speech-bubble.flip-left {
+  right: auto;
+  left: calc(10px - 12px * var(--agent-scale, 1.5));
+  transform-origin: bottom left;
+}
+#aic-clawd-node .speech-bubble.flip-left::after { right: auto; left: 16px; }
+#aic-clawd-node .speech-bubble.flip-left::before { right: auto; left: 18px; }
+/* ...e desce para baixo do pet quando estoura o topo */
+#aic-clawd-node .speech-bubble.below {
+  bottom: auto;
+  top: calc(100% + 12px);
+  transform-origin: top right;
+}
+#aic-clawd-node .speech-bubble.below::after {
+  bottom: auto; top: -9px;
+  border-top: none;
+  border-bottom: 9px solid var(--agent-color);
+}
+#aic-clawd-node .speech-bubble.below::before {
+  bottom: auto; top: -6px;
+  border-top: none;
+  border-bottom: 7px solid #fff;
+}
 
 /* Balão interativo (desafio do Tutor) */
 #aic-clawd-node .speech-bubble.interactive {
