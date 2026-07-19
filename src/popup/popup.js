@@ -37,7 +37,23 @@ function persist(mutator) {
     scrubLastError();
     const fresh = clawdMigrateState(res.clawdState);
     // preserva progresso que o content atualiza em paralelo
-    fresh.xp = Math.max(fresh.xp, S.xp);
+    fresh.xp = Math.max(Number(fresh.xp) || 0, Number(S.xp) || 0);
+    fresh.game = fresh.game || {};
+    const liveCoins = Number(S.game?.coins) || 0;
+    fresh.game.coins = Math.max(Number(fresh.game.coins) || 0, liveCoins);
+    if (S.game?.counters && typeof S.game.counters === 'object') {
+      fresh.game.counters = fresh.game.counters || {};
+      Object.keys(S.game.counters).forEach((key) => {
+        const a = S.game.counters[key];
+        const b = fresh.game.counters[key];
+        if (typeof a === 'number' && typeof b === 'number') {
+          fresh.game.counters[key] = Math.max(a, b);
+        } else if (typeof a === 'number' && (b == null || b === '')) {
+          fresh.game.counters[key] = a;
+        }
+      });
+    }
+    // stats NÃO usam max: decay no content deve vencer valores stale do popup
     mutator(fresh);
     S = clawdMigrateState(fresh);
     chrome.storage.local.set({ clawdState: S }, () => { scrubLastError(); });

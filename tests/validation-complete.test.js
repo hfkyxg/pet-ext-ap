@@ -309,6 +309,11 @@ test('validação: headphones (fones) e skins beach/gold da bola', () => {
   assert.ok(CLAWD_ACCESSORIES.headphones);
   assert.equal(CLAWD_ACCESSORIES.headphones.slot, 'face');
   assert.match(style, /data-acc-face="headphones"[\s\S]{0,200}box-shadow:/);
+  assert.match(style, /data-acc-face="headphones"[\s\S]{0,900}#74b9ff/, 'LED azul nos fones');
+  assert.match(style, /@keyframes clawd-headphones-pulse/);
+  assert.match(style, /@keyframes clawd-facewear-bob/);
+  assert.match(style, /spark-ambient/);
+  assert.match(content, /ambient:\s*true|opts\.ambient/);
   assert.match(style, /data-ball-skin="ball_beach"/);
   assert.match(style, /data-ball-skin="ball_gold"/);
 });

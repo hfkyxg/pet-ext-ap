@@ -18,7 +18,7 @@ const showcaseJs = read('docs/showcase.js');
 
 test('manifest v3.2 referencia apenas arquivos existentes', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.ok(['3.2.0', '3.3.0', '3.3.1'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
+  assert.ok(['3.2.0', '3.3.0', '3.3.1', '3.7.0', '3.7.1', '3.7.2'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
 
   const files = [
     manifest.background.service_worker,

@@ -1,6 +1,6 @@
-# Relatório de Validação — Claw'd v3.7.1
+# Relatório de Validação — Claw'd v3.7.2
 
-**Data:** 19 de julho de 2026 (sync GitHub v4 + partículas/skins/babinha + revalidação completa)  
+**Data:** 19 de julho de 2026 (polish acessórios/FX + sync XP + release)  
 **Ambiente:** Windows · Node.js 24 · Edge/Chromium  
 **Marco:** **156/156** contratos — animações, interações, ações 100%, acessórios, 9 rostos, skins animadas, partículas ricas
 
@@ -8,9 +8,11 @@
 
 - Verificações de sintaxe: **aprovadas**
 - Suíte `node:test`: **156/156**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** (30/30 ações + extras)
-- Sync: `master` continha v3.7; portadas melhorias da branch `claude/clawd-v4-ecosystem-fl8pnf` (Babinha, escala do balão, daily progress determinístico)
-- Default branch GitHub `main` atualizada para acompanhar `master`
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.7.2** (30/30 ações + extras)
+- Lint (`eslint src`): **0 erros**
+- Smoke Chromium: **runtimeErrors: 0** · 3/3 reloads · carinho +XP OK
+- Polish: fones/facewear nítidos, FX ambient, crisp-edges, duo hug sem fala duplicada, dance/keepy/pescaria limpam ao ocultar
+- Sync: `storage.onChanged` não regride XP/coins/counters (Math.max)
 
 ## Contagens vivas
 
@@ -32,6 +34,9 @@
 | Partículas `spark-sm/md/lg/star` + walk-dust rico | ✅ |
 | Bola pé direito / pixel / kick→direita | ✅ |
 | 100% ações no `_handleAction` | ✅ |
+| Headphones LED + facewear enriquecido + spark-ambient | ✅ |
+| Headwear sync ao passo; abraço duo `silent`; destroy limpa dance | ✅ |
+| XP/coins/counters não regridem via onChanged stale | ✅ |
 
 ## Comandos
 

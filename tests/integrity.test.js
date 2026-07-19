@@ -239,6 +239,16 @@ test('porta cross-tab trata bfcache / lastError sem vazar', () => {
   assert.match(background, /chrome\.runtime\.lastError/);
   // disconnect mantém o listener até depois de port.disconnect()
   assert.match(content, /try \{ port\.disconnect\(\); \}[\s\S]+?_portDisconnectListener\)/);
+  // destino some mid-travel → respawnAnywhere (não deixa pet invisível)
+  assert.match(background, /lostDestination[\s\S]{0,180}respawnAnywhere/);
+  // restoreHost não sobrescreve host vivo em memória
+  assert.match(background, /hostTabId == null && res && res\.clawdHostTabId/);
+  assert.match(background, /nextMondayMidnightMs|scheduleWeeklyResetAlarm/);
+  assert.match(background, /travelInFlight\) return/);
+  assert.match(content, /clawdValidateDownstreamPortMessage/);
+  assert.match(content, /_crossTabHidden/);
+  const war = JSON.stringify(JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8')).web_accessible_resources || []);
+  assert.match(war, /use_dynamic_url/);
 });
 
 test('AudioContext só nasce após gesto do usuário', () => {
@@ -429,6 +439,7 @@ test('CLAWD_KEYBOARD_SHORTCUTS — todos os action ids existem em CLAWD_ACTIONS 
 
 test('escalabilidade tick5 — save coalesce, particle timers e destroy limpam scroll idle', () => {
   const content = read('src/content/content.js');
+  const popup = read('src/popup/popup.js');
   const arch = read('docs/ARCHITECTURE.md');
   assert.match(content, /_flushSave\(\)/);
   assert.match(content, /_saveInFlight/);
@@ -439,10 +450,14 @@ test('escalabilidade tick5 — save coalesce, particle timers e destroy limpam s
   assert.match(content, /'_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer'/);
   assert.match(content, /this\._particleTimers\.forEach\(clearTimeout\)/);
   assert.match(content, /this\._timers\.length = 0/);
+  assert.match(content, /this\.S\.xp = Math\.max\(Number\(this\.S\.xp\) \|\| 0, Number\(fresh\.xp\) \|\| 0\)/);
+  assert.match(content, /this\.S\.game\.coins = Math\.max\(Number\(this\.S\.game\.coins\) \|\| 0, Number\(fresh\.game\.coins\) \|\| 0\)/);
+  assert.match(popup, /fresh\.xp = Math\.max\(Number\(fresh\.xp\) \|\| 0, Number\(S\.xp\) \|\| 0\)/);
   assert.match(arch, /Escalabilidade \(vanilla MV3/);
   assert.match(arch, /Não fatiar `content\.js` em ES modules/);
   assert.match(arch, /debounce 350/);
   assert.match(arch, /_canSpawnFx` ≤ \*\*18\*\*/);
+  assert.match(arch, /não regride.*XP\/coins\/counters|Math\.max/);
 });
 
 test('CLAWD_TIMINGS exportado com todas as chaves obrigatórias', () => {

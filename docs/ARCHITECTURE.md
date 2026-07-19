@@ -98,6 +98,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 - `save()` faz **debounce 350 ms** e **coalesce** se um flush `get→set` ainda está em voo (`_saveInFlight` / `_saveDirty`).
 - Flush faz read-modify-write (popup dono de favorites/settings/subpets/inventory).
 - Skip de `chrome.storage.local.set` quando o estado serializado **não mudou** após o merge — reduz ruído `onChanged` entre abas.
+- `onChanged` no content **não regride** XP/coins/counters (`Math.max`); popup `persist` idem.
 - Presença cross-tab é via Port (`clawd-presence`), não via re-save em loop.
 
 ### Caps já em produção

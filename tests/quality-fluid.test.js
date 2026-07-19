@@ -171,7 +171,10 @@ test('qualidade: FX ao vestir acessório + ambient propeller/asas/capa', () => {
   assert.match(content, /_tickAccessoryAmbientFx/);
   assert.match(content, /accessory-equip-pop/);
   assert.match(content, /has-propeller/);
+  assert.match(content, /face === 'headphones'/);
+  assert.match(content, /ambient:\s*true/);
   assert.match(style, /clawd-acc-equip-pop/);
+  assert.match(style, /spark-ambient/);
 });
 
 test('qualidade: partículas honram count; volumes actions/ambient; asas planeiam', () => {

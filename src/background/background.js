@@ -112,11 +112,34 @@ chrome.runtime.onInstalled.addListener(() => {
       });
     }
   });
-  /* v3.3: alarm semanal para reset do desafio — toda segunda-feira às 00:00 */
-  chrome.alarms.create('clawdWeeklyReset', {
-    periodInMinutes: 10080 // 7 dias
-  });
+  scheduleWeeklyResetAlarm();
 });
+
+/* Próxima segunda 00:00 local + período de 7 dias (revalida no boot do SW) */
+function nextMondayMidnightMs(from = Date.now()) {
+  const d = new Date(from);
+  d.setSeconds(0, 0);
+  d.setMinutes(0);
+  d.setHours(0);
+  const day = d.getDay(); // 0=dom … 1=seg
+  const daysToAdd = day === 1 ? 7 : ((8 - day) % 7);
+  d.setDate(d.getDate() + daysToAdd);
+  return d.getTime();
+}
+
+function scheduleWeeklyResetAlarm() {
+  try {
+    chrome.alarms.create('clawdWeeklyReset', {
+      when: nextMondayMidnightMs(),
+      periodInMinutes: 10080
+    });
+  } catch (_) {}
+}
+
+scheduleWeeklyResetAlarm();
+try {
+  chrome.runtime.onStartup.addListener(() => scheduleWeeklyResetAlarm());
+} catch (_) {}
 
 /* v3.3: Processamento do alarm semanal */
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -138,7 +161,10 @@ function persistHost() {
 function restoreHost(cb) {
   try {
     chrome.storage.session.get(['clawdHostTabId'], (res) => {
-      if (res && res.clawdHostTabId != null) hostTabId = res.clawdHostTabId;
+      // Só restaura session se a memória ainda não tem host vivo (evita clobber pós-viagem).
+      if (hostTabId == null && res && res.clawdHostTabId != null) {
+        hostTabId = res.clawdHostTabId;
+      }
       cb && cb();
     });
   } catch (_) { cb && cb(); }
@@ -256,6 +282,8 @@ function handlePresenceMessage(tabId, raw) {
   switch (msg.type) {
     case 'register':
       restoreHost(() => {
+        // Mid-travel: só a porta importa — não reassign/hide (evita pet invisível).
+        if (travelInFlight) return;
         if (hostTabId == null || !ports.has(hostTabId)) {
           assignHost(tabId);
         } else if (tabId === hostTabId) {
@@ -290,8 +318,16 @@ chrome.runtime.onConnect.addListener((port) => {
     // Só remove se ainda for ESTE port (reconexão rápida pode ter substituído).
     if (ports.get(tabId) === port) ports.delete(tabId);
     else scrubLastError();
-    if (travelInFlight && (travelInFlight.from === tabId || travelInFlight.to === tabId)) {
+    const midTravel = travelInFlight;
+    const lostDestination = midTravel && midTravel.to === tabId;
+    const lostOrigin = midTravel && midTravel.from === tabId;
+    if (midTravel && (lostOrigin || lostDestination)) {
       clearTravelInFlight();
+      // Destino caiu no meio: origem já despawnou — respawna em qualquer aba viva.
+      if (lostDestination) {
+        respawnAnywhere();
+        return;
+      }
     }
     // aba anfitriã fechou → respawn imediato na aba ativa
     if (tabId === hostTabId && !ports.has(tabId)) {
@@ -326,8 +362,14 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 chrome.tabs.onRemoved.addListener((tabId) => {
   ports.delete(tabId);
   clearTravelDebounce();
-  if (travelInFlight && (travelInFlight.from === tabId || travelInFlight.to === tabId)) {
+  const midTravel = travelInFlight;
+  const lostDestination = midTravel && midTravel.to === tabId;
+  if (midTravel && (midTravel.from === tabId || lostDestination)) {
     clearTravelInFlight();
+    if (lostDestination) {
+      respawnAnywhere();
+      return;
+    }
   }
   if (tabId === hostTabId) {
     hostTabId = null;

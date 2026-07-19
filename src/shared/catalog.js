@@ -1748,7 +1748,13 @@ function clawdSanitizeGameBlock(rawGame, defGame) {
   const game = clawdPlainMerge(defGame, src);
   game.streak = clawdPlainMerge(defGame.streak, src.streak || {});
   game.counters = clawdPlainMerge(defGame.counters, src.counters || {});
-  game.achievements = clawdAssignPlain({}, src.achievements || {});
+  game.achievements = clawdAssignPlain({}, {});
+  const rawAch = (src.achievements && typeof src.achievements === 'object') ? src.achievements : {};
+  Object.keys(rawAch).forEach((id) => {
+    if (Object.prototype.hasOwnProperty.call(CLAWD_ACHIEVEMENTS, id) && rawAch[id]) {
+      game.achievements[id] = true;
+    }
+  });
   game.inventory = (src.inventory || [])
     .filter(id => Object.prototype.hasOwnProperty.call(CLAWD_SHOP, id))
     .slice(0, 80);
@@ -1983,6 +1989,7 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_RARITY,
     CLAWD_COLORS,
     CLAWD_COLOR_PRESETS,
+    CLAWD_JERSEYS,
     clawdDailyQuestForDate,
     clawdEnsureDailyQuest,
     clawdRegisterDailyProgress,

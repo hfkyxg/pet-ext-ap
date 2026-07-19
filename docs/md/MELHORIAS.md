@@ -5,6 +5,22 @@
 
 ---
 
+## v3.7.2 — Polish acessórios + FX + sync (2026-07-19)
+
+| Módulo | Entrega | Estado |
+|--------|---------|--------|
+| **Fones** | Arco + conchas + LED azul; pulse idle + bob no passo | ✅ |
+| **Facewear** | Óculos/sol/goggles/laço/medal/blush/mochila/monóculo/bigode | ✅ |
+| **FX** | `spark-ambient`; ambient headphones/medal/halo/crown; equip sparks completos | ✅ |
+| **Nitidez** | `crisp-edges`; brilho brightness/opacity; headwear-step no walk | ✅ |
+| **Duo** | Hug `silent`; dance/keepy/fish limpam em hide/destroy; subpet rAF pause | ✅ |
+| **Sync** | onChanged: XP/coins/counters com Math.max (anti-regressão stale) | ✅ |
+| **Cross-tab** | weekly alarm, travel disconnect, persist max XP/coins | ✅ |
+| **Versão** | manifest / popup / README → **3.7.2** | ✅ |
+| **Tests** | **156/156** + ecosystem OK | ✅ |
+
+---
+
 ## v3.7.1 — Sync GitHub v4 + partículas (2026-07-19)
 
 | Módulo | Entrega | Estado |

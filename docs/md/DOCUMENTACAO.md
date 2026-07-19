@@ -409,7 +409,7 @@ Os **156 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 | **Face animations** | `sparkle`: `clawd-face-sparkle-twinkle` 1.6s nos olhos. `heart`: `clawd-face-heart-pulse` 1.2s scale no coração. Idem reduced-motion guard. |
 | **Ambient FX completo** | `ribbon` (idle 8%), `scarf_body` (moving 8%) adicionados ao `_tickAccessoryAmbientFx()`. Classes `has-ribbon` / `has-scarf-body` adicionadas ao `_syncAccessoryVisuals()`. |
 | **Bola pé direito** | `.pet-ball { left: 48px }` + chuteira `left: 42px`; kick/roll/doPlay para a direita; sem `drop-shadow` blur; contador `.aic-juggle-count` à direita. |
-| **Validação** | Suíte **156/156** (babinha, escala balão, skins animadas, partículas ricas). |
+| **Validação** | Suíte **156/156** · v3.7.2 (babinha, FX, acessórios nítidos, sync XP). |
 
 ---
 

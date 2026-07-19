@@ -787,7 +787,7 @@ class SubPet {
     }, CLAWD_TIMINGS.SUBPET_INTERACTION_MS);
   }
 
-  interact(kind, { force = false } = {}) {
+  interact(kind, { force = false, silent = false } = {}) {
     if (!this.node) return false;
     if (this.state === 'sleeping') {
       if (kind === 'nap') return false;
@@ -903,7 +903,7 @@ class SubPet {
         this.node?.classList.add('duo-hug');
         setTimeout(() => this.node?.classList.remove('duo-hug'), 1800);
         this.owner.setStateFor?.('hugging', 1800);
-        this.owner.showSpeech?.('Abraço em duo! 🤗', 1800);
+        if (!silent) this.owner.showSpeech?.('Abraço em duo! 🤗', 1800);
         this.owner.bumpStat('happiness', 4);
         this._finishInteractionAfter(1800);
         break;
@@ -1526,10 +1526,31 @@ class ClawdCompanion {
       if (area !== 'local' || !changes.clawdState) return;
       const fresh = clawdMigrateState(changes.clawdState.newValue);
       // Sincroniza campos que o popup controla
+      const prevCrossTab = !!this.S.settings?.crossTab;
       this.S.favorites = fresh.favorites;
       this.S.settings = fresh.settings;
+      if (prevCrossTab !== !!fresh.settings.crossTab) {
+        if (fresh.settings.crossTab) this.setupCrossTab();
+        else {
+          this._disconnectPresencePort('crossTab-storage');
+          this.setHidden(false);
+        }
+      }
       this.S.game.inventory = fresh.game.inventory;
-      this.S.game.coins = fresh.game.coins;
+      // Progresso: nunca regride por write stale (save debounce × onChanged)
+      this.S.game.coins = Math.max(Number(this.S.game.coins) || 0, Number(fresh.game.coins) || 0);
+      if (fresh.game?.counters && typeof fresh.game.counters === 'object') {
+        this.S.game.counters = this.S.game.counters || {};
+        Object.keys(fresh.game.counters).forEach((key) => {
+          const a = this.S.game.counters[key];
+          const b = fresh.game.counters[key];
+          if (typeof a === 'number' && typeof b === 'number') {
+            this.S.game.counters[key] = Math.max(a, b);
+          } else if (b != null && a == null) {
+            this.S.game.counters[key] = b;
+          }
+        });
+      }
       const visualKeys = [
         'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
         'smooth', 'outline', 'showMouth', 'showSpeech', 'autoWalk', 'sleepEnabled',
@@ -1539,7 +1560,7 @@ class ClawdCompanion {
       ];
       visualKeys.forEach(key => { this.S[key] = fresh[key]; });
       const animationSpeed = Math.max(0.5, parseFloat(fresh.animSpeed) || 1);
-      this.S.xp = fresh.xp;
+      this.S.xp = Math.max(Number(this.S.xp) || 0, Number(fresh.xp) || 0);
       this._syncNameTag();
       if (clawdIsHexColor(fresh.color)) {
         this.node.style.setProperty('--agent-color', fresh.color);
@@ -1880,38 +1901,66 @@ class ClawdCompanion {
       bunny_ears: ['#fd79a8', '#ffffff', '#e84393'],
       medal:      ['#f1c40f', '#e17055', '#ffffff'],
       glasses:    ['#74b9ff', '#0984e3', '#ffffff'],
+      sunglasses: ['#2d3436', '#636e72', '#ffffff'],
       headphones: ['#636e72', '#b2bec3', '#74b9ff'],
       scarf:      ['#e74c3c', '#c0392b', '#ffffff'],
       bow:        ['#fd79a8', '#e84393', '#ffffff'],
+      goggles:    ['#7ec8e3', '#4a4a5a', '#ffffff'],
+      blush:      ['#fd79a8', '#ffb8c6', '#ffffff'],
+      monocle:    ['#c7a84c', '#dfc76a', '#ffffff'],
+      mustache:   ['#3d2612', '#2c1a0e', '#ffffff'],
+      backpack:   ['#a0522d', '#e0c070', '#7b5e42'],
+      cap:        ['#34495e', '#e74c3c', '#ffffff'],
+      tophat:     ['#2c2c35', '#8e44ad', '#ffffff'],
+      chefhat:    ['#ffffff', '#eef1f3', '#cfd6da'],
+      ninjaband:  ['#c52d39', '#8f1d24', '#ffffff'],
+      fishhat:    ['#c4982a', '#d64545', '#f1c40f'],
+      visor:      ['#00c0ff', '#2c3e50', '#ffffff'],
+      horns:      ['#e74c3c', '#c0392b', '#ffffff'],
+      headband:   ['#e74c3c', '#c0392b', '#ffffff'],
     };
     this.spawnPixelSparks(sparkMap[id] || ['#f1c40f', '#ffffff', '#fda7df'], { count: 5 });
   }
 
-  /* Detalhe contínuo: hélice/asas/capa/armadura — orçamento baixo de partículas */
+  /* Detalhe contínuo: hélice/asas/capa/face — orçamento baixo, modo ambient */
   _tickAccessoryAmbientFx() {
     if (this._destroyed || document.hidden || this._reducedMotion || this.S.settings.performanceMode || this.S.settings.noParticles) return;
     if (this.S.settings.noAmbientSparks) return;
     if (!this.isVisible || this.state === 'sleeping') return;
     const head = this.node?.dataset?.accHead;
     const body = this.node?.dataset?.accBody;
+    const face = this.node?.dataset?.accFace;
     const moving = this.state === 'walking' || this.state === 'running' || this.isAutoWalking;
+    const amb = { ambient: true };
     if (head === 'propeller' && moving && Math.random() < 0.18) {
-      this.spawnPixelSparks(['#f1c40f', '#55a9dd', '#ef6258'], { count: 2 });
+      this.spawnPixelSparks(['#f1c40f', '#55a9dd', '#ef6258'], { count: 2, ...amb });
     }
     if (body === 'wings' && this.state === 'idle' && Math.random() < 0.1) {
-      this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#dfefff'], { count: 2 });
+      this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#dfefff'], { count: 2, ...amb });
     }
     if (body === 'cape' && moving && Math.random() < 0.1) {
-      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#f5f5f5'], { count: 2 });
+      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#f5f5f5'], { count: 2, ...amb });
     }
     if (body === 'armor' && this.state === 'idle' && Math.random() < 0.06) {
-      this.spawnPixelSparks(['#b2bec3', '#95a5a6', '#ffffff'], { count: 1 });
+      this.spawnPixelSparks(['#b2bec3', '#95a5a6', '#ffffff'], { count: 1, ...amb });
     }
     if (body === 'ribbon' && this.state === 'idle' && Math.random() < 0.08) {
-      this.spawnPixelSparks(['#ff6b6b', '#e74c3c', '#ffffff'], { count: 1 });
+      this.spawnPixelSparks(['#ff6b6b', '#e74c3c', '#ffffff'], { count: 1, ...amb });
     }
     if (body === 'scarf_body' && moving && Math.random() < 0.08) {
-      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#ffffff'], { count: 1 });
+      this.spawnPixelSparks(['#e74c3c', '#c0392b', '#ffffff'], { count: 1, ...amb });
+    }
+    if (face === 'headphones' && this.state === 'idle' && Math.random() < 0.07) {
+      this.spawnPixelSparks(['#74b9ff', '#0984e3', '#dfe6e9'], { count: 1, ...amb });
+    }
+    if (face === 'medal' && this.state === 'idle' && Math.random() < 0.05) {
+      this.spawnPixelSparks(['#f1c40f', '#fff3a8', '#ffffff'], { count: 1, ...amb });
+    }
+    if (head === 'halo' && this.state === 'idle' && Math.random() < 0.08) {
+      this.spawnPixelSparks(['#ffeaa7', '#f1c40f', '#ffffff'], { count: 1, ...amb });
+    }
+    if (head === 'crown' && this.state === 'idle' && Math.random() < 0.05) {
+      this.spawnPixelSparks(['#f1c40f', '#ffd700'], { count: 1, ...amb });
     }
   }
 
@@ -3047,6 +3096,8 @@ class ClawdCompanion {
   /* Partículas pixel (bola/futebol/acessórios — sem emoji). */
   spawnPixelSparks(colors, opts = {}) {
     if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (this.S.settings.noParticles) return;
+    if (opts?.ambient && this.S.settings.noAmbientSparks) return;
     if (typeof opts === 'number') opts = { count: opts };
     const requested = Number(opts.count);
     const count = Number.isFinite(requested)
@@ -3056,7 +3107,17 @@ class ClawdCompanion {
     const rect = this.node.getBoundingClientRect();
     let palette = colors || ['#27ae60', '#f5f5f5', '#1a1a2e', '#f1c40f', '#e74c3c'];
     if (this.S.particleColor) palette = [...palette, this.S.particleColor];
-    const variants = ['spark-sm', 'spark-md', 'spark-lg', 'spark-star'];
+    const ambient = opts.ambient === true;
+    const variants = ambient
+      ? ['spark-sm', 'spark-sm', 'spark-md']
+      : ['spark-sm', 'spark-md', 'spark-lg', 'spark-star'];
+    const spreadX = ambient ? 28 : 56;
+    const riseMin = ambient ? 14 : 24;
+    const riseSpan = ambient ? 28 : 48;
+    const originX = ambient ? 14 : 6;
+    const originW = ambient ? 30 : 44;
+    const originY = ambient ? 6 : 12;
+    const originH = ambient ? 22 : 28;
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
         if (this._destroyed || document.hidden) {
@@ -3066,20 +3127,20 @@ class ClawdCompanion {
         const el = document.createElement('div');
         const variant = variants[i % variants.length];
         const color = palette[Math.floor(Math.random() * palette.length)];
-        el.className = `aic-pixel-spark ${variant}`;
-        const sx = `${(Math.random() - 0.5) * 56}px`;
-        const sy = `${-24 - Math.random() * 48}px`;
+        el.className = `aic-pixel-spark ${variant}${ambient ? ' spark-ambient' : ''}`;
+        const sx = `${(Math.random() - 0.5) * spreadX}px`;
+        const sy = `${-riseMin - Math.random() * riseSpan}px`;
         el.style.cssText = `
-          left:${rect.left + 6 + Math.random() * 44}px;
-          top:${rect.top + 12 + Math.random() * 28}px;
+          left:${rect.left + originX + Math.random() * originW}px;
+          top:${rect.top + originY + Math.random() * originH}px;
           background:${color};
           color:${color};
           box-shadow: 2px 0 ${palette[Math.floor(Math.random() * palette.length)]};
           --spark-x:${sx}; --spark-y:${sy};
         `;
         document.body.appendChild(el);
-        this._trackParticle(el, 1100, true);
-      }, i * 36);
+        this._trackParticle(el, ambient ? 750 : 1100, true);
+      }, i * (ambient ? 28 : 36));
     }
   }
 
@@ -3280,24 +3341,37 @@ class ClawdCompanion {
   // Super dança (triplo-clique)
   doSuperDance() {
     if (this.state === 'sleeping') this.wakeUp();
+    this.cancelMovement();
     this.showSpeech('💃 SUPER DANCE! 🕺', 5000);
     this.spawnParticles(['🎵', '🎶', '⚡', '🌟', '✨', '💃']);
     const steps = ['dance-1', 'dance-2', 'dance-3', 'dance-1', 'dance-2', 'somersault'];
+    const clearDance = () => {
+      steps.forEach(s => this.node?.classList.remove(s));
+      if (this.state && steps.includes(this.state)) this.setState('idle');
+    };
+    this._clearDanceTimers?.();
+    this._danceTimers = [];
     steps.forEach((step, i) => {
-      setTimeout(() => {
-        if (i > 0 && this.state) this.node.classList.remove(steps[i - 1]);
+      this._danceTimers.push(setTimeout(() => {
+        if (this._destroyed || this._crossTabHidden) return;
+        if (i > 0) this.node.classList.remove(steps[i - 1]);
         this.state = step;
+        this.node.dataset.state = step;
         this.node.classList.add(step);
         this.beep(440 + i * 110, 0.08);
-      }, i * 700);
+      }, i * 700));
     });
-    setTimeout(() => {
-      steps.forEach(s => this.node.classList.remove(s));
-      this.setState('idle');
-    }, steps.length * 700 + 600);
+    this._danceTimers.push(setTimeout(() => {
+      clearDance();
+    }, steps.length * 700 + 600));
     this.bumpStat('happiness', 15);
     this.bumpStat('energy', -10);
     this.addXp(10);
+  }
+
+  _clearDanceTimers() {
+    (this._danceTimers || []).forEach(clearTimeout);
+    this._danceTimers = [];
   }
 
   doJump() {
@@ -3371,6 +3445,7 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('winking', 800);
     this.showSpeech('😉', 900);
+    this.spawnPixelSparks(['#fd79a8', '#ffffff', '#ffeaa7'], { count: 3 });
     this.bumpStat('happiness', 3);
     this.addXp(1);
     this.beep(990, 0.05, 'triangle');
@@ -3497,7 +3572,7 @@ class ClawdCompanion {
     this.addXp(4);
     this.chime([[520, 0.06], [620, 0.06], [780, 0.1]]);
     this.updateEmotion(true);
-    if (this.subpet) this.subpet.interact('hug', { force: true });
+    if (this.subpet) this.subpet.interact('hug', { force: true, silent: true });
   }
 
   startRun(targetX) {
@@ -4242,7 +4317,7 @@ class ClawdCompanion {
 
     // Decaimento de stats
     this._timers.push(setInterval(() => {
-      if (document.hidden) return;
+      if (document.hidden || this._crossTabHidden) return;
       this.decayStats(1);
       this.S.stats.lastStatsUpdate = Date.now();
       this.updateEmotion();
@@ -4251,7 +4326,7 @@ class ClawdCompanion {
 
     // Fala aleatória — a cada ~40s
     this._timers.push(setInterval(() => {
-      if (document.hidden || !this.isVisible || !this.S.showSpeech || this.isQuiet()) return;
+      if (document.hidden || this._crossTabHidden || !this.isVisible || !this.S.showSpeech || this.isQuiet()) return;
       if (this.state === 'sleeping') return;
       const social = this.S.personality?.social ?? 5;
       const chance = this.emotion === 'sad' ? 0.3 : (social >= 7 ? 0.8 : 0.6);
@@ -4263,7 +4338,7 @@ class ClawdCompanion {
 
     // Ação aleatória favorita — a cada ~25s
     this._timers.push(setInterval(() => {
-      if (document.hidden) return;
+      if (document.hidden || this._crossTabHidden) return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
       const baseChance = this.emotion === 'joyful' ? 0.6 : 0.45;
       if (Math.random() > baseChance) return;
@@ -4473,6 +4548,7 @@ class ClawdCompanion {
     this._pulseAnimClass('looking-around', 2500);
     this.setStateFor('curious', 2400);
     this.showSpeech(Math.random() < 0.5 ? 'Hmm... 👀' : 'O que tem por aí?', 2000);
+    this.spawnPixelSparks(['#74b9ff', '#ffffff', '#a29bfe'], { count: 3 });
     this.beep(560, 0.05, 'sine');
   }
 
@@ -4966,8 +5042,12 @@ class ClawdCompanion {
     }, { capture: true, signal });
   }
 
-  _onPresenceMsg(msg) {
+  _onPresenceMsg(raw) {
     if (this._destroyed || !this._port) return;
+    const msg = typeof clawdValidateDownstreamPortMessage === 'function'
+      ? clawdValidateDownstreamPortMessage(raw)
+      : raw;
+    if (!msg) return;
     switch (msg.type) {
       case 'spawnPet': {
         this.setHidden(false);
@@ -5000,8 +5080,20 @@ class ClawdCompanion {
   }
 
   setHidden(hidden) {
+    this._crossTabHidden = !!hidden;
+    if (hidden) {
+      this._clearDanceTimers?.();
+      this.stopKeepyUppy();
+      this.stopFishing();
+      this.cancelMovement();
+    }
     this.node.style.display = hidden ? 'none' : '';
-    if (this.subpet) this.subpet.node.style.display = hidden ? 'none' : '';
+    if (this.subpet) {
+      this.subpet.node.style.display = hidden ? 'none' : '';
+      if (hidden) this.subpet._pauseRaf();
+      else if (!document.hidden && typeof this.subpet._resumeRaf === 'function') this.subpet._resumeRaf();
+      else if (!document.hidden) this.subpet._armSettleWake();
+    }
     // pegadas sutis nas abas sem pet
     const old = document.getElementById('aic-footprints');
     if (old) old.remove();
@@ -5033,8 +5125,15 @@ class ClawdCompanion {
         case 'toggleVisibility':
           this.isVisible = !this.isVisible;
           this.node.style.display = this.isVisible ? '' : 'none';
-          if (this.isVisible) this.refreshSubpet();
-          else if (this.subpet) this.subpet.node.style.display = 'none';
+          if (this.isVisible) {
+            this.refreshSubpet();
+            if (this.subpet && !document.hidden) this.subpet._resumeRaf?.();
+          } else if (this.subpet) {
+            this.subpet.node.style.display = 'none';
+            this.subpet._pauseRaf();
+            this.stopKeepyUppy();
+            this.stopFishing();
+          }
           break;
         case 'resetPosition':
           this.node.style.cssText += ';left:auto;top:auto;bottom:20px;right:20px;';
@@ -5049,6 +5148,13 @@ class ClawdCompanion {
           if (msg.key === 'performanceMode') {
             this.node.classList.toggle('aic-nofx', !!msg.value);
             this.refreshSubpet();
+          }
+          if (msg.key === 'crossTab') {
+            if (msg.value) this.setupCrossTab();
+            else {
+              this._disconnectPresencePort('crossTab-off');
+              this.setHidden(false);
+            }
           }
           this.save();
           break;
@@ -5455,7 +5561,6 @@ class ClawdCompanion {
     c.totalActions = (c.totalActions || 0) + 1;
 
     /* v3.3: speedrun tracking (10 ações em 30s) */
-    const now = Date.now();
     if (!this._speedrunTimer) {
       this._speedrunCount = 0;
       this._speedrunTimer = setTimeout(() => {
@@ -5606,6 +5711,7 @@ class ClawdCompanion {
     }
     this._cancelDwellEngage();
     this._duoBusy = false;
+    this._clearDanceTimers?.();
 
     if (this._balloon) this.popBalloon({ silent: true });
 

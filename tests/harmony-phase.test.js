@@ -25,8 +25,7 @@ const {
   clawdWeeklyChallengeForWeek,
   clawdEnsureWeeklyChallenge,
   clawdRegisterWeeklyProgress,
-  clawdRegisterDailyProgress,
-  clawdEnsureDailyQuest
+  clawdRegisterDailyProgress
 } = catalog;
 
 const root = path.resolve(__dirname, '..');

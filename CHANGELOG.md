@@ -3,6 +3,23 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.7.2] — 2026-07-19
+
+### Melhorado
+
+- **Fones** — arco + conchas acolchoadas + LED azul (não parece fumaça); pulse idle + bob no passo
+- **Facewear** — óculos, óculos de sol, goggles, laço, medalha, blush, mochila, monóculo e bigode com pixel mais legível
+- **FX ambient** — modo `spark-ambient` (spread curto); particles de headphones/medal/halo/crown; equip sparks cobrem o catálogo
+- **Nitidez / fluidez** — `crisp-edges` em sprites/acessórios; brilho via brightness/opacity (menos blur); headwear sincronizado ao passo; abraço duo sem fala duplicada; dance/keepy/pescaria limpam ao ocultar/destruir
+- **Sync** — `storage.onChanged` preserva XP/coins/counters com `Math.max` (evita regressão por save stale)
+- Versão alinhada: **manifest / popup / README → 3.7.2**
+
+### Corrigido
+
+- Race save debounce × onChanged que zerava o +5 XP do carinho no smoke runtime
+
+---
+
 ## [3.7.1] — 2026-07-19
 
 ### Adicionado

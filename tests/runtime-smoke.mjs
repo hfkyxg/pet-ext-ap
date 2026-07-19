@@ -1037,7 +1037,9 @@ async function main() {
       affectionate = await retry(async () => {
         const snapshot = await petSnapshot(page);
         const status = await sendToActivePet(controlWorker, { action: 'getStatus' });
-        return /happy|celebrate/.test(snapshot.state) && status.xp >= statusBeforeAffection.xp + 5
+        const happy = /happy|celebrate/.test(snapshot.engineState || '')
+          || /(?:^|\s)(happy|celebrate)(?:\s|$)/.test(snapshot.state || '');
+        return happy && status.xp >= statusBeforeAffection.xp + 5
           ? { ...snapshot, xp: status.xp }
           : null;
       }, 3_500, 100);
