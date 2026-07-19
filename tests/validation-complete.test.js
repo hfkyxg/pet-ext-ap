@@ -42,7 +42,7 @@ test('validação: cada skin do catálogo pinta .skin-mod no CSS', () => {
     assert.match(style, new RegExp(`\\[data-skin="${id}"\\][\\s\\S]{0,120}\\.skin-mod`), `skin ${id}`);
   }
   assert.equal(Object.keys(CLAWD_SKINS).length, 7);
-  assert.equal(Object.keys(CLAWD_FACE_STYLES).length, 8);
+  assert.equal(Object.keys(CLAWD_FACE_STYLES).length, 9);
 });
 
 test('validação: 7 idle variations com keyframe + !important', () => {
@@ -311,4 +311,26 @@ test('validação: headphones (fones) e skins beach/gold da bola', () => {
   assert.match(style, /data-acc-face="headphones"[\s\S]{0,200}box-shadow:/);
   assert.match(style, /data-ball-skin="ball_beach"/);
   assert.match(style, /data-ball-skin="ball_gold"/);
+});
+
+test('validação: babinha drool + balão/badge seguem --agent-scale', () => {
+  assert.ok(CLAWD_FACE_STYLES.drool);
+  assert.match(style, /@keyframes clawd-drool-drip/);
+  assert.match(style, /data-face-style="drool"/);
+  assert.match(style, /\.emotion-badge \{[\s\S]{0,200}--agent-scale/);
+  assert.match(style, /\.speech-bubble \{[\s\S]{0,200}--agent-scale/);
+  assert.match(style, /\.speech-bubble\.flip-left/);
+  assert.match(style, /\.speech-bubble\.below/);
+  assert.match(content, /_clampSpeechBubble/);
+  assert.match(content, /stopFishing\(\)[\s\S]{0,280}wasFishing/);
+});
+
+test('validação: skins com animação + partículas pixel ricas', () => {
+  for (const skin of ['freckles', 'stripes', 'spots', 'droopy', 'glow', 'robot']) {
+    assert.match(style, new RegExp(`data-skin="${skin}"[\\s\\S]{0,120}animation:`), `skin ${skin}`);
+  }
+  assert.match(style, /@keyframes clawd-pixel-spark-twinkle/);
+  assert.match(style, /\.aic-pixel-spark\.spark-star/);
+  assert.match(style, /@keyframes clawd-walk-dust-rich/);
+  assert.match(content, /spark-sm[\s\S]{0,80}spark-star/);
 });

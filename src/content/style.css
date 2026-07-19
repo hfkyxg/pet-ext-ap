@@ -892,6 +892,18 @@
 #aic-clawd-node:not(.aic-reduced-motion)[data-skin="robot"] .pixel-sprite {
   animation: clawd-skin-robot-scan 2s steps(2) infinite;
 }
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="freckles"] .skin-mod {
+  animation: clawd-skin-freckle-twinkle 2.8s steps(2) infinite;
+}
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="stripes"] .skin-mod {
+  animation: clawd-skin-stripe-shift 3.2s steps(2) infinite;
+}
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="spots"] .skin-mod {
+  animation: clawd-skin-spot-bob 2.6s ease-in-out infinite;
+}
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"] .skin-mod {
+  animation: clawd-skin-droopy-sway 3.4s ease-in-out infinite;
+}
 
 /* ===== LAPTOP (Dev digitando) — só Engenheiro, colado ao pet ===== */
 #aic-clawd-node[data-profession="engineer"].typing .laptop {
@@ -1232,7 +1244,7 @@
   filter: none;
 }
 
-/* Partículas pixel (sem emoji) */
+/* Partículas pixel (sem emoji) — variantes ricas */
 .aic-pixel-spark {
   position: fixed;
   z-index: 2147483647;
@@ -1240,11 +1252,53 @@
   height: 2px;
   pointer-events: none;
   image-rendering: pixelated;
-  animation: clawd-pixel-spark 0.9s ease-out forwards;
+  image-rendering: crisp-edges;
+  animation: clawd-pixel-spark 0.95s cubic-bezier(0.22, 0.7, 0.3, 1) forwards;
+}
+.aic-pixel-spark.spark-sm {
+  width: 2px;
+  height: 2px;
+  animation-duration: 0.75s;
+}
+.aic-pixel-spark.spark-md {
+  width: 2px;
+  height: 2px;
+  box-shadow:
+    2px 0 currentColor,
+    0 2px currentColor,
+    2px 2px currentColor !important;
+  animation-duration: 1.05s;
+}
+.aic-pixel-spark.spark-lg {
+  width: 2px;
+  height: 2px;
+  /* cruz pixel 5×5 */
+  box-shadow:
+    2px 0 currentColor, -2px 0 currentColor,
+    0 2px currentColor, 0 -2px currentColor,
+    2px 2px rgba(255,255,255,0.35), -2px -2px rgba(255,255,255,0.25) !important;
+  animation-duration: 1.15s;
+}
+.aic-pixel-spark.spark-star {
+  width: 2px;
+  height: 2px;
+  box-shadow:
+    2px 0 currentColor, -2px 0 currentColor,
+    0 2px currentColor, 0 -2px currentColor,
+    4px 0 rgba(255,255,255,0.5), -4px 0 rgba(255,255,255,0.4),
+    0 4px rgba(255,255,255,0.35), 0 -4px rgba(255,255,255,0.35) !important;
+  animation: clawd-pixel-spark-twinkle 1.1s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
 }
 @keyframes clawd-pixel-spark {
-  0% { opacity: 1; transform: translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)) scale(0.6); }
+  0%   { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+  55%  { opacity: 0.85; transform: translate(calc(var(--spark-x, 8px) * 0.55), calc(var(--spark-y, -40px) * 0.55)) scale(1.15) rotate(90deg); }
+  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)) scale(0.45) rotate(180deg); }
+}
+@keyframes clawd-pixel-spark-twinkle {
+  0%   { opacity: 1; transform: translate(0, 0) scale(0.7) rotate(0deg); }
+  35%  { opacity: 1; transform: translate(calc(var(--spark-x, 8px) * 0.35), calc(var(--spark-y, -40px) * 0.4)) scale(1.35) rotate(45deg); }
+  70%  { opacity: 0.7; transform: translate(calc(var(--spark-x, 8px) * 0.75), calc(var(--spark-y, -40px) * 0.8)) scale(0.9) rotate(120deg); }
+  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)) scale(0.3) rotate(200deg); }
 }
 
 /* Trave pixel-art no gol */
@@ -1338,8 +1392,10 @@
 /* --- BADGE DE EMOÇÃO --- */
 #aic-clawd-node .emotion-badge {
   position: absolute;
-  top: -62px;
-  left: -24px;
+  /* acompanha a altura do corpo escalado: ~-62px na escala padrão 1.5 */
+  top: auto;
+  bottom: calc(22px + 60px * var(--agent-scale, 1.5));
+  left: calc(9px - 22px * var(--agent-scale, 1.5));
   min-width: 28px;
   min-height: 28px;
   display: grid;
@@ -1933,8 +1989,9 @@
 /* --- BALÃO DE FALA --- */
 #aic-clawd-node .speech-bubble {
   position: absolute;
-  bottom: 95px;
-  right: -8px;
+  /* ancora acima da cabeça em qualquer escala: ~95px na escala padrão 1.5 */
+  bottom: calc(5px + 60px * var(--agent-scale, 1.5));
+  right: calc(10px - 12px * var(--agent-scale, 1.5));
   min-width: 80px;
   max-width: 190px;
   background: #fff;
@@ -1980,6 +2037,31 @@
   z-index: 1;
 }
 #aic-clawd-node .speech-bubble.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+/* Clamping de viewport: vira quando estoura a borda esquerda */
+#aic-clawd-node .speech-bubble.flip-left {
+  right: auto;
+  left: calc(10px - 12px * var(--agent-scale, 1.5));
+  transform-origin: bottom left;
+}
+#aic-clawd-node .speech-bubble.flip-left::after { right: auto; left: 16px; }
+#aic-clawd-node .speech-bubble.flip-left::before { right: auto; left: 18px; }
+/* ...e desce para baixo do pet quando estoura o topo */
+#aic-clawd-node .speech-bubble.below {
+  bottom: auto;
+  top: calc(100% + 12px);
+  transform-origin: top right;
+}
+#aic-clawd-node .speech-bubble.below::after {
+  bottom: auto; top: -9px;
+  border-top: none;
+  border-bottom: 9px solid var(--agent-color);
+}
+#aic-clawd-node .speech-bubble.below::before {
+  bottom: auto; top: -6px;
+  border-top: none;
+  border-bottom: 7px solid #fff;
+}
 
 /* Balão interativo (desafio do Tutor) */
 #aic-clawd-node .speech-bubble.interactive {
@@ -3654,6 +3736,67 @@
 :is(#aic-clawd-node:not(.aic-reduced-motion), .clawd-model-preview)[data-face-style="heart"] .face-detail::before {
   animation: clawd-face-heart-pulse 1.2s ease-in-out infinite;
 }
+
+/* --- BABINHA (drool) — gota GPU (transform/opacity) --- */
+@keyframes clawd-drool-drip {
+  0%, 100% { transform: translateY(0) scaleY(1); opacity: .4; }
+  50%      { transform: translateY(3px) scaleY(1.4); opacity: .85; }
+}
+#aic-clawd-node.sleeping .emotion-mouth::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 2px;
+  height: 3px;
+  margin-left: -1px;
+  border-radius: 0 0 2px 2px;
+  background: #bfe3ff;
+  box-shadow: 0 1px 0 #7fb6e0, 1px 2px 0 rgba(90,160,220,0.35);
+  opacity: .6;
+  transform-origin: top center;
+  animation: clawd-drool-drip 2.4s ease-in-out infinite;
+}
+#aic-clawd-node.mouth-hidden.sleeping .emotion-mouth::before { display: none; }
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="drool"] .emotion-mouth {
+  left: 19px;
+  top: 8px;
+  width: 6px;
+  height: 5px;
+  border: 2px solid #211418;
+  border-radius: 0 0 40% 40%;
+  opacity: .9;
+  display: block;
+}
+:is(#aic-clawd-node, .clawd-model-preview)[data-face-style="drool"] .face-detail::after {
+  content: '';
+  position: absolute;
+  left: 24px;
+  top: 12px;
+  width: 2px;
+  height: 4px;
+  border-radius: 0 0 2px 2px;
+  background: #bfe3ff;
+  box-shadow: 0 1px 0 #7fb6e0, 1px 2px 0 rgba(90,160,220,0.35);
+  opacity: .75;
+  transform-origin: top center;
+  animation: clawd-drool-drip 2.4s ease-in-out infinite;
+}
+#aic-clawd-node.mouth-hidden[data-face-style="drool"] .emotion-mouth { display: none !important; }
+#aic-clawd-node.aic-reduced-motion.sleeping .emotion-mouth::before,
+#aic-clawd-node.aic-reduced-motion[data-face-style="drool"] .face-detail::after {
+  animation: none !important;
+  transform: translateY(1px);
+  opacity: .6;
+}
+@media (prefers-reduced-motion: reduce) {
+  #aic-clawd-node.sleeping .emotion-mouth::before,
+  :is(#aic-clawd-node, .clawd-model-preview)[data-face-style="drool"] .face-detail::after {
+    animation: none !important;
+    transform: translateY(1px);
+    opacity: .6;
+  }
+}
 #aic-clawd-node .blink-line {
   background: var(--agent-eye-color);
   box-shadow: 16px 0 var(--agent-eye-color);
@@ -4231,14 +4374,23 @@
 }
 .aic-walk-dust {
   position: fixed;
-  width: 5px;
-  height: 5px;
-  border-radius: 1px;
-  background: rgba(140, 120, 90, 0.55);
-  box-shadow: 3px 0 rgba(110, 95, 70, 0.35), -2px 1px rgba(160, 140, 110, 0.3);
+  width: 2px;
+  height: 2px;
+  border-radius: 0;
+  background: #9a8b7c;
+  /* poeira pixel em cluster */
+  box-shadow:
+    3px 0 #8a7b6c, -2px 1px #b8a99a,
+    1px -2px rgba(160, 140, 110, 0.55), 4px 2px rgba(110, 95, 70, 0.4);
   pointer-events: none;
   z-index: 2147483645;
-  animation: clawd-dust 0.5s ease-out forwards;
+  image-rendering: pixelated;
+  animation: clawd-walk-dust-rich 0.58s cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+}
+@keyframes clawd-walk-dust-rich {
+  0%   { opacity: 0.9; transform: translate(0, 0) scale(1) rotate(0deg); }
+  40%  { opacity: 0.7; transform: translate(-6px, -4px) scale(1.2) rotate(20deg); }
+  100% { opacity: 0; transform: translate(-14px, -2px) scale(0.5) rotate(40deg); }
 }
 
 .aic-subpet.flying .subpet-motion {
@@ -4542,6 +4694,22 @@
 @keyframes clawd-skin-robot-scan {
   0%, 100% { filter: saturate(0.35) brightness(1.1); }
   50%       { filter: saturate(0.35) brightness(1.28); }
+}
+@keyframes clawd-skin-freckle-twinkle {
+  0%, 100% { filter: brightness(1); }
+  50%       { filter: brightness(1.08); }
+}
+@keyframes clawd-skin-stripe-shift {
+  0%, 100% { filter: brightness(1) contrast(1); }
+  50%       { filter: brightness(1.06) contrast(1.08); }
+}
+@keyframes clawd-skin-spot-bob {
+  0%, 100% { transform: translateY(0); filter: brightness(1); }
+  50%       { transform: translateY(-0.5px); filter: brightness(1.05); }
+}
+@keyframes clawd-skin-droopy-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50%       { transform: rotate(1.5deg); }
 }
 @keyframes clawd-face-sparkle-twinkle {
   0%, 100% { filter: brightness(1); }

@@ -3,6 +3,28 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.7.1] — 2026-07-19
+
+### Adicionado
+
+- **Rosto Babão (`drool`)** — boca aberta + babinha GPU (`clawd-drool-drip`); também pinga no `sleeping`
+- **Partículas pixel ricas** — variantes `spark-sm/md/lg/star` + twinkle; pó de caminhada em cluster pixel
+- **Animações de skin** — freckles/stripes/spots/droopy com keyframes dedicados (além de glow/robot)
+- Contratos: babinha, escala do balão, skins animadas → suíte **156/156**
+
+### Corrigido / portado da branch v4 no GitHub
+
+- Balão de fala e badge de emoção acompanham `--agent-scale`
+- `_clampSpeechBubble()` (flip-left / below) para não sair da viewport
+- `stopFishing()` no-op sem pescaria ativa (não apaga falas ao trocar profissão)
+- `clawdRegisterDailyProgress` resolve quest pela data da própria missão (determinístico)
+
+### Alterado
+
+- Rostos: **9** (inclui Babão); docs/manual/VALIDACAO/README alinhados a **156/156**
+
+---
+
 ## [3.7.0] — 2026-07-17
 
 ### Adicionado

@@ -148,7 +148,7 @@ function clawdEnsureDailyQuest(state, date = new Date().toISOString().slice(0, 1
 }
 
 function clawdRegisterDailyProgress(state, type, amount = 1) {
-  const quest = clawdEnsureDailyQuest(state);
+  const quest = clawdEnsureDailyQuest(state, state.daily && state.daily.date);
   if (quest.type !== type || quest.claimed) return quest;
   quest.progress = Math.min(quest.target, (quest.progress || 0) + amount);
   return quest;
@@ -241,7 +241,8 @@ var CLAWD_FACE_STYLES = {
   wink:    { label: 'Piscadela', badge: '◠', desc: 'Um olho fechado — carisma travesso.' },
   cute:    { label: 'Fofinho',   badge: '♡', desc: 'Olhos maiores e brilho suave nas bochechas.' },
   angry:   { label: 'Bravo',     badge: '▼', desc: 'Sobrancelhas em V — temperamento pixelado.' },
-  heart:   { label: 'Apaixonado', badge: '❤', desc: 'Pupilas em coração, look de romance.' }
+  heart:   { label: 'Apaixonado', badge: '❤', desc: 'Pupilas em coração, look de romance.' },
+  drool:   { label: 'Babão',     badge: '~', desc: 'Expressão derp com a boca aberta e uma babinha pingando.' }
 };
 
 var CLAWD_SKINS = {

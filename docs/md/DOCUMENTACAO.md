@@ -7,7 +7,7 @@
 
 ## 1. Visão Geral
 
-O **Claw'd** é uma extensão Chrome (Manifest V3) que injeta um mascote pixel-art interativo em qualquer página. Não usa frameworks nem dependências externas: é Vanilla JS + CSS. O pet principal e os acessórios usam células de 4×4px em `box-shadow`, com **quatro modelos** de corpo e **oito rostos**; o modo liso ativa uma segunda silhueta CSS angular e contínua, sem grade ou textura. Os **sub-pets** usam PNGs em `src/shared/sprites/subpets/` (expostos em `web_accessible_resources`), com fallback `box-shadow` quando a paleta de corpo/olhos é customizada. Ambos compartilham cor independente dos olhos, estados, emoções e animações com keyframes isolados pelo prefixo `clawd-`.
+O **Claw'd** é uma extensão Chrome (Manifest V3) que injeta um mascote pixel-art interativo em qualquer página. Não usa frameworks nem dependências externas: é Vanilla JS + CSS. O pet principal e os acessórios usam células de 4×4px em `box-shadow`, com **quatro modelos** de corpo e **nove rostos**; o modo liso ativa uma segunda silhueta CSS angular e contínua, sem grade ou textura. Os **sub-pets** usam PNGs em `src/shared/sprites/subpets/` (expostos em `web_accessible_resources`), com fallback `box-shadow` quando a paleta de corpo/olhos é customizada. Ambos compartilham cor independente dos olhos, estados, emoções e animações com keyframes isolados pelo prefixo `clawd-`.
 
 **Princípios de design:**
 
@@ -369,7 +369,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **153 testes** cobrem estado padrão, schema v5 e migração de saves (sem XSS de missão/streak, sem poluição de protótipo), quatro modelos, **oito rostos**, sete skins, cor independente dos olhos, curva de nível, missão diária (14 tipos, incl. balões/keepy), catálogo/CSS dos acessórios, chapéus sem recorte, composição das camadas, trajes profissionais temporários, corpo estático e pernas isoladas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup (studio/status×4), manifest, isolamento de keyframes, invalidação do contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlist de mensagens, sites bloqueados seguros, save coalesce, extras kick/keepy/superdance, **100% das ações no `_handleAction`**, ownership da bola no pé direito, harmonia/qualidade-fluida, validação-completa (combo/focusin/skins), pixel-fx e name-tag, e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida 4/4 modelos, 8/8 rostos, acessórios, estúdio pixel/liso, boca, 12 profissões, ações do catálogo (**30**), pesca, popup, subpet com **7** interações e três reloads sem erros ou duplicação. Gate estático: `node tests/tools/validate-ecosystem.mjs`. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
+Os **156 testes** cobrem estado padrão, schema v5 e migração de saves (sem XSS de missão/streak, sem poluição de protótipo), quatro modelos, **nove rostos**, sete skins, cor independente dos olhos, curva de nível, missão diária (14 tipos, incl. balões/keepy), catálogo/CSS dos acessórios, chapéus sem recorte, composição das camadas, trajes profissionais temporários, corpo estático e pernas isoladas, modo liso, boca opcional/emoções, pesca, sub-pets, documentação interativa, referências do popup (studio/status×4), manifest, isolamento de keyframes, invalidação do contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlist de mensagens, sites bloqueados seguros, save coalesce, extras kick/keepy/superdance, **100% das ações no `_handleAction`**, ownership da bola no pé direito, babinha/escala do balão, harmonia/qualidade-fluida, validação-completa (combo/focusin/skins), pixel-fx e name-tag, e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida 4/4 modelos, 8/8 rostos, acessórios, estúdio pixel/liso, boca, 12 profissões, ações do catálogo (**30**), pesca, popup, subpet com **7** interações e três reloads sem erros ou duplicação. Gate estático: `node tests/tools/validate-ecosystem.mjs`. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
 
 ### Segurança (resumo)
 
@@ -409,7 +409,7 @@ Os **153 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 | **Face animations** | `sparkle`: `clawd-face-sparkle-twinkle` 1.6s nos olhos. `heart`: `clawd-face-heart-pulse` 1.2s scale no coração. Idem reduced-motion guard. |
 | **Ambient FX completo** | `ribbon` (idle 8%), `scarf_body` (moving 8%) adicionados ao `_tickAccessoryAmbientFx()`. Classes `has-ribbon` / `has-scarf-body` adicionadas ao `_syncAccessoryVisuals()`. |
 | **Bola pé direito** | `.pet-ball { left: 48px }` + chuteira `left: 42px`; kick/roll/doPlay para a direita; sem `drop-shadow` blur; contador `.aic-juggle-count` à direita. |
-| **Validação** | Suíte **153/153** (+3 contratos ownership/pixel da bola). |
+| **Validação** | Suíte **156/156** (babinha, escala balão, skins animadas, partículas ricas). |
 
 ---
 

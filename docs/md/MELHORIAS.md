@@ -5,6 +5,18 @@
 
 ---
 
+## v3.7.1 — Sync GitHub v4 + partículas (2026-07-19)
+
+| Módulo | Entrega | Estado |
+|--------|---------|--------|
+| **Face** | Rosto Babão (`drool`) + drip no sleeping | ✅ |
+| **CSS/JS** | Speech/badge `--agent-scale` + clamp viewport; stopFishing guard | ✅ |
+| **FX** | Partículas spark-sm/md/lg/star; walk-dust pixel; skins animadas | ✅ |
+| **Catalog** | Daily progress determinístico pela data da quest | ✅ |
+| **Tests/Docs** | **156/156**; main ← master | ✅ |
+
+---
+
 ## v3.7 — Animações + polish da bola (2026-07-17)
 
 ### Entregas v3.7
@@ -22,7 +34,7 @@
 
 - **Ownership visual**: `.pet-ball` `left: 48px` (pé direito); subpet permanece à esquerda — evita impressão de que o coelho joga a bola
 - **Pixel-art**: `box-shadow` em grade 2px; `filter: none` (sem blur); área `::before` de toque maior
-- **Suite**: 150 → **153/153** contratos automatizados
+- **Suite**: 150 → 153 → **156/156** contratos automatizados
 
 ---
 
@@ -51,7 +63,7 @@
 - **Hover glow**: `drop-shadow(0 0 5px --clawd-glow)` + `brightness(1.06)` no `.smooth:hover` — derivado de hex color `+70` (44% alpha)
 - **RAF orphan guard**: `cancelAnimationFrame + return` se `!document.body.contains(node)` no tick do SubPet
 - **A11y**: `srStatusNode` atualiza textContent com label de emoção legível em PT-BR ao mudar de estado
-- **Suite**: 123 → 130 → 150 → **153/153** contratos automatizados
+- **Suite**: 123 → 130 → 150 → 153 → **156/156** contratos automatizados
 
 ---
 

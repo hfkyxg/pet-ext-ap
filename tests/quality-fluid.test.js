@@ -260,8 +260,10 @@ test('qualidade: nome na etiqueta sem race; rostos/skins/idle novos', () => {
   assert.match(popupJs, /_nameInputTimer|nameInputTimer/);
   assert.match(style, /data-face-style="wink"/);
   assert.match(style, /data-face-style="cute"/);
+  assert.match(style, /data-face-style="drool"/);
   assert.match(style, /data-skin="freckles"/);
   assert.match(style, /data-skin="stripes"/);
+  assert.match(style, /clawd-skin-freckle-twinkle|clawd-skin-stripe-shift/);
   assert.match(style, /@keyframes clawd-idle-sway/);
   assert.match(style, /@keyframes clawd-idle-nudge/);
   assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'sway'));

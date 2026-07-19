@@ -2918,13 +2918,15 @@ class ClawdCompanion {
       if (this.emotion === 'grubby') this.showSpeech(this.getRandom('grubby'), 3000);
       if (!this.S.settings.noParticles && !this.S.settings.performanceMode && !this._reducedMotion) {
         const emotionPalettes = {
-          joyful:   ['#fd79a8', '#e84393', '#ffffff'],
-          ecstatic: ['#f1c40f', '#ffeaa7', '#fd79a8'],
-          peppy:    ['#74b9ff', '#55a9dd', '#ffffff'],
-          sad:      ['#74b9ff', '#0984e3', '#dfe6e9'],
+          joyful:   ['#fd79a8', '#e84393', '#ffffff', '#ffeaa7'],
+          ecstatic: ['#f1c40f', '#ffeaa7', '#fd79a8', '#ffffff'],
+          peppy:    ['#74b9ff', '#55a9dd', '#ffffff', '#81ecec'],
+          sad:      ['#74b9ff', '#0984e3', '#dfe6e9', '#a29bfe'],
+          hungry:   ['#e17055', '#fdcb6e', '#ffffff'],
+          grubby:   ['#b2bec3', '#81ecec', '#74b9ff'],
         };
         if (emotionPalettes[this.emotion]) {
-          this.spawnPixelSparks(emotionPalettes[this.emotion], { count: 3 });
+          this.spawnPixelSparks(emotionPalettes[this.emotion], { count: 5 });
         }
       }
     }
@@ -3048,12 +3050,13 @@ class ClawdCompanion {
     if (typeof opts === 'number') opts = { count: opts };
     const requested = Number(opts.count);
     const count = Number.isFinite(requested)
-      ? Math.min(8, Math.max(1, Math.floor(requested)))
-      : 4;
+      ? Math.min(10, Math.max(1, Math.floor(requested)))
+      : 5;
     if (!this._reserveFx(count)) return;
     const rect = this.node.getBoundingClientRect();
     let palette = colors || ['#27ae60', '#f5f5f5', '#1a1a2e', '#f1c40f', '#e74c3c'];
     if (this.S.particleColor) palette = [...palette, this.S.particleColor];
+    const variants = ['spark-sm', 'spark-md', 'spark-lg', 'spark-star'];
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
         if (this._destroyed || document.hidden) {
@@ -3061,19 +3064,22 @@ class ClawdCompanion {
           return;
         }
         const el = document.createElement('div');
-        el.className = 'aic-pixel-spark';
-        const sx = `${(Math.random() - 0.5) * 48}px`;
-        const sy = `${-28 - Math.random() * 36}px`;
+        const variant = variants[i % variants.length];
+        const color = palette[Math.floor(Math.random() * palette.length)];
+        el.className = `aic-pixel-spark ${variant}`;
+        const sx = `${(Math.random() - 0.5) * 56}px`;
+        const sy = `${-24 - Math.random() * 48}px`;
         el.style.cssText = `
-          left:${rect.left + 8 + Math.random() * 40}px;
-          top:${rect.top + 18 + Math.random() * 24}px;
-          background:${palette[Math.floor(Math.random() * palette.length)]};
+          left:${rect.left + 6 + Math.random() * 44}px;
+          top:${rect.top + 12 + Math.random() * 28}px;
+          background:${color};
+          color:${color};
           box-shadow: 2px 0 ${palette[Math.floor(Math.random() * palette.length)]};
           --spark-x:${sx}; --spark-y:${sy};
         `;
         document.body.appendChild(el);
-        this._trackParticle(el, 950, true);
-      }, i * 40);
+        this._trackParticle(el, 1100, true);
+      }, i * 36);
     }
   }
 
@@ -3111,13 +3117,24 @@ class ClawdCompanion {
     }
     this.speechNode.classList.add('visible');
     this.node.classList.add('talking');
+    this._clampSpeechBubble();
     clearTimeout(this._speechTimer);
     if (duration > 0) {
       this._speechTimer = setTimeout(() => {
-        this.speechNode.classList.remove('visible', 'interactive');
+        this.speechNode.classList.remove('visible', 'interactive', 'flip-left', 'below');
         this.node.classList.remove('talking');
       }, duration);
     }
+  }
+
+  /* Mantém o balão na viewport: flip na borda esquerda; below se estoura o topo. */
+  _clampSpeechBubble() {
+    const bubble = this.speechNode;
+    if (!bubble) return;
+    bubble.classList.remove('flip-left', 'below');
+    const rect = bubble.getBoundingClientRect();
+    if (rect.left < 4) bubble.classList.add('flip-left');
+    if (bubble.getBoundingClientRect().top < 4) bubble.classList.add('below');
   }
 
   getRandom(state) {
@@ -3901,6 +3918,11 @@ class ClawdCompanion {
   }
 
   stopFishing() {
+    // sem pescaria ativa não há o que limpar — e limpar aqui apagava o balão
+    // de fala a cada mudança de config (applyConfig 'profession' chama stopFishing)
+    const wasFishing = this._fishing || this._lakeEl || this._fishingLineEl ||
+      this.state === 'fishing' || this.state === 'reeling';
+    if (!wasFishing) return;
     this._fishing = false;
     clearTimeout(this._fishTimer);
     clearTimeout(this._fishBiteTimer);
@@ -3928,7 +3950,7 @@ class ClawdCompanion {
       setTimeout(() => el.remove(), 300);
       this._fishingLineEl = null;
     }
-    this.speechNode.classList.remove('visible', 'interactive');
+    this.speechNode.classList.remove('visible', 'interactive', 'flip-left', 'below');
     this.node.classList.remove('talking');
   }
 
