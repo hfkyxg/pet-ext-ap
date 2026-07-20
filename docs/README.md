@@ -6,8 +6,8 @@
 
 | Documento | Para quem | Conteúdo |
 |-----------|-----------|----------|
-| [../README.md](../README.md) | Todo mundo | Visão, instalação, funcionalidades (v3.6) |
-| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **156/156** |
+| [../README.md](../README.md) | Todo mundo | Visão, instalação, funcionalidades (v3.7.3) |
+| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **159/159** |
 | [./ARCHITECTURE.md](./ARCHITECTURE.md) | Mantenedores | Camadas, padrões, contratos MV3 |
 | [./md/DOCUMENTACAO.md](./md/DOCUMENTACAO.md) | Desenvolvedores | Protocolo interno, APIs, privacidade |
 | [./md/MANUAL.md](./md/MANUAL.md) | Usuários finais | Controles, studio, status, FAQ |
@@ -21,7 +21,7 @@
 
 ```powershell
 npm run check
-npm test                                          # 156/156
+npm test                                          # 159/159
 node tests/tools/validate-ecosystem.mjs           # 100% ações no map
 node tests/runtime-smoke.mjs                      # Edge/Chromium
 ```
@@ -36,7 +36,7 @@ src/
   popup/              # UI + studio detach
   assets/ + shared/sprites/
 tests/
-  *.test.js           # contratos (node --test) — 150
+  *.test.js           # contratos (node --test) — 159
   validation-complete.test.js
   runtime-smoke.mjs
   tools/              # geradores, shots, validate-ecosystem

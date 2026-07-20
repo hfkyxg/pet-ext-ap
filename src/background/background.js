@@ -377,3 +377,16 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     respawnAnywhere();
   }
 });
+
+/* ---- Popup: convocar pet para a aba ativa ---- */
+chrome.runtime.onMessage.addListener((raw, _sender, sendResponse) => {
+  const msg = clawdValidateRuntimeMessage(raw);
+  if (!msg || msg.action !== 'summonPetToTab') return;
+  const tabId = msg.tabId;
+  if (tabId == null || !ports.has(tabId)) {
+    sendResponse({ ok: false });
+    return;
+  }
+  assignHost(tabId);
+  sendResponse({ ok: true });
+});

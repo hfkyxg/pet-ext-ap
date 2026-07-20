@@ -40,11 +40,11 @@ Ao redor do futebol há um sistema inteiro que conversa entre si: **12 profissõ
 
 ### Feito para durar (e para hackear)
 
-Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; saves usam **coalesce**; e **156 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
+Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; saves usam **coalesce**; e **159 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
 
 ### Novidades em v3.7
 
-A versão 3.7 levou as animações ao próximo nível: **hover state no modo pixel-art** (sombra e brilho ao passar o mouse sobre o pet), **ring de clique expansivo** ao pressionar o pet, **speed lines** ao correr e **rastro de pó** ao caminhar via `_spawnWalkDust()`. **Partículas contextuais por emoção** — corações rosas ao ficar alegre, estrelas douradas ao ficar extasiado, gotas azuis ao ficar triste. No popup: **ripple nos botões de ação**, **flash dourado na barra de XP** ao subir de nível. Skins `glow` e `robot` ganham animações (brilho pulsante / scan-line pixel-art); rostos `sparkle` e `heart` têm keyframes próprios. Acessórios `ribbon` e `scarf_body` emitem partículas ambiente. A bola do **Jogador** ficou no **pé direito**, com visual pixel sem blur e chute/rolagem para a direita. Rosto **Babão**, partículas pixel ricas e skins animadas. Em **v3.7.2**: fones/facewear nítidos, FX ambient, animações crisp e interações pet↔subpet fluidas. Em **v3.7.3**: harmonia de timing (tokens `--clawd-ease-*`), reduced-motion também na boca, hover que intensifica o glow, profissões **Gamer**/**Streamer** com cena-assinatura própria e subpets com pool autônomo ponderado pela personalidade + dança em duo. **159/159** contratos.
+A versão 3.7 levou as animações ao próximo nível: **hover state no modo pixel-art** (sombra e brilho ao passar o mouse sobre o pet), **ring de clique expansivo** ao pressionar o pet, **speed lines** ao correr e **rastro de pó** ao caminhar via `_spawnWalkDust()`. **Partículas contextuais** — corações ao ficar alegre, estrelas ao ficar extasiado, gotas ao ficar triste; faíscas de acessório só em **movimento, equip ou ação** (sem loops ambiente contínuos). No popup: **ripple nos botões de ação**, **flash dourado na barra de XP** ao subir de nível. Skins `glow` e `robot` ganham animações (brilho pulsante / scan-line pixel-art); rostos `sparkle` e `heart` têm keyframes próprios. A bola do **Jogador** ficou no **pé direito**, com visual pixel sem blur e chute/rolagem para a direita. Rosto **Babão**, partículas pixel ricas e skins animadas. Em **v3.7.2**: fones/facewear nítidos, FX de movimento, animações crisp e interações pet↔subpet fluidas. Em **v3.7.3**: harmonia de timing (tokens `--clawd-ease-*`), reduced-motion também na boca, hover que intensifica o glow, profissões **Gamer**/**Streamer** com cena-assinatura própria, subpets com pool autônomo ponderado pela personalidade + dança em duo, **`petVisible` persistente**, **Seguir nesta guia**, **modo minimalista** e correção de spawn no canto (rejeita saves `{0,0}`). **159/159** contratos.
 
 ### Novidades em v3.6
 
@@ -62,7 +62,7 @@ O Claw'd não quer sua atenção o tempo todo. Ele só quer estar lá, no rodap�
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
 
-A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **156/156 contratos**, **8/8 scripts**, **4 modelos**, **9 rostos**, **12 profissões**, **31 acessórios (3 slots)**, **30 ações** (+ kick/keepy/superdance fora do popup), **7 ações do subpet**, **34 conquistas**, smoke expandido (skins/duo/partículas/multi-clique/subpets/props), **3/3 reloads limpos** e **0 erros de runtime**.
+A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **159/159 contratos**, **8/8 scripts**, **4 modelos**, **9 rostos**, **12 profissões**, **31 acessórios (3 slots)**, **30 ações** (+ kick/keepy/superdance fora do popup), **7 ações do subpet**, **34 conquistas**, smoke expandido (skins/duo/partículas/multi-clique/subpets/props), **3/3 reloads limpos** e **0 erros de runtime**.
 
 ---
 
@@ -126,7 +126,7 @@ O Claw'd combina **estados de movimento, ações e emoções** que mudam conform
 <td width="50%">
 
 ### 💼 Profissões & Roupas
-- **8 profissões**: Livre, Jogador, Tutor, Dev, Músico, Chef, Ninja e Pescador
+- **12 profissões**: Livre, Jogador, Tutor, Dev, Músico, Chef, Ninja, Pescador, Doutor, Artista, Gamer e Streamer
 - Pescador monta um **lago interativo**, lança a vara, fisga e captura peixes
 - Jogador faz embaixadinhas; Tutor cria desafios; Dev digita; Músico toca riffs
 - **31 acessórios** em três slots (cabeça, rosto, corpo) nos dois renderizadores; chapéus com detalhes, profundidade, área externa sem recorte e movimento sincronizado ao passo
@@ -187,7 +187,7 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 
 ```
 ┌─────────────────────────────────┐
-│  [🐾]  Claw'd v3.2  🪙 120       │
+│  [🐾]  Claw'd v3.7  🪙 120       │
 ├──────────┬────────────┬──────────┤
 │ 🎨 💼 🧠 ⚡ 🐕 🛍️ 🏆 ⚙️       │
 ├──────────┴────────────┴──────────┤
@@ -211,7 +211,7 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 ### Aba Aparência
 - **Nome** — renomeia o pet (atualiza em tempo real)
 - **Modelo** — alterna entre Clássico, Mini, Pinças e Guardião sem desalinhamento dos acessórios
-- **Rosto** — escolhe Clássico, Brilho, Focado ou Sonolento
+- **Rosto** — escolhe entre os **9 rostos** do catálogo
 - **Cor dos olhos** — picker independente da cor do corpo
 - **Cor** — 8 cores predefinidas + picker customizado
 - **Tamanho** — slider de 0.8× a 3.0×
@@ -229,6 +229,10 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **🧑‍🍳 Chef** — cozinha e torna a alimentação mais eficaz
 - **🥷 Ninja** — truques de desaparecimento e surpresa
 - **🎣 Pescador** — vara, lago, fisgada manual/automática e peixes raros
+- **🩺 Doutor** — reações em sites de saúde; banho extra
+- **🎨 Artista** — pinta no idle; estrelas ao posar
+- **🎮 Gamer** — combo de ações com XP bônus em sites de jogos
+- **📡 Streamer** — cena AO VIVO em sites de streaming
 - **🐾 Livre** — modo padrão sem profissão
 
 ### Aba Comportamento
@@ -239,7 +243,7 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **Pegadas** — indica abas onde o pet não está
 
 ### Aba Ações
-Dispare ações imediatas como **acenar, dançar, dar carinho, alimentar, brincar, posar, dar banho, dormir, acordar, pescar, pular, esticar e rugir**. A aba também permite ocultar e resgatar o pet.
+Dispare ações imediatas como **acenar, dançar, dar carinho, alimentar, brincar, posar, dar banho, dormir, acordar, pescar, pular, esticar e rugir**. A aba também permite **mostrar/ocultar** o pet (estado salvo), **seguir nesta guia** (cross-tab) e **resgatar** o pet ao canto preferido.
 
 ### Aba Sub-pets
 Ative uma das oito espécies, atribua um **apelido**, personalize separadamente as cores do **corpo** e dos **olhos** e use o painel ao vivo para **dar carinho, brincar, explorar, rodopiar, comemorar ou executar a habilidade especial**. Uma interação acorda o subpet adormecido antes da animação.
@@ -383,7 +387,7 @@ chrome.storage.local.set({
 
 ## 🗺️ Estado atual e próximos passos
 
-O núcleo da **v3.6** está implementado e validado: quatro silhuetas, **oito rostos**, sete skins, olhos independentes, favoritos, sub-pets, 12 profissões, **31 acessórios em 3 slots**, pixel art em camadas, status clicáveis, studio móvel, cross-tab, loja, conquistas e missão diária. O registro histórico e ideias de expansão estão em [MELHORIAS.md](./docs/md/MELHORIAS.md):
+O núcleo da **v3.7.3** está implementado e validado: quatro silhuetas, **nove rostos**, sete skins, olhos independentes, favoritos, sub-pets, 12 profissões, **31 acessórios em 3 slots**, pixel art em camadas, status clicáveis, studio móvel, cross-tab, loja, conquistas e missão diária. O registro histórico e ideias de expansão estão em [MELHORIAS.md](./docs/md/MELHORIAS.md):
 
 | Área | Destaques |
 |------|-----------|
@@ -417,7 +421,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **156 testes automatizados** validam catálogos, schema v5, quatro modelos, **nove rostos**, sete skins, cor dos olhos, missões (incl. balões/keepy), sprite padrão, separação corpo/pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup (studio/status), movimento adaptativo, isolamento de CSS, contexto MV3 invalidado, **bfcache/lastError**, **AudioContext pós-gesto**, **allowlist de mensagens**, **sites bloqueados sem substring**, **anti-poluição de protótipo**, **save coalesce / particle timers**, extras **kick/keepy/superdance**, **100% das ações no `_handleAction`**, ownership da bola no pé direito, babinha/escala do balão, combo/streak/claim e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real **4/4 modelos e 8/8 rostos**, os acessórios nos dois renderizadores, o provador pixel/liso do popup, a cor dos olhos, o controle persistente da boca, o movimento dos chapéus, 12 profissões e os estados esperados das ações do catálogo (**30** no popup). Também prova que o corpo não morpha e apenas as pernas caminham, restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas **7** interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
+Os **159 testes automatizados** validam catálogos, schema v5, quatro modelos, **nove rostos**, sete skins, cor dos olhos, missões (incl. balões/keepy), sprite padrão, separação corpo/pernas, modo liso, boca opcional/emoções, chapéus sem recorte, composição dos slots, trajes profissionais não destrutivos, sub-pets, documentação interativa, pesca, manifest, popup (studio/status/summon/minimal), movimento adaptativo, isolamento de CSS, contexto MV3 invalidado, **bfcache/lastError**, **AudioContext pós-gesto**, **allowlist de mensagens**, **sites bloqueados sem substring**, **anti-poluição de protótipo**, **save coalesce / particle timers**, extras **kick/keepy/superdance**, **100% das ações no `_handleAction`**, ownership da bola no pé direito, babinha/escala do balão, combo/streak/claim, **`petVisible`/`clawdHasSavedPosition`** e reconciliação após reload. O contrato da documentação também exige 18 capítulos, 18 cartões de evidência, IDs únicos, catálogos reais e ausência de mídia externa ou vídeo fictício. O smoke test abre o Edge/Chromium com um perfil isolado e exercita em runtime real **4/4 modelos e 8/8 rostos**, os acessórios nos dois renderizadores, o provador pixel/liso do popup, a cor dos olhos, o controle persistente da boca, o movimento dos chapéus, 12 profissões e os estados esperados das ações do catálogo (**30** no popup). Também prova que o corpo não morpha e apenas as pernas caminham, restauração do visual pessoal, efeitos cosméticos ligados/desligados pelo modo desempenho, pesca cancelada sem recompensa, pesca concluída com incremento, clique físico de carinho, subpet com suas **7** interações e três reloads consecutivos com um único pet e zero erros. Passe um caminho de página como argumento para reproduzir um caso específico: `node tests/runtime-smoke.mjs "C:\caminho\pagina.html"`.
 
 A vitrine também foi inspecionada em navegador real nos layouts desktop e móvel: player funcional, avanço automático, seleção direta das etapas lisa/subpet, acessórios no laboratório, **zero logs de erro** e nenhuma rolagem horizontal em 375 px.
 
@@ -459,7 +463,7 @@ node tests/tools/crop-literal-sprites.mjs
 
 ### Checklist de PR
 
-- [ ] `node --test tests/*.test.js` verde (156 contratos)
+- [ ] `node --test tests/*.test.js` verde (159 contratos)
 - [ ] Docs/manual/showcase coerentes com contagens reais (30 ações + extras, 31 acessórios, 34 conquistas, 14 quests, 12 weekly, schema v5)
 - [ ] Sem secrets (`.env`, credenciais) no diff
 - [ ] Após editar content/CSS: recarregar a extensão **e** a aba de teste

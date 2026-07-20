@@ -31,6 +31,34 @@ function sendMsg(message) {
   });
 }
 
+function sendRuntimeMsg(message, onDone) {
+  chrome.runtime.sendMessage(message, (res) => {
+    scrubLastError();
+    if (onDone) onDone(res);
+  });
+}
+
+function summonPetToCurrentTab() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (scrubLastError() || !tabs[0]) {
+      showStatusFeedback('Abra um site real primeiro.', { error: true });
+      return;
+    }
+    sendRuntimeMsg({ action: 'summonPetToTab', tabId: tabs[0].id }, (res) => {
+      if (res?.ok) showStatusFeedback('Pet convocado nesta guia! 🧳');
+      else showStatusFeedback('Recarregue a página e tente de novo.', { error: true });
+    });
+  });
+}
+
+function syncVisibilityButton(visible = S.petVisible !== false) {
+  const btn = $('btn-toggle');
+  if (!btn) return;
+  btn.innerHTML = visible
+    ? '<span>👁️</span> Ocultar pet'
+    : '<span>👁️</span> Mostrar pet';
+}
+
 /* Persistência segura: read-modify-write */
 function persist(mutator) {
   chrome.storage.local.get(['clawdState'], (res) => {
@@ -427,6 +455,10 @@ function pollLiveStats() {
         if (res.weekly) renderWeeklyChallenge(res.weekly);
         updateContextBar(res);
         if (res.streakDays !== undefined) updateStreakPill(res.streakDays);
+        if (res.petVisible !== undefined) {
+          S.petVisible = !!res.petVisible;
+          syncVisibilityButton(S.petVisible);
+        }
       })
       .catch(() => { scrubLastError(); });
   });
@@ -1236,6 +1268,8 @@ function renderConfig() {
   $('blocked-sites').value = (set.blockedSites || []).join('\n');
   $('select-corner').value = set.startCorner || 'br';
   $('toggle-performance').checked = !!set.performanceMode;
+  const minimalEl = $('toggle-minimal');
+  if (minimalEl) minimalEl.checked = !!set.minimalMode;
   $('toggle-no-particles').checked = !!set.noParticles;
   $('toggle-no-idle').checked = !!set.noIdleVariations;
   $('toggle-no-weather').checked = !!set.noWeather;
@@ -1407,6 +1441,10 @@ function bindConfig() {
   $('select-corner').addEventListener('change', e => setSetting('startCorner', e.target.value));
   $('toggle-performance').addEventListener('change', e => {
     setSetting('performanceMode', e.target.checked);
+  });
+  const minimalToggle = $('toggle-minimal');
+  if (minimalToggle) minimalToggle.addEventListener('change', e => {
+    setSetting('minimalMode', e.target.checked);
   });
   $('toggle-no-particles').addEventListener('change', e => {
     setSetting('noParticles', e.target.checked);
@@ -1652,7 +1690,16 @@ function bindStatic() {
   }
 
   // Sistema
-  $('btn-toggle').addEventListener('click', () => sendMsg({ action: 'toggleVisibility' }));
+  $('btn-toggle').addEventListener('click', () => {
+    const next = S.petVisible === false;
+    sendMsg({ action: 'toggleVisibility' });
+    S.petVisible = next;
+    persist(st => { st.petVisible = next; });
+    syncVisibilityButton(next);
+    showStatusFeedback(next ? 'Pet visível de novo!' : 'Pet oculto nesta guia.');
+  });
+  const summonBtn = $('btn-summon-tab');
+  if (summonBtn) summonBtn.addEventListener('click', summonPetToCurrentTab);
   $('btn-reset').addEventListener('click', () => sendMsg({ action: 'resetPosition' }));
 
   bindConfig();
@@ -1699,6 +1746,7 @@ function renderAll() {
   renderShop();
   renderAchievements();
   renderConfig();
+  syncVisibilityButton(S.petVisible !== false);
 
   $('input-color').value = S.color || '#c71515';
   $('input-eye-color').value = S.eyeColor || '#08080b';

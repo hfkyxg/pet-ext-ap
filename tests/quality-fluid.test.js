@@ -202,9 +202,10 @@ test('qualidade: idle variations e duo/dwell respeitam performanceMode', () => {
   assert.match(content, /performanceMode\) return/);
 });
 
-test('qualidade: FX ao vestir acessório + ambient propeller/asas/capa', () => {
+test('qualidade: FX ao vestir acessório + motion sparks propeller/asas/capa', () => {
   assert.match(content, /_pulseAccessoryEquipFx/);
-  assert.match(content, /_tickAccessoryAmbientFx/);
+  assert.match(content, /_spawnAccessoryMotionFx/);
+  assert.doesNotMatch(content, /setInterval\(\(\) => this\._tickAccessoryAmbientFx/);
   assert.match(content, /accessory-equip-pop/);
   assert.match(content, /has-propeller/);
   assert.match(content, /face === 'headphones'/);

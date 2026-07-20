@@ -72,6 +72,7 @@ test('validação: reduced-motion / performanceMode / aic-nofx gated', () => {
   assert.match(style, /prefers-reduced-motion:\s*reduce/);
   assert.match(content, /_reducedMotion/);
   assert.match(content, /aic-nofx|performanceMode/);
+  assert.match(content, /aic-minimal|minimalMode/);
   assert.match(content, /noIdleVariations|noWeather|noParticles/);
 });
 
@@ -254,10 +255,14 @@ test('validação: migrate round-trip preserva inventário e schema v5', () => {
   raw.game.inventory = ['tophat', 'scarf', 'not_a_shop_item'];
   raw.game.coins = 42;
   raw.name = 'Rex';
+  raw.position = { x: 0, y: 0 };
+  raw.petVisible = false;
   const once = clawdMigrateState(raw);
   const twice = clawdMigrateState(once);
   assert.equal(twice.schemaVersion, catalog.CLAWD_SCHEMA_VERSION);
   assert.deepEqual(twice.game.inventory, ['tophat', 'scarf']);
+  assert.deepEqual(twice.position, { x: null, y: null });
+  assert.equal(twice.petVisible, false);
   assert.equal(twice.game.coins, 42);
   assert.equal(twice.name, 'Rex');
 });
@@ -288,6 +293,10 @@ test('validação: streak pill + counters; daily 14 / weekly 12', () => {
 
 test('validação: cross-tab travel + footprints no SW; subpets 8×7; SFX dual', () => {
   assert.match(background, /travel|crossTab|footprint/i);
+  assert.match(background, /summonPetToTab|assignHost\(tabId\)/);
+  assert.match(content, /clawdHasSavedPosition|clawdDefaultPositionCoords/);
+  assert.match(content, /petVisible/);
+  assert.match(popupHtml, /btn-summon-tab|Seguir nesta guia/);
   assert.equal(Object.keys(CLAWD_SUBPETS).length, 8);
   assert.equal(Object.keys(CLAWD_SUBPET_ACTIONS).length, 7);
   assert.match(content, /soundVolumeActions|soundVolumeAmbient|'actions'/);

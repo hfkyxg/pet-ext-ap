@@ -49,6 +49,11 @@
 | **v3.7.3** `gamer`/`streamer` com cena-assinatura própria; tutor variado | ✅ |
 | **v3.7.3** Pool autônomo do subpet ponderado por personalidade | ✅ |
 | **v3.7.3** Cena de dança em duo pet↔subpet | ✅ |
+| **v3.7.3** `petVisible` persiste em migrate + sync popup/content | ✅ |
+| **v3.7.3** `summonPetToTab` no SW + botão popup | ✅ |
+| **v3.7.3** `minimalMode` → `.aic-minimal` (badge/emoji/props) | ✅ |
+| **v3.7.3** Spawn: `clawdHasSavedPosition` rejeita `{0,0}`; canto via `startCorner` | ✅ |
+| **v3.7.3** Partículas por ação/movimento (sem loop ambiente contínuo) | ✅ |
 | Smoke: partículas `.aic-particle` spawn/cleanup + `noParticles` | ✅ |
 | Smoke: multi-clique 2=somersault, 3=superdance, 5=tantrum | ✅ |
 | Smoke: subpets cat + dragon (sprite + interação) | ✅ |

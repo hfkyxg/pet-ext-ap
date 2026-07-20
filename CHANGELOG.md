@@ -5,6 +5,12 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 
 ## [3.7.3] — 2026-07-20
 
+### Adicionado
+
+- **`petVisible` persistente** — mostrar/ocultar pet sobrevive a reload e sincroniza entre popup e aba via `getStatus` / `toggleVisibility`
+- **Seguir nesta guia** — botão `summonPetToTab` no popup; service worker reatribui o anfitrião cross-tab à aba atual
+- **Modo minimalista** (`minimalMode`) — oculta badge de nível, emoji flutuante e props de profissão (classe `.aic-minimal`)
+
 ### Melhorado
 
 - **Harmonia de timing** — tokens `--clawd-ease-bounce` / `--clawd-ease-snap` / `--clawd-dur-*` centralizam as "house curves" reaproveitadas nas transições (abordagem cirúrgica: keyframes existentes preservados)
@@ -13,6 +19,8 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 
 ### Corrigido
 
+- **Spawn no canto errado (top-left)** — `clawdHasSavedPosition()` rejeita saves legados `{x:0,y:0}`; posição padrão via `clawdDefaultPositionCoords()` no canto preferido (`startCorner`, padrão inferior direito)
+- **Partículas sem loop ambiente** — faíscas de acessório só disparam em movimento/ação/equip; clima sazonal não roda em timer contínuo
 - **Reduced-motion na boca** — `.emotion-mouth` (idle/talk/chew) agora também para sob `prefers-reduced-motion` / `.aic-reduced-motion` (antes seguia animando)
 - **Hover × emoção** — pet alegre no hover **intensifica** o brilho da emoção em vez de sobrescrevê-lo (regra composta `.emotion-glow:hover`)
 - **Limpeza** — removido `_ambientWeatherTimer` vestigial (nunca era atribuído; loop real vive em `_timers`)

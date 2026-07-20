@@ -1,6 +1,6 @@
-# Projeto Claw'd v3.2 — Visão Arquitetural e Funcional
+# Projeto Claw'd v3.7 — Visão Arquitetural e Funcional
 
-> Documento executivo atualizado em 2026. Conheça o sistema na [Documentação Interativa](../index.html), consulte a implementação em [DOCUMENTACAO.md](./DOCUMENTACAO.md) e o uso diário em [MANUAL.md](./MANUAL.md).
+> Documento executivo atualizado em julho/2026. Conheça o sistema na [Documentação Interativa](../index.html), consulte a implementação em [DOCUMENTACAO.md](./DOCUMENTACAO.md) e o uso diário em [MANUAL.md](./MANUAL.md).
 
 ## 1. Visão do produto
 
@@ -14,7 +14,7 @@ O visual padrão é o sprite compacto vermelho de referência, com **boca ligada
 - **Emoções:** felicidade, fome, energia e higiene alimentam expressões, falas, piscadas e balões de emoji;
 - **Personalização:** nome, cor, tamanho, velocidade, skins, name-tag, camisa, bolas, provador pixel/liso e **31 acessórios** em três slots;
 - **Sub-pets:** oito espécies com arte PNG + frames no catálogo, apelido, cores independentes de corpo e olhos, sono, despertar sincronizado, **sete** ações manuais e habilidades especiais;
-- **Gamificação:** XP, níveis, PixelCoins, loja, **28** conquistas, streak, favoritos e **14** tipos de missão diária (incl. balões/keepy);
+- **Gamificação:** XP, níveis, PixelCoins, loja, **34** conquistas, streak, favoritos e **14** tipos de missão diária (incl. balões/keepy);
 - **Persistência:** estado versionado e migrado em `chrome.storage.local`;
 - **Presença entre abas:** um único pet principal via service worker e `chrome.storage.session`.
 
@@ -29,6 +29,10 @@ O visual padrão é o sprite compacto vermelho de referência, com **boca ligada
 | 🧑‍🍳 Chef | Cozinha, reage a receitas e melhora a alimentação |
 | 🥷 Ninja | Corridas, desaparecimento e surpresa |
 | 🎣 Pescador | Lago pixelado, vara, linha, fisgada interativa e peixes raros |
+| 🩺 Doutor | Reações em sites de saúde; banho com bônus de higiene |
+| 🎨 Artista | Pinta no idle; estrelas ao posar |
+| 🎮 Gamer | Combo de ações com XP bônus em sites de jogos |
+| 📡 Streamer | Cena AO VIVO distinta em sites de streaming |
 | 🐾 Livre | Comportamento geral sem identidade profissional |
 
 ## 4. Ciclo de vida e reload seguro
@@ -49,10 +53,10 @@ O projeto não usa IA remota nem lê o conteúdo de formulários. As reações c
 
 ## 6. Qualidade e evolução
 
-A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, modo liso, sub-pets, documentação, pesca, manifest, popup, reload seguro, bfcache, áudio pós-gesto, allowlists, save coalesce, gamificação e harmonia da fase (contexto/weekly/personalidade). Em 19/07/2026, **156/156 contratos** passaram; o catálogo vivo registra **30** ações no popup (+ kick/keepy/superdance), **31** acessórios, **12** profissões, **9** rostos (incl. Babão), **34** conquistas, **14** quests e **12** desafios semanais; a bola do Jogador fica no pé direito (pixel sem blur); o smoke test em Chromium confirma sprites unificados em `CLAWD_SUBPET_SPRITES` (+ PNGs), três reloads com uma única instância e zero erros de runtime.
+A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, modo liso, sub-pets, documentação, pesca, manifest, popup, reload seguro, bfcache, áudio pós-gesto, allowlists, save coalesce, gamificação e harmonia da fase (contexto/weekly/personalidade). Em 20/07/2026, **159/159 contratos** passaram; o catálogo vivo registra **30** ações no popup (+ kick/keepy/superdance), **31** acessórios, **12** profissões, **9** rostos (incl. Babão), **7** skins, **34** conquistas, **14** quests e **12** desafios semanais; UX v3.7.3 inclui **`petVisible`**, **Seguir nesta guia**, **modo minimalista** e spawn seguro via `clawdHasSavedPosition`; a bola do Jogador fica no pé direito (pixel sem blur); o smoke test em Chromium confirma sprites unificados em `CLAWD_SUBPET_SPRITES` (+ PNGs versionados em `tests/sprite-out/Subpets-selection.png`), três reloads com uma única instância e zero erros de runtime.
 
 A vitrine em `docs/index.html` documenta visualmente o produto, carrega os catálogos reais e oferece laboratórios interativos do Claw'd e dos sub-pets. O painel de demonstração executa um roteiro de 45 segundos com 18 capítulos e gera 18 evidências quadro a quadro para presença, estados, profissões, gamificação e personalização. Os controles aceitam mouse, teclado e seleção direta; o layout foi verificado em desktop e 375 px, sem overflow ou logs de erro. Ela não depende de CDN, build ou servidor de aplicação.
 
 ---
 
-*Documentação Arquitetural — Claw'd v3.2 · 2026*
+*Documentação Arquitetural — Claw'd v3.7 · 2026*

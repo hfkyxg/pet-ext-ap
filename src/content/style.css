@@ -337,6 +337,29 @@
   }
 }
 
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal .emotion-badge,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal .name-title {
+  display: none !important;
+}
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal .profession-prop {
+  opacity: 0 !important;
+}
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.cooking .prop-chef-pan,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.cooking .prop-chef-steam,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.jamming .prop-music-note,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.stealthing .prop-ninja-smoke,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.thinking .prop-tutor-glint,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.healing .prop-doctor-cross,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.painting .prop-artist-brush,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.gaming .prop-gamer-ctrl,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.streaming .prop-streamer-live,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.typing .prop-engineer-code,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.keepy-uppy .prop-footballer-boot,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.celebrate .prop-footballer-boot,
+#aic-clawd-node[data-clawd-owned="true"].aic-minimal.fishing .prop-fisher-bobber {
+  opacity: 1 !important;
+}
+
 /* --- O NÓ DO AGENTE --- */
 #aic-clawd-node[data-clawd-owned="true"] {
   all: initial;
@@ -1586,7 +1609,7 @@
 [data-acc-head="ninjaband"] .acc-head {
   filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.35));
 }
-#aic-clawd-node[data-emotion="ecstatic"] .ground-shadow {
+#aic-clawd-node.emotion-glow[data-emotion="ecstatic"] .ground-shadow {
   animation: clawd-shadow-pulse 0.55s steps(1) infinite;
 }
 #aic-clawd-node[data-emotion="sad"] .ground-shadow { opacity: .45; transform: scaleX(.85); }
@@ -4035,23 +4058,13 @@
 #aic-clawd-node[data-profession="chef"].cooking       .sprite-stack { filter: brightness(1.08) saturate(1.15); }
 #aic-clawd-node[data-profession="musician"].jamming   .sprite-stack { filter: brightness(1.1) saturate(1.15); }
 
-/* ---- Props de profissão ---- */
+/* Props de profissão: ocultos em repouso — só aparecem na ação da profissão */
 #aic-clawd-node .profession-prop {
   position: absolute;
   pointer-events: none;
   z-index: 6;
   opacity: 0;
   transition: opacity 0.22s ease;
-}
-/* Ambient: props passivamente visíveis (sinal visual da profissão) */
-#aic-clawd-node[data-profession="tutor"] .prop-tutor-glint,
-#aic-clawd-node[data-profession="musician"] .prop-music-note,
-#aic-clawd-node[data-profession="chef"] .prop-chef-pan,
-#aic-clawd-node[data-profession="chef"] .prop-chef-steam,
-#aic-clawd-node[data-profession="doctor"] .prop-doctor-cross,
-#aic-clawd-node[data-profession="artist"] .prop-artist-brush,
-#aic-clawd-node[data-profession="gamer"] .prop-gamer-ctrl {
-  opacity: 0.28;
 }
 /* Active: opacidade total ao acionar estado da profissão */
 #aic-clawd-node[data-profession="chef"].cooking .prop-chef-pan,
@@ -4068,20 +4081,6 @@
 #aic-clawd-node[data-profession="footballer"].celebrate .prop-footballer-boot,
 #aic-clawd-node[data-profession="fisher"].fishing .prop-fisher-bobber {
   opacity: 1;
-}
-
-/* Ambient sutil (sempre on, sem poluir) */
-#aic-clawd-node[data-profession="engineer"]:not(.typing) .prop-engineer-code {
-  opacity: 0.55;
-}
-#aic-clawd-node[data-profession="footballer"]:not(.keepy-uppy):not(.celebrate) .prop-footballer-boot {
-  opacity: 0.45;
-}
-#aic-clawd-node[data-profession="fisher"]:not(.fishing) .prop-fisher-bobber {
-  opacity: 0.4;
-}
-#aic-clawd-node[data-profession="streamer"]:not(.streaming) .prop-streamer-live {
-  opacity: 0.5;
 }
 
 .prop-chef-pan {

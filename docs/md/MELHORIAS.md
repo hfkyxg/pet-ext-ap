@@ -5,6 +5,19 @@
 
 ---
 
+## v3.7.3 — UX, spawn e docs (2026-07-20)
+
+| Módulo | Entrega | Estado |
+|--------|---------|--------|
+| **Visibilidade** | `petVisible` no estado + toggle persistente no popup | ✅ |
+| **Cross-tab** | `summonPetToTab` — Seguir nesta guia | ✅ |
+| **Minimal** | `minimalMode` oculta badge, emoji flutuante e props | ✅ |
+| **Spawn** | `clawdHasSavedPosition()` + `clawdDefaultPositionCoords()` — sem bug top-left | ✅ |
+| **Partículas** | Contextuais por ação/emoção/movimento; sem loops ambiente | ✅ |
+| **Tests/Docs** | **159/159**; README, MANUAL, VALIDACAO, showcase alinhados | ✅ |
+
+---
+
 ## v3.7.2 — Polish acessórios + FX + sync (2026-07-19)
 
 | Módulo | Entrega | Estado |

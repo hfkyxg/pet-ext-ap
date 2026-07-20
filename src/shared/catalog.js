@@ -1273,7 +1273,7 @@ var CLAWD_SETTING_KEYS = [
   'crossTab', 'travelFreq', 'footprints', 'sounds', 'soundVolume',
   'soundVolumeActions', 'soundVolumeAmbient',
   'quietStart', 'quietEnd', 'blockedSites', 'startCorner', 'performanceMode',
-  'noParticles', 'noIdleVariations', 'noWeather', 'noAmbientSparks',
+  'noParticles', 'noIdleVariations', 'noWeather', 'noAmbientSparks', 'minimalMode',
   'lastPopupTab', 'studioCorner', 'studioLeft', 'studioTop'
 ];
 
@@ -1281,7 +1281,7 @@ var CLAWD_RUNTIME_ACTIONS = [
   'healthcheck', 'toggleVisibility', 'resetPosition', 'updateConfig',
   'updateSetting', 'triggerAction', 'setSubpet', 'setSubpetColor',
   'setSubpetEyeColor', 'triggerSubpetAction', 'claimDailyQuest', 'claimWeeklyChallenge',
-  'weeklyReset', 'getStatus', 'openStudio', 'closeStudio'
+  'weeklyReset', 'getStatus', 'openStudio', 'closeStudio', 'summonPetToTab'
 ];
 
 /* ---- Variações de Idle (v3.4) ---- */
@@ -1425,6 +1425,34 @@ function clawdSanitizeConfigValue(key, value) {
   }
 }
 
+/** Posição salva válida — rejeita null, NaN e saves legados em (0,0). */
+function clawdHasSavedPosition(pos) {
+  if (!pos || pos.x == null || pos.y == null) return false;
+  const x = Number(pos.x);
+  const y = Number(pos.y);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+  if (x <= 12 && y <= 12) return false;
+  return true;
+}
+
+/** Coordenadas pixel do canto preferido (viewport atual). */
+function clawdDefaultPositionCoords(corner, vw, vh, pad = 20) {
+  const w = Math.max(320, Number(vw) || (typeof window !== 'undefined' ? window.innerWidth : 1280));
+  const h = Math.max(240, Number(vh) || (typeof window !== 'undefined' ? window.innerHeight : 800));
+  const petW = 80;
+  const petH = 130;
+  const c = CLAWD_START_CORNERS.includes(corner) ? corner : 'br';
+  return {
+    x: c.includes('r') ? Math.max(pad, w - petW - pad) : pad,
+    y: c.includes('b') ? Math.max(pad, h - petH - pad) : pad
+  };
+}
+
+function clawdSanitizePositionBlock(rawPos, defPos) {
+  if (!clawdHasSavedPosition(rawPos)) return { x: defPos.x, y: defPos.y };
+  return { x: Number(rawPos.x), y: Number(rawPos.y) };
+}
+
 function clawdSanitizeSettingValue(key, value) {
   switch (key) {
     case 'crossTab':
@@ -1435,6 +1463,7 @@ function clawdSanitizeSettingValue(key, value) {
     case 'noIdleVariations':
     case 'noWeather':
     case 'noAmbientSparks':
+    case 'minimalMode':
       return !!value;
     case 'travelFreq':
       return CLAWD_TRAVEL_FREQS.includes(value) ? value : null;
@@ -1485,6 +1514,12 @@ function clawdValidateRuntimeMessage(request) {
     case 'openStudio':
     case 'closeStudio':
       return { action };
+
+    case 'summonPetToTab': {
+      const tabId = Number(request.tabId);
+      if (!Number.isFinite(tabId) || tabId < 0) return null;
+      return { action, tabId };
+    }
 
     case 'updateConfig': {
       if (!CLAWD_CONFIG_KEYS.includes(request.key)) return null;
@@ -1575,6 +1610,7 @@ function clawdDefaultState() {
   return {
     schemaVersion: CLAWD_SCHEMA_VERSION,
     position: { x: null, y: null },
+    petVisible: true,
     name: "Claw'd",
     color: '#d97757',
     eyeColor: '#08080b',
@@ -1638,7 +1674,8 @@ function clawdDefaultState() {
       noParticles: false,           // desliga partículas sem desligar tudo
       noIdleVariations: false,      // desliga variações idle decorativas
       noWeather: false,             // desliga partículas sazonais
-      noAmbientSparks: false,       // desliga faíscas contínuas de acessório (hélice/asas/capa)
+      noAmbientSparks: false,       // desliga faíscas de movimento de acessório (hélice/asas/capa ao andar)
+      minimalMode: false,           // opção extra-limpa: oculta badge de nível, emoção flutuante e props
       lastPopupTab: 'appearance',   // última aba do menu
       studioCorner: 'br',           // canto do painel in-page (br|bl|tr|tl|free)
       studioLeft: 72,               // % quando studioCorner === 'free'
@@ -1857,6 +1894,8 @@ function clawdMigrateState(raw) {
   merged.daily = clawdSanitizeDailyBlock(raw.daily);
   clawdEnsureDailyQuest(merged);
   merged.settings = clawdSanitizeSettingsBlock(raw.settings, def.settings);
+  merged.position = clawdSanitizePositionBlock(raw.position, def.position);
+  merged.petVisible = typeof raw.petVisible === 'boolean' ? raw.petVisible : def.petVisible;
   clawdApplyLegacyAccessoryMigration(merged, raw, v);
   clawdSanitizeIdentityFields(merged, raw, def);
   /* v5: campos novos com defaults seguros se ausentes */
@@ -2002,6 +2041,9 @@ if (typeof module !== 'undefined' && module.exports) {
     clawdXpForLevel,
     clawdLevelFromXp,
     clawdMigrateState,
+    clawdHasSavedPosition,
+    clawdDefaultPositionCoords,
+    clawdSanitizePositionBlock,
     clawdHasExtensionContext,
     clawdIsExtensionContextError,
     clawdSafeExtensionCall,

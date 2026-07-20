@@ -109,7 +109,9 @@ O equipamento indicado pela profissão é temporário e aparece com o selo **PRO
 - **Sons** — bipes 8-bit em ações (ligado por padrão); o volume fica no controle ao lado (ao arrastar, um chirp de prévia toca no próprio menu);
 - **Horário de silêncio** — intervalo em que o pet não fala, anda sozinho nem toca sons;
 - **Sites bloqueados** — um domínio por linha (ex.: `meubanco.com.br`); o pet não aparece nesses hosts nem em subdomínios;
-- **Exportar / Importar dados** — backup JSON do progresso (XP, conquistas, favoritos, sub-pets).
+- **Exportar / Importar dados** — backup JSON do progresso (XP, conquistas, favoritos, sub-pets);
+- **Modo minimalista** — oculta badge de nível, emoji flutuante e props de profissão (aba ⚙️ Config);
+- **Posição inicial preferida** — canto inferior direito por padrão; saves inválidos `{0,0}` são ignorados (evita spawn no canto superior esquerdo).
 
 ### 🐕 Sub-pets
 
@@ -141,8 +143,9 @@ Botões de comando imediato: 👋 **Acenar** · 🕺 **Dançar** · ❤️ **Car
 
 Abaixo deles:
 
-- **👁️ Mostrar / Ocultar** — esconde o pet temporariamente (útil em apresentações);
-- **🔄 Resgatar pet** — perdeu o pet atrás de algum elemento? Isso o traz de volta ao canto inferior direito.
+- **👁️ Mostrar / Ocultar pet** — esconde o mascote temporariamente; o estado **`petVisible`** é salvo e sincroniza entre abas (útil em apresentações);
+- **🧳 Seguir nesta guia** — traz o pet principal para a aba atual quando o passeio entre abas está ativo;
+- **🔄 Resgatar pet** — perdeu o pet atrás de algum elemento? Isso o traz de volta ao **canto preferido** (padrão: inferior direito).
 
 ### 🎯 Missão diária
 
@@ -169,6 +172,9 @@ O Claw'd evolui com carinho:
 ---
 
 ## 6. Perguntas frequentes
+
+**O pet aparece no canto errado (canto superior esquerdo).**
+Atualize para v3.7.3+: saves antigos com posição `{0,0}` são descartados e o pet usa o canto preferido (Config → **Posição inicial preferida**). Se persistir, use **Resgatar pet** na aba Ações.
 
 **O pet sumiu!**
 Abra o menu → aba Ações → **🔄 Resgatar pet**. Ele volta ao canto da tela.
@@ -228,7 +234,7 @@ Normal — o sub-pet é recriado a cada carga da página. Ele volta automaticame
 
 ## 8. Recursos avançados já disponíveis
 
-O Claw'd v3.7.2 inclui **4 modelos × 9 rostos × 7 skins**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **31 acessórios em 3 slots**, **12 profissões** com contexto de página e props animados únicos, **30 ações** no popup (+ kick/keepy/superdance), **status clicáveis** e emoções estilo Tamagotchi com anúncio acessível, **Studio in-page** + janela destacável, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade** que afetam o comportamento real do sub-pet, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas sazonais e pixel ricas, animações de hover/ring/speed-lines/skins e o pet **passeando entre suas abas**. A bola do Jogador fica no **pé direito**, em pixel-art nítido. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md). Validação atual: [VALIDACAO.md](./VALIDACAO.md) (**156/156**).
+O Claw'd v3.7.3 inclui **4 modelos × 9 rostos × 7 skins**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **31 acessórios em 3 slots**, **12 profissões** com contexto de página e props animados únicos, **30 ações** no popup (+ kick/keepy/superdance), **status clicáveis** e emoções estilo Tamagotchi com anúncio acessível, **Studio in-page** + janela destacável, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade** que afetam o comportamento real do sub-pet, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas **por ação/emoção** (sem loops ambiente), **mostrar/ocultar persistente**, **Seguir nesta guia**, **modo minimalista**, animações de hover/ring/speed-lines/skins e o pet **passeando entre suas abas**. A bola do Jogador fica no **pé direito**, em pixel-art nítido. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md). Validação atual: [VALIDACAO.md](./VALIDACAO.md) (**159/159**).
 
 ### Personalização avançada (v3.3)
 
