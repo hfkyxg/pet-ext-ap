@@ -791,7 +791,12 @@ class SubPet {
       const personalityMod = (p.playful ?? 5) >= 7 ? 0.18 : (p.lazy ?? 5) >= 7 ? -0.16 : 0;
       const chance = Math.min(0.92, Math.max(0.18, baseChance + personalityMod));
       if (Math.random() > chance) return;
-      const pool = this._speciesPool();
+      /* Base por espécie + reforço por personalidade do dono (mesmo padrão do pet). */
+      const pool = this._speciesPool().slice();
+      if ((p.playful ?? 5) >= 7) pool.push('play', 'celebrate', 'spin');
+      if ((p.lazy ?? 5) >= 7) pool.push('nap', 'cuddle');
+      if ((p.curious ?? 5) >= 7) pool.push('explore', 'special');
+      if ((p.social ?? 5) >= 7) pool.push('hug', 'cuddle');
       const pick = pool[Math.floor(Math.random() * pool.length)];
       this.interact(pick);
     }, CLAWD_TIMINGS.SUBPET_INTERACTION_MS);
@@ -1141,8 +1146,6 @@ class ClawdCompanion {
     /* v3.3: Tempo na aba */
     this._tabStartTime = Date.now();
     this._tabMilestonesFired = [];
-    /* v3.3: Clima ambiente */
-    this._ambientWeatherTimer = null;
     /* v3.4: Variações idle, scroll e tab visibility */
     this._idleVarTimer = null;
     this._idleVarLastTime = {};
@@ -4077,19 +4080,22 @@ class ClawdCompanion {
 
   /* ---------- DESAFIO DO TUTOR ---------- */
   showTutorChallenge() {
+    const useAdd = Math.random() < 0.4;
     const a = 2 + Math.floor(Math.random() * 8);
     const b = 2 + Math.floor(Math.random() * 8);
-    const answer = a * b;
+    const op = useAdd ? '+' : '×';
+    const answer = useAdd ? a + b : a * b;
     const opts = [answer, answer + (1 + Math.floor(Math.random() * 4)), Math.max(1, answer - (1 + Math.floor(Math.random() * 4)))];
     opts.sort(() => Math.random() - 0.5);
     this.setState('holding-sign');
     this._pulseProfessionFx('thinking', 8000);
 
+    const prompts = ['📚 Rapidinho', '🧠 Foco', '✏️ Desafio', '📖 Pensa comigo'];
     const root = document.createElement('div');
     root.className = 'challenge';
     const q = document.createElement('div');
     q.className = 'challenge-q';
-    q.textContent = `📚 Rapidinho: ${a} × ${b} = ?`;
+    q.textContent = `${prompts[Math.floor(Math.random() * prompts.length)]}: ${a} ${op} ${b} = ?`;
     const optsWrap = document.createElement('div');
     optsWrap.className = 'challenge-opts';
     opts.forEach((o) => {
@@ -4271,9 +4277,7 @@ class ClawdCompanion {
       this._ctxTimers.push(setInterval(() => {
         if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
         if (Math.random() < 0.4) {
-          this._pulseProfessionFx('gaming', 2200);
-          this.doFlip();
-          this.showSpeech(Math.random() < 0.5 ? 'GG EZ! 🎮' : 'Vita para o Claw\'d! 🏆', 2000);
+          this._gamerCombo();
         }
       }, 80000));
     }
@@ -4281,10 +4285,7 @@ class ClawdCompanion {
       this._ctxTimers.push(setInterval(() => {
         if (this.isQuiet() || !this.isVisible || this.state !== 'idle') return;
         if (Math.random() < 0.5) {
-          this._pulseProfessionFx('streaming', 3000);
-          this.doDance();
-          this.showSpeech('Hype no chat! 📡🎉', 2200);
-          this.spawnParticles(['📡', '🎬', '✨', '🎉']);
+          this._streamerLive();
         }
       }, 65000));
     }
@@ -4462,8 +4463,8 @@ class ClawdCompanion {
         /* v3.3 */
         case 'doctor': this.doBath(); this.showSpeech('Higiene em dia! 🩺', 2000); break;
         case 'artist': this.doMeditate(); break;
-        case 'gamer': this.doFlip(); this.showSpeech('Level up! 🎮', 1800); break;
-        case 'streamer': this.doDance(); this.showSpeech('Clip isso! 📡', 2000); break;
+        case 'gamer': this._gamerCombo(); break;
+        case 'streamer': this._streamerLive(); break;
       }
     }, 85000));
   }
@@ -4605,7 +4606,7 @@ class ClawdCompanion {
     if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
     if (this.subpet.state === 'sleeping' || this.subpet._interactionBusy) return;
     if (Math.random() > 0.55) return;
-    const scenes = ['cuddle', 'play', 'nap', 'race', 'celebrate', 'pet'];
+    const scenes = ['cuddle', 'play', 'nap', 'race', 'celebrate', 'pet', 'dance'];
     const pick = scenes[Math.floor(Math.random() * scenes.length)];
     this._playDuoScene(pick);
   }
@@ -4678,6 +4679,15 @@ class ClawdCompanion {
         this.spawnParticles(['🎉', '✨', '⭐']);
         this.chime([[600, 0.05], [800, 0.07], [960, 0.06]]);
         finish(2200);
+        break;
+      case 'dance':
+        this.node?.classList.add('duo-play');
+        this.subpet.node?.classList.add('duo-play');
+        this.doDance();
+        this.showSpeech('Dança a dois! 💃🎶', 2200);
+        this.subpet.interact('spin', { force: true, silent: true });
+        this.spawnParticles(['🎶', '🎵', '✨']);
+        finish(2800);
         break;
       case 'pet':
       default:
@@ -5676,6 +5686,47 @@ class ClawdCompanion {
     if (this.subpet && Math.random() < 0.4) this.subpet.interact('spin', { force: true });
   }
 
+  /* Gamer: sequência-assinatura (pulo → giro) que alimenta o contador de combo. */
+  _gamerCombo() {
+    if (!this.node) return;
+    if (this.state === 'sleeping') this.wakeUp();
+    this._pulseProfessionFx('gaming', 2600);
+    this._tickCombo();
+    this.setStateFor('jumping', 520);
+    this.spawnParticles(['🎮', '⚡', '✨']);
+    this.chime([[520, 0.05], [700, 0.06], [920, 0.08]]);
+    this.bumpStat('energy', -2);
+    this.bumpStat('happiness', 4);
+    this.addXp(3);
+    const hype = ['GG! 🎮', 'Combo! 🕹️🔥', 'Level up! 🏆', 'No scope! 🎯'];
+    setTimeout(() => {
+      if (this._destroyed || !this.node) return;
+      this._tickCombo();
+      this.setStateFor('spinning', 620);
+      this.showSpeech(hype[Math.floor(Math.random() * hype.length)], 1800);
+    }, 540);
+    if (this.subpet && Math.random() < 0.4) this.subpet.interact('celebrate', { force: true });
+  }
+
+  /* Streamer: cena "AO VIVO" — giro para a câmera + pose, distinta do músico. */
+  _streamerLive() {
+    if (!this.node) return;
+    if (this.state === 'sleeping') this.wakeUp();
+    this._pulseProfessionFx('streaming', 3000);
+    this.setStateFor('spinning', 660);
+    this.spawnParticles(['📡', '🔴', '🎬', '✨']);
+    this.chime([[660, 0.05], [880, 0.06], [1040, 0.07]]);
+    this.bumpStat('happiness', 5);
+    this.addXp(3);
+    const chat = ['Hype no chat! 📡', 'Deixa o like! 👍', 'AO VIVO agora! 🔴', 'Clip isso! 🎬', 'Chegou mais gente! 🎉'];
+    setTimeout(() => {
+      if (this._destroyed || !this.node) return;
+      this.setStateFor('pose', 1500);
+      this.showSpeech(chat[Math.floor(Math.random() * chat.length)], 2200);
+    }, 620);
+    if (this.subpet && Math.random() < 0.45) this.subpet.interact('celebrate', { force: true });
+  }
+
   doMeditate() {
     if (this.state === 'sleeping') this.wakeUp();
     this._pulseAnimClass('meditating', 4000);
@@ -5744,7 +5795,7 @@ class ClawdCompanion {
       '_profFxTimer', '_equipFxTimer', '_accEquipTimer', '_freestyleTimer', '_balloonTimer', '_balloonPopFx',
       '_pendingCelebrate', '_duoTimer', '_dwellWalkTimer', '_dwellActionTimer',
       /* v3.3 */
-      '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer',
+      '_comboTimer', '_speedrunTimer',
       /* v3.4 / tick5 */
       '_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer', '_ballClickTimer',
       /* duo / petting */

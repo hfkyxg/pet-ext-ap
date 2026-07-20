@@ -1,14 +1,14 @@
-# Relatório de Validação — Claw'd v3.7.2
+# Relatório de Validação — Claw'd v3.7.3
 
-**Data:** 20 de julho de 2026 (validação expandida: smoke duo/partículas/skins/subpets + 156 contratos)  
+**Data:** 20 de julho de 2026 (polish: harmonia de timing, profissões e interações com subpets + 159 contratos)  
 **Ambiente:** Windows · Node.js 24 · Edge/Chromium  
-**Marco:** **156/156** contratos — animações, interações, ações 100%, acessórios, 9 rostos, skins animadas, partículas ricas
+**Marco:** **159/159** contratos — animações harmônicas, reduced-motion na boca, profissões com assinatura própria, subpets ponderados por personalidade
 
 ## Resultado
 
 - Verificações de sintaxe (`npm run check`): **aprovadas**
-- Suíte `node:test`: **156/156**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.7.2** (30/30 ações + extras)
+- Suíte `node:test`: **159/159**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.7.3** (30/30 ações + extras)
 - Lint (`eslint src tests`): **0 erros**
 - Smoke Chromium: **runtimeErrors: 0** · 3/3 reloads · **7 skins** · duo pet↔subpet · partículas DOM · multi-clique · cat/dragon · props chef/ninja/streamer
 - Polish: fones/facewear nítidos, FX ambient, crisp-edges, duo hug sem fala duplicada
@@ -23,7 +23,7 @@
 | Acessórios | **31** |
 | Rostos / skins / idle | **9** / **7** / **7** |
 | Profissões / subpets | **12** / **8** |
-| Contratos | **156** |
+| Contratos | **159** |
 
 ## Novidades validadas nesta passagem
 
@@ -43,6 +43,12 @@
 | giveAffection → petting-subpet + being-petted; settle pós-interação | ✅ |
 | Smoke: 7 skins `dataset.skin` + `.skin-mod` visível | ✅ |
 | Smoke: duo carinho/play + feed/sleep/wake subpet (dog) | ✅ |
+| **v3.7.3** Tokens `--clawd-ease-*` reaproveitados (harmonia) | ✅ |
+| **v3.7.3** Reduced-motion zera animação da boca (idle/talk/chew) | ✅ |
+| **v3.7.3** Hover num pet alegre intensifica o glow (não sobrescreve) | ✅ |
+| **v3.7.3** `gamer`/`streamer` com cena-assinatura própria; tutor variado | ✅ |
+| **v3.7.3** Pool autônomo do subpet ponderado por personalidade | ✅ |
+| **v3.7.3** Cena de dança em duo pet↔subpet | ✅ |
 | Smoke: partículas `.aic-particle` spawn/cleanup + `noParticles` | ✅ |
 | Smoke: multi-clique 2=somersault, 3=superdance, 5=tantrum | ✅ |
 | Smoke: subpets cat + dragon (sprite + interação) | ✅ |

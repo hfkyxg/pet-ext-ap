@@ -5,7 +5,7 @@
 <br/>
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-red?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Version](https://img.shields.io/badge/version-3.7.2-ff4757?style=for-the-badge)](./manifest.json)
+[![Version](https://img.shields.io/badge/version-3.7.3-ff4757?style=for-the-badge)](./manifest.json)
 [![License](https://img.shields.io/badge/license-MIT-2ecc71?style=for-the-badge)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f1c40f?style=for-the-badge&logo=javascript&logoColor=black)](./src/)
 
@@ -44,7 +44,7 @@ Não há *build step* nem dependências externas: você clona, carrega a pasta n
 
 ### Novidades em v3.7
 
-A versão 3.7 levou as animações ao próximo nível: **hover state no modo pixel-art** (sombra e brilho ao passar o mouse sobre o pet), **ring de clique expansivo** ao pressionar o pet, **speed lines** ao correr e **rastro de pó** ao caminhar via `_spawnWalkDust()`. **Partículas contextuais por emoção** — corações rosas ao ficar alegre, estrelas douradas ao ficar extasiado, gotas azuis ao ficar triste. No popup: **ripple nos botões de ação**, **flash dourado na barra de XP** ao subir de nível. Skins `glow` e `robot` ganham animações (brilho pulsante / scan-line pixel-art); rostos `sparkle` e `heart` têm keyframes próprios. Acessórios `ribbon` e `scarf_body` emitem partículas ambiente. A bola do **Jogador** ficou no **pé direito**, com visual pixel sem blur e chute/rolagem para a direita. Rosto **Babão**, partículas pixel ricas e skins animadas. Em **v3.7.2**: fones/facewear nítidos, FX ambient, animações crisp e interações pet↔subpet fluidas. **156/156** contratos.
+A versão 3.7 levou as animações ao próximo nível: **hover state no modo pixel-art** (sombra e brilho ao passar o mouse sobre o pet), **ring de clique expansivo** ao pressionar o pet, **speed lines** ao correr e **rastro de pó** ao caminhar via `_spawnWalkDust()`. **Partículas contextuais por emoção** — corações rosas ao ficar alegre, estrelas douradas ao ficar extasiado, gotas azuis ao ficar triste. No popup: **ripple nos botões de ação**, **flash dourado na barra de XP** ao subir de nível. Skins `glow` e `robot` ganham animações (brilho pulsante / scan-line pixel-art); rostos `sparkle` e `heart` têm keyframes próprios. Acessórios `ribbon` e `scarf_body` emitem partículas ambiente. A bola do **Jogador** ficou no **pé direito**, com visual pixel sem blur e chute/rolagem para a direita. Rosto **Babão**, partículas pixel ricas e skins animadas. Em **v3.7.2**: fones/facewear nítidos, FX ambient, animações crisp e interações pet↔subpet fluidas. Em **v3.7.3**: harmonia de timing (tokens `--clawd-ease-*`), reduced-motion também na boca, hover que intensifica o glow, profissões **Gamer**/**Streamer** com cena-assinatura própria e subpets com pool autônomo ponderado pela personalidade + dança em duo. **159/159** contratos.
 
 ### Novidades em v3.6
 

@@ -328,6 +328,41 @@ test('qualidade: asas flutuam no idle; limpar particleColor; blush não é pago'
   assert.match(popupHtml, /data-acc-body="none"/);
 });
 
+/* ---------- v3.7.3: POLISH — HARMONIA · PROFISSÕES · SUBPETS ---------- */
+
+test('polish: tokens de easing, reduced-motion na boca, hover compõe glow, sem vestígio', () => {
+  /* Tokens de timing reaproveitados (harmonia) e realmente aplicados */
+  assert.match(style, /--clawd-ease-bounce:\s*cubic-bezier/);
+  assert.match(style, /--clawd-ease-snap:\s*cubic-bezier/);
+  assert.match(style, /transform 0\.25s var\(--clawd-ease-bounce\)/);
+  assert.match(style, /var\(--clawd-ease-snap\)/);
+  /* Reduced-motion também zera a animação da boca (idle/talk/chew) */
+  assert.match(style, /aic-reduced-motion \.emotion-mouth[\s\S]{0,180}animation:\s*none !important/);
+  /* Hover num pet alegre intensifica o glow em vez de sobrescrevê-lo */
+  assert.match(style, /emotion-glow:not\(\.smooth\)[\s\S]{0,120}:hover \.pet-body/);
+  /* Timer vestigial removido (nunca era atribuído) */
+  assert.doesNotMatch(content, /_ambientWeatherTimer/);
+});
+
+test('polish: profissões gamer/streamer com assinatura própria; tutor variado', () => {
+  assert.match(content, /_gamerCombo\(\)\s*\{[\s\S]{0,500}_tickCombo\(\)/);
+  assert.match(content, /_streamerLive\(\)\s*\{[\s\S]{0,400}streaming/);
+  /* Pulso de profissão usa as novas cenas (não mais doFlip/doDance genéricos) */
+  assert.match(content, /case 'gamer': this\._gamerCombo\(\);/);
+  assert.match(content, /case 'streamer': this\._streamerLive\(\);/);
+  /* Tutor: operação e prompt variam (não só multiplicação) */
+  assert.match(content, /const op = useAdd \? '\+' : '×'/);
+});
+
+test('polish: subpet — pool autônomo ponderado por personalidade + dança em duo', () => {
+  assert.match(content, /_speciesPool\(\)\.slice\(\)/);
+  assert.match(content, /\(p\.playful \?\? 5\) >= 7\) pool\.push\('play', 'celebrate', 'spin'\)/);
+  assert.match(content, /\(p\.lazy \?\? 5\) >= 7\) pool\.push\('nap', 'cuddle'\)/);
+  /* Nova cena coordenada pet↔subpet */
+  assert.match(content, /scenes = \['cuddle'[\s\S]{0,90}'dance'\]/);
+  assert.match(content, /case 'dance':[\s\S]{0,180}doDance\(\)/);
+});
+
 test('qualidade: curious vence breathe; shiny nofx; rostos/skins/idle expandidos', () => {
   assert.match(style, /:not\(\.curious\)/);
   assert.match(style, /\.curious \.pet-body[\s\S]{0,200}!important/);

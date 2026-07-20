@@ -3,6 +3,22 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.7.3] — 2026-07-20
+
+### Melhorado
+
+- **Harmonia de timing** — tokens `--clawd-ease-bounce` / `--clawd-ease-snap` / `--clawd-dur-*` centralizam as "house curves" reaproveitadas nas transições (abordagem cirúrgica: keyframes existentes preservados)
+- **Profissões com assinatura própria** — `Gamer` ganha `_gamerCombo()` (pulo→giro que alimenta o contador de combo, com XP por combo) e `Streamer` ganha `_streamerLive()` (cena "AO VIVO" distinta do músico, com fala de chat e partículas de transmissão); `Tutor` varia operação (× ou +) e prompt do desafio
+- **Interações com subpets** — pool autônomo do subpet agora é ponderado pela personalidade do dono (playful→play/celebrate/spin, lazy→nap/cuddle, curious→explore, social→hug), mantendo o viés de espécie; nova cena coordenada de **dança em duo** pet↔subpet
+
+### Corrigido
+
+- **Reduced-motion na boca** — `.emotion-mouth` (idle/talk/chew) agora também para sob `prefers-reduced-motion` / `.aic-reduced-motion` (antes seguia animando)
+- **Hover × emoção** — pet alegre no hover **intensifica** o brilho da emoção em vez de sobrescrevê-lo (regra composta `.emotion-glow:hover`)
+- **Limpeza** — removido `_ambientWeatherTimer` vestigial (nunca era atribuído; loop real vive em `_timers`)
+
+- **Versão alinhada:** manifest / popup / README → **3.7.3** · suíte **159/159**
+
 ## [3.7.2] — 2026-07-19
 
 ### Melhorado

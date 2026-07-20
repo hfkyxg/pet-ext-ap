@@ -359,6 +359,11 @@
   --agent-scale: 1.5;
   --jersey-color: #e74c3c;
   --clawd-refresh-rate: 60;
+  /* Tokens de timing/easing — "house curves" reaproveitadas (harmonia) */
+  --clawd-ease-bounce: cubic-bezier(.34, 1.56, .64, 1);
+  --clawd-ease-snap: cubic-bezier(.34, 1.4, .64, 1);
+  --clawd-dur-quick: .2s;
+  --clawd-dur-base: .32s;
 
   transition: transform 0.14s cubic-bezier(.22,.61,.36,1), opacity 0.35s ease;
 }
@@ -400,7 +405,7 @@
   gap: 8px;
   transform: scale(var(--agent-scale, 1.5));
   transform-origin: bottom center;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s var(--clawd-ease-bounce);
   /* Sombra seca 0-blur — bloom lavava olhos/acessórios no screenshot */
   filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32));
 }
@@ -1038,7 +1043,7 @@
    ============================ */
 #aic-clawd-node.smooth .sprite-stack {
   filter: drop-shadow(1px 2px 0 rgba(0,0,0,.18));
-  transition: filter .2s ease, transform .18s cubic-bezier(.34, 1.4, .64, 1);
+  transition: filter .2s ease, transform .18s var(--clawd-ease-snap);
 }
 #aic-clawd-node.smooth:hover:not(.dragging):not(.walking):not(.running):not(.sleeping) .sprite-stack {
   filter: drop-shadow(2px 3px 0 rgba(0,0,0,.22)) brightness(1.05);
@@ -1056,6 +1061,10 @@
 #aic-clawd-node:not(.smooth):not(.dragging):not(.sleeping):hover .pet-body {
   filter: brightness(1.06) drop-shadow(2px 3px 0 rgba(0,0,0,0.38));
   transition: filter 0.18s ease;
+}
+/* Pet alegre no hover: intensifica o brilho da emoção em vez de sobrescrevê-lo */
+#aic-clawd-node.emotion-glow:not(.smooth):not(.dragging):not(.sleeping):hover .pet-body {
+  filter: brightness(1.09) drop-shadow(2px 3px 0 rgba(0,0,0,0.36));
 }
 /* Ring de clique — expande e some ao pressionar */
 #aic-clawd-node.pressing:not(.aic-reduced-motion)::after {
@@ -3044,6 +3053,12 @@
   animation: none !important;
   transition: opacity 0.15s ease !important;
 }
+/* Boca: reduced-motion nunca deve manter clawd-mouth-idle/talk/chew em loop */
+#aic-clawd-node.aic-reduced-motion .emotion-mouth,
+#aic-clawd-node.aic-reduced-motion .emotion-mouth::before,
+#aic-clawd-node.aic-reduced-motion .emotion-mouth::after {
+  animation: none !important;
+}
 
 /* Aba oculta: pausa CSS infinito (rAF do subpet já pausa no JS) */
 #aic-clawd-node.aic-tab-hidden .pet-body,
@@ -3272,7 +3287,7 @@
 #aic-clawd-node.smooth.keepy-uppy .smooth-leg-1 {
   transform: translate(-9px, -11px) rotate(-46deg);
   height: 13px;
-  transition: transform .16s cubic-bezier(.34, 1.4, .64, 1);
+  transition: transform .16s var(--clawd-ease-snap);
 }
 #aic-clawd-node.smooth.keepy-uppy .smooth-leg-2 { transform: translate(-1px, 1px); }
 #aic-clawd-node.smooth.keepy-uppy .smooth-leg-3 { transform: translate(0, 0); }
