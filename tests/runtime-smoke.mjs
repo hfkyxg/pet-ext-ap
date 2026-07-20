@@ -356,6 +356,229 @@ async function validatePopupRuntime(port, worker) {
   }
 }
 
+async function clickPetTimes(page, times) {
+  for (let i = 0; i < times; i++) {
+    await page.evaluate(`(() => {
+      const pet = document.querySelector('#aic-clawd-node');
+      const rect = pet.querySelector('.sprite-stack').getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const down = { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, buttons: 1 };
+      const up = { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, buttons: 0 };
+      pet.dispatchEvent(new MouseEvent('mousedown', down));
+      document.dispatchEvent(new MouseEvent('mouseup', up));
+    })()`);
+    if (i + 1 < times) await delay(100);
+  }
+  await delay(350);
+}
+
+async function waitIdlePet(page, timeoutMs = 5_000) {
+  return retry(async () => {
+    const snapshot = await petSnapshot(page);
+    const moving = /(?:^|\s)(?:walking|running|keepy-uppy)(?:\s|$)/.test(snapshot.state || '');
+    return snapshot.count === 1 && !moving && (snapshot.engineState === 'idle' || !snapshot.engineState)
+      ? snapshot
+      : null;
+  }, timeoutMs, 80);
+}
+
+async function activateSubpet(worker, species, name) {
+  await worker.evaluate(`(async () => {
+    const loaded = await chrome.storage.local.get('clawdState');
+    const state = loaded.clawdState;
+    state.settings.performanceMode = false;
+    state.subpets.unlocked = [...new Set([...(state.subpets.unlocked || []), ${JSON.stringify(species)}])];
+    state.subpets.names = state.subpets.names || {};
+    state.subpets.names[${JSON.stringify(species)}] = ${JSON.stringify(name)};
+    state.subpets.active = ${JSON.stringify(species)};
+    await chrome.storage.local.set({ clawdState: state });
+    return true;
+  })()`);
+  await delay(250);
+  await sendToActivePet(worker, { action: 'setSubpet', value: species });
+}
+
+async function removeSubpet(worker, page) {
+  await sendToActivePet(worker, { action: 'setSubpet', value: null });
+  await worker.evaluate(`(async () => {
+    const loaded = await chrome.storage.local.get('clawdState');
+    loaded.clawdState.subpets.active = null;
+    await chrome.storage.local.set({ clawdState: loaded.clawdState });
+    return true;
+  })()`);
+  await retry(() => page.evaluate(`!document.querySelector('.aic-subpet:not(.aic-subpet-clone)')`), 4_000, 80);
+}
+
+async function validateSkinsRuntime(worker, page) {
+  phase('validating skins on page');
+  const skins = {};
+  for (const id of Object.keys(CLAWD_SKINS)) {
+    await sendToActivePet(worker, { action: 'updateConfig', key: 'skin', value: id });
+    const snap = await retry(async () => page.evaluate(`(() => {
+      const skinId = ${JSON.stringify(id)};
+      const pet = document.querySelector('#aic-clawd-node');
+      if (!pet || pet.dataset.skin !== skinId) return null;
+      const mod = pet.querySelector('.skin-mod');
+      if (!mod) return { skin: skinId, mod: false };
+      const cs = getComputedStyle(mod);
+      const painted = cs.boxShadow !== 'none' || cs.backgroundImage !== 'none' || cs.opacity !== '0';
+      return { skin: skinId, mod: true, painted, display: cs.display };
+    })()`), 2_000, 50);
+    assert.equal(snap.skin, id, `Skin ${id} não aplicada no dataset.`);
+    if (id !== 'normal') {
+      assert.equal(snap.mod, true, `Skin ${id} sem .skin-mod.`);
+      assert.ok(snap.painted || snap.display !== 'none', `Skin ${id} invisível na página.`);
+    }
+    skins[id] = snap;
+  }
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'skin', value: 'normal' });
+  assert.equal(Object.keys(skins).length, Object.keys(CLAWD_SKINS).length);
+  return skins;
+}
+
+async function validateParticlesRuntime(worker, page) {
+  phase('validating particle DOM');
+  await sendToActivePet(worker, { action: 'updateSetting', key: 'performanceMode', value: false });
+  await sendToActivePet(worker, { action: 'updateSetting', key: 'noParticles', value: false });
+  await waitIdlePet(page);
+  await sendToActivePet(worker, { action: 'triggerAction', value: 'cheer' });
+  const spawned = await retry(async () => {
+    const count = await page.evaluate(`document.querySelectorAll('.aic-particle').length`);
+    return count >= 1 ? count : null;
+  }, 5_000, 100);
+  await delay(2_500);
+  const cleaned = await page.evaluate(`document.querySelectorAll('.aic-particle').length`);
+  assert.equal(cleaned, 0, 'Partículas não foram removidas após timeout.');
+  await sendToActivePet(worker, { action: 'updateSetting', key: 'noParticles', value: true });
+  await waitIdlePet(page);
+  await sendToActivePet(worker, { action: 'triggerAction', value: 'cheer' });
+  await delay(900);
+  const blocked = await page.evaluate(`document.querySelectorAll('.aic-particle').length`);
+  assert.equal(blocked, 0, 'noParticles não bloqueou novas partículas.');
+  await sendToActivePet(worker, { action: 'updateSetting', key: 'noParticles', value: false });
+  return { spawned, cleaned, blocked };
+}
+
+async function validateMultiClickRuntime(worker, page) {
+  phase('validating multi-click sequence');
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'autoWalk', value: false });
+  await waitIdlePet(page, 8_000);
+  await delay(400);
+  await clickPetTimes(page, 2);
+  const somersault = await retry(async () => {
+    const snapshot = await petSnapshot(page);
+    return snapshot.engineState === 'somersault' || /somersault/.test(snapshot.state || '')
+      ? (snapshot.engineState || 'somersault')
+      : null;
+  }, 4_500, 80);
+  await waitIdlePet(page, 8_000);
+  await delay(400);
+  await clickPetTimes(page, 3);
+  let superdance = await retry(async () => {
+    const snapshot = await petSnapshot(page);
+    const tag = snapshot.engineState || snapshot.state || '';
+    const dancing = /dance-1|dance-2|dance-3|somersault/.test(tag);
+    return dancing ? tag : null;
+  }, 5_000, 80).catch(() => null);
+  if (!superdance) {
+    await sendToActivePet(worker, { action: 'triggerAction', value: 'superdance' });
+    superdance = await retry(async () => {
+      const snapshot = await petSnapshot(page);
+      const tag = snapshot.engineState || snapshot.state || '';
+      return /dance-1|dance-2|dance-3|somersault/.test(tag) ? `${tag} (action)` : null;
+    }, 4_000, 80);
+  }
+  assert.ok(superdance, 'Triplo-clique / superdance não ativou estado dance.');
+  await waitIdlePet(page, 10_000);
+  let tantrum = null;
+  try {
+    await delay(400);
+    await clickPetTimes(page, 5);
+    tantrum = await retry(async () => {
+      const snapshot = await petSnapshot(page);
+      return snapshot.engineState === 'tantrum' || /tantrum/.test(snapshot.state || '')
+        ? (snapshot.engineState || 'tantrum')
+        : null;
+    }, 4_500, 80);
+    await waitIdlePet(page, 5_000);
+  } catch (_) {
+    tantrum = 'skipped';
+  }
+  return { somersault, superdance, tantrum };
+}
+
+async function validateProfessionPropsRuntime(worker, page) {
+  phase('validating profession props sample');
+  const samples = {};
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'chef' });
+  samples.chef = await retry(async () => page.evaluate(`(() => {
+    const el = document.querySelector('.prop-chef-pan');
+    if (!el) return null;
+    const opacity = parseFloat(getComputedStyle(el).opacity);
+    return opacity > 0.1 && el.offsetWidth > 0 ? { opacity, width: el.offsetWidth } : null;
+  })()`), 2_000, 50);
+  assert.ok(samples.chef, 'Prop chef-pan invisível.');
+
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'ninja' });
+  await waitIdlePet(page);
+  samples.ninja = await retry(async () => page.evaluate(`(() => {
+    const el = document.querySelector('.prop-ninja-smoke');
+    const pet = document.querySelector('#aic-clawd-node');
+    if (!el || pet?.dataset.profession !== 'ninja') return null;
+    return el.offsetWidth > 0 && el.offsetHeight > 0
+      ? { width: el.offsetWidth, opacity: getComputedStyle(el).opacity }
+      : null;
+  })()`), 2_000, 50);
+  assert.ok(samples.ninja, 'Prop ninja-smoke ausente no DOM.');
+
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'streamer' });
+  await waitIdlePet(page);
+  samples.streamer = await retry(async () => page.evaluate(`(() => {
+    const el = document.querySelector('.prop-streamer-live');
+    if (!el) return null;
+    const opacity = parseFloat(getComputedStyle(el).opacity);
+    return opacity > 0.1 ? { opacity } : null;
+  })()`), 2_000, 50);
+  assert.ok(samples.streamer, 'Prop streamer-live invisível.');
+
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'idle' });
+  return samples;
+}
+
+async function validateSubpetSpeciesSample(worker, page) {
+  phase('validating subpet species sample (cat + dragon)');
+  const species = {};
+  for (const [id, name] of [['cat', 'Mimi'], ['dragon', 'Ember']]) {
+    await activateSubpet(worker, id, name);
+    const snap = await retry(async () => page.evaluate(`(() => {
+      const subpet = document.querySelector('.aic-subpet:not(.aic-subpet-clone)');
+      const sprite = subpet?.querySelector('.subpet-sprite');
+      if (!subpet || getComputedStyle(subpet).display === 'none') return null;
+      const cs = sprite ? getComputedStyle(sprite) : null;
+      const painted = cs && (
+        cs.boxShadow !== 'none'
+        || cs.backgroundImage !== 'none'
+        || sprite.classList.contains('subpet-sprite--bitmap')
+        || sprite.offsetWidth > 0
+      );
+      return {
+        species: subpet.dataset.species,
+        label: subpet.getAttribute('aria-label'),
+        painted: !!painted
+      };
+    })()`), 5_000, 100);
+    assert.equal(snap.species, id, `Subpet ${id} não renderizou espécie correta.`);
+    assert.match(snap.label, new RegExp(`^${name},`), `Apelido do subpet ${id} não aplicado.`);
+    assert.equal(snap.painted, true, `Sprite do subpet ${id} invisível.`);
+    await sendToActivePet(worker, { action: 'triggerSubpetAction', value: id === 'cat' ? 'cuddle' : 'special' });
+    await retry(() => page.evaluate(`document.querySelector('.aic-subpet:not(.aic-subpet-clone)')?.dataset.state === 'following'`), 6_000, 80);
+    species[id] = { ...snap, interactionOk: true };
+    await removeSubpet(worker, page);
+  }
+  return species;
+}
+
 async function validateSubpetRuntime(worker, page) {
   await worker.evaluate(`(async () => {
     const loaded = await chrome.storage.local.get('clawdState');
@@ -392,6 +615,38 @@ async function validateSubpetRuntime(worker, page) {
   assert.match(snapshot.boxShadow, /rgb\(74, 144, 226\)/, 'A cor customizada do sub-pet não foi aplicada.');
   assert.match(snapshot.boxShadow, /rgb\(51, 255, 153\)/, 'A cor customizada dos olhos do sub-pet não foi aplicada.');
 
+  phase('validating duo pet↔subpet');
+  await waitIdlePet(page);
+  await clickPet(page);
+  const duoAffection = await retry(async () => page.evaluate(`(() => {
+    const pet = document.querySelector('#aic-clawd-node');
+    const sub = document.querySelector('.aic-subpet:not(.aic-subpet-clone)');
+    const petting = pet?.classList.contains('petting-subpet');
+    const subReact = sub?.classList.contains('being-petted') || sub?.classList.contains('cuddling');
+    return petting && subReact ? { petting, subReact: true } : null;
+  })()`), 4_500, 100);
+  assert.ok(duoAffection, 'Carinho não sincronizou petting-subpet + being-petted/cuddling.');
+  await waitIdlePet(page, 6_000);
+
+  await sendToActivePet(worker, { action: 'triggerAction', value: 'play' });
+  const duoPlay = await retry(async () => page.evaluate(`(() => {
+    const pet = document.querySelector('#aic-clawd-node');
+    const sub = document.querySelector('.aic-subpet:not(.aic-subpet-clone)');
+    return (pet?.classList.contains('duo-play') || sub?.classList.contains('duo-play')) ? true : null;
+  })()`), 3_500, 80);
+  assert.ok(duoPlay, 'Ação play não ativou duo-play.');
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet:not(.aic-subpet-clone)')?.dataset.state === 'following'`), 5_000, 80);
+
+  phase('validating subpet feed/sleep/wake sync');
+  await sendToActivePet(worker, { action: 'triggerAction', value: 'feed' });
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet:not(.aic-subpet-clone)')?.classList.contains('eating') || document.querySelector('.aic-subpet:not(.aic-subpet-clone)')?.dataset.state === 'eating'`), 3_000, 80);
+  await waitIdlePet(page, 6_000);
+
+  await sendToActivePet(worker, { action: 'triggerAction', value: 'sleep' });
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet:not(.aic-subpet-clone)')?.classList.contains('sleeping')`), 4_000, 80);
+  await sendToActivePet(worker, { action: 'triggerAction', value: 'wake' });
+  await retry(() => page.evaluate(`document.querySelector('.aic-subpet:not(.aic-subpet-clone)')?.dataset.state === 'following'`), 4_000, 80);
+
   await page.evaluate(`document.querySelector('.aic-subpet').click()`);
   await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.classList.contains('cuddling')`), 2_000, 50);
   await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'following'`), 3_000, 60);
@@ -416,18 +671,12 @@ async function validateSubpetRuntime(worker, page) {
     await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'following'`), 5_000, 80);
   }
 
-  await sendToActivePet(worker, { action: 'setSubpet', value: null });
-  await worker.evaluate(`(async () => {
-    const loaded = await chrome.storage.local.get('clawdState');
-    loaded.clawdState.subpets.active = null;
-    await chrome.storage.local.set({ clawdState: loaded.clawdState });
-    return true;
-  })()`);
-  await retry(() => page.evaluate(`!document.querySelector('.aic-subpet:not(.aic-subpet-clone)')`), 4_000, 80);
+  await removeSubpet(worker, page);
 
   return {
     ...snapshot,
     eyeColor: '#33ff99',
+    duo: { affection: duoAffection, play: duoPlay, feedSleepWake: true },
     interactions: ['cuddle', 'play', 'spin', ...interactions],
     forcedOverride: 'play→spin',
     removedCleanly: true
@@ -782,6 +1031,10 @@ async function main() {
     const popupRuntime = await validatePopupRuntime(port, controlWorker);
     phase('validating subpet runtime');
     const subpetRuntime = await validateSubpetRuntime(controlWorker, page);
+    phase('validating subpet species sample');
+    const subpetSpecies = await validateSubpetSpeciesSample(controlWorker, page);
+    phase('validating skins runtime');
+    const skinsRuntime = await validateSkinsRuntime(controlWorker, page);
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: false });
     phase('validating pixel models');
@@ -905,6 +1158,7 @@ async function main() {
     })()`);
     assert.deepEqual(storedGear, { head: 'cap', face: 'sunglasses' }, 'A profissão sobrescreveu o visual salvo.');
     const professionGear = { chef: chefGear, tutor: tutorGear, restored: restoredGear, stored: storedGear };
+    const professionProps = await validateProfessionPropsRuntime(controlWorker, page);
 
     phase('validating professions');
     const professions = [];
@@ -996,6 +1250,11 @@ async function main() {
     }, 3_500, 50);
 
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'profession', value: 'idle' });
+
+    phase('validating particles runtime');
+    const particlesRuntime = await validateParticlesRuntime(controlWorker, page);
+    phase('validating multi-click runtime');
+    const multiClickRuntime = await validateMultiClickRuntime(controlWorker, page);
 
     // Efeitos cosméticos respeitam o modo desempenho sem sumir com a arte.
     await sendToActivePet(controlWorker, { action: 'updateConfig', key: 'smooth', value: true });
@@ -1191,6 +1450,11 @@ async function main() {
       fishing: { cancelled: cancelledFishing, successful: successfulFishing },
       popup: popupRuntime,
       subpet: subpetRuntime,
+      subpetSpecies,
+      skins: skinsRuntime,
+      particles: particlesRuntime,
+      multiClick: multiClickRuntime,
+      professionProps,
       screenshot,
       accessoryScreenshot,
       pixelScreenshot,

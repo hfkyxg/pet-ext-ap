@@ -404,8 +404,8 @@ class SubPet {
       'playing', 'cuddling', 'racing', 'spinning', 'celebrating',
       'exploring', 'vanishing', 'fire', 'split', 'perching', 'eating', 'cheering',
       'flying', 'summoning', 'wagging', 'double-hop', 'heavy-stomp', 'phasing', 'singing',
-      'watching-balloon', 'duo-hug', 'startled', 'tapped', 'settling', 'sleep-settle',
-      'being-petted', 'duo-play', 'nap-sync'
+      'watching-balloon', 'startled', 'tapped', 'settling', 'sleep-settle'
+      /* duo-hug / being-petted / duo-play / nap-sync: preservados — _beginInteraction não apaga a coreografia */
     );
     this._perch = false;
   }
@@ -435,6 +435,13 @@ class SubPet {
   /** Sincroniza animações com o estado do pet dono (passear/correr/comer/dormir/freestyle). */
   onOwnerState(state) {
     if (!this.node) return;
+    // Espelha cadência de passo do dono (walk/run bob alinhado)
+    if (this.owner?.node) {
+      const step = this.owner.node.style.getPropertyValue('--clawd-step-duration');
+      const run = this.owner.node.style.getPropertyValue('--clawd-run-duration');
+      if (step) this.node.style.setProperty('--clawd-step-duration', step);
+      if (run) this.node.style.setProperty('--clawd-run-duration', run);
+    }
     if (state === 'sleeping' && this.state !== 'sleeping') {
       this.sleep();
       return;
@@ -475,6 +482,9 @@ class SubPet {
       this._removeClone();
       this._setState('following');
       this._clearActionClasses();
+      // Pouso curto antes de voltar ao follow — evita snap seco
+      this.node?.classList.add('settling');
+      this._later(() => this.node?.classList.remove('settling'), 380);
       this._interactionBusy = false;
       this._interactionEndTimer = null;
       this._paint(true);
@@ -799,12 +809,16 @@ class SubPet {
         this._beginInteraction('playing', 'playing');
         if (this.species === 'rabbit') this.node?.classList.add('double-hop');
         if (this.species === 'dog') this.node?.classList.add('wagging');
-        this.owner.showSpeech('Vem brincar! 🎾', 2000);
+        this.node?.classList.add('duo-play');
+        if (!silent) this.owner.showSpeech('Vem brincar! 🎾', 2000);
         this.say(this.species === 'rabbit' ? 'Hop hop! 🐰' : 'Ual! ✨');
         this._burst(['🎾', '✨', '⭐'], 5);
         this._sfx(this.species === 'rabbit' ? 'hop' : 'play');
         this.owner.addXp(2);
-        this._finishInteractionAfter(this.species === 'rabbit' ? 3200 : 2800);
+        // Alinha com duo-hop 0.45s × 4 ≈ 1800ms (+ folga)
+        this._finishInteractionAfter(this.species === 'rabbit' ? 2200 : 2000, () => {
+          this.node?.classList.remove('duo-play', 'double-hop', 'wagging');
+        });
         break;
       case 'cuddle':
         this._beginInteraction('cuddling', 'cuddling');
@@ -812,11 +826,16 @@ class SubPet {
         this.say(this.species === 'dog' ? 'Au! 🦴❤️' : '❤️');
         this._burst(['💕', '💖', '✨'], 6);
         this._sfx(this.species === 'dog' ? 'wag' : 'cuddle');
-        this.owner.setStateFor('happy', 2000);
-        this.owner.showSpeech('Que fofo! 💕', 2200);
+        if (!silent) {
+          this.owner.setStateFor('happy', 1800);
+          this.owner.showSpeech('Que fofo! 💕', 2000);
+        }
         this.owner.spawnParticles();
         this.owner.addXp(2);
-        this._finishInteractionAfter(1200);
+        // being-petted / cuddle ≈ 0.5s × 3 + settle
+        this._finishInteractionAfter(1650, () => {
+          this.node?.classList.remove('being-petted', 'wagging');
+        });
         break;
       case 'stomp':
         this._beginInteraction('racing', 'heavy-stomp');
@@ -880,11 +899,12 @@ class SubPet {
         this.say(this.species === 'dog' ? 'Abanando! 🐶🎉' : 'Nós conseguimos! 🎉');
         // Não sobrescreve ações do dono (ex.: cheer → cheering); só sincroniza se ele estiver livre.
         if (!force && (this.owner.state === 'idle' || this.owner.state === 'walking')) {
-          this.owner.setStateFor('celebrate', 1900);
+          this.owner.setStateFor('celebrate', 2000);
         }
         this.owner.spawnParticles(['🎉', '✨', '⭐']);
         if (!force) this.owner.addXp(2);
-        this._finishInteractionAfter(1900, () => this.node?.classList.remove('fire', 'wagging'));
+        // 0.5s × 4 hops alinhados ao pet
+        this._finishInteractionAfter(2000, () => this.node?.classList.remove('fire', 'wagging'));
         break;
       case 'balloon':
         this._beginInteraction('playing', 'playing');
@@ -892,29 +912,25 @@ class SubPet {
         this._burst(['🎈', '✨'], 4);
         this._sfx('play');
         this.node?.classList.add('watching-balloon');
-        setTimeout(() => this.node?.classList.remove('watching-balloon'), 2200);
-        this._finishInteractionAfter(2200);
+        this._finishInteractionAfter(2200, () => this.node?.classList.remove('watching-balloon'));
         break;
       case 'hug':
-        this._beginInteraction('cuddling', 'cuddling');
+        this._beginInteraction('cuddling', 'duo-hug');
         this.say('🤗💕');
         this._burst(['🫶', '💖', '✨'], 5);
         this._sfx('cuddle');
-        this.node?.classList.add('duo-hug');
-        setTimeout(() => this.node?.classList.remove('duo-hug'), 1800);
-        this.owner.setStateFor?.('hugging', 1800);
+        // 0.55s × 3 ≈ 1650ms — mesma janela do dono
+        this.owner.setStateFor?.('hugging', 1650);
         if (!silent) this.owner.showSpeech?.('Abraço em duo! 🤗', 1800);
         this.owner.bumpStat('happiness', 4);
-        this._finishInteractionAfter(1800);
+        this._finishInteractionAfter(1650, () => this.node?.classList.remove('duo-hug'));
         break;
       case 'startle':
-        this._beginInteraction('playing', 'playing');
+        this._beginInteraction('startled', 'startled');
         this.say('Eek! 💥');
         this._burst(['💥', '🌀'], 4);
         this._sfx('stomp');
-        this.node?.classList.add('startled');
-        setTimeout(() => this.node?.classList.remove('startled'), 900);
-        this._finishInteractionAfter(900);
+        this._finishInteractionAfter(700, () => this.node?.classList.remove('startled'));
         break;
       case 'eat':
         if (this.species === 'slime') {
@@ -2254,7 +2270,7 @@ class ClawdCompanion {
         const speed = Math.sqrt(
           Math.pow(e.clientX - this._lastMX, 2) + Math.pow(e.clientY - this._lastMY, 2)
         );
-        if (speed > 18 && !this.S.settings.performanceMode && !this._reducedMotion && this._canSpawnFx(1)) {
+        if (speed > 18 && !this.S.settings.performanceMode && !this.S.settings.noParticles && !this._reducedMotion && this._canSpawnFx(1)) {
           const rect = this.node.getBoundingClientRect();
           const dust = document.createElement('div');
           dust.className = 'aic-dust';
@@ -3004,7 +3020,7 @@ class ClawdCompanion {
   /* ---------- INTERAÇÕES BÁSICAS ---------- */
   giveAffection() {
     if (this.state === 'sleeping') this.wakeUp();
-    this.setStateFor('happy', 1600);
+    this.setStateFor('happy', 1800);
     this.showSpeech(this.getRandom('happy'));
     const body = this.node?.dataset?.accBody;
     if (body === 'wings') this.spawnPixelSparks(['#b8d8e8', '#ffffff', '#fda7df'], { count: 5 });
@@ -3019,15 +3035,28 @@ class ClawdCompanion {
     this.registerDaily('pets');
     this.checkAchievements();
     this.updateEmotion(true);
-    if (this.subpet && this.subpet.species === 'slime' && Math.random() < 0.35) {
-      this.subpet.interact('special');
-    } else if (this.subpet && Math.random() < 0.4) {
-      this.subpet.interact('cuddle', { force: true });
+    // Carinho vira batida em duo: pet inclina, subpet reage
+    if (this.subpet) {
+      this.node?.classList.add('petting-subpet');
+      clearTimeout(this._pettingTimer);
+      this._pettingTimer = setTimeout(() => this.node?.classList.remove('petting-subpet'), 1800);
+      if (this.subpet.species === 'slime' && Math.random() < 0.28) {
+        setTimeout(() => {
+          if (!this._destroyed && this.subpet) this.subpet.interact('special', { force: true });
+        }, 200);
+      } else {
+        setTimeout(() => {
+          if (this._destroyed || !this.subpet?.node) return;
+          this.subpet.node.classList.add('being-petted');
+          this.subpet.interact('cuddle', { force: true, silent: true });
+        }, 180);
+      }
     }
   }
 
   spawnParticles(emojis, opts = {}) {
     if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (this.S.settings.noParticles) return;
     if (typeof opts === 'number') opts = { count: opts };
     let pool = emojis || ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
     const requested = Number(opts.count);
@@ -3037,9 +3066,9 @@ class ClawdCompanion {
       : fallback;
     if (!this._reserveFx(count)) return;
     const rect = this.node.getBoundingClientRect();
-    /* v3.3: particleColor — glow colorido customizado nas partículas */
+    /* Accent tipográfico sem blur — glow soft lavava a cena */
     const pColor = this.S.particleColor;
-    const glowStyle = pColor ? `filter:drop-shadow(0 0 4px ${pColor});` : '';
+    const glowStyle = pColor ? `color:${pColor};text-shadow:1px 1px 0 rgba(0,0,0,.35);` : '';
     for (let i = 0; i < count; i++) {
       setTimeout(() => {
         if (this._destroyed || document.hidden) {
@@ -3067,6 +3096,7 @@ class ClawdCompanion {
 
   _spawnWalkDust(count = 3) {
     if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (this.S.settings.noParticles) return;
     if (Date.now() - (this._lastWalkDust || 0) < 280) return;
     if (!this._reserveFx(count)) return;
     this._lastWalkDust = Date.now();
@@ -3268,8 +3298,8 @@ class ClawdCompanion {
 
   doPlay() {
     if (this.state === 'sleeping') this.wakeUp();
-    this.setStateFor('excited', 2500);
     this.showSpeech('Bola! 🎾', 2000);
+    this.chime([[520, 0.04], [660, 0.05], [820, 0.06]], 'actions');
     // bolinha sai do pé direito do pet (longe do subpet à esquerda)
     const rect = this.node.getBoundingClientRect();
     const ball = document.createElement('div');
@@ -3278,13 +3308,20 @@ class ClawdCompanion {
     ball.style.top = `${rect.top + rect.height * 0.55}px`;
     document.body.appendChild(ball);
     setTimeout(() => ball.remove(), 2000);
+    const withSub = !!this.subpet;
+    this.setStateFor(withSub ? 'bouncing' : 'excited', withSub ? 1800 : 2500);
+    if (withSub) {
+      this.node?.classList.add('duo-play');
+      clearTimeout(this._duoPlayTimer);
+      this._duoPlayTimer = setTimeout(() => this.node?.classList.remove('duo-play'), 1800);
+      this.subpet.node?.classList.add('duo-play');
+      this.subpet.interact('play', { force: true, silent: true });
+    }
     this.bumpStat('happiness', 6);
     this.registerDaily('play');
     this.bumpStat('energy', -4);
     this.addXp(3);
-    this.chime([[520, 0.04], [660, 0.05], [820, 0.06]], 'actions');
     this.spawnParticles(['🎾', '✨', '⭐'], { count: 3 });
-    if (this.subpet) this.subpet.interact('play');
   }
 
   doPose() {
@@ -3381,6 +3418,12 @@ class ClawdCompanion {
     this.spawnParticles(['✨', '💨'], { count: 3 });
     this.spawnPixelSparks(['#ffffff', '#f1c40f', '#3498db', this.S.color || '#c71515'], { count: 6 });
     this._spawnWalkDust(4);
+    // Poeira de impacto no pouso — sincronizada com o squash em 90% do keyframe (~0.63s)
+    this._jumpLandTimer = setTimeout(() => {
+      if (this._destroyed || this.state !== 'jumping') return;
+      this._lastWalkDust = 0; // ignora o throttle: é um segundo evento distinto (pouso)
+      this._spawnWalkDust(5);
+    }, 610);
     this.bumpStat('energy', -3);
     this.bumpStat('happiness', 3);
     this.addXp(2);
@@ -3565,14 +3608,17 @@ class ClawdCompanion {
 
   doHug() {
     if (this.state === 'sleeping') this.wakeUp();
-    this.setStateFor('hugging', 2000);
-    this.showSpeech(this.subpet ? 'Abraço em dupla! 🤗' : 'Abraço virtual! 🤗', 2200);
+    this.setStateFor('hugging', 1650);
+    this.showSpeech(this.subpet ? 'Abraço em dupla! 🤗' : 'Abraço virtual! 🤗', 2000);
     this.spawnParticles(['💖', '💕', '✨', '🫶']);
     this.bumpStat('happiness', 12);
     this.addXp(4);
     this.chime([[520, 0.06], [620, 0.06], [780, 0.1]]);
     this.updateEmotion(true);
-    if (this.subpet) this.subpet.interact('hug', { force: true, silent: true });
+    if (this.subpet) {
+      this.subpet.node?.classList.add('duo-hug');
+      this.subpet.interact('hug', { force: true, silent: true });
+    }
   }
 
   startRun(targetX) {
@@ -3595,7 +3641,7 @@ class ClawdCompanion {
 
       this.updatePosition(currentX, rect.top);
 
-      if (Math.random() < 0.15 && !this.S.settings.performanceMode && !this._reducedMotion && this._canSpawnFx(1)) {
+      if (Math.random() < 0.15 && !this.S.settings.performanceMode && !this.S.settings.noParticles && !this._reducedMotion && this._canSpawnFx(1)) {
         const dust = document.createElement('div');
         dust.className = 'aic-dust';
         dust.style.left = `${currentX + (dx < 0 ? 60 : -6)}px`;
@@ -4579,34 +4625,37 @@ class ClawdCompanion {
 
     switch (kind) {
       case 'cuddle':
-        this.setStateFor('hugging', 2200);
-        this.showSpeech(species === 'cat' ? 'Acariciando o gato... 🐱' : 'Abraço em duo! 🤗', 2200);
-        this.subpet.interact('hug', { force: true });
+        this.setStateFor('hugging', 1650);
+        this.showSpeech(species === 'cat' ? 'Acariciando o gato... 🐱' : 'Abraço em duo! 🤗', 2000);
+        this.subpet.node?.classList.add('duo-hug');
+        this.subpet.interact('hug', { force: true, silent: true });
         this.spawnParticles(['💕', '✨']);
         this.chime([[520, 0.05], [680, 0.06]]);
-        finish(2400);
+        finish(1800);
         break;
       case 'play':
         this.node?.classList.add('duo-play');
         this.setStateFor('bouncing', 1800);
         this.showSpeech(species === 'rabbit' ? 'Hop hop juntos! 🐰' : 'Brincadeira em duo! 🎾', 2000);
-        this.subpet.interact('play', { force: true });
         this.subpet.node?.classList.add('duo-play');
+        this.subpet.interact('play', { force: true, silent: true });
         this.spawnParticles(['✨', '⭐']);
         this.beep(700, 0.05);
-        finish(3200);
+        finish(2000);
         break;
       case 'nap':
         this.showSpeech('Soneca sincronizada... 💤', 2200);
-        this.subpet.node?.classList.add('nap-sync');
-        this.subpet.interact('nap', { force: true });
-        this.setStateFor('yawning', 1800);
+        this.node?.classList.add('sleep-settle');
+        this.subpet.node?.classList.add('nap-sync', 'sleep-settle');
+        this.setStateFor('yawning', 900);
         setTimeout(() => {
-          if (!this._destroyed && this.state !== 'sleeping') {
+          if (this._destroyed) return;
+          this.subpet?.interact('nap', { force: true });
+          if (this.state !== 'sleeping') {
             this.setState('sleeping');
             this.showSpeech('ZzZz... 💤', 5000);
           }
-        }, 1900);
+        }, 480);
         this.beep(260, 0.12, 'triangle');
         finish(9000);
         break;
@@ -4619,7 +4668,7 @@ class ClawdCompanion {
         break;
       case 'celebrate':
         if (species === 'dog') {
-          this.setStateFor('cheering', 1800);
+          this.setStateFor('cheering', 2000);
           this.showSpeech('Bom menino! 🦴🎉', 2000);
         } else {
           this.setStateFor('celebrate', 2000);
@@ -4633,19 +4682,23 @@ class ClawdCompanion {
       case 'pet':
       default:
         this.node?.classList.add('petting-subpet');
-        this.setStateFor('happy', 2000);
+        this.setStateFor('happy', 1800);
         this.showSpeech(
           species === 'dog' ? 'Fazendo carinho no doguinho... 🐶'
             : species === 'dragon' ? 'Carinho no dragão! 🐉'
             : 'Carinho no companheiro... ✨',
-          2200
+          2000
         );
         this.subpet.node?.classList.add('being-petted');
-        this.subpet.interact('cuddle', { force: true });
+        setTimeout(() => {
+          if (!this._destroyed && this.subpet) {
+            this.subpet.interact('cuddle', { force: true, silent: true });
+          }
+        }, 160);
         this.spawnParticles(['💖', '✨']);
         this.beep(640, 0.05, 'sine');
         this.addXp(1);
-        finish(2200);
+        finish(2000);
         break;
     }
     return true;
@@ -5693,7 +5746,9 @@ class ClawdCompanion {
       /* v3.3 */
       '_comboTimer', '_speedrunTimer', '_ambientWeatherTimer',
       /* v3.4 / tick5 */
-      '_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer', '_ballClickTimer'
+      '_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer', '_ballClickTimer',
+      /* duo / petting */
+      '_pettingTimer', '_duoPlayTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;

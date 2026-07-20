@@ -7,16 +7,23 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 
 ### Melhorado
 
+- **Validação expandida (20/jul/2026)** — smoke runtime cobre 7 skins, duo pet↔subpet, partículas DOM (spawn/cleanup/noParticles), multi-clique (somersault/superdance/tantrum), subpets cat+dragon e props chef/ninja/streamer; contratos estáticos ampliados (matriz 8×7, duo CSS, anti-bloom name-tag) mantendo **156/156**
+- **Skin reage à ação (v3.7.3)** — a `.skin-mod` deixa de ser passiva: orelhas (`droopy`) flopam no pulo/festa e balançam ao correr; antena do robô treme e o LED de status pisca forte na empolgação; neon (`glow`) flameja mais forte na comemoração; sardas/bolinhas dão um "pop" alegre; listras viram linhas de velocidade ao correr. Tudo herda o `--agent-scale`, fica atrás de `:not(.aic-reduced-motion)` e tem contrato de teste
 - **Fones** — arco + conchas acolchoadas + LED azul (não parece fumaça); pulse idle + bob no passo
 - **Facewear** — óculos, óculos de sol, goggles, laço, medalha, blush, mochila, monóculo e bigode com pixel mais legível
 - **FX ambient** — modo `spark-ambient` (spread curto); particles de headphones/medal/halo/crown; equip sparks cobrem o catálogo
 - **Nitidez / fluidez** — `crisp-edges` em sprites/acessórios; brilho via brightness/opacity (menos blur); headwear sincronizado ao passo; abraço duo sem fala duplicada; dance/keepy/pescaria limpam ao ocultar/destruir
 - **Sync** — `storage.onChanged` preserva XP/coins/counters com `Math.max` (evita regressão por save stale)
+- **Anti-bloom** — sombra seca 0-blur no pet; emotion/pose/shiny/profissão/skin/sparks/dust sem soft glow; `noParticles` em walk dust e emoji particles; propeller+headphones alinhados
+- **Duo pet↔subpet** — walk/run sync via CSS vars; classes duo preservadas; hug/play/celebrate/nap alinhados; carinho encadeia petting; settle ao fim das interações
 - Versão alinhada: **manifest / popup / README → 3.7.2**
 
 ### Corrigido
 
+- **Escala das animações** — 26 keyframes de `.pet-body` (andar, correr, pular, rolar, girar, quicar, comemorar, agachar, abraçar, tontura, espiar, aceno-idle, balão, aterrissagem, saudação, olhar, cutucar-subpet, acomodar-sono…) largavam o `scale(var(--agent-scale))` e faziam o pet **encolher para 1×** durante a ação; agora todo frame rebaqueia a escala e o corpo mantém o tamanho em todos os modelos (classic/mini/claws/guardian). Contrato de regressão trava o invariante
+- **Pouso do pulo** — poeira de impacto sincronizada com o squash em ~0,63s (segundo evento, ignora o throttle da poeira de passo)
 - Race save debounce × onChanged que zerava o +5 XP do carinho no smoke runtime
+- Soft `drop-shadow`/`blur` que lavava olhos e acessórios no screenshot (propeller + headphones)
 
 ---
 

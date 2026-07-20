@@ -16,10 +16,25 @@
 | **Duo** | Hug `silent`; dance/keepy/fish limpam em hide/destroy; subpet rAF pause | ✅ |
 | **Sync** | onChanged: XP/coins/counters com Math.max (anti-regressão stale) | ✅ |
 | **Cross-tab** | weekly alarm, travel disconnect, persist max XP/coins | ✅ |
+| **Duo** | Walk/run sync; duo classes preservadas; hug/play/celebrate alinhados; carinho→petting | ✅ |
 | **Versão** | manifest / popup / README → **3.7.2** | ✅ |
 | **Tests** | **156/156** + ecosystem OK | ✅ |
+| **Smoke expandido** | skins · duo · partículas · multi-clique · cat/dragon · props profissão | ✅ |
 
 ---
+
+## v3.7.2 — Validação expandida (2026-07-20)
+
+| Fase | Cobertura | Estado |
+|------|-----------|--------|
+| **Estático (156)** | duo CSS, subpet walk/run sync, `_playDuoScene`, destroy timers, matriz 8×7, anti-bloom name-tag | ✅ |
+| **Smoke skins** | 7× `CLAWD_SKINS` → `dataset.skin` + `.skin-mod` | ✅ |
+| **Smoke duo** | petting-subpet + being-petted; play→duo-play; feed/sleep/wake sync | ✅ |
+| **Smoke partículas** | cheer → `.aic-particle`; cleanup; `noParticles` bloqueia | ✅ |
+| **Smoke multi-clique** | 2=somersault · 3=superdance · 5=tantrum | ✅ |
+| **Smoke subpets** | dog completo + amostra cat/dragon | ✅ |
+| **Smoke props** | chef-pan · ninja-smoke · streamer-live | ✅ |
+
 
 ## v3.7.1 — Sync GitHub v4 + partículas (2026-07-19)
 

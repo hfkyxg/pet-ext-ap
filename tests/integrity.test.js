@@ -129,6 +129,20 @@ test('sub-pets oferecem as interações do catálogo', () => {
   for (const [id, a] of Object.entries(CLAWD_SUBPET_ACTIONS)) {
     assert.ok(a.emoji && a.label && a.feedback, `metadados faltando em ${id}`);
   }
+  /* Matriz 8 espécies × 7 ações — todas mapeadas em SubPet.interact */
+  const content = read('src/content/content.js');
+  const interactIdx = content.indexOf('interact(kind, { force = false, silent = false } = {})');
+  assert.ok(interactIdx > 0, 'SubPet.interact ausente');
+  const interactSlice = content.slice(interactIdx, interactIdx + 9000);
+  for (const action of Object.keys(CLAWD_SUBPET_ACTIONS)) {
+    assert.match(interactSlice, new RegExp(`case '${action}':`), `ação ${action} sem case em interact`);
+  }
+  assert.equal(Object.keys(CLAWD_SUBPETS).length, 8);
+  for (const species of Object.keys(CLAWD_SUBPETS)) {
+    assert.match(content, new RegExp(`${species}:\\s*\\(`), `espécie ${species} sem handler _special`);
+  }
+  /* _clearActionClasses preserva classes duo */
+  assert.match(content, /_clearActionClasses\(\)[\s\S]{0,520}duo-hug[\s\S]{0,120}being-petted[\s\S]{0,120}duo-play[\s\S]{0,120}nap-sync/);
 });
 
 test('sprites de sub-pet cobrem todas as espécies e não duplicam no showcase', () => {

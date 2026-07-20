@@ -85,20 +85,21 @@
   25%     { transform: scale(var(--agent-scale, 1.5)) translate(-8px,-12px) rotate(-6deg); }
   75%     { transform: scale(var(--agent-scale, 1.5)) translate(8px,-12px)  rotate(6deg); }
 }
-/* Pose: congela com brilho */
+/* Pose: congela com brilho pixel (sem bloom) */
 @keyframes clawd-pose-sparkle {
-  0%,100% { filter: drop-shadow(0 5px 8px rgba(0,0,0,0.45)) brightness(1); }
-  50%     { filter: drop-shadow(0 5px 14px rgba(255,215,0,0.6)) brightness(1.25); }
+  0%,100% { filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1); }
+  50%     { filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1.22); }
 }
 @keyframes clawd-zzz {
   0%   { opacity: 0; transform: translate(0,0) scale(0.6); }
   30%  { opacity: 1; }
   100% { opacity: 0; transform: translate(18px,-25px) scale(1.1); }
 }
-/* Poeirinha da corrida */
+/* Poeirinha da corrida — steps pixel, sem scale mole */
 @keyframes clawd-dust {
-  0%   { opacity: 0.7; transform: scale(0.5); }
-  100% { opacity: 0;   transform: scale(1.6) translateY(-6px); }
+  0%   { opacity: 0.85; transform: translate(0, 0); }
+  50%  { opacity: 0.5; transform: translate(-2px, -3px); }
+  100% { opacity: 0;   transform: translate(-4px, -6px); }
 }
 /* Bolinha de brincar */
 @keyframes clawd-toyball {
@@ -400,7 +401,8 @@
   transform: scale(var(--agent-scale, 1.5));
   transform-origin: bottom center;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(0px 5px 8px rgba(0,0,0,0.45));
+  /* Sombra seca 0-blur — bloom lavava olhos/acessórios no screenshot */
+  filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32));
 }
 
 /* --- STACK: sprite + camadas (acessórios acompanham todos os frames) --- */
@@ -938,7 +940,67 @@
   animation: clawd-skin-spot-bob 2.6s ease-in-out infinite;
 }
 #aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"] .skin-mod {
+  transform-origin: 20px 3px;
   animation: clawd-skin-droopy-sway 3.4s ease-in-out infinite;
+}
+
+/* ===== SKIN REAGE À AÇÃO (v3.7.3) =====
+   Estados carregam classe própria → especificidade vence o idle acima.
+   Motion herda o scale do corpo; sempre atrás de :not(.aic-reduced-motion). */
+
+/* Orelhas caídas: flopam no pulo/festa e balançam ao correr */
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"].jumping .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"].excited .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"].happy .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"].celebrate .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"].tab-greet .skin-mod {
+  animation: clawd-skin-droopy-flop 0.5s cubic-bezier(.34, 1.5, .64, 1) infinite !important;
+}
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"].walking .skin-mod {
+  animation: clawd-skin-droopy-run var(--clawd-step-duration, .42s) ease-in-out infinite !important;
+}
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="droopy"].running .skin-mod {
+  animation: clawd-skin-droopy-run var(--clawd-run-duration, .18s) ease-in-out infinite !important;
+}
+
+/* Robô: antena treme e o LED de status pisca forte na empolgação */
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="robot"] .skin-mod { transform-origin: 20px 18px; }
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="robot"].excited .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="robot"].electrified .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="robot"].roaring .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="robot"].happy .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="robot"].celebrate .skin-mod {
+  animation: clawd-skin-robot-alert 0.4s ease-in-out infinite !important;
+}
+
+/* Neon: faixa de status flameja mais forte e rápido na festa */
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="glow"].happy .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="glow"].excited .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="glow"].celebrate .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="glow"].dance-1 .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="glow"].dance-2 .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="glow"].dance-3 .skin-mod {
+  animation: clawd-skin-glow-flare 0.55s ease-in-out infinite !important;
+}
+
+/* Sardas e bolinhas: dão um "pop" alegre ao comemorar */
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="freckles"] .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="spots"] .skin-mod { transform-origin: 20px 15px; }
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="freckles"].happy .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="freckles"].excited .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="freckles"].celebrate .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="spots"].happy .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="spots"].excited .skin-mod,
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="spots"].celebrate .skin-mod {
+  animation: clawd-skin-pop 0.45s ease-in-out infinite !important;
+}
+
+/* Listras: viram linhas de velocidade ao andar/correr */
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="stripes"].walking .skin-mod {
+  animation: clawd-skin-stripe-streak var(--clawd-step-duration, .42s) steps(2) infinite !important;
+}
+#aic-clawd-node:not(.aic-reduced-motion)[data-skin="stripes"].running .skin-mod {
+  animation: clawd-skin-stripe-streak var(--clawd-run-duration, .18s) steps(2) infinite !important;
 }
 
 /* ===== LAPTOP (Dev digitando) — só Engenheiro, colado ao pet ===== */
@@ -975,14 +1037,14 @@
    MODO LISO x PIXELADO / CONTORNO
    ============================ */
 #aic-clawd-node.smooth .sprite-stack {
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,.12));
+  filter: drop-shadow(1px 2px 0 rgba(0,0,0,.18));
   transition: filter .2s ease, transform .18s cubic-bezier(.34, 1.4, .64, 1);
 }
 #aic-clawd-node.smooth:hover:not(.dragging):not(.walking):not(.running):not(.sleeping) .sprite-stack {
-  filter: drop-shadow(0 3px 2px rgba(0,0,0,.16)) drop-shadow(0 0 5px var(--clawd-glow, rgba(167,139,250,0.45))) brightness(1.06);
+  filter: drop-shadow(2px 3px 0 rgba(0,0,0,.22)) brightness(1.05);
 }
 #aic-clawd-node.smooth.dragging .sprite-stack {
-  filter: drop-shadow(0 6px 4px rgba(0,0,0,.22));
+  filter: drop-shadow(2px 4px 0 rgba(0,0,0,.26));
   transform: scale(1.05);
 }
 #aic-clawd-node.smooth.pressing:not(.dragging) .smooth-sprite {
@@ -990,9 +1052,9 @@
   transform: scale(0.92, 1.06);
   transition: transform .08s ease-out;
 }
-/* Hover estado pixel-art (modo não-smooth) */
+/* Hover estado pixel-art (modo não-smooth) — sombra seca */
 #aic-clawd-node:not(.smooth):not(.dragging):not(.sleeping):hover .pet-body {
-  filter: brightness(1.07) drop-shadow(0 2px 4px rgba(0,0,0,0.22));
+  filter: brightness(1.06) drop-shadow(2px 3px 0 rgba(0,0,0,0.38));
   transition: filter 0.18s ease;
 }
 /* Ring de clique — expande e some ao pressionar */
@@ -1044,9 +1106,9 @@
     drop-shadow(0 -2px 0 var(--outline-color, #16161f));
 }
 
-/* Banho: pet brilhando */
+/* Banho: pet brilhando sem bloom */
 #aic-clawd-node.shiny .sprite-stack {
-  filter: brightness(1.15) saturate(1.15) drop-shadow(0 0 6px rgba(160,220,255,0.7));
+  filter: brightness(1.12) saturate(1.12);
 }
 #aic-clawd-node.aic-nofx.shiny .sprite-stack,
 #aic-clawd-node.aic-reduced-motion.shiny .sprite-stack {
@@ -1334,15 +1396,15 @@
   animation-timing-function: ease-out !important;
 }
 @keyframes clawd-pixel-spark {
-  0%   { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
-  55%  { opacity: 0.85; transform: translate(calc(var(--spark-x, 8px) * 0.55), calc(var(--spark-y, -40px) * 0.55)) scale(1.15) rotate(90deg); }
-  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)) scale(0.45) rotate(180deg); }
+  0%   { opacity: 1; transform: translate(0, 0); }
+  55%  { opacity: 0.9; transform: translate(calc(var(--spark-x, 8px) * 0.55), calc(var(--spark-y, -40px) * 0.55)); }
+  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)); }
 }
 @keyframes clawd-pixel-spark-twinkle {
-  0%   { opacity: 1; transform: translate(0, 0) scale(0.7) rotate(0deg); }
-  35%  { opacity: 1; transform: translate(calc(var(--spark-x, 8px) * 0.35), calc(var(--spark-y, -40px) * 0.4)) scale(1.35) rotate(45deg); }
-  70%  { opacity: 0.7; transform: translate(calc(var(--spark-x, 8px) * 0.75), calc(var(--spark-y, -40px) * 0.8)) scale(0.9) rotate(120deg); }
-  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)) scale(0.3) rotate(200deg); }
+  0%   { opacity: 1; transform: translate(0, 0); }
+  35%  { opacity: 1; transform: translate(calc(var(--spark-x, 8px) * 0.35), calc(var(--spark-y, -40px) * 0.4)); }
+  70%  { opacity: 0.75; transform: translate(calc(var(--spark-x, 8px) * 0.75), calc(var(--spark-y, -40px) * 0.8)); }
+  100% { opacity: 0; transform: translate(var(--spark-x, 8px), var(--spark-y, -40px)); }
 }
 
 /* Trave pixel-art no gol */
@@ -1409,9 +1471,10 @@
   transform: translateX(-30%);
   width: 56px;
   height: 8px;
-  background: rgba(0,0,0,0.22);
+  background: rgba(0,0,0,0.2);
   border-radius: 50%;
-  filter: blur(3px);
+  /* sem filter:blur — sombra de chão não pode suavizar o pet */
+  filter: none;
   animation: none;
   pointer-events: none;
 }
@@ -1450,9 +1513,9 @@
   background: rgba(255,255,255,.96);
   border: 2px solid var(--agent-color);
   border-radius: 50% 50% 50% 12px;
-  box-shadow: 0 5px 14px rgba(0,0,0,.22);
+  box-shadow: 2px 3px 0 rgba(0,0,0,.2);
   pointer-events: none;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+  filter: none;
   opacity: 0;
   transform: translateY(6px) scale(.65) rotate(-8deg);
   transition: opacity .22s ease, transform .32s cubic-bezier(.34,1.56,.64,1);
@@ -1477,8 +1540,13 @@
   0%, 100% { transform: translateY(0) rotate(-4deg); }
   50% { transform: translateY(2px) rotate(3deg); }
 }
+/* Emoção alegre: brilho no chão, não bloom no sprite */
 #aic-clawd-node.emotion-glow .pet-body {
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--agent-color) 35%, transparent));
+  filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1.04);
+}
+#aic-clawd-node.emotion-glow .ground-shadow {
+  background: color-mix(in srgb, var(--agent-color) 28%, rgba(0,0,0,0.18));
+  opacity: 0.95;
 }
 
 /* Pop suave ao vestir acessório */
@@ -1981,7 +2049,7 @@
   margin-top: 6px;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.22);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -2016,8 +2084,8 @@
   background: rgba(10,10,20,0.95);
   color: #0ff;
   border-color: #0ff;
-  text-shadow: 0 0 6px #0ff;
-  box-shadow: 0 0 12px rgba(0,255,255,0.5);
+  text-shadow: none;
+  box-shadow: 2px 2px 0 rgba(0,255,255,0.35);
 }
 #aic-clawd-node[data-tag-theme="invisible"] .name-tag { display: none; }
 
@@ -2300,7 +2368,7 @@
     2px 0 #9b59b6, 4px 0 #8e44ad, 6px 0 #9b59b6, 8px 0 #6c3483,
     0 2px #8e44ad, 2px 2px #bb8fce, 4px 2px #8e44ad, 6px 2px #6c3483, 10px 2px #8e44ad,
     2px 4px #6c3483, 4px 4px #8e44ad, 6px 4px #6c3483;
-  filter: drop-shadow(0 0 4px rgba(155, 89, 182, 0.7));
+  filter: brightness(1.12);
 }
 
 /* ============================
@@ -2583,9 +2651,11 @@
   70% { transform: translateY(-1px) scale(0.99, 1.02); }
 }
 @keyframes clawd-subpet-hop {
-  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
-  35% { transform: scale(calc(var(--subpet-scale, 1) * 0.95), calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) translateY(-12px) rotate(-4deg); }
-  70% { transform: scale(calc(var(--subpet-scale, 1) * 1.06), calc(var(--subpet-scale, 1) * 0.92)) scaleX(var(--subpet-direction)) translateY(-4px) rotate(3deg); }
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
+  12% { transform: scale(calc(var(--subpet-scale, 1) * 1.1), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)) translateY(1px); }
+  40% { transform: scale(calc(var(--subpet-scale, 1) * 0.92), calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) translateY(-14px) rotate(-4deg); }
+  72% { transform: scale(calc(var(--subpet-scale, 1) * 1.08), calc(var(--subpet-scale, 1) * 0.9)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(3deg); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
 }
 @keyframes clawd-subpet-run {
   0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
@@ -2593,24 +2663,24 @@
   75% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px) rotate(6deg); }
 }
 .aic-subpet.playing .subpet-sprite { animation: clawd-subpet-hop 0.4s ease-in-out infinite; }
-.aic-subpet.cuddling .subpet-sprite { animation: clawd-subpet-cuddle 0.32s ease-in-out 3; }
-.aic-subpet.racing .subpet-sprite { animation: clawd-subpet-run 0.18s ease-in-out infinite; }
-/* Walk/run do dono não pode ganhar de carinho/special/tap/duo (mesma especificidade + ordem). */
+.aic-subpet.cuddling .subpet-sprite { animation: clawd-subpet-cuddle 0.5s ease-in-out 3; }
+.aic-subpet.racing .subpet-sprite { animation: clawd-subpet-run var(--clawd-run-duration, .18s) steps(2) infinite; }
+/* Walk/run do dono — cadência espelhada via CSS vars (não pode ganhar de carinho/duo). */
 .aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run 0.18s ease-in-out infinite;
+  animation: clawd-subpet-run var(--clawd-run-duration, .18s) steps(2) infinite;
 }
 .aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run 0.28s ease-in-out infinite;
+  animation: clawd-subpet-run var(--clawd-step-duration, .42s) steps(2) infinite;
 }
 .aic-subpet.eating .subpet-sprite { animation: clawd-subpet-eat 0.35s ease-in-out 5; }
 .aic-subpet.cheering .subpet-sprite { animation: clawd-subpet-celebrate 0.4s cubic-bezier(.34,1.56,.64,1) infinite; }
 .aic-subpet.waking .subpet-sprite { animation: clawd-subpet-wake 1s cubic-bezier(.34,1.56,.64,1); }
 .aic-subpet.spinning .subpet-sprite { animation: clawd-subpet-spin 0.62s cubic-bezier(.45,.05,.55,.95) 2; }
-.aic-subpet.celebrating .subpet-sprite { animation: clawd-subpet-celebrate 0.46s cubic-bezier(.34,1.56,.64,1) 4; }
+.aic-subpet.celebrating .subpet-sprite { animation: clawd-subpet-celebrate 0.5s cubic-bezier(.34,1.56,.64,1) 4; }
 .aic-subpet.exploring .subpet-sprite { animation: clawd-subpet-explore 0.34s ease-in-out infinite; }
 .aic-subpet.vanishing .subpet-sprite { animation: clawd-subpet-vanish 1.9s ease-in-out both; }
-.aic-subpet.sleeping .subpet-sprite { filter: brightness(0.7) saturate(0.45) drop-shadow(0 3px 4px rgba(0,0,0,0.2)); }
-.aic-subpet.fire .subpet-sprite { filter: drop-shadow(0 0 10px rgba(231,76,60,0.95)) brightness(1.15); }
+.aic-subpet.sleeping .subpet-sprite { filter: brightness(0.7) saturate(0.45) drop-shadow(0 2px 0 rgba(0,0,0,0.28)); }
+.aic-subpet.fire .subpet-sprite { filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28)) brightness(1.12) saturate(1.2); }
 .aic-subpet.perching .subpet-motion { animation: clawd-subpet-idle 1.6s ease-in-out infinite; }
 .aic-subpet.wagging .subpet-sprite { animation: clawd-subpet-wag 0.28s ease-in-out infinite; }
 .aic-subpet.double-hop .subpet-sprite { animation: clawd-subpet-double-hop 0.7s cubic-bezier(.34,1.4,.64,1) 2; }
@@ -2660,8 +2730,10 @@
 }
 .aic-subpet.split .subpet-sprite { animation: clawd-subpet-split 0.5s ease-in-out 3; }
 @keyframes clawd-subpet-cuddle {
-  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
-  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) rotate(-5deg); }
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  25% { transform: scale(calc(var(--subpet-scale, 1) * 1.14), calc(var(--subpet-scale, 1) * 0.9)) scaleX(var(--subpet-direction)) rotate(-4deg); }
+  55% { transform: scale(calc(var(--subpet-scale, 1) * 0.94), calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) rotate(3deg) translateY(-2px); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
 }
 @keyframes clawd-subpet-eat {
   0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
@@ -2688,8 +2760,8 @@
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px) rotate(2deg); filter: brightness(1.13); }
 }
 @keyframes clawd-subpet-vanish {
-  0%, 100% { opacity: 1; transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); filter: blur(0) brightness(1); }
-  45%, 62% { opacity: .08; transform: scale(calc(var(--subpet-scale, 1) * .68)) scaleX(var(--subpet-direction)) translateY(-8px); filter: blur(1px) brightness(1.8); }
+  0%, 100% { opacity: 1; transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); filter: brightness(1); }
+  45%, 62% { opacity: .12; transform: scale(calc(var(--subpet-scale, 1) * .72)) scaleX(var(--subpet-direction)) translateY(-8px); filter: brightness(1.35); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2744,7 +2816,7 @@
 }
 #aic-clawd-node.sleeping .pet-body {
   animation: clawd-breathe 2.5s ease-in-out infinite !important;
-  filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.2));
+  filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.28)) brightness(0.92);
 }
 #aic-clawd-node.sleeping .name-tag { opacity: 0.5; font-size: 11px; }
 #aic-clawd-node.sleeping .ground-shadow { opacity: 0.15; }
@@ -2756,7 +2828,7 @@
 }
 #aic-clawd-node.excited .pet-body {
   animation: clawd-shake 0.35s ease-in-out infinite !important;
-  filter: drop-shadow(0px 6px 10px rgba(0,0,0,0.5));
+  filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.4)) brightness(1.05);
 }
 
 /* WAVING */
@@ -2778,7 +2850,7 @@
 
 /* CELEBRATE */
 #aic-clawd-node.celebrate .pet-body {
-  animation: clawd-celebrate 0.7s cubic-bezier(0.34,1.56,0.64,1) 3 !important;
+  animation: clawd-celebrate 0.5s cubic-bezier(0.34,1.56,0.64,1) 4 !important;
 }
 #aic-clawd-node.celebrate .pixel-sprite {
   animation: none !important;
@@ -2873,8 +2945,8 @@
   50% { opacity: 1; filter: brightness(1.22); }
 }
 @keyframes clawd-headphones-pulse {
-  0%, 100% { opacity: 1; transform: translateY(0); }
-  50% { opacity: 0.92; transform: translateY(-0.5px); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
 }
 @keyframes clawd-facewear-bob {
   0%, 100% { transform: translateY(0); }
@@ -2917,17 +2989,19 @@
 #aic-clawd-node.walking .acc-head {
   animation: clawd-headwear-step var(--clawd-step-duration, .42s) ease-in-out infinite !important;
   transform-origin: 22px 4px;
-  will-change: transform;
 }
 #aic-clawd-node.running .acc-head {
   animation: clawd-headwear-step var(--clawd-run-duration, .18s) ease-in-out infinite !important;
   transform-origin: 22px 4px;
-  will-change: transform;
 }
 
 /* Fones ficam atrás do chapéu quando os dois slots são combinados. */
 #aic-clawd-node[data-acc-head]:not([data-acc-head="none"])[data-acc-face="headphones"] .acc-face {
   z-index: 3;
+}
+/* Propeller + headphones: fones 2px mais baixos (não compete com a hélice) */
+#aic-clawd-node[data-acc-head="propeller"][data-acc-face="headphones"] .acc-face {
+  top: 2px;
 }
 
 /* O modo desempenho preserva a arte e corta somente animações cosméticas. */
@@ -3923,9 +3997,9 @@
 #aic-clawd-node[data-model="guardian"] .smooth-leg-3 { left: 28px; }
 #aic-clawd-node[data-model="guardian"] .smooth-leg-4 { left: 36px; }
 
-/* Acessórios lisos: assento suave sobre a coroa arredondada */
+/* Acessórios lisos: sombra seca (não blur) */
 #aic-clawd-node.smooth .acc-head {
-  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.18));
+  filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.22));
 }
 #aic-clawd-node.smooth.profession-headwear .acc-head {
   animation: clawd-gear-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -3938,13 +4012,13 @@
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* Glow colorido das profissões durante ação ativa */
-#aic-clawd-node[data-profession="doctor"].healing     .sprite-stack { filter: drop-shadow(0 0 6px rgba(231,76,60,0.6)); }
-#aic-clawd-node[data-profession="artist"].painting    .sprite-stack { filter: drop-shadow(0 0 6px rgba(232,67,147,0.6)); }
-#aic-clawd-node[data-profession="gamer"].gaming       .sprite-stack { filter: drop-shadow(0 0 6px rgba(52,152,219,0.6)); }
-#aic-clawd-node[data-profession="streamer"].streaming .sprite-stack { filter: drop-shadow(0 0 6px rgba(255,71,87,0.6)); }
-#aic-clawd-node[data-profession="chef"].cooking       .sprite-stack { filter: drop-shadow(0 0 6px rgba(230,126,34,0.6)); }
-#aic-clawd-node[data-profession="musician"].jamming   .sprite-stack { filter: drop-shadow(0 0 6px rgba(142,68,173,0.6)); }
+/* Brilho de profissão via brightness (sem bloom no stack) */
+#aic-clawd-node[data-profession="doctor"].healing     .sprite-stack { filter: brightness(1.1) saturate(1.15); }
+#aic-clawd-node[data-profession="artist"].painting    .sprite-stack { filter: brightness(1.1) saturate(1.2); }
+#aic-clawd-node[data-profession="gamer"].gaming       .sprite-stack { filter: brightness(1.08) saturate(1.15); }
+#aic-clawd-node[data-profession="streamer"].streaming .sprite-stack { filter: brightness(1.1) saturate(1.2); }
+#aic-clawd-node[data-profession="chef"].cooking       .sprite-stack { filter: brightness(1.08) saturate(1.15); }
+#aic-clawd-node[data-profession="musician"].jamming   .sprite-stack { filter: brightness(1.1) saturate(1.15); }
 
 /* ---- Props de profissão ---- */
 #aic-clawd-node .profession-prop {
@@ -4278,38 +4352,38 @@
 
 /* ---- Novas ações do pet principal ---- */
 @keyframes clawd-spin-action {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) rotate(360deg); }
 }
 @keyframes clawd-bounce-action {
-  0%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-14px); }
-  70% { transform: translateY(-4px); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+  40% { transform: scale(var(--agent-scale, 1.5)) translateY(-14px); }
+  70% { transform: scale(var(--agent-scale, 1.5)) translateY(-4px); }
 }
 @keyframes clawd-wink-cover {
   0%, 55%, 100% { opacity: 0; }
   60%, 90% { opacity: 1; }
 }
 @keyframes clawd-cheer-hop {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-10px) scale(1.06); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1); }
+  50% { transform: scale(var(--agent-scale, 1.5)) translateY(-10px) scale(1.06); }
 }
 @keyframes clawd-sneak {
-  0%, 100% { transform: translateX(0) scaleY(0.92); }
-  50% { transform: translateX(6px) scaleY(0.88); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateX(0) scaleY(0.92); }
+  50% { transform: scale(var(--agent-scale, 1.5)) translateX(6px) scaleY(0.88); }
 }
 @keyframes clawd-clap {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) scale(1); }
+  50% { transform: scale(var(--agent-scale, 1.5)) scale(1.08); }
 }
 @keyframes clawd-peek {
-  0%, 100% { transform: translateY(0); }
-  40% { transform: translateY(8px); }
-  70% { transform: translateY(4px); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+  40% { transform: scale(var(--agent-scale, 1.5)) translateY(8px); }
+  70% { transform: scale(var(--agent-scale, 1.5)) translateY(4px); }
 }
 @keyframes clawd-roll {
-  0% { transform: translateX(0) rotate(0deg); }
-  100% { transform: translateX(24px) rotate(360deg); }
+  0% { transform: scale(var(--agent-scale, 1.5)) translateX(0) rotate(0deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateX(24px) rotate(360deg); }
 }
 #aic-clawd-node.spinning .pet-body,
 #aic-clawd-node.spinning .smooth-sprite {
@@ -4371,8 +4445,8 @@
   animation: clawd-balloon-hold 2.8s cubic-bezier(.45,.05,.55,.95) infinite !important;
 }
 @keyframes clawd-balloon-hold {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+  50% { transform: scale(var(--agent-scale, 1.5)) translateY(-3px); }
 }
 #aic-clawd-node.balloon-pop .balloon-layer {
   display: block;
@@ -4392,18 +4466,18 @@
   animation: clawd-hug-squash 0.55s ease-in-out 3 !important;
 }
 @keyframes clawd-hug-squash {
-  0%, 100% { transform: scale(1, 1); }
-  50% { transform: scale(1.12, 0.9); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) scale(1, 1); }
+  50% { transform: scale(var(--agent-scale, 1.5)) scale(1.12, 0.9); }
 }
 #aic-clawd-node.dizzy .pet-body,
 #aic-clawd-node.dizzy .smooth-sprite {
   animation: clawd-dizzy-spin 0.9s ease-in-out both !important;
 }
 @keyframes clawd-dizzy-spin {
-  0% { transform: rotate(0) translateY(0); }
-  30% { transform: rotate(18deg) translateY(-4px); }
-  60% { transform: rotate(-16deg) translateY(-2px); }
-  100% { transform: rotate(0) translateY(0); }
+  0% { transform: scale(var(--agent-scale, 1.5)) rotate(0) translateY(0); }
+  30% { transform: scale(var(--agent-scale, 1.5)) rotate(18deg) translateY(-4px); }
+  60% { transform: scale(var(--agent-scale, 1.5)) rotate(-16deg) translateY(-2px); }
+  100% { transform: scale(var(--agent-scale, 1.5)) rotate(0) translateY(0); }
 }
 #aic-clawd-node.curious .pet-body,
 #aic-clawd-node.curious .smooth-sprite {
@@ -4411,8 +4485,8 @@
 }
 .aic-subpet.watching-balloon { animation: clawd-cheer-hop 0.45s ease-in-out 3; }
 .aic-subpet.duo-hug {
-  animation: clawd-hug-squash 0.5s ease-in-out 3;
-  filter: drop-shadow(0 0 4px rgba(255,120,180,.55));
+  animation: clawd-hug-squash 0.55s ease-in-out 3;
+  filter: brightness(1.06);
 }
 .aic-subpet.startled { animation: clawd-startle-jump 0.55s cubic-bezier(.34,1.4,.64,1) both; }
 @keyframes clawd-startle-jump {
@@ -4425,9 +4499,9 @@
 
 /* ===== LOCOMOÇÃO PET + SUBPET FLIGHT / SUMMON ===== */
 @keyframes clawd-walk-bob {
-  0%, 100% { transform: translateY(0) scaleY(1); }
-  35% { transform: translateY(-2px) scaleY(1.02); }
-  70% { transform: translateY(-4px) scaleY(0.98); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+  35% { transform: scale(var(--agent-scale, 1.5)) translateY(-2px) scaleY(1.02); }
+  70% { transform: scale(var(--agent-scale, 1.5)) translateY(-4px) scaleY(0.98); }
 }
 #aic-clawd-node.walking .pet-body {
   animation: clawd-walk-bob var(--clawd-step-duration, .42s) cubic-bezier(.45,.05,.55,.95) infinite;
@@ -4451,9 +4525,9 @@
   animation: clawd-walk-dust-rich 0.58s cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
 }
 @keyframes clawd-walk-dust-rich {
-  0%   { opacity: 0.9; transform: translate(0, 0) scale(1) rotate(0deg); }
-  40%  { opacity: 0.7; transform: translate(-6px, -4px) scale(1.2) rotate(20deg); }
-  100% { opacity: 0; transform: translate(-14px, -2px) scale(0.5) rotate(40deg); }
+  0%   { opacity: 0.9; transform: translate(0, 0); }
+  40%  { opacity: 0.65; transform: translate(-6px, -3px); }
+  100% { opacity: 0; transform: translate(-12px, -2px); }
 }
 
 .aic-subpet.flying .subpet-motion {
@@ -4465,11 +4539,11 @@
   66% { transform: translateY(-9px) rotate(4deg) scale(0.98, 1.04); }
 }
 .aic-subpet.flying .subpet-sprite {
-  filter: drop-shadow(0 5px 5px rgba(0,0,0,0.28)) drop-shadow(0 0 6px rgba(195, 155, 211, 0.35));
+  filter: drop-shadow(0 3px 0 rgba(0,0,0,0.3));
 }
 .aic-subpet.fire.flying .subpet-sprite,
 .aic-subpet.fire .subpet-sprite {
-  filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.65)) brightness(1.15);
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28)) brightness(1.12) saturate(1.25);
 }
 .aic-subpet.summoning .subpet-motion {
   animation: clawd-subpet-summon 0.65s cubic-bezier(.34,1.56,.64,1) both !important;
@@ -4479,10 +4553,14 @@
   55% { transform: translateY(-5px) scale(1.14); opacity: 1; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
-.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite,
-.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite,
+.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
+  animation: clawd-subpet-run var(--clawd-step-duration, .42s) steps(2) infinite;
+}
+.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
+  animation: clawd-subpet-run var(--clawd-run-duration, .18s) steps(2) infinite;
+}
 .aic-subpet.moving:not(.flying):not(.playing):not(.racing):not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run 0.28s ease-in-out infinite;
+  animation: clawd-subpet-run var(--clawd-step-duration, .42s) steps(2) infinite;
 }
 .aic-subpet.flying .subpet-motion,
 .aic-subpet.summoning .subpet-motion {
@@ -4497,36 +4575,36 @@
 
 /* ===== Novas animações: olhar, pouso, saudação, peek na página ===== */
 @keyframes clawd-look-around {
-  0%, 100% { transform: rotateY(0deg) translateX(0); }
-  25% { transform: rotateY(-12deg) translateX(-2px); }
-  55% { transform: rotateY(14deg) translateX(2px); }
-  80% { transform: rotateY(-6deg) translateX(-1px); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) rotateY(0deg) translateX(0); }
+  25% { transform: scale(var(--agent-scale, 1.5)) rotateY(-12deg) translateX(-2px); }
+  55% { transform: scale(var(--agent-scale, 1.5)) rotateY(14deg) translateX(2px); }
+  80% { transform: scale(var(--agent-scale, 1.5)) rotateY(-6deg) translateX(-1px); }
 }
 @keyframes clawd-soft-land {
-  0% { transform: translateY(-10px) scale(1.04, 0.92); }
-  45% { transform: translateY(2px) scale(0.96, 1.06); }
-  100% { transform: translateY(0) scale(1, 1); }
+  0% { transform: scale(var(--agent-scale, 1.5)) translateY(-10px) scale(1.04, 0.92); }
+  45% { transform: scale(var(--agent-scale, 1.5)) translateY(2px) scale(0.96, 1.06); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1, 1); }
 }
 @keyframes clawd-tab-greet {
-  0% { transform: translateY(0) scale(1); }
-  30% { transform: translateY(-14px) scale(1.08); }
-  55% { transform: translateY(-4px) scale(1.02); }
-  100% { transform: translateY(0) scale(1); }
+  0% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1); }
+  30% { transform: scale(var(--agent-scale, 1.5)) translateY(-14px) scale(1.08); }
+  55% { transform: scale(var(--agent-scale, 1.5)) translateY(-4px) scale(1.02); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1); }
 }
 @keyframes clawd-page-peek {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  35% { transform: translateY(6px) rotate(-4deg); }
-  70% { transform: translateY(3px) rotate(3deg); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) rotate(0deg); }
+  35% { transform: scale(var(--agent-scale, 1.5)) translateY(6px) rotate(-4deg); }
+  70% { transform: scale(var(--agent-scale, 1.5)) translateY(3px) rotate(3deg); }
 }
 @keyframes clawd-duo-hop {
-  0%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-12px); }
-  70% { transform: translateY(-3px); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+  40% { transform: scale(var(--agent-scale, 1.5)) translateY(-12px); }
+  70% { transform: scale(var(--agent-scale, 1.5)) translateY(-3px); }
 }
 @keyframes clawd-pet-subpet {
-  0%, 100% { transform: rotate(0deg) translateX(0); }
-  30% { transform: rotate(-8deg) translateX(-3px); }
-  60% { transform: rotate(6deg) translateX(2px); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg) translateX(0); }
+  30% { transform: scale(var(--agent-scale, 1.5)) rotate(-8deg) translateX(-3px); }
+  60% { transform: scale(var(--agent-scale, 1.5)) rotate(6deg) translateX(2px); }
 }
 
 #aic-clawd-node.looking-around .pet-body,
@@ -4555,7 +4633,7 @@
   animation: clawd-pet-subpet 0.55s ease-in-out 3 !important;
 }
 .aic-subpet.duo-play .subpet-sprite {
-  animation: clawd-duo-hop 0.42s ease-in-out 4 !important;
+  animation: clawd-duo-hop 0.45s ease-in-out 4 !important;
 }
 .aic-subpet.nap-sync {
   filter: brightness(0.85) saturate(0.7);
@@ -4563,12 +4641,16 @@
 .aic-subpet.being-petted .subpet-sprite {
   animation: clawd-subpet-cuddle 0.5s ease-in-out 3 !important;
 }
+.aic-subpet.nap-sync.sleep-settle .subpet-sprite,
+.aic-subpet.sleep-settle .subpet-sprite {
+  animation: clawd-subpet-sleep-settle 0.45s ease-out both !important;
+}
 
 /* Soft sleep settle — pet principal acomoda o corpo ao deitar */
 @keyframes clawd-sleep-settle {
-  0% { transform: translateY(0) scale(1, 1); }
-  40% { transform: translateY(3px) scale(1.06, 0.88); }
-  100% { transform: translateY(0) scale(1, 1); }
+  0% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1, 1); }
+  40% { transform: scale(var(--agent-scale, 1.5)) translateY(3px) scale(1.06, 0.88); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1, 1); }
 }
 #aic-clawd-node.sleep-settle .pet-body,
 #aic-clawd-node.sleep-settle .smooth-sprite {
@@ -4610,20 +4692,20 @@
   100% { transform: scale(var(--agent-scale,1.5)) scaleX(1) translateY(0); }
 }
 
-/* Meditação flutuante */
+/* Meditação flutuante — sem bloom */
 @keyframes clawd-meditate {
-  0%,100% { transform: scale(var(--agent-scale,1.5)) translateY(0); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)); }
-  40%     { transform: scale(var(--agent-scale,1.5)) translateY(-8px); filter: drop-shadow(0 2px 16px rgba(155,89,182,0.5)); }
-  70%     { transform: scale(var(--agent-scale,1.5)) translateY(-5px); filter: drop-shadow(0 3px 12px rgba(52,152,219,0.4)); }
+  0%,100% { transform: scale(var(--agent-scale,1.5)) translateY(0); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1); }
+  40%     { transform: scale(var(--agent-scale,1.5)) translateY(-8px); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.28)) brightness(1.08); }
+  70%     { transform: scale(var(--agent-scale,1.5)) translateY(-5px); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.3)) brightness(1.05); }
 }
 
-/* Descarga elétrica */
+/* Descarga elétrica — flash via brightness, sem glow blur */
 @keyframes clawd-electric {
-  0%,100% { transform: scale(var(--agent-scale,1.5)) translateX(0); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)); }
-  10%     { transform: scale(var(--agent-scale,1.5)) translateX(-3px); filter: drop-shadow(0 0 10px rgba(241,196,15,0.9)); }
-  20%     { transform: scale(var(--agent-scale,1.5)) translateX(3px); filter: drop-shadow(0 0 14px rgba(52,152,219,0.9)); }
-  30%     { transform: scale(var(--agent-scale,1.5)) translateX(-3px); filter: drop-shadow(0 0 10px rgba(241,196,15,0.8)); }
-  40%     { transform: scale(var(--agent-scale,1.5)) translateX(2px); filter: drop-shadow(0 0 12px rgba(52,152,219,0.7)); }
+  0%,100% { transform: scale(var(--agent-scale,1.5)) translateX(0); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1); }
+  10%     { transform: scale(var(--agent-scale,1.5)) translateX(-3px); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1.35); }
+  20%     { transform: scale(var(--agent-scale,1.5)) translateX(3px); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1.2); }
+  30%     { transform: scale(var(--agent-scale,1.5)) translateX(-3px); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1.3); }
+  40%     { transform: scale(var(--agent-scale,1.5)) translateX(2px); filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) brightness(1.15); }
   50%     { transform: scale(var(--agent-scale,1.5)) translateX(-2px); }
 }
 
@@ -4633,10 +4715,10 @@
   50%     { transform: scale(var(--agent-scale,1.5)) translateY(-6px); }
 }
 
-/* Aura arco-íris (level 30) */
+/* Aura arco-íris (level 30) — hue sem bloom */
 @keyframes clawd-rainbow-glow {
-  0%   { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)) hue-rotate(0deg); }
-  100% { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)) hue-rotate(360deg); }
+  0%   { filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) hue-rotate(0deg) brightness(1.02); }
+  100% { filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32)) hue-rotate(360deg) brightness(1.02); }
 }
 
 /* Partícula confetti com rotação aleatória */
@@ -4751,8 +4833,8 @@
   45%       { filter: brightness(1.35); opacity: 0.95; }
 }
 @keyframes clawd-skin-glow-pulse {
-  0%, 100% { filter: brightness(1) drop-shadow(0 0 2px rgba(0,206,201,0.4)); }
-  50%       { filter: brightness(1.18) drop-shadow(0 0 5px rgba(129,236,236,0.7)); }
+  0%, 100% { filter: brightness(1); }
+  50%       { filter: brightness(1.16); }
 }
 @keyframes clawd-skin-robot-scan {
   0%, 100% { filter: saturate(0.35) brightness(1.1); }
@@ -4774,9 +4856,42 @@
   0%, 100% { transform: rotate(0deg); }
   50%       { transform: rotate(1.5deg); }
 }
+
+/* ---- Reações da skin às ações (v3.7.3) ----
+   A skin-mod deixa de ser passiva e responde ao estado do pet.
+   Motion pequeno e nítido; herdam o scale do .pet-body pai. */
+@keyframes clawd-skin-droopy-flop {
+  0%   { transform: rotate(0deg) translateY(0); }
+  22%  { transform: rotate(-7deg) translateY(-1px); }
+  52%  { transform: rotate(6deg) translateY(1.5px); }
+  78%  { transform: rotate(-3deg) translateY(0.5px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+@keyframes clawd-skin-droopy-run {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  50%       { transform: rotate(4deg) translateY(-1px); }
+}
+@keyframes clawd-skin-robot-alert {
+  0%, 100% { transform: rotate(0deg); filter: brightness(1.15) saturate(1.25); }
+  25%       { transform: rotate(-5deg); filter: brightness(1.7) saturate(1.6); }
+  60%       { transform: rotate(5deg); filter: brightness(1.35) saturate(1.4); }
+}
+@keyframes clawd-skin-glow-flare {
+  0%, 100% { filter: brightness(1.12) saturate(1.2); }
+  50%       { filter: brightness(1.7) saturate(1.5); }
+}
+@keyframes clawd-skin-pop {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  40%       { transform: scale(1.14); filter: brightness(1.35); }
+  65%       { transform: scale(0.97); filter: brightness(1.1); }
+}
+@keyframes clawd-skin-stripe-streak {
+  0%, 100% { transform: translateX(0); filter: brightness(1.05) contrast(1.12); }
+  50%       { transform: translateX(-1.5px); filter: brightness(1.14) contrast(1.24); }
+}
 @keyframes clawd-face-sparkle-twinkle {
   0%, 100% { filter: brightness(1); }
-  45%       { filter: brightness(1.4) drop-shadow(0 0 2px rgba(255,255,255,0.9)); }
+  45%       { filter: brightness(1.35); }
 }
 @keyframes clawd-face-heart-pulse {
   0%, 100% { transform: scale(1); }
@@ -4796,12 +4911,13 @@
   border-color: rgba(255,255,255,0.5);
 }
 #aic-clawd-node[data-tag-theme="holographic"] .name-tag {
-  background: linear-gradient(90deg, rgba(10,10,30,0.85) 0%, rgba(80,80,220,0.55) 50%, rgba(10,10,30,0.85) 100%);
+  background: linear-gradient(90deg, rgba(10,10,30,0.92) 0%, rgba(80,80,220,0.7) 50%, rgba(10,10,30,0.92) 100%);
   background-size: 200% 100%;
   animation: clawd-holographic-shimmer 2.5s linear infinite;
   border-color: rgba(100,150,255,0.6);
   color: #e0e8ff;
-  text-shadow: 0 0 8px rgba(100,150,255,0.8);
+  text-shadow: none;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.35);
 }
 #aic-clawd-node[data-tag-theme="minimal"] .name-tag {
   background: transparent;
@@ -4819,50 +4935,50 @@
 
 /* ---- Variações de Idle (v3.4) ---- */
 @keyframes clawd-idle-look {
-  0%   { transform: rotate(0deg); }
-  20%  { transform: rotate(-5deg); }
-  50%  { transform: rotate(5deg); }
-  80%  { transform: rotate(-3deg); }
-  100% { transform: rotate(0deg); }
+  0%   { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
+  20%  { transform: scale(var(--agent-scale, 1.5)) rotate(-5deg); }
+  50%  { transform: scale(var(--agent-scale, 1.5)) rotate(5deg); }
+  80%  { transform: scale(var(--agent-scale, 1.5)) rotate(-3deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg); }
 }
 @keyframes clawd-idle-scratch {
-  0%,100% { transform: translateX(0); }
-  15%     { transform: translateX(2px) translateY(-1px); }
-  30%     { transform: translateX(0); }
-  45%     { transform: translateX(2px) translateY(-1px); }
-  60%     { transform: translateX(0); }
-  75%     { transform: translateX(2px) translateY(-1px); }
-  90%     { transform: translateX(0); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateX(0); }
+  15%     { transform: scale(var(--agent-scale, 1.5)) translateX(2px) translateY(-1px); }
+  30%     { transform: scale(var(--agent-scale, 1.5)) translateX(0); }
+  45%     { transform: scale(var(--agent-scale, 1.5)) translateX(2px) translateY(-1px); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateX(0); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) translateX(2px) translateY(-1px); }
+  90%     { transform: scale(var(--agent-scale, 1.5)) translateX(0); }
 }
 @keyframes clawd-idle-taptoe {
-  0%,100% { transform: scaleY(1); }
-  15%     { transform: scaleY(0.98) translateY(1px); }
-  30%     { transform: scaleY(1.02) translateY(-1px); }
-  45%     { transform: scaleY(0.98) translateY(1px); }
-  60%     { transform: scaleY(1.02) translateY(-1px); }
-  75%     { transform: scaleY(0.99); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
+  15%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.98) translateY(1px); }
+  30%     { transform: scale(var(--agent-scale, 1.5)) scaleY(1.02) translateY(-1px); }
+  45%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.98) translateY(1px); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) scaleY(1.02) translateY(-1px); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.99); }
 }
 @keyframes clawd-idle-sway {
-  0%,100% { transform: rotate(0deg) translateX(0); }
-  25%     { transform: rotate(-3deg) translateX(-1px); }
-  75%     { transform: rotate(3deg) translateX(1px); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) rotate(0deg) translateX(0); }
+  25%     { transform: scale(var(--agent-scale, 1.5)) rotate(-3deg) translateX(-1px); }
+  75%     { transform: scale(var(--agent-scale, 1.5)) rotate(3deg) translateX(1px); }
 }
 @keyframes clawd-idle-nudge {
-  0%,100% { transform: translateY(0) scale(1); }
-  40%     { transform: translateY(-3px) scale(1.03); }
-  70%     { transform: translateY(1px) scale(0.98); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1); }
+  40%     { transform: scale(var(--agent-scale, 1.5)) translateY(-3px) scale(1.03); }
+  70%     { transform: scale(var(--agent-scale, 1.5)) translateY(1px) scale(0.98); }
 }
 @keyframes clawd-idle-hop {
-  0%,100% { transform: translateY(0); }
-  35%     { transform: translateY(-6px); }
-  55%     { transform: translateY(-2px); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
+  35%     { transform: scale(var(--agent-scale, 1.5)) translateY(-6px); }
+  55%     { transform: scale(var(--agent-scale, 1.5)) translateY(-2px); }
 }
 @keyframes clawd-idle-shimmy {
-  0%,100% { transform: translateX(0) rotate(0); }
-  20%     { transform: translateX(-2px) rotate(-4deg); }
-  40%     { transform: translateX(2px) rotate(4deg); }
-  60%     { transform: translateX(-2px) rotate(-3deg); }
-  80%     { transform: translateX(2px) rotate(2deg); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) translateX(0) rotate(0); }
+  20%     { transform: scale(var(--agent-scale, 1.5)) translateX(-2px) rotate(-4deg); }
+  40%     { transform: scale(var(--agent-scale, 1.5)) translateX(2px) rotate(4deg); }
+  60%     { transform: scale(var(--agent-scale, 1.5)) translateX(-2px) rotate(-3deg); }
+  80%     { transform: scale(var(--agent-scale, 1.5)) translateX(2px) rotate(2deg); }
 }
 
 /* Classes para variações de idle */
@@ -4876,10 +4992,10 @@
 
 /* ---- Summon drop (v3.4) ---- */
 @keyframes clawd-summon-drop {
-  0%   { transform: translateY(-80px) scale(0.3) rotate(-15deg); opacity: 0.2; }
-  70%  { transform: translateY(8px) scale(1.1) rotate(2deg);  opacity: 1; }
-  85%  { transform: translateY(-4px) scale(0.95) rotate(-1deg); }
-  100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+  0%   { transform: scale(var(--agent-scale, 1.5)) translateY(-80px) scale(0.3) rotate(-15deg); opacity: 0.2; }
+  70%  { transform: scale(var(--agent-scale, 1.5)) translateY(8px) scale(1.1) rotate(2deg);  opacity: 1; }
+  85%  { transform: scale(var(--agent-scale, 1.5)) translateY(-4px) scale(0.95) rotate(-1deg); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scale(1) rotate(0); opacity: 1; }
 }
 #aic-clawd-node.clawd-summon-drop .pet-body,
 #aic-clawd-node.clawd-summon-drop .smooth-sprite {

@@ -81,6 +81,31 @@ test('qualidade: sprites pet — ações vencem breathe; idle variations !import
   assert.match(style, /\.pixel-fx[\s\S]{0,40}clawd-pixel-fx-wave|clawd-pixel-fx-wave/);
   assert.match(style, /aic-tab-hidden[\s\S]{0,200}animation-play-state:\s*paused/);
   assert.match(style, /aic-nofx \.pixel-legs|aic-reduced-motion \.pixel-legs/);
+
+  /* Regressão de escala: keyframes aplicados ao .pet-body sobrescrevem o transform
+     base scale(var(--agent-scale)). Se um frame com translate/rotate/scale esquecer
+     de rebaquear o scale, o pet colapsa para 1× ao andar/correr/pular/rolar. */
+  const applied = new Set();
+  const styleNoComments = style.replace(/\/\*[\s\S]*?\*\//g, ''); // comentários podem citar ".pet-body"
+  const ruleRe = /([^{}]*\.pet-body[^{}]*)\{([^}]*)\}/g;
+  let mm;
+  while ((mm = ruleRe.exec(styleNoComments))) {
+    const am = /animation:\s*(clawd-[a-z0-9-]+)/.exec(mm[2]);
+    if (am) applied.add(am[1]);
+  }
+  assert.ok(applied.size >= 20, `esperava muitos estados de .pet-body, achei ${applied.size}`);
+  const kf = {};
+  const kfRe = /@keyframes\s+(clawd-[a-z0-9-]+)\s*\{([\s\S]*?)\n\}/g;
+  while ((mm = kfRe.exec(style))) kf[mm[1]] = mm[2];
+  const offenders = [];
+  for (const name of applied) {
+    const body = kf[name];
+    if (!body) continue; // keyframe pode viver noutro arquivo; ignore
+    const transforms = body.split('\n').filter((l) => /transform:/.test(l));
+    const missing = transforms.filter((l) => !/--agent-scale/.test(l));
+    if (missing.length) offenders.push(`${name} (${missing.length}/${transforms.length})`);
+  }
+  assert.deepEqual(offenders, [], `keyframes de .pet-body que largam o scale: ${offenders.join(', ')}`);
 });
 
 test('qualidade: subpet — sync spawn, FX release, settle wake, vanish', () => {
@@ -91,6 +116,17 @@ test('qualidade: subpet — sync spawn, FX release, settle wake, vanish', () => 
   assert.match(content, /_beginInteraction\('vanishing',\s*'vanishing'\)/);
   assert.match(content, /paintCadence|_useBitmap\(\)/);
   assert.match(content, /being-petted.*duo-play|duo-play.*being-petted/);
+  /* giveAffection encadeia petting-subpet + cuddle no subpet */
+  const affIdx = content.indexOf('\n  giveAffection() {');
+  assert.ok(affIdx > 0);
+  const affSlice = content.slice(affIdx, affIdx + 1800);
+  assert.match(affSlice, /petting-subpet/);
+  assert.match(affSlice, /subpet\.interact\('cuddle'/);
+  /* _playDuoScene — cenas cuddle|play|nap|celebrate|pet */
+  assert.match(content, /_playDuoScene\(kind\)/);
+  for (const scene of ['cuddle', 'play', 'nap', 'celebrate', 'pet']) {
+    assert.match(content, new RegExp(`case '${scene}':`));
+  }
 });
 
 test('qualidade: contexto reage com throttle (sem spam ao trocar abas)', () => {
@@ -219,6 +255,8 @@ test('qualidade: destroy limpa timers, rAF, abort e partículas', () => {
   assert.match(destroySlice, /_motionRaf|_glideRaf/);
   assert.match(destroySlice, /_particleTimers/);
   assert.match(destroySlice, /clearTimeout|clearInterval/);
+  assert.match(destroySlice, /_pettingTimer|_duoPlayTimer/);
+  assert.match(destroySlice, /_clearDanceTimers/);
 });
 
 test('qualidade: contagens vivas batem com onboarding (harmonia UX)', () => {
@@ -243,7 +281,8 @@ test('qualidade: ações antes mudas têm SFX; pó/clima respeitam reduced-motio
   const wakeIdx = content.indexOf('\n  wakeUp() {');
   assert.ok(wakeIdx > 0);
   assert.match(content.slice(wakeIdx, wakeIdx + 500), /chime\(/);
-  assert.match(content, /_spawnWalkDust\(count[\s\S]{0,120}_reducedMotion/);
+  assert.match(content, /_spawnWalkDust\(count[\s\S]{0,160}noParticles[\s\S]{0,80}_reducedMotion|_spawnWalkDust\(count[\s\S]{0,120}_reducedMotion[\s\S]{0,80}noParticles/);
+  assert.match(content, /spawnParticles\([\s\S]{0,200}noParticles/);
   assert.match(content, /_spawnAmbientWeather\(\)[\s\S]{0,180}_reducedMotion/);
   assert.match(content, /!this\._reducedMotion && this\._canSpawnFx\(1\)/);
   assert.match(popupJs, /previewVolumeChirp\(v,\s*'actions'\)/);

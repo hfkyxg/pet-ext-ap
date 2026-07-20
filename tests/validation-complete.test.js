@@ -83,6 +83,12 @@ test('validação: clique 1/2/3+/5 → carinho/cambalhota/superdance/tantrum', (
   assert.match(content, /_clickCount\s*>=\s*3[\s\S]{0,80}doSuperDance/);
   assert.match(content, /_clickCount\s*===\s*2[\s\S]{0,80}doSomersault/);
   assert.match(content, /giveAffection/);
+  /* Duo CSS — coreografia pet↔subpet */
+  for (const cls of ['petting-subpet', 'being-petted', 'duo-play', 'duo-hug', 'nap-sync', 'sleep-settle', 'settling']) {
+    assert.match(style, new RegExp(`\\.${cls}\\b|#aic-clawd-node\\.${cls}\\b|\\.aic-subpet\\.${cls}\\b`));
+  }
+  assert.match(style, /clawd-subpet-run var\(--clawd-run-duration[\s\S]{0,80}steps\(2\)/);
+  assert.match(style, /clawd-subpet-run var\(--clawd-step-duration[\s\S]{0,80}steps\(2\)/);
 });
 
 test('validação: atalhos Alt+F/H/P/Z e bola/balão', () => {
@@ -174,6 +180,11 @@ test('validação: props de profissão no DOM + CSS', () => {
   for (const p of props) {
     assert.match(content, new RegExp(p));
     assert.match(style, new RegExp(`\\.${p}`));
+  }
+  /* Amostra runtime-ready: chef / ninja / streamer */
+  for (const p of ['prop-chef-pan', 'prop-ninja-smoke', 'prop-streamer-live']) {
+    assert.match(content, new RegExp(`profession-prop ${p}`));
+    assert.match(style, new RegExp(`\\.${p}\\s*\\{[\\s\\S]{0,220}(width|height|background|animation|box-shadow)`));
   }
 });
 
@@ -338,4 +349,25 @@ test('validação: skins com animação + partículas pixel ricas', () => {
   assert.match(style, /\.aic-pixel-spark\.spark-star/);
   assert.match(style, /@keyframes clawd-walk-dust-rich/);
   assert.match(content, /spark-sm[\s\S]{0,80}spark-star/);
+  /* Anti-bloom: sombra seca no corpo; sparks/dust sem scale/rotate mole */
+  assert.match(style, /\.pet-body \{[\s\S]{0,280}drop-shadow\(2px 3px 0/);
+  assert.doesNotMatch(style, /\.pet-body \{[\s\S]{0,280}drop-shadow\(0px 5px 8px/);
+  assert.match(style, /@keyframes clawd-pixel-spark \{[\s\S]{0,220}translate\(var\(--spark-x/);
+  assert.doesNotMatch(style, /@keyframes clawd-pixel-spark \{[\s\S]{0,280}rotate\(180deg\)/);
+
+  /* v3.7.3: skin reage à ação — keyframes de reação existem e estão ligados a estados */
+  for (const kf of ['droopy-flop', 'droopy-run', 'robot-alert', 'glow-flare', 'pop', 'stripe-streak']) {
+    assert.match(style, new RegExp(`@keyframes clawd-skin-${kf}\\b`), `keyframe reação ${kf}`);
+  }
+  assert.match(style, /\[data-skin="droopy"\]\.jumping \.skin-mod[\s\S]{0,400}clawd-skin-droopy-flop/);
+  assert.match(style, /\[data-skin="robot"\]\.excited \.skin-mod[\s\S]{0,400}clawd-skin-robot-alert/);
+  assert.match(style, /\[data-skin="glow"\]\.celebrate \.skin-mod[\s\S]{0,400}clawd-skin-glow-flare/);
+  assert.match(style, /\[data-skin="stripes"\]\.running \.skin-mod[\s\S]{0,120}clawd-skin-stripe-streak/);
+  /* reações herdam gate de reduced-motion */
+  assert.match(style, /:not\(\.aic-reduced-motion\)\[data-skin="droopy"\]\.happy \.skin-mod/);
+  /* Name-tag neon/holographic — anti-bloom (sem text-shadow blur) */
+  for (const theme of ['neon', 'holographic']) {
+    assert.match(style, new RegExp(`\\[data-tag-theme="${theme}"\\][\\s\\S]{0,280}text-shadow:\\s*none`));
+    assert.doesNotMatch(style, new RegExp(`\\[data-tag-theme="${theme}"\\][\\s\\S]{0,320}text-shadow:[^;]*blur\\(`));
+  }
 });
