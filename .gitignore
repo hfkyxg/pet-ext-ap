@@ -16,6 +16,7 @@ Desktop.ini
 # Artefatos de smoke / perfis isolados
 tests/shots/
 tests/sprite-out/
+!tests/sprite-out/Subpets-selection.png
 .edge-profile*/
 .tmp/
 tmp/
