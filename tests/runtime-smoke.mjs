@@ -150,6 +150,34 @@ async function sendToActivePet(worker, message) {
   })()`);
 }
 
+/** Dispara FX de prop de profissão no mundo isolado (window.__clawd). */
+async function pulseProfessionProp(worker, kind) {
+  const kindJson = JSON.stringify(kind);
+  return worker.evaluate(`(async () => {
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (!tab?.id) throw new Error('Aba ativa indisponível.');
+    const [{ result }] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      world: 'ISOLATED',
+      func: (mode) => {
+        const p = globalThis.__clawd;
+        if (!p) return false;
+        if (mode === 'ninja' && typeof p._pulseProfessionFx === 'function') {
+          p._pulseProfessionFx('stealthing', 2500);
+          return true;
+        }
+        if (mode === 'streamer' && typeof p._streamerLive === 'function') {
+          p._streamerLive();
+          return true;
+        }
+        return false;
+      },
+      args: [${kindJson}]
+    });
+    return result;
+  })()`);
+}
+
 async function validatePopupRuntime(port, worker) {
   const popupUrl = await worker.evaluate(`chrome.runtime.getURL('src/popup/popup.html')`);
   const popupStatus = await worker.evaluate(`fetch(chrome.runtime.getURL('src/popup/popup.html')).then(r => r.status).catch(e => String(e))`);
@@ -511,37 +539,50 @@ async function validateMultiClickRuntime(worker, page) {
 async function validateProfessionPropsRuntime(worker, page) {
   phase('validating profession props sample');
   const samples = {};
+  /* Props ficam opacity:0 em repouso — só aparecem no FX da ação da profissão. */
+
   await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'chef' });
+  await sendToActivePet(worker, { action: 'triggerAction', value: 'feed' });
   samples.chef = await retry(async () => page.evaluate(`(() => {
+    const pet = document.querySelector('#aic-clawd-node');
     const el = document.querySelector('.prop-chef-pan');
-    if (!el) return null;
+    if (!el || !pet?.classList.contains('cooking')) return null;
     const opacity = parseFloat(getComputedStyle(el).opacity);
     return opacity > 0.1 && el.offsetWidth > 0 ? { opacity, width: el.offsetWidth } : null;
-  })()`), 2_000, 50);
-  assert.ok(samples.chef, 'Prop chef-pan invisível.');
+  })()`), 3_000, 50);
+  assert.ok(samples.chef, 'Prop chef-pan invisível durante cooking.');
 
-  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'ninja' });
   await waitIdlePet(page);
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'ninja' });
+  await retry(() => page.evaluate(`document.querySelector('#aic-clawd-node')?.dataset.profession === 'ninja'`), 3_000, 50);
+  const ninjaReady = await pulseProfessionProp(worker, 'ninja');
+  assert.equal(ninjaReady, true, 'Instância __clawd indisponível para FX ninja.');
   samples.ninja = await retry(async () => page.evaluate(`(() => {
     const el = document.querySelector('.prop-ninja-smoke');
     const pet = document.querySelector('#aic-clawd-node');
-    if (!el || pet?.dataset.profession !== 'ninja') return null;
+    /* Smoke-puff anima opacity→0 (fill both); validamos classe+DOM, não opacity final. */
+    if (!el || pet?.dataset.profession !== 'ninja' || !pet.classList.contains('stealthing')) return null;
     return el.offsetWidth > 0 && el.offsetHeight > 0
-      ? { width: el.offsetWidth, opacity: getComputedStyle(el).opacity }
+      ? { width: el.offsetWidth, height: el.offsetHeight, stealthing: true }
       : null;
-  })()`), 2_000, 50);
-  assert.ok(samples.ninja, 'Prop ninja-smoke ausente no DOM.');
+  })()`), 3_000, 50);
+  assert.ok(samples.ninja, 'Prop ninja-smoke ausente durante stealthing.');
 
-  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'streamer' });
   await waitIdlePet(page);
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'streamer' });
+  await retry(() => page.evaluate(`document.querySelector('#aic-clawd-node')?.dataset.profession === 'streamer'`), 3_000, 50);
+  const streamerReady = await pulseProfessionProp(worker, 'streamer');
+  assert.equal(streamerReady, true, 'Instância __clawd indisponível para FX streamer.');
   samples.streamer = await retry(async () => page.evaluate(`(() => {
+    const pet = document.querySelector('#aic-clawd-node');
     const el = document.querySelector('.prop-streamer-live');
-    if (!el) return null;
+    if (!el || !pet?.classList.contains('streaming')) return null;
     const opacity = parseFloat(getComputedStyle(el).opacity);
     return opacity > 0.1 ? { opacity } : null;
-  })()`), 2_000, 50);
-  assert.ok(samples.streamer, 'Prop streamer-live invisível.');
+  })()`), 3_000, 50);
+  assert.ok(samples.streamer, 'Prop streamer-live invisível durante streaming.');
 
+  await waitIdlePet(page);
   await sendToActivePet(worker, { action: 'updateConfig', key: 'profession', value: 'idle' });
   return samples;
 }
