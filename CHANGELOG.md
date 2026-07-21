@@ -3,6 +3,21 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.8.0] — 2026-07-21
+
+### Adicionado
+
+- **i18n** — `src/shared/i18n.js` com 11 locales (pt-BR padrão + en, es, zh-CN, ja, fr, de, ko, hi, ar, ru); seletor no popup; `clawdT` com fallback selected → en → pt-BR
+- **Speech pools SSOT** — pools expandidos (pt-BR/en); demais idiomas com núcleo idle/happy/hungry/sad/curious + fallback
+- **Posições de notificação** — `toastPosition`, `speechAnchor`, `emotionBadgeSide` (settings v5) com CSS `data-pos` / `data-speech-anchor` / `data-emotion-side`
+- **Trello** — API Key/Token/Board ID em `chrome.storage.local` (`clawdTrello`); ações “Enviar sugestão” / “Reportar bug” via SW (`createTrelloCard`); `docs/TRELLO.md` + placeholder `CLAWD_TRELLO_BOARD_URL`
+- **Contribuição / auditoria** — `CONTRIBUTING.md`, `npm run audit` (5 eixos), ecosystem no CI
+
+### Alterado
+
+- Manifest **3.8.0**; content_scripts carregam `i18n.js` antes do catálogo
+- Suíte **164/164** contratos
+
 ## [3.7.3] — 2026-07-20
 
 ### Adicionado

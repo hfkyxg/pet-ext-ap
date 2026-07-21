@@ -6,7 +6,7 @@
    Validadores / selectors: SSOT em catalog.js
    =================================================== */
 
-importScripts('../shared/catalog.js');
+importScripts('../shared/i18n.js', '../shared/catalog.js');
 
 const ports = new Map();      // tabId -> Port
 let hostTabId = null;         // aba onde o pet está visível
@@ -52,7 +52,7 @@ async function injectClawdIntoTab(tabId) {
     if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 250));
     const injected = await chrome.scripting.executeScript({
       target: { tabId },
-      files: ['src/shared/catalog.js', 'src/content/content.js']
+      files: ['src/shared/i18n.js', 'src/shared/catalog.js', 'src/content/content.js']
     }).then(() => true).catch(() => false);
     if (!injected) continue;
     await new Promise(resolve => setTimeout(resolve, 250));
@@ -378,15 +378,78 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   }
 });
 
-/* ---- Popup: convocar pet para a aba ativa ---- */
+/* ---- Popup: convocar pet + Trello ---- */
 chrome.runtime.onMessage.addListener((raw, _sender, sendResponse) => {
   const msg = clawdValidateRuntimeMessage(raw);
-  if (!msg || msg.action !== 'summonPetToTab') return;
-  const tabId = msg.tabId;
-  if (tabId == null || !ports.has(tabId)) {
-    sendResponse({ ok: false });
+  if (!msg) return;
+
+  if (msg.action === 'summonPetToTab') {
+    const tabId = msg.tabId;
+    if (tabId == null || !ports.has(tabId)) {
+      sendResponse({ ok: false });
+      return;
+    }
+    assignHost(tabId);
+    sendResponse({ ok: true });
     return;
   }
-  assignHost(tabId);
-  sendResponse({ ok: true });
+
+  if (msg.action === 'createTrelloCard') {
+    createTrelloCard(msg).then(sendResponse).catch(() => sendResponse({ ok: false, error: 'network' }));
+    return true;
+  }
 });
+
+/**
+ * Cria card no Trello via API. Secrets em chrome.storage.local (clawdTrello).
+ * Nunca loga key/token.
+ */
+async function createTrelloCard(msg) {
+  const stored = await chrome.storage.local.get(['clawdTrello', 'clawdState']);
+  const secrets = stored.clawdTrello || {};
+  const settings = (stored.clawdState && stored.clawdState.settings) || {};
+  const key = String(secrets.apiKey || '').trim();
+  const token = String(secrets.token || '').trim();
+  const boardId = String(secrets.boardId || settings.trelloBoardId || '').trim();
+  if (!key || !token || !boardId) {
+    return { ok: false, error: 'missing_credentials' };
+  }
+  if (!/^[A-Za-z0-9]{16,64}$/.test(key) || !/^[A-Za-z0-9]{16,128}$/.test(token)) {
+    return { ok: false, error: 'invalid_credentials' };
+  }
+  if (!/^[A-Za-z0-9_-]{8,64}$/.test(boardId)) {
+    return { ok: false, error: 'invalid_board' };
+  }
+
+  const name = clawdSanitizePlainText(msg.name, 120);
+  const desc = clawdSanitizePlainText(msg.desc, 2000);
+  if (!name) return { ok: false, error: 'empty_name' };
+
+  const kindLabel = msg.kind === 'bug' ? '[Bug]' : '[Idea]';
+  const cardName = `${kindLabel} ${name}`.slice(0, 140);
+
+  const listsUrl = `https://api.trello.com/1/boards/${encodeURIComponent(boardId)}/lists?key=${encodeURIComponent(key)}&token=${encodeURIComponent(token)}&fields=id,name`;
+  const listsRes = await fetch(listsUrl);
+  if (!listsRes.ok) return { ok: false, error: 'lists_failed', status: listsRes.status };
+  const lists = await listsRes.json();
+  if (!Array.isArray(lists) || !lists.length || !lists[0].id) {
+    return { ok: false, error: 'no_lists' };
+  }
+  const idList = lists[0].id;
+
+  const body = new URLSearchParams({
+    idList,
+    name: cardName,
+    desc: desc || '',
+    key,
+    token
+  });
+  const cardRes = await fetch('https://api.trello.com/1/cards', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
+  if (!cardRes.ok) return { ok: false, error: 'create_failed', status: cardRes.status };
+  const card = await cardRes.json();
+  return { ok: true, id: card && card.id ? String(card.id) : undefined };
+}

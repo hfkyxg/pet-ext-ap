@@ -1,11 +1,51 @@
 /* ===================================================
    CLAW'D v3 — POPUP
-   Requer: ../shared/catalog.js
+   Requer: ../shared/i18n.js + ../shared/catalog.js
    =================================================== */
 
 let S = clawdDefaultState();
 
 function $(id) { return document.getElementById(id); }
+
+function currentLocale() {
+  return (typeof clawdNormalizeLocale === 'function')
+    ? clawdNormalizeLocale(S?.settings?.locale)
+    : (S?.settings?.locale || 'pt-BR');
+}
+
+function t(key) {
+  return (typeof clawdT === 'function') ? clawdT(key, currentLocale()) : key;
+}
+
+/** Reaplica labels i18n no chrome do popup (tabs, config, footer). */
+function applyPopupI18n() {
+  const loc = currentLocale();
+  document.documentElement.lang = loc === 'zh-CN' ? 'zh-CN' : loc.split('-')[0];
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (!key) return;
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-title');
+    if (!key) return;
+    el.title = t(key);
+  });
+  document.querySelectorAll('[data-i18n-option]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-option');
+    if (!key) return;
+    el.textContent = t(key);
+  });
+  const sel = $('select-locale');
+  if (sel && !sel.options.length) {
+    (CLAWD_LOCALES || []).forEach((code) => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = (CLAWD_LOCALE_LABELS && CLAWD_LOCALE_LABELS[code]) || code;
+      sel.appendChild(opt);
+    });
+  }
+}
 
 function scrubLastError() {
   try {
@@ -1267,6 +1307,24 @@ function renderConfig() {
   $('quiet-end').value = set.quietEnd || '';
   $('blocked-sites').value = (set.blockedSites || []).join('\n');
   $('select-corner').value = set.startCorner || 'br';
+  const toastEl = $('select-toast-pos');
+  if (toastEl) toastEl.value = set.toastPosition || 'center';
+  const speechEl = $('select-speech-pos');
+  if (speechEl) speechEl.value = set.speechAnchor || 'auto';
+  const emotionEl = $('select-emotion-side');
+  if (emotionEl) emotionEl.value = set.emotionBadgeSide || 'left';
+  const localeEl = $('select-locale');
+  if (localeEl) {
+    if (!localeEl.options.length) applyPopupI18n();
+    localeEl.value = set.locale || 'pt-BR';
+  }
+  const boardUrlEl = $('trello-board-url');
+  if (boardUrlEl) boardUrlEl.value = set.trelloBoardUrl || '';
+  const boardIdEl = $('trello-board-id');
+  if (boardIdEl && !boardIdEl.dataset.loadedSecrets) {
+    /* board id pode vir de settings; secrets sobrescrevem abaixo */
+    boardIdEl.value = set.trelloBoardId || '';
+  }
   $('toggle-performance').checked = !!set.performanceMode;
   const minimalEl = $('toggle-minimal');
   if (minimalEl) minimalEl.checked = !!set.minimalMode;
@@ -1330,6 +1388,81 @@ function previewVolumeChirp(vol, channel = 'master') {
     osc.start();
     osc.stop(ctx.currentTime + 0.11);
   } catch (_) { /* autoplay / AudioContext policy */ }
+}
+
+function bindTrelloControls() {
+  const saveSecrets = () => {
+    const apiKey = clawdSanitizePlainText($('trello-api-key')?.value || '', 64);
+    const token = clawdSanitizePlainText($('trello-token')?.value || '', 128);
+    const boardId = clawdSanitizePlainText($('trello-board-id')?.value || '', 64);
+    chrome.storage.local.set({ clawdTrello: { apiKey, token, boardId } }, () => scrubLastError());
+    if (boardId) setSetting('trelloBoardId', boardId);
+  };
+  ['trello-api-key', 'trello-token', 'trello-board-id'].forEach((id) => {
+    const el = $(id);
+    if (el) el.addEventListener('change', saveSecrets);
+  });
+  const urlEl = $('trello-board-url');
+  if (urlEl) {
+    urlEl.addEventListener('change', () => {
+      const v = urlEl.value.trim();
+      setSetting('trelloBoardUrl', v);
+    });
+  }
+  const status = (msg, isErr) => {
+    const el = $('trello-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = isErr ? '#e74c3c' : '#27ae60';
+  };
+  const submitCard = (kind) => {
+    const promptLabel = kind === 'bug' ? t('trello_bug') : t('trello_idea');
+    const name = window.prompt(promptLabel + ' — título:', '');
+    if (!name || !name.trim()) return;
+    const desc = window.prompt('Descrição (opcional):', '') || '';
+    status('…');
+    sendRuntimeMsg({
+      action: 'createTrelloCard',
+      kind,
+      name: name.trim(),
+      desc: desc.trim()
+    }, (res) => {
+      if (res?.ok) status(t('trello_ok'));
+      else if (res?.error === 'missing_credentials') status(t('trello_need'), true);
+      else status(t('trello_fail'), true);
+    });
+  };
+  const ideaBtn = $('btn-trello-idea');
+  if (ideaBtn) ideaBtn.addEventListener('click', () => submitCard('idea'));
+  const bugBtn = $('btn-trello-bug');
+  if (bugBtn) bugBtn.addEventListener('click', () => submitCard('bug'));
+  const openBtn = $('btn-trello-open');
+  if (openBtn) {
+    openBtn.addEventListener('click', () => {
+      const fromSettings = (S.settings?.trelloBoardUrl || '').trim();
+      const url = fromSettings
+        || (typeof CLAWD_TRELLO_BOARD_URL === 'string' ? CLAWD_TRELLO_BOARD_URL : '')
+        || 'https://trello.com/b/YOUR_BOARD';
+      if (/YOUR_BOARD/i.test(url)) {
+        status(t('trello_need'), true);
+        return;
+      }
+      chrome.tabs.create({ url });
+    });
+  }
+  chrome.storage.local.get(['clawdTrello'], (res) => {
+    scrubLastError();
+    const sec = res.clawdTrello || {};
+    const keyEl = $('trello-api-key');
+    const tokEl = $('trello-token');
+    const idEl = $('trello-board-id');
+    if (keyEl && sec.apiKey) keyEl.value = sec.apiKey;
+    if (tokEl && sec.token) tokEl.value = sec.token;
+    if (idEl) {
+      idEl.value = sec.boardId || S.settings?.trelloBoardId || '';
+      idEl.dataset.loadedSecrets = '1';
+    }
+  });
 }
 
 function bindConfig() {
@@ -1439,6 +1572,21 @@ function bindConfig() {
     setSetting('blockedSites', sites);
   });
   $('select-corner').addEventListener('change', e => setSetting('startCorner', e.target.value));
+  const toastPos = $('select-toast-pos');
+  if (toastPos) toastPos.addEventListener('change', e => setSetting('toastPosition', e.target.value));
+  const speechPos = $('select-speech-pos');
+  if (speechPos) speechPos.addEventListener('change', e => setSetting('speechAnchor', e.target.value));
+  const emotionSide = $('select-emotion-side');
+  if (emotionSide) emotionSide.addEventListener('change', e => setSetting('emotionBadgeSide', e.target.value));
+  const localeSel = $('select-locale');
+  if (localeSel) {
+    localeSel.addEventListener('change', e => {
+      setSetting('locale', e.target.value);
+      S.settings.locale = e.target.value;
+      applyPopupI18n();
+    });
+  }
+  bindTrelloControls();
   $('toggle-performance').addEventListener('change', e => {
     setSetting('performanceMode', e.target.checked);
   });
@@ -1732,6 +1880,7 @@ function updateStreakPill(days) {
 }
 
 function renderAll() {
+  applyPopupI18n();
   renderHeader();
   renderNameArea();
   renderPersonality();

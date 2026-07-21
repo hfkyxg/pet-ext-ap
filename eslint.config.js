@@ -41,6 +41,18 @@ const clawdCatalogGlobals = {
   CLAWD_COLOR_PRESETS: 'readonly',
   CLAWD_JERSEYS: 'readonly',
   CLAWD_POPUP_TABS: 'readonly',
+  CLAWD_TOAST_POSITIONS: 'readonly',
+  CLAWD_SPEECH_ANCHORS: 'readonly',
+  CLAWD_EMOTION_BADGE_SIDES: 'readonly',
+  CLAWD_LOCALES: 'readonly',
+  CLAWD_TRELLO_BOARD_URL: 'readonly',
+  CLAWD_I18N_UI: 'readonly',
+  CLAWD_SPEECH_POOLS: 'readonly',
+  CLAWD_LOCALE_LABELS: 'readonly',
+  clawdT: 'readonly',
+  clawdNormalizeLocale: 'readonly',
+  clawdSpeechMessages: 'readonly',
+  clawdSpeechPick: 'readonly',
   clawdDefaultState: 'readonly',
   clawdMigrateState: 'readonly',
   clawdSanitizePlainText: 'readonly',
@@ -76,9 +88,10 @@ const clawdCatalogGlobals = {
   clawdSubPetPalette: 'readonly',
   clawdBuildPixelShadow: 'readonly',
   clawdMergeUnlockedSubpets: 'readonly',
-  clawdPageContextFromHost: 'readonly'
+  clawdPageContextFromHost: 'readonly',
+  clawdHasSavedPosition: 'readonly',
+  clawdDefaultPositionCoords: 'readonly'
 };
-
 export default [
   {
     ignores: ['docs/', 'tests/tools/', 'tests/shots/', 'tests/sprite-out/', 'tests/**/*.mjs', 'node_modules/']
@@ -118,6 +131,26 @@ export default [
       'no-redeclare': 'error',
       'no-shadow-restricted-names': 'error',
       'no-use-before-define': ['warn', { functions: false, classes: false }]
+    }
+  },
+  {
+    /* i18n.js DEFINE packs + clawdT — module.exports para testes Node */
+    files: ['src/shared/i18n.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: {
+        ...globals.browser,
+        module: 'readonly',
+        exports: 'readonly',
+        CLAWD_LOCALES: 'readonly'
+      }
+    },
+    rules: {
+      'no-redeclare': 'off',
+      'no-void': 'off',
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      'no-unused-vars': ['warn', { args: 'none', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }]
     }
   },
   {

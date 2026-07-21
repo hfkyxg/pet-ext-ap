@@ -1158,19 +1158,13 @@ class ClawdCompanion {
     this._saveDirty = false;
     this._particleTimers = new Set();
 
-    this.messages = {
-      idle:     ["Oi! 👋", "Bora navegar! 🌐", "Me arraste! ✨", "Aqui pra ajudar 🐾", "Clique em mim! 💫", "O que faremos hoje? 🎯"],
-      happy:    ["❤️ Obrigado!", "Uhuuu! 🎉", "Que bom! ✨", "Adoro carinho! 💕", "Yay! 🌟", "Melhor sensação! 🥰"],
-      sleeping: ["ZzZz... 💤", "😴 Shh...", "Descansando... 💤"],
-      excited:  ["Wow! 🤩", "Olha isso! 👀", "Nova página! 🚀", "Uau! ⚡", "Que incrível! ✨"],
-      hungry:   ["Tô com fome... 🍖", "Me alimenta? 🥺", "Barriguinha roncando! 🍽️", "Fome! 😩"],
-      sad:      ["Sinto sua falta... 😢", "Um carinho? 🥺", "Tô triste... 💧"],
-      joyful:   ["Melhor dia! 🤩", "Amo navegar com você! 💖", "Que aventura! 🚀"],
-      ecstatic: ["Mal cabendo de felicidade! 🥳", "Você é demais! ✨", "Festa! 🎊"],
-      peppy:    ["Cheio de energia! ⚡", "Bora brincar! 🏃", "Tô no pique! 🔥"],
-      grubby:   ["Preciso de um banho... 🫧", "Tchutchuca sujinha! 🧼", "Banho, por favor? 🛁"],
-      curious:  ["Hmm... 🔎", "O que é isso? 👀", "Interessante... 📖"]
-    };
+    this.messages = (typeof clawdSpeechMessages === 'function')
+      ? clawdSpeechMessages('pt-BR')
+      : {
+          idle: ['Oi! 👋'], happy: ['❤️'], sleeping: ['💤'], excited: ['Wow!'],
+          hungry: ['🍖'], sad: ['😢'], joyful: ['🤩'], ecstatic: ['🥳'],
+          peppy: ['⚡'], grubby: ['🫧'], curious: ['🔎']
+        };
 
     this._contextMap = {
       footballer: ['ge.globo', 'espn', 'lance', 'goal.com', 'sofascore', 'futbol', 'football', 'sport'],
@@ -1460,8 +1454,26 @@ class ClawdCompanion {
     this.node.setAttribute('data-ball-skin', S.ballSkin || 'classic');
     this.node.classList.toggle('has-cushion', (S.game?.inventory || []).includes('cushion'));
     this.node.classList.toggle('rainbow-aura', clawdLevelFromXp(S.xp || 0).level >= 30);
+    this._applyNotificationLayout();
     this._applyProfessionVisuals();
     this.updateEmotion(true);
+  }
+
+  /** Aplica locale + posições de toast/fala/badge a partir de settings. */
+  _applyNotificationLayout() {
+    const set = this.S.settings || {};
+    const locale = (typeof clawdNormalizeLocale === 'function')
+      ? clawdNormalizeLocale(set.locale)
+      : (set.locale || 'pt-BR');
+    if (typeof clawdSpeechMessages === 'function') {
+      this.messages = clawdSpeechMessages(locale);
+    }
+    const speech = CLAWD_SPEECH_ANCHORS.includes(set.speechAnchor) ? set.speechAnchor : 'auto';
+    const emotion = CLAWD_EMOTION_BADGE_SIDES.includes(set.emotionBadgeSide) ? set.emotionBadgeSide : 'left';
+    if (this.node) {
+      this.node.setAttribute('data-speech-anchor', speech);
+      this.node.setAttribute('data-emotion-side', emotion);
+    }
   }
 
   measureRefreshRate() {
@@ -1611,6 +1623,7 @@ class ClawdCompanion {
       this._syncNameTag();
       this.node.classList.toggle('has-cushion', (fresh.game?.inventory || []).includes('cushion'));
       this.node.classList.toggle('rainbow-aura', clawdLevelFromXp(fresh.xp || 0).level >= 30);
+      this._applyNotificationLayout();
       this._applyProfessionVisuals();
       // Reconciliamos o objeto inteiro: desbloqueios, apelidos, cores e pet ativo
       // podem mudar juntos pelo popup. Atualizações parciais deixavam a lista de
@@ -2854,6 +2867,10 @@ class ClawdCompanion {
 
     const el = document.createElement('div');
     el.className = 'aic-toast';
+    const toastPos = CLAWD_TOAST_POSITIONS.includes(this.S.settings?.toastPosition)
+      ? this.S.settings.toastPosition
+      : 'center';
+    el.setAttribute('data-pos', toastPos);
     el.style.setProperty('--toast-color', rarityDef.color);
     el.style.setProperty('--toast-glow', `0 0 20px ${rarityDef.glow}`);
 
@@ -3237,11 +3254,14 @@ class ClawdCompanion {
     }
   }
 
-  /* Mantém o balão na viewport: flip na borda esquerda; below se estoura o topo. */
+  /* Mantém o balão na viewport: flip na borda esquerda; below se estoura o topo.
+     Com speechAnchor ≠ auto, CSS fixo assume o posicionamento. */
   _clampSpeechBubble() {
     const bubble = this.speechNode;
     if (!bubble) return;
     bubble.classList.remove('flip-left', 'below');
+    const anchor = this.S.settings?.speechAnchor || 'auto';
+    if (anchor !== 'auto') return;
     const rect = bubble.getBoundingClientRect();
     if (rect.left < 4) bubble.classList.add('flip-left');
     if (bubble.getBoundingClientRect().top < 4) bubble.classList.add('below');
@@ -3253,7 +3273,9 @@ class ClawdCompanion {
     const favNicks = this.S.favorites.nicknames || [];
     if (state === 'idle' && favNicks.length > 0 && Math.random() < 0.25) {
       const nick = favNicks[Math.floor(Math.random() * favNicks.length)];
-      return `Pode me chamar de ${nick}! 🐾`;
+      const loc = this.S.settings?.locale || 'pt-BR';
+      const tpl = (typeof clawdT === 'function') ? clawdT('nick_call_me', loc) : 'Pode me chamar de {nick}! 🐾';
+      return tpl.replace('{nick}', nick);
     }
     /* Voz customizada ponderada pelo traço social (personalização → gameplay) */
     const custom = (this.S.customSpeech || []).filter((t) => typeof t === 'string' && t.trim());
@@ -5245,6 +5267,10 @@ class ClawdCompanion {
               this._disconnectPresencePort('crossTab-off');
               this.setHidden(false);
             }
+          }
+          if (msg.key === 'locale' || msg.key === 'speechAnchor' || msg.key === 'emotionBadgeSide'
+            || msg.key === 'toastPosition') {
+            this._applyNotificationLayout();
           }
           this.save();
           break;

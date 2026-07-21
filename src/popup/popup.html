@@ -19,7 +19,7 @@
     </div>
     <div class="header-info">
       <div class="header-top">
-        <h1 class="brand">Claw'd <span class="version">v3.7.3</span></h1>
+        <h1 class="brand">Claw'd <span class="version">v3.8.0</span></h1>
         <span class="coins-pill" id="coins-pill" title="PixelCoins">🪙 <span id="coins-count">0</span></span>
       </div>
       <div class="xp-area">
@@ -118,14 +118,14 @@
 
   <!-- TABS -->
   <nav class="tabs">
-    <button class="tab active" data-tab="appearance" title="Aparência">🎨</button>
-    <button class="tab" data-tab="profession" title="Profissão">💼</button>
-    <button class="tab" data-tab="behavior" title="Comportamento">🧠</button>
-    <button class="tab" data-tab="actions" title="Ações">⚡</button>
-    <button class="tab" data-tab="pets" title="Sub-Pets">🐕</button>
-    <button class="tab" data-tab="shop" title="Lojinha">🛍️</button>
-    <button class="tab" data-tab="achievements" title="Conquistas">🏆</button>
-    <button class="tab" data-tab="config" title="Configurações">⚙️</button>
+    <button class="tab active" data-tab="appearance" data-i18n-title="tab_appearance" title="Aparência">🎨</button>
+    <button class="tab" data-tab="profession" data-i18n-title="tab_profession" title="Profissão">💼</button>
+    <button class="tab" data-tab="behavior" data-i18n-title="tab_behavior" title="Comportamento">🧠</button>
+    <button class="tab" data-tab="actions" data-i18n-title="tab_actions" title="Ações">⚡</button>
+    <button class="tab" data-tab="pets" data-i18n-title="tab_pets" title="Sub-Pets">🐕</button>
+    <button class="tab" data-tab="shop" data-i18n-title="tab_shop" title="Lojinha">🛍️</button>
+    <button class="tab" data-tab="achievements" data-i18n-title="tab_achievements" title="Conquistas">🏆</button>
+    <button class="tab" data-tab="config" data-i18n-title="tab_config" title="Configurações">⚙️</button>
   </nav>
 
   <!-- PAINEL APARÊNCIA -->
@@ -418,6 +418,11 @@
   <div class="tab-panel" id="tab-config">
 
     <div class="control-group">
+      <label for="select-locale" data-i18n="lang_label">Idioma</label>
+      <select id="select-locale"></select>
+    </div>
+
+    <div class="control-group">
       <label>Tema do name-tag</label>
       <div class="mini-grid" id="tag-theme-grid">
         <button class="mini-card active" data-theme="light"><span>🔆</span>Claro</button>
@@ -468,12 +473,42 @@
     </div>
 
     <div class="control-group">
-      <label for="select-corner">Posição inicial preferida</label>
+      <label for="select-corner" data-i18n="start_corner">Posição inicial preferida</label>
       <select id="select-corner">
         <option value="br" selected>Canto inferior direito</option>
         <option value="bl">Canto inferior esquerdo</option>
         <option value="tr">Canto superior direito</option>
         <option value="tl">Canto superior esquerdo</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="select-toast-pos" data-i18n="toast_pos">Posição dos toasts</label>
+      <select id="select-toast-pos">
+        <option value="center" selected data-i18n-option="pos_center">Centro</option>
+        <option value="bl" data-i18n-option="pos_bl">Inferior esquerdo</option>
+        <option value="br" data-i18n-option="pos_br">Inferior direito</option>
+        <option value="tl" data-i18n-option="pos_tl">Superior esquerdo</option>
+        <option value="tr" data-i18n-option="pos_tr">Superior direito</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="select-speech-pos" data-i18n="speech_pos">Posição do balão de fala</label>
+      <select id="select-speech-pos">
+        <option value="auto" selected data-i18n-option="speech_auto">Automático (borda)</option>
+        <option value="left" data-i18n-option="speech_left">Esquerda</option>
+        <option value="right" data-i18n-option="speech_right">Direita</option>
+        <option value="above" data-i18n-option="speech_above">Acima</option>
+        <option value="below" data-i18n-option="speech_below">Abaixo</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="select-emotion-side" data-i18n="emotion_pos">Lado do badge de emoção</label>
+      <select id="select-emotion-side">
+        <option value="left" selected data-i18n-option="emotion_left">Esquerda</option>
+        <option value="right" data-i18n-option="emotion_right">Direita</option>
       </select>
     </div>
 
@@ -543,18 +578,40 @@
 
     <div class="divider"></div>
 
-    <button id="btn-export" class="btn btn-outline"><span>📤</span> Exportar dados (JSON)</button>
-    <button id="btn-import" class="btn btn-outline"><span>📥</span> Importar dados</button>
+    <div class="control-group">
+      <label data-i18n="trello_section">Trello (feedback)</label>
+      <span class="toggle-desc" data-i18n="trello_hint">Chave em https://trello.com/app-key — nunca compartilhe o token.</span>
+      <label for="trello-api-key" data-i18n="trello_key">API Key</label>
+      <input type="password" id="trello-api-key" autocomplete="off" maxlength="64" placeholder="••••••••">
+      <label for="trello-token" data-i18n="trello_token">Token</label>
+      <input type="password" id="trello-token" autocomplete="off" maxlength="128" placeholder="••••••••">
+      <label for="trello-board-id" data-i18n="trello_board_id">Board ID</label>
+      <input type="text" id="trello-board-id" maxlength="64" placeholder="ex: abc123Xy" autocomplete="off">
+      <label for="trello-board-url" data-i18n="trello_board_url">URL do board público</label>
+      <input type="url" id="trello-board-url" maxlength="200" placeholder="https://trello.com/b/…">
+      <div class="input-row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+        <button type="button" class="btn btn-outline" id="btn-trello-idea"><span>💡</span> <span data-i18n="trello_idea">Enviar sugestão ao Trello</span></button>
+        <button type="button" class="btn btn-outline" id="btn-trello-bug"><span>🐛</span> <span data-i18n="trello_bug">Reportar bug</span></button>
+        <button type="button" class="btn btn-outline" id="btn-trello-open"><span>🔗</span> <span data-i18n="trello_open">Abrir board público</span></button>
+      </div>
+      <span class="toggle-desc" id="trello-status" aria-live="polite"></span>
+    </div>
+
+    <div class="divider"></div>
+
+    <button id="btn-export" class="btn btn-outline"><span>📤</span> <span data-i18n="export_data">Exportar dados (JSON)</span></button>
+    <button id="btn-import" class="btn btn-outline"><span>📥</span> <span data-i18n="import_data">Importar dados</span></button>
     <input type="file" id="import-file" accept=".json" style="display:none">
-    <button id="btn-reset-all" class="btn btn-danger"><span>🗑️</span> Resetar progresso</button>
+    <button id="btn-reset-all" class="btn btn-danger"><span>🗑️</span> <span data-i18n="reset_all">Resetar progresso</span></button>
 
   </div>
 
   <!-- FOOTER -->
   <footer class="footer">
-    <span>Claw'd &mdash; Companheiro de Navegação</span>
+    <span data-i18n="footer">Claw'd &mdash; Companheiro de Navegação</span>
   </footer>
 
+  <script src="../shared/i18n.js"></script>
   <script src="../shared/catalog.js"></script>
   <script src="popup.js"></script>
 </body>

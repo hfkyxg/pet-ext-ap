@@ -1535,6 +1535,7 @@
   top: auto;
   bottom: calc(22px + 60px * var(--agent-scale, 1.5));
   left: calc(9px - 22px * var(--agent-scale, 1.5));
+  right: auto;
   min-width: 28px;
   min-height: 28px;
   display: grid;
@@ -1628,6 +1629,20 @@
   border-right: 2px solid var(--agent-color);
   border-bottom: 2px solid var(--agent-color);
   transform: rotate(28deg);
+}
+/* Lado direito do badge de emoção */
+#aic-clawd-node[data-emotion-side="right"] .emotion-badge {
+  left: auto;
+  right: calc(9px - 22px * var(--agent-scale, 1.5));
+  border-radius: 50% 50% 12px 50%;
+}
+#aic-clawd-node[data-emotion-side="right"] .emotion-badge::after {
+  right: auto;
+  left: 2px;
+  transform: rotate(-28deg);
+  border-right: none;
+  border-left: 2px solid var(--agent-color);
+  border-bottom: 2px solid var(--agent-color);
 }
 
 /* Camada facial: pisca sem alterar a silhueta ou os acessórios. */
@@ -2207,6 +2222,65 @@
   border-bottom: 7px solid #fff;
 }
 
+/* Âncoras fixas (quando speechAnchor ≠ auto) */
+#aic-clawd-node[data-speech-anchor="left"] .speech-bubble,
+#aic-clawd-node[data-speech-anchor="left"] .speech-bubble.flip-left,
+#aic-clawd-node[data-speech-anchor="left"] .speech-bubble.below {
+  right: auto;
+  left: calc(10px - 12px * var(--agent-scale, 1.5));
+  bottom: calc(5px + 40px * var(--agent-scale, 1.5));
+  top: auto;
+  transform-origin: bottom left;
+}
+#aic-clawd-node[data-speech-anchor="left"] .speech-bubble::after,
+#aic-clawd-node[data-speech-anchor="left"] .speech-bubble.flip-left::after { right: auto; left: 16px; }
+#aic-clawd-node[data-speech-anchor="left"] .speech-bubble::before,
+#aic-clawd-node[data-speech-anchor="left"] .speech-bubble.flip-left::before { right: auto; left: 18px; }
+
+#aic-clawd-node[data-speech-anchor="right"] .speech-bubble,
+#aic-clawd-node[data-speech-anchor="right"] .speech-bubble.flip-left,
+#aic-clawd-node[data-speech-anchor="right"] .speech-bubble.below {
+  left: auto;
+  right: calc(10px - 12px * var(--agent-scale, 1.5));
+  bottom: calc(5px + 40px * var(--agent-scale, 1.5));
+  top: auto;
+  transform-origin: bottom right;
+}
+#aic-clawd-node[data-speech-anchor="right"] .speech-bubble::after { right: 16px; left: auto; }
+#aic-clawd-node[data-speech-anchor="right"] .speech-bubble::before { right: 18px; left: auto; }
+
+#aic-clawd-node[data-speech-anchor="above"] .speech-bubble,
+#aic-clawd-node[data-speech-anchor="above"] .speech-bubble.flip-left,
+#aic-clawd-node[data-speech-anchor="above"] .speech-bubble.below {
+  bottom: calc(5px + 60px * var(--agent-scale, 1.5));
+  top: auto;
+  right: calc(10px - 12px * var(--agent-scale, 1.5));
+  left: auto;
+  transform-origin: bottom right;
+}
+
+#aic-clawd-node[data-speech-anchor="below"] .speech-bubble,
+#aic-clawd-node[data-speech-anchor="below"] .speech-bubble.flip-left,
+#aic-clawd-node[data-speech-anchor="below"] .speech-bubble.below {
+  bottom: auto;
+  top: calc(100% + 12px);
+  right: calc(10px - 12px * var(--agent-scale, 1.5));
+  left: auto;
+  transform-origin: top right;
+}
+#aic-clawd-node[data-speech-anchor="below"] .speech-bubble::after,
+#aic-clawd-node[data-speech-anchor="below"] .speech-bubble.below::after {
+  bottom: auto; top: -9px;
+  border-top: none;
+  border-bottom: 9px solid var(--agent-color);
+}
+#aic-clawd-node[data-speech-anchor="below"] .speech-bubble::before,
+#aic-clawd-node[data-speech-anchor="below"] .speech-bubble.below::before {
+  bottom: auto; top: -6px;
+  border-top: none;
+  border-bottom: 7px solid #fff;
+}
+
 /* Balão interativo (desafio do Tutor) */
 #aic-clawd-node .speech-bubble.interactive {
   pointer-events: auto;
@@ -2407,13 +2481,13 @@
    TOAST DE CONQUISTA — GAMIFICADO ÉPICO
    ============================ */
 @keyframes clawd-toast-slide-in {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(80px) scale(0.7); }
-  60%  { transform: translateX(-50%) translateY(-8px) scale(1.04); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translate(var(--toast-tx, -50%), var(--toast-ty-from, 80px)) scale(0.7); }
+  60%  { transform: translate(var(--toast-tx, -50%), var(--toast-ty-overshoot, -8px)) scale(1.04); }
+  100% { opacity: 1; transform: translate(var(--toast-tx, -50%), 0) scale(1); }
 }
 @keyframes clawd-toast-slide-out {
-  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(60px) scale(0.8); }
+  0%   { opacity: 1; transform: translate(var(--toast-tx, -50%), 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--toast-tx, -50%), var(--toast-ty-out, 60px)) scale(0.8); }
 }
 @keyframes clawd-toast-shine {
   0%   { left: -60%; }
@@ -2442,7 +2516,13 @@
   position: fixed;
   bottom: 30px;
   left: 50%;
-  transform: translateX(-50%) translateY(80px);
+  right: auto;
+  top: auto;
+  --toast-tx: -50%;
+  --toast-ty-from: 80px;
+  --toast-ty-overshoot: -8px;
+  --toast-ty-out: 60px;
+  transform: translate(var(--toast-tx), var(--toast-ty-from));
   min-width: 280px;
   max-width: 340px;
   background: #0d0d1a;
@@ -2456,6 +2536,26 @@
   image-rendering: pixelated;
   overflow: hidden;
   animation: clawd-toast-glow-pulse 2s ease-in-out infinite;
+}
+.aic-toast[data-pos="center"] {
+  bottom: 30px; left: 50%; right: auto; top: auto;
+  --toast-tx: -50%; --toast-ty-from: 80px; --toast-ty-overshoot: -8px; --toast-ty-out: 60px;
+}
+.aic-toast[data-pos="bl"] {
+  bottom: 24px; left: 24px; right: auto; top: auto;
+  --toast-tx: 0; --toast-ty-from: 80px; --toast-ty-overshoot: -8px; --toast-ty-out: 60px;
+}
+.aic-toast[data-pos="br"] {
+  bottom: 24px; right: 24px; left: auto; top: auto;
+  --toast-tx: 0; --toast-ty-from: 80px; --toast-ty-overshoot: -8px; --toast-ty-out: 60px;
+}
+.aic-toast[data-pos="tl"] {
+  top: 24px; left: 24px; right: auto; bottom: auto;
+  --toast-tx: 0; --toast-ty-from: -80px; --toast-ty-overshoot: 8px; --toast-ty-out: -60px;
+}
+.aic-toast[data-pos="tr"] {
+  top: 24px; right: 24px; left: auto; bottom: auto;
+  --toast-tx: 0; --toast-ty-from: -80px; --toast-ty-overshoot: 8px; --toast-ty-out: -60px;
 }
 .aic-toast.visible {
   animation: clawd-toast-slide-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both, clawd-toast-glow-pulse 2s 0.5s ease-in-out infinite;

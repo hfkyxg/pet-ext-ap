@@ -18,7 +18,7 @@ const showcaseJs = read('docs/showcase.js');
 
 test('manifest v3.2 referencia apenas arquivos existentes', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.ok(['3.2.0', '3.3.0', '3.3.1', '3.7.0', '3.7.1', '3.7.2', '3.7.3'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
+  assert.ok(['3.2.0', '3.3.0', '3.3.1', '3.7.0', '3.7.1', '3.7.2', '3.7.3', '3.8.0'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
 
   const files = [
     manifest.background.service_worker,
@@ -76,7 +76,7 @@ test('reload limpa todas as abas e reinjeta somente na aba ativa focada', () => 
   assert.match(backgroundSource, /lastFocusedWindow:\s*true/);
   assert.match(backgroundSource, /\|\| mostRecentEligible/);
   assert.match(backgroundSource, /async function injectClawdIntoTab\(tabId\)/);
-  assert.match(backgroundSource, /files:\s*\['src\/shared\/catalog\.js', 'src\/content\/content\.js'\]/);
+  assert.match(backgroundSource, /files:\s*\['src\/shared\/i18n\.js', 'src\/shared\/catalog\.js', 'src\/content\/content\.js'\]/);
   assert.match(contentSource, /\(function clawdContentScope\(\)/);
   assert.doesNotMatch(catalogSource, /^const CLAWD_/m);
   assert.match(contentSource, /_startContextHeartbeat\(\)/);

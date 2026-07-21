@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claw'd: Companheiro de Navegação",
-  "version": "3.7.3",
+  "version": "3.8.0",
   "description": "Mascote pixel-art interativo, personalizável e fluido para acompanhar sua navegação.",
   "permissions": [
     "storage",
@@ -10,7 +10,8 @@
     "alarms"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "https://api.trello.com/*"
   ],
   "background": {
     "service_worker": "src/background/background.js"
@@ -19,7 +20,7 @@
     {
       "matches": ["<all_urls>"],
       "css": ["src/content/style.css"],
-      "js": ["src/shared/catalog.js", "src/content/content.js"]
+      "js": ["src/shared/i18n.js", "src/shared/catalog.js", "src/content/content.js"]
     }
   ],
   "icons": {

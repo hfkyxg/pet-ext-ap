@@ -32,6 +32,12 @@ for (const f of refs) {
   if (!fs.existsSync(f)) bad(`missing ${f}`);
   else ok(`exists ${f}`);
 }
+if (!m.host_permissions?.includes('https://api.trello.com/*')) {
+  bad('missing host_permissions api.trello.com');
+} else ok('trello host_permission');
+if (!(m.content_scripts?.[0]?.js || []).includes('src/shared/i18n.js')) {
+  bad('i18n.js not in content_scripts');
+} else ok('i18n in content_scripts');
 
 console.log('\n=== 2. Subpet sprites PNG ===');
 for (const [id, sp] of Object.entries(cat.CLAWD_SUBPET_SPRITES)) {
@@ -139,6 +145,7 @@ for (const id of extras) {
 console.log('\n=== 10. Sintaxe JS (node --check) ===');
 const { spawnSync } = await import('node:child_process');
 for (const file of [
+  'src/shared/i18n.js',
   'src/shared/catalog.js',
   'src/content/content.js',
   'src/popup/popup.js',

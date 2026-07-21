@@ -112,6 +112,11 @@ O equipamento indicado pela profissão é temporário e aparece com o selo **PRO
 - **Exportar / Importar dados** — backup JSON do progresso (XP, conquistas, favoritos, sub-pets);
 - **Modo minimalista** — oculta badge de nível, emoji flutuante e props de profissão (aba ⚙️ Config);
 - **Posição inicial preferida** — canto inferior direito por padrão; saves inválidos `{0,0}` são ignorados (evita spawn no canto superior esquerdo).
+- **Idioma** — pt-BR (padrão) ou en/es/zh-CN/ja/fr/de/ko/hi/ar/ru; labels do popup e pools de fala.
+- **Posição dos toasts** — centro ou cantos (bl/br/tl/tr).
+- **Posição do balão** — automático (borda) ou fixo (esquerda/direita/acima/abaixo).
+- **Lado do badge de emoção** — esquerda (padrão) ou direita.
+- **Trello** — API Key/Token/Board ID para enviar sugestões e bugs (ver `docs/TRELLO.md`).
 
 ### 🐕 Sub-pets
 
@@ -234,7 +239,7 @@ Normal — o sub-pet é recriado a cada carga da página. Ele volta automaticame
 
 ## 8. Recursos avançados já disponíveis
 
-O Claw'd v3.7.3 inclui **4 modelos × 9 rostos × 7 skins**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **31 acessórios em 3 slots**, **12 profissões** com contexto de página e props animados únicos, **30 ações** no popup (+ kick/keepy/superdance), **status clicáveis** e emoções estilo Tamagotchi com anúncio acessível, **Studio in-page** + janela destacável, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade** que afetam o comportamento real do sub-pet, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas **por ação/emoção** (sem loops ambiente), **mostrar/ocultar persistente**, **Seguir nesta guia**, **modo minimalista**, animações de hover/ring/speed-lines/skins e o pet **passeando entre suas abas**. A bola do Jogador fica no **pé direito**, em pixel-art nítido. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md). Validação atual: [VALIDACAO.md](./VALIDACAO.md) (**159/159**).
+O Claw'd v3.7.3 inclui **4 modelos × 9 rostos × 7 skins**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal, **31 acessórios em 3 slots**, **12 profissões** com contexto de página e props animados únicos, **30 ações** no popup (+ kick/keepy/superdance), **status clicáveis** e emoções estilo Tamagotchi com anúncio acessível, **Studio in-page** + janela destacável, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade** que afetam o comportamento real do sub-pet, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas **por ação/emoção** (sem loops ambiente), **mostrar/ocultar persistente**, **Seguir nesta guia**, **modo minimalista**, animações de hover/ring/speed-lines/skins e o pet **passeando entre suas abas**. A bola do Jogador fica no **pé direito**, em pixel-art nítido. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md). Validação atual: [VALIDACAO.md](./VALIDACAO.md) (**164/164**).
 
 ### Personalização avançada (v3.3)
 

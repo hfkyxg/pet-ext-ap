@@ -33,6 +33,12 @@ jobs:
       - name: Run tests
         run: node --test tests/*.test.js
 
+      - name: Ecosystem static validation
+        run: npm run ecosystem
+
+      - name: Audit pack
+        run: npm run audit
+
       - name: Lint
         run: npm run lint
         continue-on-error: true

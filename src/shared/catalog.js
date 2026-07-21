@@ -1261,6 +1261,16 @@ var CLAWD_START_CORNERS = ['br', 'bl', 'tr', 'tl'];
 var CLAWD_STUDIO_CORNERS = ['br', 'bl', 'tr', 'tl', 'free'];
 var CLAWD_POPUP_TABS = ['appearance', 'profession', 'behavior', 'actions', 'pets', 'shop', 'achievements', 'config'];
 var CLAWD_BALL_SKINS = ['classic', 'ball_gold', 'ball_beach'];
+/** Posição dos toasts: canto ou centro (padrão). */
+var CLAWD_TOAST_POSITIONS = ['bl', 'br', 'tl', 'tr', 'center'];
+/** Âncora do balão de fala; auto = clamp atual de viewport. */
+var CLAWD_SPEECH_ANCHORS = ['auto', 'left', 'right', 'above', 'below'];
+/** Lado do badge de emoção relativo ao pet. */
+var CLAWD_EMOTION_BADGE_SIDES = ['left', 'right'];
+/** Locales suportados (pt-BR padrão). zh-CN = chinês simplificado / mandarim. */
+var CLAWD_LOCALES = ['pt-BR', 'en', 'es', 'zh-CN', 'ja', 'fr', 'de', 'ko', 'hi', 'ar', 'ru'];
+/** Placeholder — substitua pela URL do board público (ver docs/TRELLO.md). */
+var CLAWD_TRELLO_BOARD_URL = 'https://trello.com/b/YOUR_BOARD';
 
 var CLAWD_CONFIG_KEYS = [
   'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
@@ -1274,14 +1284,17 @@ var CLAWD_SETTING_KEYS = [
   'soundVolumeActions', 'soundVolumeAmbient',
   'quietStart', 'quietEnd', 'blockedSites', 'startCorner', 'performanceMode',
   'noParticles', 'noIdleVariations', 'noWeather', 'noAmbientSparks', 'minimalMode',
-  'lastPopupTab', 'studioCorner', 'studioLeft', 'studioTop'
+  'lastPopupTab', 'studioCorner', 'studioLeft', 'studioTop',
+  'toastPosition', 'speechAnchor', 'emotionBadgeSide', 'locale',
+  'trelloBoardUrl', 'trelloBoardId'
 ];
 
 var CLAWD_RUNTIME_ACTIONS = [
   'healthcheck', 'toggleVisibility', 'resetPosition', 'updateConfig',
   'updateSetting', 'triggerAction', 'setSubpet', 'setSubpetColor',
   'setSubpetEyeColor', 'triggerSubpetAction', 'claimDailyQuest', 'claimWeeklyChallenge',
-  'weeklyReset', 'getStatus', 'openStudio', 'closeStudio', 'summonPetToTab'
+  'weeklyReset', 'getStatus', 'openStudio', 'closeStudio', 'summonPetToTab',
+  'createTrelloCard'
 ];
 
 /* ---- Variações de Idle (v3.4) ---- */
@@ -1469,6 +1482,26 @@ function clawdSanitizeSettingValue(key, value) {
       return CLAWD_TRAVEL_FREQS.includes(value) ? value : null;
     case 'startCorner':
       return CLAWD_START_CORNERS.includes(value) ? value : null;
+    case 'toastPosition':
+      return CLAWD_TOAST_POSITIONS.includes(value) ? value : null;
+    case 'speechAnchor':
+      return CLAWD_SPEECH_ANCHORS.includes(value) ? value : null;
+    case 'emotionBadgeSide':
+      return CLAWD_EMOTION_BADGE_SIDES.includes(value) ? value : null;
+    case 'locale':
+      return CLAWD_LOCALES.includes(value) ? value : null;
+    case 'trelloBoardUrl': {
+      const s = clawdSanitizePlainText(value, 200);
+      if (!s) return '';
+      if (!/^https:\/\/(www\.)?trello\.com\/b\/[A-Za-z0-9_-]+/i.test(s)) return null;
+      return s.slice(0, 200);
+    }
+    case 'trelloBoardId': {
+      const s = clawdSanitizePlainText(value, 64);
+      if (!s) return '';
+      if (!/^[A-Za-z0-9_-]{8,64}$/.test(s)) return null;
+      return s;
+    }
     case 'studioCorner':
       return CLAWD_STUDIO_CORNERS.includes(value) ? value : null;
     case 'lastPopupTab':
@@ -1561,6 +1594,15 @@ function clawdValidateRuntimeMessage(request) {
     case 'triggerSubpetAction': {
       if (!Object.prototype.hasOwnProperty.call(CLAWD_SUBPET_ACTIONS, request.value)) return null;
       return { action, value: request.value };
+    }
+
+    case 'createTrelloCard': {
+      const kind = request.kind === 'bug' ? 'bug' : (request.kind === 'idea' ? 'idea' : null);
+      if (!kind) return null;
+      const name = clawdSanitizePlainText(request.name, 120);
+      const desc = clawdSanitizePlainText(request.desc, 2000);
+      if (!name) return null;
+      return { action, kind, name, desc };
     }
 
     default:
@@ -1670,6 +1712,12 @@ function clawdDefaultState() {
       quietEnd: '',
       blockedSites: [],
       startCorner: 'br',           // br | bl | tr | tl
+      toastPosition: 'center',     // bl | br | tl | tr | center
+      speechAnchor: 'auto',        // auto | left | right | above | below
+      emotionBadgeSide: 'left',    // left | right
+      locale: 'pt-BR',             // ver CLAWD_LOCALES
+      trelloBoardUrl: '',          // URL pública do board (opcional)
+      trelloBoardId: '',           // ID do board para API (sem secrets)
       performanceMode: false,
       noParticles: false,           // desliga partículas sem desligar tudo
       noIdleVariations: false,      // desliga variações idle decorativas
@@ -2054,6 +2102,11 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_STUDIO_CORNERS,
     CLAWD_POPUP_TABS,
     CLAWD_BALL_SKINS,
+    CLAWD_TOAST_POSITIONS,
+    CLAWD_SPEECH_ANCHORS,
+    CLAWD_EMOTION_BADGE_SIDES,
+    CLAWD_LOCALES,
+    CLAWD_TRELLO_BOARD_URL,
     CLAWD_CONFIG_KEYS,
     CLAWD_SETTING_KEYS,
     CLAWD_RUNTIME_ACTIONS,
