@@ -410,8 +410,8 @@ Os **164 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 | **Ambient FX (movimento)** | `_spawnAccessoryMotionFx()` dispara faíscas curtas ao **andar/correr/planar/dançar** ou equipar acessório — não há timer de loop idle; `noAmbientSparks` desliga faíscas de movimento. |
 | **Bola pé direito** | `.pet-ball { left: 48px }` + chuteira `left: 42px`; kick/roll/doPlay para a direita; sem `drop-shadow` blur; contador `.aic-juggle-count` à direita. |
 | **v3.7.3 UX** | `petVisible` no estado; `summonPetToTab` no SW; `minimalMode` → `.aic-minimal`; `clawdHasSavedPosition()` rejeita `{0,0}`; spawn usa `clawdDefaultPositionCoords(startCorner)`. |
-| **Validação** | Suíte **164/164** · v3.7.3 (UX, spawn, partículas por ação, profissões/subpets). |
+| **Validação** | Suíte **165/165** · v3.8.0 (i18n, posições, Trello, layering pet/subpet). |
 
 ---
 
-*Documentação Técnica — Claw'd · atualizada em 20/07/2026*
+*Documentação Técnica — Claw'd · atualizada em 21/07/2026*

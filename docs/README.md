@@ -6,8 +6,8 @@
 
 | Documento | Para quem | Conteúdo |
 |-----------|-----------|----------|
-| [../README.md](../README.md) | Todo mundo | Visão, instalação, funcionalidades (v3.7.3) |
-| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **164/164** |
+| [../README.md](../README.md) | Todo mundo | Visão, instalação, funcionalidades (v3.8.0) |
+| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **165/165** |
 | [./ARCHITECTURE.md](./ARCHITECTURE.md) | Mantenedores | Camadas, padrões, contratos MV3 |
 | [./md/DOCUMENTACAO.md](./md/DOCUMENTACAO.md) | Desenvolvedores | Protocolo interno, APIs, privacidade |
 | [./md/MANUAL.md](./md/MANUAL.md) | Usuários finais | Controles, studio, status, FAQ |
@@ -21,7 +21,7 @@
 
 ```powershell
 npm run check
-npm test                                          # 164/164
+npm test                                          # 165/165
 node tests/tools/validate-ecosystem.mjs           # 100% ações no map
 node tests/runtime-smoke.mjs                      # Edge/Chromium
 ```

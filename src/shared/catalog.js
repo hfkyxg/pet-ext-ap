@@ -1262,7 +1262,7 @@ var CLAWD_STUDIO_CORNERS = ['br', 'bl', 'tr', 'tl', 'free'];
 var CLAWD_POPUP_TABS = ['appearance', 'profession', 'behavior', 'actions', 'pets', 'shop', 'achievements', 'config'];
 var CLAWD_BALL_SKINS = ['classic', 'ball_gold', 'ball_beach'];
 /** Posição dos toasts: canto ou centro (padrão). */
-var CLAWD_TOAST_POSITIONS = ['bl', 'br', 'tl', 'tr', 'center'];
+var CLAWD_TOAST_POSITIONS = ['bl', 'br', 'tl', 'tr', 'center', 'l', 'r'];
 /** Âncora do balão de fala; auto = clamp atual de viewport. */
 var CLAWD_SPEECH_ANCHORS = ['auto', 'left', 'right', 'above', 'below'];
 /** Lado do badge de emoção relativo ao pet. */
@@ -1712,7 +1712,7 @@ function clawdDefaultState() {
       quietEnd: '',
       blockedSites: [],
       startCorner: 'br',           // br | bl | tr | tl
-      toastPosition: 'center',     // bl | br | tl | tr | center
+      toastPosition: 'center',     // bl | br | tl | tr | center | l | r (laterais)
       speechAnchor: 'auto',        // auto | left | right | above | below
       emotionBadgeSide: 'left',    // left | right
       locale: 'pt-BR',             // ver CLAWD_LOCALES

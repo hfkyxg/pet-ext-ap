@@ -27,23 +27,41 @@ Ou informe a URL no popup → ⚙️ → **URL do board público** (salvo em `se
 
 Os secrets ficam em `chrome.storage.local` sob a chave `clawdTrello` (fora do JSON exportável de progresso). O service worker chama `https://api.trello.com/1/cards` — o content script **não** precisa da host permission em cada página.
 
-## 3. Popular o board (seed do projeto)
+## 3. Configurar e personalizar o board (setup completo)
 
-Para deixar o board `8wGr5tiQ` apresentável a novos contribuidores, rode o seed. As credenciais vêm do **ambiente** (nunca do Git) e o script é idempotente (não duplica listas/cards):
+O `trello:seed` faz o **setup completo** do board `8wGr5tiQ`, idempotente e com credenciais só via **ambiente** (nunca no Git). Ele aplica, em ordem:
+
+1. **Descrição** convidativa no cabeçalho do board
+2. **Preferências**: `selfJoin`, `cardCovers`, comentários públicos, **votação pública**, card aging
+3. **Power-ups** (best-effort via API): **Custom Fields**
+4. **Custom fields**: `Prioridade` (Alta/Média/Baixa), `Área` (Core/UI/i18n/Infra/Docs), `Esforço (pts)`
+5. **Labels coloridas**: `bug`, `feature`, `i18n`, `security`, `performance`, `docs`, `good first issue`
+6. **Listas**: 📥 Ideias · 🐛 Bugs · 📋 Backlog · 🚧 Em progresso · ✅ Feito
+7. **Cards** de apresentação (com labels e checklist de onboarding)
 
 ```bash
-# pré-visualizar sem chamar a API
-npm run trello:seed -- --dry
+npm run trello:seed -- --dry        # pré-visualiza o plano, sem tocar na API
 
-# criar listas (Ideias, Bugs, Backlog, Em progresso, Feito) + cards de apresentação
+# aplicar (bash/zsh)
 TRELLO_KEY=xxxx TRELLO_TOKEN=yyyy TRELLO_BOARD=8wGr5tiQ npm run trello:seed
 ```
 
-No PowerShell (Windows):
-
 ```powershell
+# aplicar (PowerShell / Windows)
 $env:TRELLO_KEY='xxxx'; $env:TRELLO_TOKEN='yyyy'; $env:TRELLO_BOARD='8wGr5tiQ'; npm run trello:seed
 ```
+
+### Power-ups recomendados
+
+| Power-up | Para quê | Como ativar |
+|---|---|---|
+| **Custom Fields** | Prioridade / Área / Esforço por card | Automático pelo script (best-effort) |
+| **Voting** | Comunidade vota nas ideias 👍 | `prefs/voting` pelo script |
+| **Card Aging** | Cards parados "envelhecem" (visível) | `prefs/cardAging` pelo script |
+| **GitHub** | Vincular PRs/commits/issues aos cards | Manual — precisa de OAuth (UI → Power-Ups → GitHub) |
+| **Calendar** | Datas/marcos no calendário | Manual — UI → Power-Ups → Calendar |
+
+> Passos "best-effort" (power-ups, custom fields, prefs de power-up) são **não-fatais**: se a API do seu plano recusar, o script avisa com `~` e segue. Ative esses pela UI (**Power-Ups**) quando necessário. GitHub e Calendar exigem vínculo OAuth e por isso são sempre manuais.
 
 ## 4. Segurança
 

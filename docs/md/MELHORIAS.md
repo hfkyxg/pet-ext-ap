@@ -1,7 +1,19 @@
-# 🚀 Claw'd — Registro de entregas v3.2–v3.7
+# 🚀 Claw'd — Registro de entregas v3.2–v3.8
 
-> Documento histórico das entregas das versões v3.2–v3.7 (não é roadmap aberto).
+> Documento histórico das entregas (não é roadmap aberto).
 > Os blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção.
+
+---
+
+## v3.8.0 — i18n, notificações, Trello e layering (2026-07-21)
+
+| Módulo | Entrega | Estado |
+|--------|---------|--------|
+| **i18n** | 11 locales; `clawdT` + speech pools SSOT | ✅ |
+| **Notificações** | `toastPosition` / `speechAnchor` / `emotionBadgeSide` | ✅ |
+| **Trello** | Board [pet](https://trello.com/b/8wGr5tiQ/pet) + API via SW | ✅ |
+| **Layering** | Pet acima do name-tag; subpet na frente da etiqueta/balão | ✅ |
+| **Tests/Docs** | **165/165**; VALIDACAO + showcase alinhados | ✅ |
 
 ---
 

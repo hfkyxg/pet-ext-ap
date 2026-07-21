@@ -1,16 +1,17 @@
 # Relatório de Validação — Claw'd v3.8.0
 
-**Data:** 21 de julho de 2026  
+**Data:** 21 de julho de 2026 (revalidação completa: animações, interações, docs)  
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **164/164** contratos — i18n, posições de notificação, Trello API, audit pack
+**Marco:** **165/165** contratos — i18n, posições, Trello, layering pet/subpet
 
 ## Resultado
 
 - Verificações de sintaxe (`npm run check`): **aprovadas**
-- Suíte `node:test`: **164/164**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0**
+- Suíte `node:test`: **165/165**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **165/165**
 - `npm run audit`: **AUDIT_PACK_OK** (5 eixos)
-- Lint (`eslint src tests`): ver CI
+- Lint (`eslint src tests`): **0 erros**
+- Smoke Chromium: **runtimeErrors: 0** · reloads **3/3** · duo/partículas/props OK
 
 ## Contagens vivas
 
@@ -21,7 +22,7 @@
 | Rostos / skins / idle | **9** / **7** / **7** |
 | Profissões / subpets | **12** / **8** |
 | Locales UI | **11** (pt-BR padrão) |
-| Contratos | **164** |
+| Contratos | **165** |
 
 ## Matriz de auditoria (5 eixos)
 
@@ -45,6 +46,9 @@
 | Pools pt-BR/en 2–3×; demais com núcleo + fallback en | ✅ |
 | Trello: settings + `createTrelloCard` no SW | ✅ |
 | CONTRIBUTING.md + docs/TRELLO.md + audit-pack | ✅ |
+| Pet acima do name-tag (z-index sprite > etiqueta) | ✅ |
+| Subpet na frente do name-tag/balão (`z-index` 2147483647 + follow aos pés) | ✅ |
+| Board Trello público [pet](https://trello.com/b/8wGr5tiQ/pet) | ✅ |
 
 ## Comandos
 

@@ -9,7 +9,8 @@
     "check": "node --check src/shared/i18n.js && node --check src/shared/catalog.js && node --check src/content/content.js && node --check src/popup/popup.js && node --check src/background/background.js",
     "ecosystem": "node tests/tools/validate-ecosystem.mjs",
     "audit": "node tests/tools/audit-pack.mjs",
-    "smoke": "node tests/runtime-smoke.mjs"
+    "smoke": "node tests/runtime-smoke.mjs",
+    "trello:seed": "node tests/tools/trello-seed.mjs"
   },
   "devDependencies": {
     "eslint": "^9.0.0",

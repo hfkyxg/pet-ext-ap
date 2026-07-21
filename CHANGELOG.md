@@ -16,7 +16,12 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 ### Alterado
 
 - Manifest **3.8.0**; content_scripts carregam `i18n.js` antes do catálogo
-- Suíte **164/164** contratos
+- Suíte **165/165** contratos
+
+### Corrigido
+
+- **Name-tag / balão sobre o pet** — `.sprite-stack` acima da etiqueta; speech `below` com z-index e offset seguros
+- **Subpet atrás da etiqueta** — `.aic-subpet` no mesmo z-index do pet (pinta na frente) e follow alinhado aos pés
 
 ## [3.7.3] — 2026-07-20
 
