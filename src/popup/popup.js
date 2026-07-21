@@ -1442,7 +1442,7 @@ function bindTrelloControls() {
       const fromSettings = (S.settings?.trelloBoardUrl || '').trim();
       const url = fromSettings
         || (typeof CLAWD_TRELLO_BOARD_URL === 'string' ? CLAWD_TRELLO_BOARD_URL : '')
-        || 'https://trello.com/b/YOUR_BOARD';
+        || 'https://trello.com/b/8wGr5tiQ/pet';
       if (/YOUR_BOARD/i.test(url)) {
         status(t('trello_need'), true);
         return;

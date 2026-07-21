@@ -41,7 +41,7 @@ Obrigado por contribuir! Esta extensão é **Chrome MV3**, vanilla JS, **sem bun
 
 ## Feedback / Trello
 
-Veja [docs/TRELLO.md](./docs/TRELLO.md) para criar o board público e configurar a API.
+Board público: [https://trello.com/b/8wGr5tiQ/pet](https://trello.com/b/8wGr5tiQ/pet) (ID `8wGr5tiQ`). Veja [docs/TRELLO.md](./docs/TRELLO.md) para configurar a API (Key/Token só em `chrome.storage.local`).
 
 ## Idiomas
 

@@ -432,7 +432,7 @@ Ao arrastar e soltar com velocidade, o Claw'd desliza sobre o conteúdo da pági
 ## 🤝 Contribuição
 
 Guia completo: **[CONTRIBUTING.md](./CONTRIBUTING.md)** · Board/feedback: **[docs/TRELLO.md](./docs/TRELLO.md)**  
-Board público (placeholder): configure `CLAWD_TRELLO_BOARD_URL` ou a URL em ⚙️ Configurações.
+Board público: [https://trello.com/b/8wGr5tiQ/pet](https://trello.com/b/8wGr5tiQ/pet) — constante `CLAWD_TRELLO_BOARD_URL` (shortlink `8wGr5tiQ`) ou URL em ⚙️ Configurações.
 
 ### Idioma e notificações
 

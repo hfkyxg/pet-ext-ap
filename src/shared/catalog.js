@@ -1269,8 +1269,8 @@ var CLAWD_SPEECH_ANCHORS = ['auto', 'left', 'right', 'above', 'below'];
 var CLAWD_EMOTION_BADGE_SIDES = ['left', 'right'];
 /** Locales suportados (pt-BR padrão). zh-CN = chinês simplificado / mandarim. */
 var CLAWD_LOCALES = ['pt-BR', 'en', 'es', 'zh-CN', 'ja', 'fr', 'de', 'ko', 'hi', 'ar', 'ru'];
-/** Placeholder — substitua pela URL do board público (ver docs/TRELLO.md). */
-var CLAWD_TRELLO_BOARD_URL = 'https://trello.com/b/YOUR_BOARD';
+/** URL pública do board de feedback (ver docs/TRELLO.md). */
+var CLAWD_TRELLO_BOARD_URL = 'https://trello.com/b/8wGr5tiQ/pet';
 
 var CLAWD_CONFIG_KEYS = [
   'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
