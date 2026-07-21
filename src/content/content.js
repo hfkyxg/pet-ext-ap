@@ -630,8 +630,8 @@ class SubPet {
       }
       const rect = this.owner.node?.getBoundingClientRect();
       if (!rect) return;
-      const tx = rect.left - this.bounds.width - 8;
-      const ty = rect.top + rect.height * 0.28;
+      const tx = rect.left - this.bounds.width - 14;
+      const ty = rect.bottom - this.bounds.height * 0.72;
       if (Math.hypot(tx - this.x, ty - this.y) >= 0.5) {
         this._clearSettleWake();
         this._resumeRaf();
@@ -685,8 +685,9 @@ class SubPet {
         this._lastPaint = now;
       }
       const rect = this.owner.node.getBoundingClientRect();
-      let tx = rect.left - this.bounds.width - 8;
-      let ty = rect.top + rect.height * 0.28;
+      /* À esquerda do dono, alinhado aos pés — evita sentar embaixo do name-tag. */
+      let tx = rect.left - this.bounds.width - 14;
+      let ty = rect.bottom - this.bounds.height * 0.72;
       if (this.species === 'bird' || this.species === 'dragon') {
         if (this._perch || this.state === 'special' || this.state === 'flying') {
           tx = rect.left + rect.width * (this.species === 'dragon' ? 0.55 : 0.35);

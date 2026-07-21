@@ -110,6 +110,9 @@ test('qualidade: sprites pet — ações vencem breathe; idle variations !import
 
 test('qualidade: subpet — sync spawn, FX release, settle wake, vanish', () => {
   assert.match(content, /new SubPet\(this,\s*want\);\s*\n\s*this\.subpet\.onOwnerState\(this\.state\)/);
+  /* Subpet não pode ficar atrás do name-tag/balão do pet (z-index >= nó do pet) */
+  assert.match(style, /\.aic-subpet \{[\s\S]{0,400}z-index:\s*2147483647/);
+  assert.match(content, /rect\.bottom\s*-\s*this\.bounds\.height\s*\*\s*0\.72/);
   assert.match(content, /_fxPending/);
   assert.match(content, /_armSettleWake\(/);
   assert.match(content, /_clearSettleWake\(/);
@@ -258,6 +261,30 @@ test('qualidade: destroy limpa timers, rAF, abort e partículas', () => {
   assert.match(destroySlice, /clearTimeout|clearInterval/);
   assert.match(destroySlice, /_pettingTimer|_duoPlayTimer/);
   assert.match(destroySlice, /_clearDanceTimers/);
+});
+
+test('qualidade: integridade das animações — nenhuma quebrada, sem keyframe legado órfão', () => {
+  const cssAll = style + '\n' + popupCss;
+  const jsAll = content + '\n' + popupJs;
+  const defined = new Set([...cssAll.matchAll(/@keyframes\s+(clawd-[a-z0-9-]+)/g)].map((m) => m[1]));
+
+  /* referências reais: nome do keyframe no shorthand `animation`/`animation-name`
+     (ignorando var(--clawd-*) de duração/easing) e animações aplicadas via JS. */
+  const used = new Set();
+  for (const m of cssAll.matchAll(/animation(?:-name)?\s*:\s*([^;}{]+)/g)) {
+    const val = m[1].replace(/var\([^)]*\)/g, '');
+    for (const t of val.matchAll(/clawd-[a-z0-9-]+/g)) used.add(t[0]);
+  }
+  for (const m of jsAll.matchAll(/animation(?:-name)?\s*[:=]\s*[`"']\s*(clawd-[a-z0-9-]+)/g)) used.add(m[1]);
+
+  /* toda animação aplicada precisa ter @keyframes definido (nada quebrado) */
+  const broken = [...used].filter((n) => !defined.has(n)).sort();
+  assert.deepEqual(broken, [], `animações sem @keyframes: ${broken.join(', ')}`);
+
+  /* ciclos legados removidos (peso morto) não devem voltar */
+  for (const legacy of ['clawd-pixel-walk', 'clawd-pixel-keepy', 'clawd-pixel-sleep', 'clawd-zzz']) {
+    assert.ok(!defined.has(legacy), `keyframe legado ressuscitou: ${legacy}`);
+  }
 });
 
 test('qualidade: contagens vivas batem com onboarding (harmonia UX)', () => {
