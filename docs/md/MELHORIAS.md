@@ -14,7 +14,7 @@
 | **Trello** | Board [pet](https://trello.com/b/8wGr5tiQ/pet) + API via SW | ✅ |
 | **Layering** | Pet acima do name-tag; subpet na frente da etiqueta/balão | ✅ |
 | **Fluidez** | Ease cúbico walk/run; eco pet→subpet; micro-idle; anticipação de pulo | ✅ |
-| **Tests/Docs** | **167/167**; VALIDACAO + showcase alinhados | ✅ |
+| **Tests/Docs** | **169/169**; VALIDACAO + showcase alinhados | ✅ |
 
 ---
 

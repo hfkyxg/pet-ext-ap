@@ -225,11 +225,20 @@ function getSettings(cb) {
 function assignHost(tabId) {
   clearTravelInFlight();
   clearTravelDebounce();
+  const prevHost = hostTabId;
   hostTabId = tabId;
   persistHost();
   for (const [id] of ports) {
     if (id === tabId) send(id, { type: 'spawnPet' });
     else send(id, { type: 'hidePet' });
+  }
+  /* Host anterior sem Port vivo (SW dormiu / aba zumbi) — força hide via tabs API. */
+  if (prevHost != null && prevHost !== tabId && !ports.has(prevHost)) {
+    try {
+      chrome.tabs.sendMessage(prevHost, { action: 'forceHidePet' }, () => { scrubLastError(); });
+    } catch (_) {
+      scrubLastError();
+    }
   }
 }
 
@@ -246,6 +255,11 @@ function travel(toTabId) {
   clearTravelDebounce();
   const direction = Math.random() < 0.5 ? 'left' : 'right';
   travelInFlight = { from, to: toTabId, direction };
+  /* Esconde todas as outras abas imediatamente — evita clone durante a animação. */
+  for (const [id] of ports) {
+    if (id !== from && id !== toTabId) send(id, { type: 'hidePet' });
+  }
+  send(toTabId, { type: 'hidePet' });
   send(from, { type: 'despawnPet', direction });
   // fallback: se a origem não confirmar em 3s, conclui mesmo assim
   travelInFlight.timeout = setTimeout(completeTravel, 3000);
@@ -258,7 +272,18 @@ function completeTravel() {
   travelInFlight = null;
   hostTabId = to;
   persistHost();
-  if (!send(to, { type: 'spawnPet', direction: direction === 'left' ? 'right' : 'left' })) {
+  let spawned = false;
+  for (const [id] of ports) {
+    if (id === to) {
+      spawned = send(to, {
+        type: 'spawnPet',
+        direction: direction === 'left' ? 'right' : 'left'
+      });
+    } else {
+      send(id, { type: 'hidePet' });
+    }
+  }
+  if (!spawned) {
     // destino morreu no meio do caminho — respawna em qualquer aba viva
     respawnAnywhere();
   }
@@ -282,8 +307,11 @@ function handlePresenceMessage(tabId, raw) {
   switch (msg.type) {
     case 'register':
       restoreHost(() => {
-        // Mid-travel: só a porta importa — não reassign/hide (evita pet invisível).
-        if (travelInFlight) return;
+        // Mid-travel: origem anima saída; demais abas ficam ocultas (nunca clone).
+        if (travelInFlight) {
+          if (tabId !== travelInFlight.from) send(tabId, { type: 'hidePet' });
+          return;
+        }
         if (hostTabId == null || !ports.has(hostTabId)) {
           assignHost(tabId);
         } else if (tabId === hostTabId) {
@@ -297,6 +325,17 @@ function handlePresenceMessage(tabId, raw) {
       // Só a origem da viagem em curso pode confirmar (evita spoof de outra aba).
       if (travelInFlight && travelInFlight.from === tabId) {
         completeTravel();
+      }
+      break;
+    case 'requestHost':
+      /* Aba ativa pediu o pet (ação do popup) — traz ownership imediatamente. */
+      if (ports.has(tabId) && tabId !== hostTabId) {
+        if (travelInFlight) {
+          clearTravelInFlight();
+        }
+        assignHost(tabId);
+      } else if (tabId === hostTabId) {
+        send(tabId, { type: 'spawnPet' });
       }
       break;
   }

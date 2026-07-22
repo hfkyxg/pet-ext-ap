@@ -2,13 +2,13 @@
 
 **Data:** 21 de julho de 2026 (revalidação: fluidez pet↔subpet + docs)  
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **167/167** contratos — i18n, posições, Trello, layering, animações contagiosas
+**Marco:** **169/169** contratos — i18n, posições, Trello, layering, animações contagiosas
 
 ## Resultado
 
 - Verificações de sintaxe (`npm run check`): **aprovadas**
-- Suíte `node:test`: **167/167**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **167/167**
+- Suíte `node:test`: **169/169**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **169/169**
 - `npm run audit`: **AUDIT_PACK_OK** (5 eixos)
 - Lint (`eslint src tests`): **0 erros**
 - Smoke Chromium: **runtimeErrors: 0** · reloads **3/3** · duo/partículas/props OK
@@ -22,7 +22,7 @@
 | Rostos / skins / idle | **9** / **7** / **7** |
 | Profissões / subpets | **12** / **8** |
 | Locales UI | **11** (pt-BR padrão) |
-| Contratos | **167** |
+| Contratos | **169** |
 
 ## Matriz de auditoria (5 eixos)
 

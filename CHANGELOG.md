@@ -16,13 +16,16 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 ### Alterado
 
 - Manifest **3.8.0**; content_scripts carregam `i18n.js` antes do catálogo
-- Suíte **167/167** contratos
+- Suíte **169/169** contratos
 - **Animações pet↔subpet** — locomoção com `clawdEaseInOutCubic`; subpet ecoa pulo/dança/banho/alegria; micro-idle do companheiro; duo/ações espontâneas mais frequentes; walk/run CSS fluido + anticipação de pulo
 
 ### Corrigido
 
 - **Name-tag / balão sobre o pet** — `.sprite-stack` acima da etiqueta; speech `below` com z-index e offset seguros
 - **Subpet atrás da etiqueta** — `.aic-subpet` no mesmo z-index do pet (pinta na frente) e follow alinhado aos pés
+- **Grade de ações** — Esgueirar `🤫` (sem tofu □), Acrobacia `💫` (distinto de Resgatar `🛟`), “Toca aqui” em PT-BR; ripple/feedback no popup; bounce/sneak/clap mais fluidos
+- **Pet duplicado entre abas** — hide otimista no boot; reconnect + hide no disconnect do Port; `completeTravel`/`assignHost` escondem não-hosts; `forceHidePet` para orphan; display respeita `_crossTabHidden`
+- **Ações invisíveis em aba sem pet** — popup enfileira a ação, manda `requestHost` ao SW e roda o anim após `spawnPet`; Resgatar não celebra com pet escondido
 
 ## [3.7.3] — 2026-07-20
 

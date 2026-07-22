@@ -541,7 +541,7 @@ class SubPet {
     } else if (state === 'bathing') {
       this._pulseReact('react-splash', 1300);
       this._burst(['🫧', '💧'], 3);
-    } else if (state === 'excited' || state === 'happy') {
+    } else if (state === 'excited' || state === 'happy' || state === 'highfive' || state === 'clapping') {
       this._pulseReact('react-cheer', 900);
       if (this.species === 'dog') {
         this.node.classList.add('wagging');
@@ -1331,6 +1331,10 @@ class ClawdCompanion {
     this.checkStreak();
     this.trackTab();
     this.startBehaviorLoop();
+    /* Cross-tab: esconde até o SW confirmar host — evita pet clonado em várias abas. */
+    if (this.S.settings?.crossTab !== false) {
+      this.setHidden(true);
+    }
     this.setupCrossTab();
     if (this._destroyed) return;
     this._detectPageContext();
@@ -1338,12 +1342,12 @@ class ClawdCompanion {
     this._setupScrollReaction();
     this._setupVisibilityReaction();
     setTimeout(() => {
-      if (!this._destroyed && this.isVisible && !this.isQuiet() && !this.S.settings?.minimalMode) {
+      if (!this._destroyed && this.isVisible && !this._crossTabHidden && !this.isQuiet() && !this.S.settings?.minimalMode) {
         this.showSpeech(this.getRandom('idle'));
       }
     }, 1400);
     /* Summon elaborado — queda com bounce (v3.4) */
-    if (this.node && !this._reducedMotion && !this.S.settings?.minimalMode) {
+    if (this.node && !this._reducedMotion && !this._crossTabHidden && !this.S.settings?.minimalMode) {
       this.node.classList.add('clawd-summon-drop');
       setTimeout(() => this.node?.classList.remove('clawd-summon-drop'), 750);
     }
@@ -1663,10 +1667,16 @@ class ClawdCompanion {
       this.S.favorites = fresh.favorites;
       this.S.settings = fresh.settings;
       if (prevCrossTab !== !!fresh.settings.crossTab) {
-        if (fresh.settings.crossTab) this.setupCrossTab();
-        else {
+        if (fresh.settings.crossTab) {
+          this.setHidden(true);
+          this._crossTabReconnectAttempts = 0;
+          this.setupCrossTab();
+        } else {
+          clearTimeout(this._crossTabReconnectTimer);
+          this._crossTabReconnectTimer = null;
           this._disconnectPresencePort('crossTab-storage');
-          this.setHidden(false);
+          this._crossTabHidden = false;
+          this._applyVisibilityDisplay();
         }
       }
       this.S.game.inventory = fresh.game.inventory;
@@ -1716,7 +1726,7 @@ class ClawdCompanion {
       this.node.classList.toggle('aic-minimal', !!fresh.settings.minimalMode || !!fresh.settings.performanceMode);
       if (typeof fresh.petVisible === 'boolean' && fresh.petVisible !== this.isVisible) {
         this.isVisible = fresh.petVisible;
-        if (this.node) this.node.style.display = this.isVisible ? '' : 'none';
+        this._applyVisibilityDisplay();
       }
       this._syncNameTag();
       this.node.classList.toggle('has-cushion', (fresh.game?.inventory || []).includes('cushion'));
@@ -2239,7 +2249,7 @@ class ClawdCompanion {
       happy: '🥰', excited: '🤩', sleeping: '😴', waving: '👋', eating: '😋',
       celebrate: '🎉', yawning: '🥱', shy: '🙈', tantrum: '😤', bathing: '🫧',
       fishing: '🎣', reeling: '🐟', jumping: '✨', roaring: '🦁', highfive: '✋',
-      spinning: '🌀', bouncing: '⬆️', winking: '😉', cheering: '🎉', sneaking: '🥷',
+      spinning: '🌀', bouncing: '⬆️', winking: '😉', cheering: '🎉', sneaking: '🤫',
       clapping: '👏', peeking: '👀', rolling: '🎱', 'holding-balloon': '🎈', hugging: '🤗',
       curious: '🔎', dizzy: '💫'
     }[newState];
@@ -3620,13 +3630,16 @@ class ClawdCompanion {
   doHighFive() {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('highfive', 900);
-    this.showSpeech('✋ HIGH FIVE!', 1500);
+    this.showSpeech('✋ Toca aqui!', 1500);
     this.spawnParticles(['✋', '⭐', '✨'], { count: 3 });
     this.spawnPixelSparks(['#f1c40f', '#ffffff', '#fd79a8'], { count: 5 });
     this.bumpStat('happiness', 6);
     this.addXp(2);
     this.beep(750, 0.06);
     setTimeout(() => this.beep(950, 0.08), 100);
+    if (this.subpet && !this.subpet._interactionBusy) {
+      this.subpet._pulseReact?.('react-cheer', 900);
+    }
   }
 
   doSpin() {
@@ -3638,17 +3651,23 @@ class ClawdCompanion {
     this.bumpStat('happiness', 4);
     this.addXp(2);
     this.chime([[520, 0.05], [720, 0.06], [920, 0.08]], 'actions');
+    if (this.subpet && Math.random() < 0.55) this.subpet.interact('spin', { force: true, silent: true });
   }
 
   doBounce() {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('bouncing', 700);
     this.showSpeech('Boing! ⬆️', 1000);
-    this.spawnParticles(['💨']);
+    this.spawnParticles(['💨', '✨'], { count: 3 });
+    this.spawnPixelSparks(['#74b9ff', '#ffffff', this.S.color || '#c71515'], { count: 4 });
     this.bumpStat('energy', -2);
     this.addXp(2);
     this.beep(540, 0.05);
-    setTimeout(() => this.beep(780, 0.07), 120);
+    setTimeout(() => {
+      if (this._destroyed) return;
+      this.beep(780, 0.07);
+      this._softLand();
+    }, 480);
   }
 
   doWink() {
@@ -3675,7 +3694,7 @@ class ClawdCompanion {
   doSneak() {
     if (this.state === 'sleeping') this.wakeUp();
     this.setStateFor('sneaking', 1600);
-    this.showSpeech('Shhh... 🥷', 1400);
+    this.showSpeech('Shhh... 🤫', 1400);
     this.spawnPixelSparks(['#2c3e50', '#636e72', '#b2bec3'], { count: 3 });
     this.bumpStat('energy', -2);
     this.addXp(2);
@@ -3693,6 +3712,9 @@ class ClawdCompanion {
     this.beep(480, 0.04);
     setTimeout(() => this.beep(480, 0.04), 110);
     setTimeout(() => this.beep(640, 0.05), 220);
+    if (this.subpet && !this.subpet._interactionBusy) {
+      this.subpet._pulseReact?.('react-cheer', 900);
+    }
   }
 
   doPeek() {
@@ -5190,10 +5212,14 @@ class ClawdCompanion {
     this._scrubRuntimeLastError();
     const port = this._safeChrome(() => chrome.runtime.connect({ name: 'clawd-presence' }));
     this._scrubRuntimeLastError();
-    if (!port) return;
+    if (!port) {
+      this._scheduleCrossTabReconnect();
+      return;
+    }
 
     this._port = port;
     this._portSuspended = false;
+    this._crossTabReconnectAttempts = 0;
 
     this._portMessageListener = this._guardChromeCallback((msg) => this._onPresenceMsg(msg));
     this._portDisconnectListener = () => {
@@ -5203,6 +5229,12 @@ class ClawdCompanion {
       else this._scrubRuntimeLastError();
       if (!this._destroyed && !this._hasExtensionContext()) {
         this._handleExtensionContextInvalidated();
+        return;
+      }
+      /* SW dormiu / canal caiu — esconde já e reconecta (evita pet duplicado). */
+      if (!this._destroyed && this.S?.settings?.crossTab && !this._portSuspended) {
+        this.setHidden(true);
+        this._scheduleCrossTabReconnect();
       }
     };
     this._safeChrome(() => port.onDisconnect.addListener(this._portDisconnectListener));
@@ -5211,9 +5243,25 @@ class ClawdCompanion {
     const registered = this._safePortPost({ type: 'register' });
     if (!registered) {
       this._disconnectPresencePort('register-failed');
+      this._scheduleCrossTabReconnect();
       return;
     }
     this._bindPresencePortLifecycle();
+  }
+
+  _scheduleCrossTabReconnect() {
+    if (this._destroyed || this._port || !this.S?.settings?.crossTab) return;
+    if (this._crossTabReconnectTimer) return;
+    this._crossTabReconnectAttempts = (this._crossTabReconnectAttempts || 0) + 1;
+    if (this._crossTabReconnectAttempts > 8) return;
+    const delay = Math.min(5000, 220 * Math.pow(1.7, this._crossTabReconnectAttempts - 1));
+    this._crossTabReconnectTimer = setTimeout(() => {
+      this._crossTabReconnectTimer = null;
+      if (this._destroyed || this._port || !this.S?.settings?.crossTab) return;
+      if (!this._hasExtensionContext()) return;
+      this.setupCrossTab();
+      if (!this._port) this._scheduleCrossTabReconnect();
+    }, delay);
   }
 
   _disconnectPresencePort(_reason = '') {
@@ -5293,6 +5341,15 @@ class ClawdCompanion {
           this.startRun(toX);
           if (!this.S.settings?.minimalMode) this.showSpeech('Cheguei! 🧳', 2500);
         }
+        /* Ação enfileirada enquanto o pet estava em outra aba. */
+        if (this._pendingAction) {
+          const pending = this._pendingAction;
+          this._pendingAction = null;
+          clearTimeout(this._pendingActionTimer);
+          this._pendingActionTimer = setTimeout(() => {
+            if (!this._destroyed && !this._crossTabHidden) this._handleAction(pending);
+          }, msg.direction ? 700 : 80);
+        }
         break;
       }
       case 'despawnPet': {
@@ -5319,13 +5376,7 @@ class ClawdCompanion {
       this.stopFishing();
       this.cancelMovement();
     }
-    this.node.style.display = hidden ? 'none' : '';
-    if (this.subpet) {
-      this.subpet.node.style.display = hidden ? 'none' : '';
-      if (hidden) this.subpet._pauseRaf();
-      else if (!document.hidden && typeof this.subpet._resumeRaf === 'function') this.subpet._resumeRaf();
-      else if (!document.hidden) this.subpet._armSettleWake();
-    }
+    this._applyVisibilityDisplay();
     // pegadas sutis nas abas sem pet
     const old = document.getElementById('aic-footprints');
     if (old) old.remove();
@@ -5334,6 +5385,19 @@ class ClawdCompanion {
       fp.id = 'aic-footprints';
       fp.textContent = '🐾';
       document.body.appendChild(fp);
+    }
+  }
+
+  /** display = preferência do usuário ∧ ownership cross-tab. */
+  _applyVisibilityDisplay() {
+    if (!this.node) return;
+    const show = !!this.isVisible && !this._crossTabHidden;
+    this.node.style.display = show ? '' : 'none';
+    if (this.subpet?.node) {
+      this.subpet.node.style.display = show ? '' : 'none';
+      if (!show) this.subpet._pauseRaf?.();
+      else if (!document.hidden && typeof this.subpet._resumeRaf === 'function') this.subpet._resumeRaf();
+      else if (!document.hidden) this.subpet._armSettleWake?.();
     }
   }
 
@@ -5358,36 +5422,44 @@ class ClawdCompanion {
           this.isVisible = !this.isVisible;
           this.S.petVisible = this.isVisible;
           if (this.isVisible) {
-            this.node.style.display = '';
-            this.refreshSubpet();
-            if (this.subpet && !document.hidden) this.subpet._resumeRaf?.();
-            this._celebrateSummon('Voltei! 👋');
+            this._applyVisibilityDisplay();
+            if (!this._crossTabHidden) {
+              this.refreshSubpet();
+              if (this.subpet && !document.hidden) this.subpet._resumeRaf?.();
+              this._celebrateSummon('Voltei! 👋');
+            }
           } else {
             this.stopKeepyUppy();
             this.stopFishing();
             if (this.subpet) this.subpet._pauseRaf();
-            this._poofOut(() => {
-              this.node.style.display = 'none';
-              if (this.subpet) this.subpet.node.style.display = 'none';
-            });
+            this._poofOut(() => this._applyVisibilityDisplay());
           }
           this.save();
+          break;
+        case 'forceHidePet':
+          /* SW: orphan host sem Port — esconde clone residual. */
+          this.setHidden(true);
           break;
         case 'resetPosition':
           this.S.position = { x: null, y: null };
           this.cancelMovement();
           this.applyStartCorner();
-          if (this.isVisible) {
+          if (this.isVisible && !this._crossTabHidden) {
             this._celebrateSummon('Me resgatou! Valeu! 🧭', {
               state: 'happy',
               sparks: ['#2ecc71', '#ffffff', '#f1c40f'],
               chime: [[440, 0.05], [660, 0.06], [880, 0.08]]
             });
+          } else if (this.isVisible && this._crossTabHidden && this.S.settings?.crossTab) {
+            this._pendingAction = null;
+            this._safePortPost({ type: 'requestHost' });
           }
           this.save();
           break;
         case 'summonCheer':
-          if (this.isVisible) this._celebrateSummon('Tô com você nesta guia! 🧳');
+          if (this.isVisible && !this._crossTabHidden) {
+            this._celebrateSummon('Tô com você nesta guia! 🧳');
+          }
           sendResponse({ ok: true });
           return true;
         case 'updateConfig':
@@ -5406,10 +5478,16 @@ class ClawdCompanion {
             if (this.emotionNode) this.emotionNode.classList.remove('visible');
           }
           if (msg.key === 'crossTab') {
-            if (msg.value) this.setupCrossTab();
-            else {
+            if (msg.value) {
+              this.setHidden(true);
+              this._crossTabReconnectAttempts = 0;
+              this.setupCrossTab();
+            } else {
+              clearTimeout(this._crossTabReconnectTimer);
+              this._crossTabReconnectTimer = null;
               this._disconnectPresencePort('crossTab-off');
-              this.setHidden(false);
+              this._crossTabHidden = false;
+              this._applyVisibilityDisplay();
             }
           }
           if (msg.key === 'locale' || msg.key === 'speechAnchor' || msg.key === 'emotionBadgeSide'
@@ -5802,6 +5880,13 @@ class ClawdCompanion {
 
   _handleAction(action) {
     this.lastActivity = Date.now();
+    /* Cross-tab: se o pet está em outra aba, traz para cá e enfileira a ação. */
+    if (this._crossTabHidden && this.S.settings?.crossTab && this._port) {
+      this._pendingAction = action;
+      this._safePortPost({ type: 'requestHost' });
+      return true;
+    }
+    if (!this.isVisible) return false;
     const map = {
       wave:       () => {
         this.setStateFor('waving', 2200);
@@ -5916,13 +6001,13 @@ class ClawdCompanion {
     if (this.state === 'sleeping') this.wakeUp();
     this._pulseAnimClass('flipping', 1000);
     this.setStateFor('somersault', 900);
-    this.showSpeech('Acrobacia! 🔄', 1400);
-    this.spawnParticles(['🌀', '✨', '💫']);
+    this.showSpeech('Acrobacia! 💫', 1400);
+    this.spawnParticles(['💫', '✨', '⭐']);
     this.bumpStat('energy', -3);
     this.bumpStat('happiness', 4);
     this.addXp(3);
     this.chime([[500, 0.05], [750, 0.06], [1000, 0.07]]);
-    if (this.subpet && Math.random() < 0.4) this.subpet.interact('spin', { force: true });
+    if (this.subpet && Math.random() < 0.55) this.subpet.interact('spin', { force: true, silent: true });
   }
 
   /* Gamer: sequência-assinatura (pulo → giro) que alimenta o contador de combo. */
@@ -6040,7 +6125,9 @@ class ClawdCompanion {
       /* duo / petting */
       '_pettingTimer', '_duoPlayTimer',
       /* jump anticipation / land */
-      '_jumpStartTimer', '_jumpLandTimer'
+      '_jumpStartTimer', '_jumpLandTimer',
+      /* cross-tab reconnect / pending action */
+      '_crossTabReconnectTimer', '_pendingActionTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
@@ -6050,6 +6137,7 @@ class ClawdCompanion {
       this._particleTimers.clear();
     }
     this._activeParticles = 0;
+    this._pendingAction = null;
     this._saveInFlight = false;
     this._saveDirty = false;
     if (this._animClassTimers) {

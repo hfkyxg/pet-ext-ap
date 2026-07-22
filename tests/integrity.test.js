@@ -258,11 +258,34 @@ test('porta cross-tab trata bfcache / lastError sem vazar', () => {
   // restoreHost não sobrescreve host vivo em memória
   assert.match(background, /hostTabId == null && res && res\.clawdHostTabId/);
   assert.match(background, /nextMondayMidnightMs|scheduleWeeklyResetAlarm/);
-  assert.match(background, /travelInFlight\) return/);
+  assert.match(background, /travelInFlight[\s\S]{0,200}hidePet/);
   assert.match(content, /clawdValidateDownstreamPortMessage/);
   assert.match(content, /_crossTabHidden/);
+  assert.match(content, /_scheduleCrossTabReconnect|_applyVisibilityDisplay/);
+  assert.match(content, /forceHidePet/);
+  assert.match(background, /forceHidePet/);
   const war = JSON.stringify(JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8')).web_accessible_resources || []);
   assert.match(war, /use_dynamic_url/);
+});
+
+test('cross-tab: um pet por navegador — hide otimista, reconnect e ownership', () => {
+  const content = read('src/content/content.js');
+  const background = read('src/background/background.js');
+  /* Boot esconde até spawnPet; disconnect esconde + reconecta */
+  assert.match(content, /crossTab !== false[\s\S]{0,80}setHidden\(true\)/);
+  assert.match(content, /_portDisconnectListener[\s\S]{0,900}setHidden\(true\)[\s\S]{0,80}_scheduleCrossTabReconnect/s);
+  assert.match(content, /_applyVisibilityDisplay\(/);
+  assert.match(content, /isVisible && !this\._crossTabHidden/);
+  /* completeTravel esconde não-destinos; assignHost força hide em orphan */
+  assert.match(background, /function completeTravel[\s\S]{0,500}hidePet/s);
+  assert.match(background, /prevHost[\s\S]{0,200}forceHidePet/);
+  assert.ok(require('../src/shared/catalog.js').CLAWD_RUNTIME_ACTIONS.includes('forceHidePet'));
+  /* Ação do popup em aba sem pet → requestHost + fila até spawnPet */
+  assert.match(content, /_pendingAction = action/);
+  assert.match(content, /requestHost/);
+  assert.match(content, /case 'spawnPet':[\s\S]*?_pendingAction/);
+  assert.match(background, /case 'requestHost'/);
+  assert.ok(require('../src/shared/catalog.js').CLAWD_PORT_MSG_TYPES.includes('requestHost'));
 });
 
 test('AudioContext só nasce após gesto do usuário', () => {

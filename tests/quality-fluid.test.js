@@ -431,6 +431,19 @@ test('polish: subpet — pool autônomo ponderado por personalidade + dança em 
   assert.match(content, /case 'dance':[\s\S]{0,180}doDance\(\)/);
 });
 
+test('harmonia: ações do grid — ícones distintos, PT-BR, ripple no popup', () => {
+  const { CLAWD_ACTIONS } = catalog;
+  assert.equal(CLAWD_ACTIONS.sneak.emoji, '🤫');
+  assert.equal(CLAWD_ACTIONS.flip.emoji, '💫');
+  assert.equal(CLAWD_ACTIONS.highfive.label, 'Toca aqui');
+  assert.notEqual(CLAWD_ACTIONS.flip.emoji, CLAWD_ACTIONS.spin.emoji);
+  assert.match(popupHtml, /🛟.*Resgatar pet|Resgatar pet/);
+  assert.doesNotMatch(popupHtml, /🔄<\/span>\s*Resgatar/);
+  assert.match(popupJs, /action-ripple|classList\.add\('playing'/);
+  assert.match(popupCss, /\.action-btn\.playing|\.action-btn\.action-ripple/);
+  assert.match(content, /Shhh\.\.\. 🤫|Toca aqui!|Acrobacia! 💫/);
+});
+
 test('fluidez: pet+subpet animam juntos — ease, eco, idle e anticipação', () => {
   /* Locomoção com ease-in-out (não linear seca) */
   assert.match(content, /function clawdEaseInOutCubic/);

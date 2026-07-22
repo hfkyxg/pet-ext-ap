@@ -2848,7 +2848,7 @@
    ============================ */
 
 /* IDLE: respiração suave — exclui ações + micro-anims (look/land/greet/peek/duo) */
-#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.walking):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.jump-anticipate):not(.stretching):not(.roaring):not(.highfive):not(.looking-around):not(.curious):not(.soft-landing):not(.tab-greet):not(.page-peeking):not(.duo-play):not(.petting-subpet):not(.sleep-settle):not(.rolling):not(.spinning):not(.bouncing):not(.cheering):not(.sneaking):not(.clapping):not(.peeking):not(.hugging):not(.dizzy):not(.holding-balloon):not(.clawd-idle-look):not(.clawd-idle-scratch):not(.clawd-idle-taptoe):not(.clawd-idle-sway):not(.clawd-idle-nudge):not(.clawd-idle-hop):not(.clawd-idle-shimmy):not(.clawd-summon-drop):not(.flipping):not(.meditating):not(.electrified) .pet-body {
+#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.walking):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.jump-anticipate):not(.stretching):not(.roaring):not(.highfive):not(.looking-around):not(.curious):not(.soft-landing):not(.tab-greet):not(.page-peeking):not(.duo-play):not(.petting-subpet):not(.sleep-settle):not(.rolling):not(.spinning):not(.bouncing):not(.cheering):not(.sneaking):not(.clapping):not(.peeking):not(.hugging):not(.dizzy):not(.holding-balloon):not(.winking):not(.clawd-idle-look):not(.clawd-idle-scratch):not(.clawd-idle-taptoe):not(.clawd-idle-sway):not(.clawd-idle-nudge):not(.clawd-idle-hop):not(.clawd-idle-shimmy):not(.clawd-summon-drop):not(.flipping):not(.meditating):not(.electrified) .pet-body {
   animation: clawd-breathe 3s ease-in-out infinite;
 }
 
@@ -4395,9 +4395,11 @@
   100% { transform: scale(var(--agent-scale, 1.5)) rotate(360deg); }
 }
 @keyframes clawd-bounce-action {
-  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }
-  40% { transform: scale(var(--agent-scale, 1.5)) translateY(-14px); }
-  70% { transform: scale(var(--agent-scale, 1.5)) translateY(-4px); }
+  0% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+  18% { transform: scale(var(--agent-scale, 1.5)) translateY(1px) scaleY(0.88); }
+  45% { transform: scale(var(--agent-scale, 1.5)) translateY(-16px) scaleY(1.08); }
+  72% { transform: scale(var(--agent-scale, 1.5)) translateY(-3px) scaleY(0.96); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
 }
 @keyframes clawd-wink-cover {
   0%, 55%, 100% { opacity: 0; }
@@ -4409,11 +4411,13 @@
 }
 @keyframes clawd-sneak {
   0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateX(0) scaleY(0.92); }
-  50% { transform: scale(var(--agent-scale, 1.5)) translateX(6px) scaleY(0.88); }
+  25% { transform: scale(var(--agent-scale, 1.5)) translateX(4px) scaleY(0.9); }
+  50% { transform: scale(var(--agent-scale, 1.5)) translateX(8px) scaleY(0.88); }
+  75% { transform: scale(var(--agent-scale, 1.5)) translateX(3px) scaleY(0.9); }
 }
 @keyframes clawd-clap {
-  0%, 100% { transform: scale(var(--agent-scale, 1.5)) scale(1); }
-  50% { transform: scale(var(--agent-scale, 1.5)) scale(1.08); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) scale(1) rotate(0deg); }
+  50% { transform: scale(var(--agent-scale, 1.5)) scale(1.1) rotate(-3deg); }
 }
 @keyframes clawd-peek {
   0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0); }

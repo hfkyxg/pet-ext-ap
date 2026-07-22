@@ -321,17 +321,17 @@ var CLAWD_ACTIONS = {
   bounce:     { emoji: '⬆️', label: 'Pularzinho' },
   wink:       { emoji: '😉', label: 'Piscadinha' },
   cheer:      { emoji: '🎉', label: 'Torcer' },
-  sneak:      { emoji: '🥷', label: 'Esgueirar' },
+  sneak:      { emoji: '🤫', label: 'Esgueirar' },
   clap:       { emoji: '👏', label: 'Bater palma' },
   peek:       { emoji: '👀', label: 'Espiar' },
   roll:       { emoji: '🎱', label: 'Rolar' },
   balloon:    { emoji: '🎈', label: 'Balão' },
   hug:        { emoji: '🤗', label: 'Abraçar' },
-  flip:       { emoji: '🔄', label: 'Acrobacia' },
+  flip:       { emoji: '💫', label: 'Acrobacia' },
   meditate:   { emoji: '🧘', label: 'Meditar' },
   electric:   { emoji: '⚡', label: 'Descarga' },
   nap:        { emoji: '💤', label: 'Cochilo' },
-  highfive:   { emoji: '✋', label: 'High five' },
+  highfive:   { emoji: '✋', label: 'Toca aqui' },
   lookAround: { emoji: '🔍', label: 'Olhar em volta' }
 };
 
@@ -1294,7 +1294,7 @@ var CLAWD_RUNTIME_ACTIONS = [
   'updateSetting', 'triggerAction', 'setSubpet', 'setSubpetColor',
   'setSubpetEyeColor', 'triggerSubpetAction', 'claimDailyQuest', 'claimWeeklyChallenge',
   'weeklyReset', 'getStatus', 'openStudio', 'closeStudio', 'summonPetToTab',
-  'summonCheer', 'createTrelloCard'
+  'summonCheer', 'forceHidePet', 'createTrelloCard'
 ];
 
 /* ---- Variações de Idle (v3.4) ---- */
@@ -1316,7 +1316,7 @@ var CLAWD_KEYBOARD_SHORTCUTS = {
   'Alt+Z': 'sleep'
 };
 
-var CLAWD_PORT_MSG_TYPES = ['register', 'travelComplete'];
+var CLAWD_PORT_MSG_TYPES = ['register', 'travelComplete', 'requestHost'];
 /** SW → content (presença): só spawn / despawn / hide. */
 var CLAWD_DOWNSTREAM_PORT_MSG_TYPES = ['spawnPet', 'despawnPet', 'hidePet'];
 var CLAWD_TRAVEL_DIRECTIONS = ['left', 'right'];
@@ -1547,6 +1547,7 @@ function clawdValidateRuntimeMessage(request) {
     case 'openStudio':
     case 'closeStudio':
     case 'summonCheer':
+    case 'forceHidePet':
       return { action };
 
     case 'summonPetToTab': {

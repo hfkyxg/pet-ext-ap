@@ -988,13 +988,20 @@ function renderActions() {
   favSort(Object.keys(CLAWD_ACTIONS), 'actions').forEach(id => {
     const def = CLAWD_ACTIONS[id];
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'action-btn' + (isFav('actions', id) ? ' favorited' : '');
-    btn.innerHTML = `${def.emoji} ${def.label}`;
+    btn.dataset.action = id;
+    btn.setAttribute('aria-label', def.label);
+    btn.title = def.label;
+    btn.innerHTML = `<span class="action-emoji" aria-hidden="true">${def.emoji}</span><span class="action-label">${def.label}</span>`;
     btn.appendChild(makeStar('actions', id, renderActions));
     btn.addEventListener('click', () => {
       sendMsg({ action: 'triggerAction', value: id });
-      btn.style.transform = 'scale(0.93)';
-      setTimeout(() => btn.style.transform = '', 200);
+      btn.classList.remove('playing', 'action-ripple');
+      void btn.offsetWidth;
+      btn.classList.add('playing', 'action-ripple');
+      setTimeout(() => btn.classList.remove('playing', 'action-ripple'), 420);
+      showStatusFeedback(`${def.emoji} ${def.label}!`);
       setTimeout(pollLiveStats, 600);
     });
     grid.appendChild(btn);
@@ -1854,7 +1861,10 @@ function bindStatic() {
   });
   const summonBtn = $('btn-summon-tab');
   if (summonBtn) summonBtn.addEventListener('click', summonPetToCurrentTab);
-  $('btn-reset').addEventListener('click', () => sendMsg({ action: 'resetPosition' }));
+  $('btn-reset').addEventListener('click', () => {
+    sendMsg({ action: 'resetPosition' });
+    showStatusFeedback('Pet resgatado na tela! 🛟');
+  });
 
   bindConfig();
 }
