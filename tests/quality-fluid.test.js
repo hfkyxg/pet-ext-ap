@@ -424,7 +424,7 @@ test('polish: profissões gamer/streamer com assinatura própria; tutor variado'
 
 test('polish: subpet — pool autônomo ponderado por personalidade + dança em duo', () => {
   assert.match(content, /_speciesPool\(\)\.slice\(\)/);
-  assert.match(content, /\(p\.playful \?\? 5\) >= 7\) pool\.push\('play', 'celebrate', 'spin'\)/);
+  assert.match(content, /\(p\.playful \?\? 5\) >= 7\) pool\.push\('play', 'celebrate', 'spin', 'mischief'\)/);
   assert.match(content, /\(p\.lazy \?\? 5\) >= 7\) pool\.push\('nap', 'cuddle'\)/);
   /* Nova cena coordenada pet↔subpet */
   assert.match(content, /scenes = \['cuddle'[\s\S]{0,90}'dance'\]/);
@@ -451,10 +451,13 @@ test('fluidez: pet+subpet animam juntos — ease, eco, idle e anticipação', ()
   assert.match(content, /const progress = clawdEaseInOutCubic\(linear\)/);
   assert.ok((content.match(/clawdEaseInOutCubic\(linear\)/g) || []).length >= 2,
     'walk e run devem usar ease cúbico');
-  /* Subpet ecoa ações do pet */
+  /* Subpet ecoa ações do pet (setState → onOwnerState; dança via passos rastreáveis) */
   assert.match(content, /_pulseReact\(/);
   assert.match(content, /react-jump|react-dance|react-splash/);
-  assert.match(content, /onOwnerState\('dance-2'\)|onOwnerState\('dance-3'\)/);
+  assert.match(content, /setState\('dance-2'\)/);
+  assert.match(content, /setState\('dance-3'\)/);
+  assert.match(content, /this\.subpet\.onOwnerState\(newState\)/);
+  assert.match(content, /_danceTimers\.push\(setTimeout/);
   /* Micro-vida do subpet mesmo em PNG estático */
   assert.match(content, /_scheduleIdleVariation\(/);
   assert.match(content, /subpet-idle-look|subpet-idle-hop|subpet-idle-wiggle/);

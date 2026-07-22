@@ -1,14 +1,14 @@
 # Relatório de Validação — Claw'd v3.8.0
 
-**Data:** 21 de julho de 2026 (revalidação: fluidez pet↔subpet + docs)  
+**Data:** 22 de julho de 2026 (revalidação: polish de animações + cross-tab/SFX)  
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **169/169** contratos — i18n, posições, Trello, layering, animações contagiosas
+**Marco:** **187/187** contratos — mischief/navegação, polish de animações, ownership cross-tab e SFX sem eco
 
 ## Resultado
 
 - Verificações de sintaxe (`npm run check`): **aprovadas**
-- Suíte `node:test`: **169/169**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **169/169**
+- Suíte `node:test`: **187/187**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **187/187**
 - `npm run audit`: **AUDIT_PACK_OK** (5 eixos)
 - Lint (`eslint src tests`): **0 erros**
 - Smoke Chromium: **runtimeErrors: 0** · reloads **3/3** · duo/partículas/props OK
@@ -22,7 +22,7 @@
 | Rostos / skins / idle | **9** / **7** / **7** |
 | Profissões / subpets | **12** / **8** |
 | Locales UI | **11** (pt-BR padrão) |
-| Contratos | **169** |
+| Contratos | **187** |
 
 ## Matriz de auditoria (5 eixos)
 
@@ -32,9 +32,24 @@
 | **Performance** | `PARTICLE_MAX` / `_reserveFx`, `performanceMode`, reduced-motion — `quality-fluid.test.js` |
 | **Automações** | CI: test + ecosystem + audit (`.github/workflows/validate.yml`) |
 | **Integrações** | Trello via SW (`api.trello.com`), i18n (`src/shared/i18n.js`), `docs/TRELLO.md` |
-| **Interações** | `toastPosition` / `speechAnchor` / `emotionBadgeSide`, speech pools SSOT, popup selects; fluidez pet↔subpet (`clawdEaseInOutCubic`, eco `_pulseReact`, idle subpet) |
+| **Interações** | toast/speech/emotion positions; fluidez pet↔subpet; **host ativo** (`_isActiveHost` / `_crossTabHidden`); digitar/assistir; mischief |
 
-## Novidades v3.8.0
+## Polish 22/07/2026 (neste marco)
+
+| Item | Status |
+|------|--------|
+| Idle `!important` limpo no `setState` (não engole ações) | ✅ |
+| `doDance` com `_danceTimers` + `setState` por passo | ✅ |
+| Digitar sustentado (sem `setStateFor` que corta no meio) | ✅ |
+| Hug do subpet só se o dono estiver livre | ✅ |
+| Timers de FX/scroll/summon/poof/kickoff limpos no `destroy` | ✅ |
+| Aba não-host: silêncio de SFX/fala/partículas + loops gated | ✅ |
+| Race `despawnPet` × `spawnPet` (`_despawnTimer` + `_travelGen`) | ✅ |
+| SFX sem eco: subpet dblclick, wake silencioso, cheer sem celebrate duplo | ✅ |
+| Popup `prefers-reduced-motion` cobre loops infinitos | ✅ |
+| Contratos novos: mischief, navegação, polish animação, cross-tab/SFX | ✅ |
+
+## Novidades v3.8.0 (base)
 
 | Item | Status |
 |------|--------|
@@ -43,17 +58,9 @@
 | Lado do badge de emoção (`left\|right`) | ✅ |
 | `settings.locale` + `clawdT` / speech pools | ✅ |
 | UI traduzida (11 locales) | ✅ |
-| Pools pt-BR/en 2–3×; demais com núcleo + fallback en | ✅ |
 | Trello: settings + `createTrelloCard` no SW | ✅ |
-| CONTRIBUTING.md + docs/TRELLO.md + audit-pack | ✅ |
-| Pet acima do name-tag (z-index sprite > etiqueta) | ✅ |
-| Subpet na frente do name-tag/balão (`z-index` 2147483647 + follow aos pés) | ✅ |
-| Board Trello público [pet](https://trello.com/b/8wGr5tiQ/pet) | ✅ |
-| Locomoção eased (`clawdEaseInOutCubic` em walk/run) | ✅ |
-| Eco contagioso pet→subpet (jump/dance/bath/happy/stretch) | ✅ |
-| Micro-idle do subpet (look/hop/wiggle/stretch) + walk CSS `ease-in-out` | ✅ |
-| Anticipação de pulo + duo/ações espontâneas mais frequentes | ✅ |
-| `summonCheer` na allowlist + feedback de summon no popup | ✅ |
+| Layering pet/subpet × name-tag/balão | ✅ |
+| Locomoção eased + eco contagioso + micro-idle | ✅ |
 
 ## Comandos
 
@@ -65,6 +72,7 @@ npm run audit
 node tests/runtime-smoke.mjs
 ```
 
-## Histórico v3.7.3
+## Histórico
 
-Ver CHANGELOG e commits anteriores para polish de timing, profissões e subpets (159 contratos base).
+- **v3.8.0 (21/07)** — i18n, Trello, layering, fluidez (marco 169).
+- **v3.7.3** — timing, profissões assinatura, subpets (159 contratos base).

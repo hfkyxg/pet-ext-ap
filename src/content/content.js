@@ -119,11 +119,9 @@ class SubPet {
       event.stopPropagation();
       this._pulseTap();
       if (this._clickTimer) {
+        /* Segundo clique: cancela o cuddle agendado; o dblclick cuida do special (evita SFX duplo). */
         clearTimeout(this._clickTimer);
         this._clickTimer = null;
-        if (this.state === 'sleeping') this.wakeUp('Acordei! ✨');
-        else this.interact('special', { force: true });
-        this.owner.registerDaily?.('subpet');
         return;
       }
       this._clickTimer = setTimeout(() => {
@@ -432,8 +430,9 @@ class SubPet {
   _scheduleIdleVariation() {
     if (!this.node) return;
     const playful = (this.owner?.S?.personality?.playful ?? 5);
-    const base = Math.max(7000, 16000 - playful * 800);
-    const jitter = Math.random() * 5000;
+    /* Subpet acompanha a micro-vida do dono — cadência mais viva, ainda throttled por id. */
+    const base = Math.max(5500, 12000 - playful * 700);
+    const jitter = Math.random() * 4000;
     clearTimeout(this._idleVarTimer);
     this._idleVarTimer = setTimeout(() => this._doIdleVariation(), base + jitter);
   }
@@ -479,16 +478,16 @@ class SubPet {
   /** Pool de interações autonômicas por espécie (ficha dos Subpets). */
   _speciesPool() {
     const pools = {
-      dog:    ['play', 'cuddle', 'celebrate', 'special', 'hug', 'play', 'cuddle', 'special'],
-      cat:    ['nap', 'nap', 'cuddle', 'special', 'nap', 'explore'],
-      bird:   ['special', 'explore', 'spin', 'special', 'celebrate', 'play'],
-      rabbit: ['play', 'play', 'race', 'special', 'spin', 'celebrate'],
+      dog:    ['play', 'cuddle', 'celebrate', 'special', 'hug', 'play', 'cuddle', 'special', 'mischief'],
+      cat:    ['nap', 'nap', 'cuddle', 'special', 'nap', 'explore', 'mischief'],
+      bird:   ['special', 'explore', 'spin', 'special', 'celebrate', 'play', 'mischief'],
+      rabbit: ['play', 'play', 'race', 'special', 'spin', 'celebrate', 'mischief'],
       dino:   ['race', 'race', 'play', 'special', 'explore', 'stomp'],
       dragon: ['special', 'celebrate', 'explore', 'special', 'spin'],
       ghost:  this._isNight()
-        ? ['special', 'explore', 'vanish', 'special', 'spin']
+        ? ['special', 'explore', 'vanish', 'special', 'spin', 'mischief']
         : ['nap', 'explore', 'cuddle', 'nap'],
-      slime:  ['play', 'cuddle', 'special', 'explore', 'hug', 'special']
+      slime:  ['play', 'cuddle', 'special', 'explore', 'hug', 'special', 'mischief']
     };
     return pools[this.species] || pools.dog;
   }
@@ -654,7 +653,7 @@ class SubPet {
     this._pauseRaf();
   }
 
-  wakeUp(message = 'Bom dia, pequenino! ☀️') {
+  wakeUp(message = 'Bom dia, pequenino! ☀️', { silent = false } = {}) {
     if (this.state !== 'sleeping') return;
     clearTimeout(this._sleepTimer);
     this._setState('following');
@@ -663,7 +662,7 @@ class SubPet {
     this.node.classList.add('waking');
     this._interactionBusy = false;
     this.say(message, 2200);
-    this._sfx('wake');
+    if (!silent) this._sfx('wake');
     clearTimeout(this._wakeTimer);
     this._wakeTimer = setTimeout(() => this.node && this.node.classList.remove('waking'), 1100);
     this.owner.addXp(1);
@@ -868,7 +867,7 @@ class SubPet {
   _scheduleInteraction() {
     this._interactTimer = setInterval(() => {
       if (document.hidden) return;
-      if (!this.owner.isVisible || this.owner.isQuiet()) return;
+      if (!this.owner.isVisible || this.owner.isQuiet() || this.owner._crossTabHidden) return;
       if (this.owner.state === 'sleeping') {
         this.sleep();
         return;
@@ -889,9 +888,9 @@ class SubPet {
       if (Math.random() > chance) return;
       /* Base por espécie + reforço por personalidade do dono (mesmo padrão do pet). */
       const pool = this._speciesPool().slice();
-      if ((p.playful ?? 5) >= 7) pool.push('play', 'celebrate', 'spin');
+      if ((p.playful ?? 5) >= 7) pool.push('play', 'celebrate', 'spin', 'mischief');
       if ((p.lazy ?? 5) >= 7) pool.push('nap', 'cuddle');
-      if ((p.curious ?? 5) >= 7) pool.push('explore', 'special');
+      if ((p.curious ?? 5) >= 7) pool.push('explore', 'special', 'mischief');
       if ((p.social ?? 5) >= 7) pool.push('hug', 'cuddle');
       const pick = pool[Math.floor(Math.random() * pool.length)];
       this.interact(pick);
@@ -986,6 +985,17 @@ class SubPet {
         this.owner.addXp(1);
         this._finishInteractionAfter(1300);
         break;
+      case 'mischief':
+        /* "Aprontar" do subpet — travessura reaproveitando estados verificados. */
+        this._beginInteraction('spinning', 'spinning');
+        this.node?.classList.add('double-hop');
+        this.say(this.species === 'cat' ? 'Miau maroto! 😼' : 'Aprontei! 😜');
+        this._burst(['😜', '💨', '✨'], 5);
+        this._sfx('spin');
+        if (this.owner.state === 'idle') this.owner._pulseAnimClass?.('looking-around', 1400);
+        this.owner.addXp(1);
+        this._finishInteractionAfter(1400, () => this.node?.classList.remove('double-hop'));
+        break;
       case 'celebrate':
         this._beginInteraction('celebrating', 'celebrating');
         if (this.species === 'dog') this.node?.classList.add('wagging');
@@ -1020,8 +1030,10 @@ class SubPet {
         this.say('🤗💕');
         this._burst(['🫶', '💖', '✨'], 5);
         this._sfx('cuddle');
-        // 0.55s × 3 ≈ 1650ms — mesma janela do dono
-        this.owner.setStateFor?.('hugging', 1650);
+        // Não sobrescreve ações do dono (ex.: fishing/dance); só sincroniza se ele estiver livre.
+        if (this.owner.state === 'idle' || this.owner.state === 'walking' || this.owner.state === 'curious') {
+          this.owner.setStateFor?.('hugging', 1650);
+        }
         if (!silent) this.owner.showSpeech?.('Abraço em duo! 🤗', 1800);
         this.owner.bumpStat('happiness', 4);
         this._finishInteractionAfter(1650, () => this.node?.classList.remove('duo-hug'));
@@ -1349,7 +1361,8 @@ class ClawdCompanion {
     /* Summon elaborado — queda com bounce (v3.4) */
     if (this.node && !this._reducedMotion && !this._crossTabHidden && !this.S.settings?.minimalMode) {
       this.node.classList.add('clawd-summon-drop');
-      setTimeout(() => this.node?.classList.remove('clawd-summon-drop'), 750);
+      clearTimeout(this._summonDropTimer);
+      this._summonDropTimer = setTimeout(() => this.node?.classList.remove('clawd-summon-drop'), 750);
     }
   }
 
@@ -1489,7 +1502,7 @@ class ClawdCompanion {
     this.srStatusNode = this.node.querySelector('#aic-sr-status');
     this.balloonNode = this.node.querySelector('#aic-balloon');
     this.stackNode   = this.node.querySelector('#aic-stack');
-    this.node.style.animation = 'clawd-pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both';
+    /* Entrada real é clawd-summon-drop no .pet-body — #aic-clawd-node força animation:none !important */
     this.applyStartCorner();
     if (!this.isVisible) this.node.style.display = 'none';
   }
@@ -1894,18 +1907,38 @@ class ClawdCompanion {
   }
 
   /* ---- Variações de Idle (v3.4) ---- */
+  _idleVariationClassNames() {
+    if (Array.isArray(CLAWD_IDLE_VARIATIONS) && CLAWD_IDLE_VARIATIONS.length) {
+      return CLAWD_IDLE_VARIATIONS.map((v) => String(v.keyframe || '').replace('@keyframes ', ''));
+    }
+    return [
+      'clawd-idle-look', 'clawd-idle-scratch', 'clawd-idle-taptoe',
+      'clawd-idle-sway', 'clawd-idle-nudge', 'clawd-idle-hop', 'clawd-idle-shimmy'
+    ];
+  }
+
+  /* Idle usa !important no CSS — precisa sair antes de qualquer ação, senão engole happy/wave/etc. */
+  _clearIdleVariationClasses() {
+    clearTimeout(this._idleVarClearTimer);
+    this._idleVarClearTimer = null;
+    if (!this.node) return;
+    this.node.classList.remove(...this._idleVariationClassNames());
+  }
+
   _scheduleIdleVariation() {
     if (this._destroyed) return;
     const playful = (this.S.personality?.playful ?? 5);
-    const baseInterval = Math.max(8000, 22000 - playful * 1000);
-    const jitter = Math.random() * 6000;
+    /* Micro-vida mais contínua: gaps de imobilidade menores.
+       O cooldownMs por variação (CLAWD_IDLE_VARIATIONS) ainda evita repetição/spam. */
+    const baseInterval = Math.max(6500, 15000 - playful * 900);
+    const jitter = Math.random() * 5000;
     if (this._idleVarTimer) clearTimeout(this._idleVarTimer);
     this._idleVarTimer = setTimeout(() => this._doIdleVariation(), baseInterval + jitter);
   }
 
   _doIdleVariation() {
     try {
-      if (this._destroyed || this.state !== 'idle' || !this.node || this._reducedMotion) return;
+      if (this._destroyed || this._crossTabHidden || this.state !== 'idle' || !this.node || this._reducedMotion) return;
       if (this.S?.settings?.noIdleVariations || this.S?.settings?.performanceMode) return;
       if (!Array.isArray(CLAWD_IDLE_VARIATIONS) || !CLAWD_IDLE_VARIATIONS.length) return;
       const now = Date.now();
@@ -1915,18 +1948,18 @@ class ClawdCompanion {
         return (now - last) >= v.cooldownMs;
       });
       if (!available.length) return;
-      /* playful alto → prefere variações mais curtas/energéticas */
+      /* playful alto → prefere hop/taptoe/shimmy/nudge (≤1100ms); 2200 incluía 100% do catálogo */
       let pool = available;
       if (playful >= 7) {
-        const energetic = available.filter(v => (v.durationMs || 2000) <= 2200);
+        const energetic = available.filter(v => (v.durationMs || 2000) <= 1100);
         if (energetic.length) pool = energetic.concat(available);
       }
       const pick = pool[Math.floor(Math.random() * pool.length)];
       if (!this._idleVarLastTime) this._idleVarLastTime = {};
       this._idleVarLastTime[pick.id] = now;
       const cls = pick.keyframe.replace('@keyframes ', '');
+      this._clearIdleVariationClasses();
       this.node.classList.add(cls);
-      clearTimeout(this._idleVarClearTimer);
       this._idleVarClearTimer = setTimeout(() => this.node?.classList.remove(cls), pick.durationMs + 200);
     } finally {
       this._scheduleIdleVariation();
@@ -1961,7 +1994,8 @@ class ClawdCompanion {
           }
           let dashed = false;
           if (speed > 3000 && (this.S.personality?.playful ?? 5) >= 4) {
-            setTimeout(() => {
+            clearTimeout(this._scrollDashTimer);
+            this._scrollDashTimer = setTimeout(() => {
               if (this._destroyed || this.state === 'idle' || this.isAutoWalking || !this.node) return;
               const rect = this.node.getBoundingClientRect();
               const dir = Math.random() < 0.5 ? -1 : 1;
@@ -1972,10 +2006,12 @@ class ClawdCompanion {
             dashed = true;
           }
           if (!dashed) {
-            setTimeout(() => { if (!this._destroyed) this.setState('idle'); }, 900);
+            clearTimeout(this._scrollIdleTimer);
+            this._scrollIdleTimer = setTimeout(() => { if (!this._destroyed) this.setState('idle'); }, 900);
           }
         }
-        setTimeout(() => { this._scrollReacting = false; }, 2000);
+        clearTimeout(this._scrollReactTimer);
+        this._scrollReactTimer = setTimeout(() => { this._scrollReacting = false; }, 2000);
       }
     };
     window.addEventListener('scroll', this._scrollHandler, { passive: true });
@@ -2232,9 +2268,12 @@ class ClawdCompanion {
   }
 
   setState(newState) {
+    if (this._destroyed || !this.node) return;
     if (this.state === newState) return;
     clearTimeout(this._stateTimer);
     this._stateTimer = null;
+    /* Classes idle !important vencem ações se ficarem grudadas no nó */
+    this._clearIdleVariationClasses();
     if (newState !== 'idle' && this._wakeStretchTimer) {
       clearTimeout(this._wakeStretchTimer);
       this._wakeStretchTimer = null;
@@ -2542,15 +2581,14 @@ class ClawdCompanion {
       this._dwellHiddenAt = 0;
       this._dwellVisibleSince = Date.now();
       this._dwellThresholdMs = 45000 + Math.floor(Math.random() * 45000);
-      if (!this.isVisible || this.isQuiet()) return;
+      if (!this.isVisible || this.isQuiet() || this._crossTabHidden) return;
       this.lastActivity = Date.now();
       if (this.state === 'sleeping') this.wakeUp();
       /* < 45s: silêncio; 45s–5min: aceno leve; 5–30min: volta; >30min: celebração */
       if (hiddenFor < 45000) return;
       if (hiddenFor > 1800000) {
         this.showSpeech('Que saudade! 🥺', 3000);
-        this.doCheer();
-        if (this.subpet) this.subpet.interact('celebrate', { force: true });
+        this.doCheer(); /* já celebra o subpet internamente — sem segundo interact */
       } else if (hiddenFor > 300000) {
         this.showSpeech('Você voltou! 🎉', 2200);
         this._pulseAnimClass('tab-greet', 750);
@@ -2562,7 +2600,7 @@ class ClawdCompanion {
       }
       if (hiddenFor > 180000) {
         setTimeout(() => {
-          if (!document.hidden && this.isVisible && !this.isQuiet()) this._engagePageStructure({ force: true });
+          if (!document.hidden && this._isActiveHost() && !this.isQuiet()) this._engagePageStructure({ force: true });
         }, 2800);
       }
     }, { signal });
@@ -2577,12 +2615,14 @@ class ClawdCompanion {
     }, { passive: true, signal });
 
     this._bindPagePlayfulness(signal);
+    this._bindTypingCompanion(signal);
+    this._bindMediaWatching(signal);
   }
 
   _bindPagePlayfulness(signal) {
     // Texto selecionado → curiosidade
     document.addEventListener('selectionchange', () => {
-      if (!this.isVisible || this.isQuiet() || this.state !== 'idle') return;
+      if (!this._isActiveHost() || this.isQuiet() || this.state !== 'idle') return;
       const text = (window.getSelection?.()?.toString() || '').trim();
       if (text.length < 12) return;
       if (Date.now() - (this._lastSelectionReact || 0) < 14000) return;
@@ -2599,7 +2639,7 @@ class ClawdCompanion {
       if (!(t instanceof HTMLElement)) return;
       const editable = /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable;
       if (!editable) return;
-      if (!this.isVisible || this.isQuiet() || this.state !== 'idle') return;
+      if (!this.isVisible || this.isQuiet() || this._crossTabHidden || this.state !== 'idle') return;
       if (Date.now() - (this._lastFocusReact || 0) < 22000) return;
       this._lastFocusReact = Date.now();
       if (this.S.profession === 'engineer') {
@@ -2616,7 +2656,7 @@ class ClawdCompanion {
     // Clique na página (fora do pet) → aceno ocasional
     document.addEventListener('click', (e) => {
       if (e.target?.closest?.('#aic-clawd-node, .aic-subpet, .aic-lake, .aic-toyball')) return;
-      if (!this.isVisible || this.isQuiet() || this.state !== 'idle') return;
+      if (!this.isVisible || this.isQuiet() || this._crossTabHidden || this.state !== 'idle') return;
       if (Math.random() > 0.14) return;
       if (Date.now() - (this._lastPageClickReact || 0) < 9000) return;
       this._lastPageClickReact = Date.now();
@@ -2647,12 +2687,142 @@ class ClawdCompanion {
 
     // Mouse sai da janela → "até logo"
     document.addEventListener('mouseleave', () => {
-      if (!this.isVisible || this.isQuiet() || this.state !== 'idle') return;
+      if (!this.isVisible || this.isQuiet() || this._crossTabHidden || this.state !== 'idle') return;
       if (Date.now() - (this._lastLeaveReact || 0) < 30000) return;
       this._lastLeaveReact = Date.now();
       this.showSpeech('Volta logo! 👋', 1800);
       this.setStateFor('waving', 1400);
     }, { signal });
+  }
+
+  /* Digitar (sustentado) — o pet "escreve junto" enquanto o usuário digita.
+     Reage em rajadas espaçadas (não a cada tecla) e volta à calma quando para. */
+  _bindTypingCompanion(signal) {
+    const isEditable = (t) => t instanceof HTMLElement &&
+      (/^(INPUT|TEXTAREA)$/.test(t.tagName) || t.isContentEditable);
+    const endTyping = () => {
+      this._typingActive = false;
+      if (this.state === 'typing' || this.state === 'curious') this.setState('idle');
+    };
+    document.addEventListener('keydown', (e) => {
+      if (this._destroyed || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (!isEditable(e.target)) return;
+      /* ignora teclas puras de navegação/modificador (setas, Shift, Tab…) */
+      if (e.key && e.key.length > 1 &&
+        !['Backspace', 'Delete', 'Enter', 'Spacebar'].includes(e.key)) return;
+      if (!this.isVisible || this.isQuiet() || this._crossTabHidden || this.S.settings.performanceMode) return;
+      this.lastActivity = Date.now();
+      clearTimeout(this._typingStopTimer);
+      this._typingStopTimer = setTimeout(endTyping, 1500);
+      if (this.state !== 'idle' && this.state !== 'curious' && this.state !== 'typing') return;
+      const now = Date.now();
+      const firstOfSession = !this._typingActive;
+      this._typingActive = true;
+      /* Sustenta typing/curious enquanto digita — setStateFor expirava no meio da sessão */
+      clearTimeout(this._stateTimer);
+      this._stateTimer = null;
+      /* reação visível espaçada — mantém fluido, sem piscar a cada caractere */
+      if (now - (this._lastTypingBurst || 0) < 2600) {
+        if (this.S.profession === 'engineer') {
+          if (this.state !== 'typing') this.setState('typing');
+        } else if (this.state !== 'curious') {
+          this.setState('curious');
+        }
+        return;
+      }
+      this._lastTypingBurst = now;
+      if (this.S.profession === 'engineer') {
+        if (this.state !== 'typing') this.setState('typing');
+        if (firstOfSession) this.showSpeech('Bora codar! ⌨️', 1600);
+        this.chime([[520, 0.03], [640, 0.03]], 'actions');
+      } else {
+        if (this.state !== 'curious') this.setState('curious');
+        if (firstOfSession) {
+          this.showSpeech(Math.random() < 0.5 ? 'Tô do seu lado! ✍️' : 'Manda ver! ⌨️', 1500);
+        }
+        if (!this._reducedMotion && this._canSpawnFx(2)) {
+          this.spawnPixelSparks(['#74b9ff', '#ffffff', '#ffeaa7'], { count: 2 });
+        }
+        this.beep(560, 0.03, 'triangle', 'ambient');
+      }
+    }, { capture: true, passive: true, signal });
+  }
+
+  /* Assistir (vídeo) — quando um vídeo grande começa a tocar, o pet "assiste":
+     fica por perto, reage baixinho (🍿/👀) e não sai vagando até pausar/acabar. */
+  _bindMediaWatching(signal) {
+    const bigVisibleVideo = (el) => {
+      if (!(el instanceof HTMLVideoElement)) return false;
+      const r = el.getBoundingClientRect();
+      if (r.width < 220 || r.height < 140) return false;
+      if (r.bottom < 40 || r.top > window.innerHeight - 20) return false;
+      return true;
+    };
+    const startWatch = (video) => {
+      if (this._videoWatching || this._destroyed) return;
+      if (!this.isVisible || this.isQuiet() || this._crossTabHidden || this.S.settings.performanceMode) return;
+      if (Date.now() - (this._lastWatchStart || 0) < 20000) return;
+      /* ignora vídeo de fundo (hero mudo em loop) — não é "assistir" de verdade */
+      if (video.muted && video.loop) return;
+      if (!bigVisibleVideo(video)) return;
+      this._videoWatching = true;
+      this._watchedVideo = video;
+      this._lastWatchStart = Date.now();
+      if (this.state !== 'idle' && this.state !== 'curious') this.setState('idle');
+      this.setStateFor('curious', 2000);
+      this.showSpeech(Math.random() < 0.5 ? 'Filme? 🍿' : 'Bora assistir! 👀', 2200);
+      if (!this._reducedMotion && this._canSpawnFx(2)) this.spawnParticles(['🍿', '👀'], { count: 2 });
+      this.beep(500, 0.05, 'triangle', 'ambient');
+      clearInterval(this._watchTimer);
+      this._watchTimer = setInterval(() => this._tickWatch(), 13000);
+    };
+    const stopWatch = (cheer) => {
+      if (!this._videoWatching) return;
+      this._videoWatching = false;
+      this._watchedVideo = null;
+      clearInterval(this._watchTimer);
+      this._watchTimer = null;
+      if (cheer && this.isVisible && !this.isQuiet() && this.state === 'idle') {
+        this.showSpeech('Gostei! 👏', 1800);
+        this._pulseAnimClass('page-peeking', 1200);
+      }
+    };
+    document.addEventListener('play', (e) => {
+      if (bigVisibleVideo(e.target)) startWatch(e.target);
+    }, { capture: true, passive: true, signal });
+    ['pause', 'ended'].forEach((ev) => {
+      document.addEventListener(ev, (e) => {
+        if (e.target === this._watchedVideo) stopWatch(ev === 'ended');
+      }, { capture: true, passive: true, signal });
+    });
+  }
+
+  /* Micro-reações calmas enquanto assiste — mantém vivo sem distrair. */
+  _tickWatch() {
+    if (this._destroyed) return;
+    const v = this._watchedVideo;
+    const r = v && v.isConnected ? v.getBoundingClientRect() : null;
+    const offscreen = !r || r.bottom < 40 || r.top > window.innerHeight - 20;
+    if (!v || !v.isConnected || v.paused || v.ended || offscreen || document.hidden ||
+        !this.isVisible || this.isQuiet()) {
+      this._videoWatching = false;
+      clearInterval(this._watchTimer);
+      this._watchTimer = null;
+      return;
+    }
+    if (this.state !== 'idle' && this.state !== 'curious') return;
+    if (Math.random() > 0.7) return;
+    const bit = Math.random();
+    if (bit < 0.4) {
+      this._pulseAnimClass('looking-around', 1600);
+      this.setStateFor('curious', 1400);
+    } else if (bit < 0.75) {
+      if (!this._reducedMotion && this._canSpawnFx(2)) this.spawnParticles(['🍿'], { count: 2 });
+      this.setStateFor('happy', 1000);
+    } else {
+      this.setStateFor('excited', 900);
+      if (!this._reducedMotion && this._canSpawnFx(2)) this.spawnParticles(['😮', '✨'], { count: 2 });
+    }
   }
 
   _trackHoverShy(e) {
@@ -2804,7 +2974,7 @@ class ClawdCompanion {
   }
 
   beep(freq = 660, dur = 0.07, type = 'square', channel = 'actions') {
-    if (!this.S.settings.sounds || this.isQuiet() || !this._audioAllowed) return;
+    if (!this.S.settings.sounds || this.isQuiet() || !this._audioAllowed || this._crossTabHidden) return;
     try {
       /* Nunca cria/resume aqui — só toca se o ctx já estiver running pós-gesto */
       const ctx = this._ensureAudioCtx({ fromGesture: false });
@@ -3199,7 +3369,7 @@ class ClawdCompanion {
   }
 
   spawnParticles(emojis, opts = {}) {
-    if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (this._destroyed || this._crossTabHidden || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
     if (this.S.settings.noParticles) return;
     if (typeof opts === 'number') opts = { count: opts };
     let pool = emojis || ['❤️', '💕', '✨', '⭐', '💫', '🌟'];
@@ -3214,7 +3384,9 @@ class ClawdCompanion {
     const pColor = this.S.particleColor;
     const glowStyle = pColor ? `color:${pColor};text-shadow:1px 1px 0 rgba(0,0,0,.35);` : '';
     for (let i = 0; i < count; i++) {
-      setTimeout(() => {
+      if (!this._particleTimers) this._particleTimers = new Set();
+      const spawnTimer = setTimeout(() => {
+        this._particleTimers?.delete(spawnTimer);
         if (this._destroyed || document.hidden) {
           this._releaseFx(1);
           return;
@@ -3235,18 +3407,21 @@ class ClawdCompanion {
         document.body.appendChild(el);
         this._trackParticle(el, 1400, true);
       }, i * 80);
+      this._particleTimers.add(spawnTimer);
     }
   }
 
   _spawnWalkDust(count = 3) {
-    if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (this._destroyed || this._crossTabHidden || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
     if (this.S.settings.noParticles) return;
     if (Date.now() - (this._lastWalkDust || 0) < 280) return;
     if (!this._reserveFx(count)) return;
     this._lastWalkDust = Date.now();
     const rect = this.node.getBoundingClientRect();
     for (let i = 0; i < count; i++) {
-      setTimeout(() => {
+      if (!this._particleTimers) this._particleTimers = new Set();
+      const spawnTimer = setTimeout(() => {
+        this._particleTimers?.delete(spawnTimer);
         if (this._destroyed || document.hidden) {
           this._releaseFx(1);
           return;
@@ -3264,12 +3439,13 @@ class ClawdCompanion {
         document.body.appendChild(el);
         this._trackParticle(el, 520, true);
       }, i * 45);
+      this._particleTimers.add(spawnTimer);
     }
   }
 
   /* Partículas pixel (bola/futebol/acessórios — sem emoji). */
   spawnPixelSparks(colors, opts = {}) {
-    if (this._destroyed || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
+    if (this._destroyed || this._crossTabHidden || this.S.settings.performanceMode || document.hidden || this._reducedMotion) return;
     if (this.S.settings.noParticles) return;
     if (opts?.ambient && this.S.settings.noAmbientSparks) return;
     if (typeof opts === 'number') opts = { count: opts };
@@ -3293,7 +3469,9 @@ class ClawdCompanion {
     const originY = ambient ? 6 : 12;
     const originH = ambient ? 22 : 28;
     for (let i = 0; i < count; i++) {
-      setTimeout(() => {
+      if (!this._particleTimers) this._particleTimers = new Set();
+      const spawnTimer = setTimeout(() => {
+        this._particleTimers?.delete(spawnTimer);
         if (this._destroyed || document.hidden) {
           this._releaseFx(1);
           return;
@@ -3315,6 +3493,7 @@ class ClawdCompanion {
         document.body.appendChild(el);
         this._trackParticle(el, ambient ? 750 : 1100, true);
       }, i * (ambient ? 28 : 36));
+      this._particleTimers.add(spawnTimer);
     }
   }
 
@@ -3342,6 +3521,7 @@ class ClawdCompanion {
   showSpeech(text, duration = 2800, interactive = false) {
     if (!this.S.showSpeech && !interactive) return;
     if (this.isQuiet() && !interactive) return;
+    if (this._crossTabHidden && !interactive) return;
     this.speechNode.replaceChildren();
     if (interactive && text instanceof Node) {
       this.speechNode.appendChild(text);
@@ -3401,7 +3581,8 @@ class ClawdCompanion {
     this.setState('idle');
     this.showSpeech('Bom dia! ☀️');
     this.chime([[500, 0.04], [720, 0.06]], 'actions');
-    if (this.subpet) this.subpet.wakeUp('Acordamos juntos! ✨');
+    /* silent: owner já tocou o chime de wake — evita eco duplicado */
+    if (this.subpet) this.subpet.wakeUp('Acordamos juntos! ✨', { silent: true });
     this.lastActivity = Date.now();
     // estica ao acordar
     clearTimeout(this._wakeStretchTimer);
@@ -3504,7 +3685,10 @@ class ClawdCompanion {
 
   doDance() {
     // dança melhorada: 3 passos em sequência + poses pixel
+    if (this._destroyed || !this.node) return;
     if (this.state === 'sleeping') this.wakeUp();
+    this._clearDanceTimers();
+    ['dance-1', 'dance-2', 'dance-3'].forEach((s) => this.node.classList.remove(s));
     const asMusician = this.S.profession === 'musician';
     this.showSpeech(asMusician ? 'Solo improvisado! 🎸' : 'Yeahh! 🕺', 3200);
     this.spawnParticles(asMusician ? ['🎵', '🎶', '✨', '🎸'] : ['🎵', '🎶', '✨'], { count: 4 });
@@ -3523,9 +3707,22 @@ class ClawdCompanion {
         this.subpet?.node?.classList.remove('duo-play');
       }, 2800);
     }
-    setTimeout(() => { if (this.state === 'dance-1') { this.node.classList.remove('dance-1'); this.state = 'dance-2'; this.node.classList.add('dance-2'); this.beep(770); this.spawnPixelSparks(['#a29bfe', '#ffffff'], { count: 3 }); this.subpet?.onOwnerState('dance-2'); } }, 900);
-    setTimeout(() => { if (this.state === 'dance-2') { this.node.classList.remove('dance-2'); this.state = 'dance-3'; this.node.classList.add('dance-3'); this.beep(880); this.subpet?.onOwnerState('dance-3'); } }, 1800);
-    setTimeout(() => { if (this.state === 'dance-3') this.setState('idle'); }, 2800);
+    this._danceTimers = [];
+    this._danceTimers.push(setTimeout(() => {
+      if (this._destroyed || this.state !== 'dance-1') return;
+      this.setState('dance-2');
+      this.beep(770);
+      this.spawnPixelSparks(['#a29bfe', '#ffffff'], { count: 3 });
+    }, 900));
+    this._danceTimers.push(setTimeout(() => {
+      if (this._destroyed || this.state !== 'dance-2') return;
+      this.setState('dance-3');
+      this.beep(880);
+    }, 1800));
+    this._danceTimers.push(setTimeout(() => {
+      if (this._destroyed || this.state !== 'dance-3') return;
+      this.setState('idle');
+    }, 2800));
     this.bumpStat('happiness', 6);
     this.bumpStat('energy', -4);
     const c = this.S.game.counters;
@@ -4500,7 +4697,7 @@ class ClawdCompanion {
   }
 
   _ninjaTrick() {
-    if (document.hidden || this.S.profession !== 'ninja' || this.state !== 'idle' || this.isQuiet()) return;
+    if (document.hidden || this._crossTabHidden || this.S.profession !== 'ninja' || this.state !== 'idle' || this.isQuiet()) return;
     if (Math.random() > 0.3) return;
     this._pulseProfessionFx('stealthing', 1400);
     this.spawnParticles(['💨', '🌫️']);
@@ -4522,7 +4719,7 @@ class ClawdCompanion {
   startBehaviorLoop() {
     // Sono + bocejo + birra — a cada 5s
     this._timers.push(setInterval(() => {
-      if (document.hidden || this.isDragging || !this.isVisible || this.isAutoWalking) return;
+      if (document.hidden || this._crossTabHidden || this.isDragging || !this.isVisible || this.isAutoWalking) return;
       const idle = (Date.now() - this.lastActivity) / 1000;
       if (this.S.sleepEnabled && this.state === 'idle') {
         // Preguiçoso dorme mais cedo
@@ -4579,14 +4776,19 @@ class ClawdCompanion {
       if (Math.random() > baseChance) return;
       /* Pool ponderada por personalidade (playful → dance/jump; lazy → stretch/wink; curious → lookAround) */
       const p = this.S.personality || {};
-      const pool = ['wave', 'dance', 'somersault', 'keepy', 'jump', 'highfive', 'roar', 'balloon', 'hug', 'wink', 'clap', 'lookAround'];
+      const pool = ['wave', 'dance', 'somersault', 'keepy', 'jump', 'highfive', 'roar', 'balloon', 'hug', 'wink', 'clap', 'lookAround', 'mischief'];
       const traitBoost = [];
-      if ((p.playful ?? 5) >= 7) traitBoost.push('dance', 'jump', 'somersault', 'balloon');
+      if ((p.playful ?? 5) >= 7) traitBoost.push('dance', 'jump', 'somersault', 'balloon', 'mischief');
       if ((p.lazy ?? 5) >= 7) traitBoost.push('wink', 'stretch', 'meditate');
-      if ((p.curious ?? 5) >= 7) traitBoost.push('lookAround', 'peek', 'clap');
+      if ((p.curious ?? 5) >= 7) traitBoost.push('lookAround', 'peek', 'clap', 'mischief');
       if ((p.social ?? 5) >= 7) traitBoost.push('wave', 'highfive', 'hug');
       const weightedPool = traitBoost.length ? pool.concat(traitBoost) : pool;
       const pick = this.getWeightedRandom(weightedPool, this.S.favorites.actions);
+      /* "aprontar" é comportamento interno (fora do catálogo/grid) — despacho direto */
+      if (pick === 'mischief') {
+        this.doMischief();
+        return;
+      }
       if (pick === 'keepy' && this.S.profession !== 'footballer') {
         this._handleAction('wave');
         return;
@@ -4602,7 +4804,7 @@ class ClawdCompanion {
 
     // Auto-walk — a cada ~18s
     this._timers.push(setInterval(() => {
-      if (document.hidden) return;
+      if (document.hidden || this._crossTabHidden || this._videoWatching) return;
       if (this.state !== 'idle' || this.isDragging || !this.S.autoWalk ||
           this.isAutoWalking || !this.isVisible || this.isQuiet()) return;
       const lazy2 = this.S.personality?.lazy ?? 3;
@@ -4617,11 +4819,12 @@ class ClawdCompanion {
     this._timers.push(setInterval(() => this._checkTabMilestones(), 60000));
 
     // v3.4: variação de idle — kickoff inicial após 15s
-    setTimeout(() => { if (!this._destroyed) this._doIdleVariation(); }, 15000);
+    clearTimeout(this._idleVarKickoffTimer);
+    this._idleVarKickoffTimer = setTimeout(() => { if (!this._destroyed) this._doIdleVariation(); }, 15000);
 
     // Pescador: pesca espontânea se idle — ciclos curtos e espaçados
     this._timers.push(setInterval(() => {
-      if (document.hidden) return;
+      if (document.hidden || this._crossTabHidden) return;
       if (this.S.profession !== 'fisher') return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
       if (!this._fishing && Math.random() < 0.4) {
@@ -4632,7 +4835,7 @@ class ClawdCompanion {
     // Pulso de profissão: cada identidade tem uma micro-interação própria,
     // mesmo fora de um site contextual específico.
     this._timers.push(setInterval(() => {
-      if (document.hidden) return;
+      if (document.hidden || this._crossTabHidden) return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet() || Math.random() > 0.38) return;
       switch (this.S.profession) {
         case 'footballer': this.startKeepyUppy(); break;
@@ -4653,7 +4856,7 @@ class ClawdCompanion {
 
   /* v3.3: Marcos de tempo na aba */
   _checkTabMilestones() {
-    if (!this.isVisible || this.isQuiet() || document.hidden) return;
+    if (!this.isVisible || this.isQuiet() || document.hidden || this._crossTabHidden) return;
     const minutesOnTab = Math.floor((Date.now() - this._tabStartTime) / 60000);
     const milestones = [
       { min: 5,  msg: 'Já faz 5 min aqui! ⏱️',   xp: 3,  emoji: ['⏱️', '✨'] },
@@ -4673,7 +4876,7 @@ class ClawdCompanion {
 
   /* v3.3: Clima ambiente sazonal */
   _spawnAmbientWeather() {
-    if (!this.isVisible || this.S.settings.performanceMode || this.S.settings.noWeather || document.hidden || this._reducedMotion) return;
+    if (!this.isVisible || this._crossTabHidden || this.S.settings.performanceMode || this.S.settings.noWeather || document.hidden || this._reducedMotion) return;
     const month = new Date().getMonth() + 1; // 1–12
     let pool = null;
     if (month === 12 || month === 1)  pool = ['❄️', '🌨️', '⛄'];
@@ -4783,8 +4986,37 @@ class ClawdCompanion {
     this.beep(560, 0.05, 'sine');
   }
 
+  /* "Aprontar" — travessura autônoma: o pet se esgueira e reaparece dando risada.
+     Compõe estados já verificados (sneaking → peeking), sem novos keyframes. */
+  doMischief() {
+    if (this.isDragging || this.isAutoWalking) return;
+    if (this.state === 'sleeping') this.wakeUp();
+    if (this.state !== 'idle' && this.state !== 'curious') this.setState('idle');
+    const lines = ['Aprontando... 😼', 'Ninguém viu 🤫', 'Hehe 😜', 'Peguei você! 👀'];
+    this.setStateFor('sneaking', 1300);
+    this.showSpeech(lines[Math.floor(Math.random() * lines.length)], 1400);
+    this.spawnPixelSparks(['#2c3e50', '#636e72', '#b2bec3'], { count: 3 });
+    this.beep(200, 0.1, 'triangle', 'ambient');
+    /* Subpet entra na brincadeira em eco. */
+    if (this.subpet && !this.subpet._interactionBusy) {
+      this.subpet._pulseReact?.('react-jump', 720);
+    }
+    clearTimeout(this._mischiefTimer);
+    this._mischiefTimer = setTimeout(() => {
+      if (this._destroyed || this.state !== 'sneaking') return;
+      this.setStateFor('peeking', 1000);
+      this.showSpeech('Buu! 😝✨', 1300);
+      if (!this._reducedMotion && this._canSpawnFx(3)) {
+        this.spawnParticles(['😜', '✨', '💨'], { count: 3 });
+      }
+      this.beep(660, 0.06, 'triangle', 'ambient');
+      this.bumpStat('happiness', 3);
+      this.addXp(2);
+    }, 1250);
+  }
+
   _maybePlayDuoScene() {
-    if (document.hidden || this._destroyed || this._duoBusy || this._dwellBusy) return;
+    if (document.hidden || this._destroyed || this._crossTabHidden || this._duoBusy || this._dwellBusy) return;
     if (!this.subpet || !this.isVisible || this.isQuiet()) return;
     if (this.S.settings.performanceMode) return;
     if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
@@ -4908,7 +5140,8 @@ class ClawdCompanion {
   }
 
   _tickDwellEngage() {
-    if (document.hidden || this._destroyed || this._dwellBusy || this._duoBusy) return;
+    if (document.hidden || this._destroyed || this._crossTabHidden || this._dwellBusy || this._duoBusy) return;
+    if (this._videoWatching) return; // assistindo → fica por perto, não vai vagar
     if (!this.isVisible || this.isQuiet() || this.S.settings.performanceMode) return;
     if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
     const visibleFor = Date.now() - (this._dwellVisibleSince || Date.now());
@@ -5323,6 +5556,10 @@ class ClawdCompanion {
     if (!msg) return;
     switch (msg.type) {
       case 'spawnPet': {
+        /* Cancela despawn pendente — summon/requestHost no meio da viagem não pode re-esconder o host */
+        clearTimeout(this._despawnTimer);
+        this._despawnTimer = null;
+        this._travelGen = (this._travelGen || 0) + 1;
         this.setHidden(false);
         this.refreshSubpet();
         if (!clawdHasSavedPosition(this.S.position)) {
@@ -5356,16 +5593,28 @@ class ClawdCompanion {
         const dir = msg.direction === 'left' ? 10 : window.innerWidth - 90;
         this.showSpeech('Já volto! 🧳', 1500);
         this.startRun(dir);
-        setTimeout(() => {
+        clearTimeout(this._despawnTimer);
+        const gen = (this._travelGen = (this._travelGen || 0) + 1);
+        this._despawnTimer = setTimeout(() => {
+          this._despawnTimer = null;
+          if (this._destroyed || this._travelGen !== gen) return;
           this.setHidden(true);
           this._safePortPost({ type: 'travelComplete' });
         }, 1300);
         break;
       }
       case 'hidePet':
+        clearTimeout(this._despawnTimer);
+        this._despawnTimer = null;
+        this._travelGen = (this._travelGen || 0) + 1;
         this.setHidden(true);
         break;
     }
+  }
+
+  /** Preferência do usuário ∧ ownership cross-tab ∧ instância viva. */
+  _isActiveHost() {
+    return !this._destroyed && !!this.isVisible && !this._crossTabHidden;
   }
 
   setHidden(hidden) {
@@ -5438,6 +5687,9 @@ class ClawdCompanion {
           break;
         case 'forceHidePet':
           /* SW: orphan host sem Port — esconde clone residual. */
+          clearTimeout(this._despawnTimer);
+          this._despawnTimer = null;
+          this._travelGen = (this._travelGen || 0) + 1;
           this.setHidden(true);
           break;
         case 'resetPosition':
@@ -5857,7 +6109,8 @@ class ClawdCompanion {
       this.node.classList.remove('clawd-summon-drop');
       void this.node.offsetWidth; // reflow → reinicia a animação a cada clique
       this.node.classList.add('clawd-summon-drop');
-      setTimeout(() => this.node?.classList.remove('clawd-summon-drop'), 750);
+      clearTimeout(this._summonDropTimer);
+      this._summonDropTimer = setTimeout(() => this.node?.classList.remove('clawd-summon-drop'), 750);
     }
     this.spawnPixelSparks(sparks, { count: 6 });
     if (this.state !== 'sleeping') this.setStateFor(state, 1800);
@@ -5872,7 +6125,10 @@ class ClawdCompanion {
     this.spawnPixelSparks(['#b2bec3', '#dfe6e9', '#ffffff'], { count: 5 });
     this.chime([[440, 0.05], [300, 0.07]], 'actions');
     this.node.classList.add('clawd-poof-out');
-    setTimeout(() => {
+    clearTimeout(this._poofOutTimer);
+    this._poofOutTimer = setTimeout(() => {
+      this._poofOutTimer = null;
+      if (this._destroyed) { done?.(); return; }
       this.node?.classList.remove('clawd-poof-out');
       done?.();
     }, 300);
@@ -6105,12 +6361,17 @@ class ClawdCompanion {
   destroy({ skipExtensionApis = false } = {}) {
     if (this._destroyed) return;
     this._destroyed = true;
+    this._travelGen = (this._travelGen || 0) + 1;
 
     this._abort.abort();
     this._timers.forEach(clearInterval);
     this._timers.length = 0;
     (this._ctxTimers || []).forEach(clearInterval);
     if (this._ctxTimers) this._ctxTimers.length = 0;
+    clearInterval(this._watchTimer);
+    this._watchTimer = null;
+    this._videoWatching = false;
+    this._watchedVideo = null;
 
     [
       '_speechTimer', '_stateTimer', '_saveTimer', '_clickTimer', '_holdTimer',
@@ -6121,13 +6382,19 @@ class ClawdCompanion {
       /* v3.3 */
       '_comboTimer', '_speedrunTimer',
       /* v3.4 / tick5 */
-      '_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer', '_ballClickTimer',
+      '_idleVarTimer', '_idleVarClearTimer', '_idleVarKickoffTimer', '_scrollIdleTimer', '_scrollDashTimer', '_scrollReactTimer', '_ballClickTimer',
       /* duo / petting */
       '_pettingTimer', '_duoPlayTimer',
       /* jump anticipation / land */
       '_jumpStartTimer', '_jumpLandTimer',
-      /* cross-tab reconnect / pending action */
-      '_crossTabReconnectTimer', '_pendingActionTimer'
+      /* cross-tab reconnect / pending action / travel */
+      '_crossTabReconnectTimer', '_pendingActionTimer', '_despawnTimer',
+      /* aprontar / travessura */
+      '_mischiefTimer',
+      /* digitar junto (sustentado) */
+      '_typingStopTimer',
+      /* summon / poof */
+      '_summonDropTimer', '_poofOutTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
@@ -6147,6 +6414,7 @@ class ClawdCompanion {
     this._cancelDwellEngage();
     this._duoBusy = false;
     this._clearDanceTimers?.();
+    this._clearIdleVariationClasses?.();
 
     if (this._balloon) this.popBalloon({ silent: true });
 

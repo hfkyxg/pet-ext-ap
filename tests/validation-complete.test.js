@@ -25,6 +25,7 @@ const content = read('src/content/content.js');
 const style = read('src/content/style.css');
 const popupJs = read('src/popup/popup.js');
 const popupHtml = read('src/popup/popup.html');
+const popupCss = read('src/popup/popup.css');
 const background = read('src/background/background.js');
 
 function handleActionMapSlice() {
@@ -379,4 +380,40 @@ test('validação: skins com animação + partículas pixel ricas', () => {
     assert.match(style, new RegExp(`\\[data-tag-theme="${theme}"\\][\\s\\S]{0,280}text-shadow:\\s*none`));
     assert.doesNotMatch(style, new RegExp(`\\[data-tag-theme="${theme}"\\][\\s\\S]{0,320}text-shadow:[^;]*blur\\(`));
   }
+});
+
+/* ---------- Polish animação — regressões de bugs de runtime ---------- */
+test('validação: setState limpa idle !important antes de ações', () => {
+  assert.match(content, /_clearIdleVariationClasses\(\)/);
+  const idx = content.indexOf('\n  setState(newState) {');
+  assert.ok(idx > 0);
+  const slice = content.slice(idx, idx + 900);
+  assert.match(slice, /_clearIdleVariationClasses\(\)/);
+  assert.match(slice, /this\._destroyed \|\| !this\.node\) return/);
+  assert.match(content, /durationMs \|\| 2000\) <= 1100/);
+});
+
+test('validação: doDance rastreia timers e não usa pop-in morto no root', () => {
+  const idx = content.indexOf('\n  doDance() {');
+  assert.ok(idx > 0);
+  const slice = content.slice(idx, idx + 2200);
+  assert.match(slice, /_clearDanceTimers\(\)/);
+  assert.match(slice, /_danceTimers\.push\(setTimeout/);
+  assert.match(slice, /setState\('dance-2'\)/);
+  assert.match(slice, /setState\('dance-3'\)/);
+  assert.match(slice, /this\._destroyed/);
+  assert.doesNotMatch(content, /node\.style\.animation\s*=\s*'clawd-pop-in/);
+  assert.match(content, /_summonDropTimer/);
+  assert.match(content, /_poofOutTimer/);
+  assert.match(content, /_idleVarKickoffTimer/);
+});
+
+test('validação: hug do subpet não cancela ação do dono; spawn FX rastreado', () => {
+  const hugIdx = content.indexOf("case 'hug':");
+  assert.ok(hugIdx > 0);
+  const hugSlice = content.slice(hugIdx, hugIdx + 700);
+  assert.match(hugSlice, /owner\.state === 'idle' \|\| this\.owner\.state === 'walking'/);
+  assert.match(content, /_particleTimers\.add\(spawnTimer\)/);
+  assert.match(content, /_scrollDashTimer|_scrollReactTimer/);
+  assert.match(popupCss, /prefers-reduced-motion:\s*reduce[\s\S]{0,400}animation:\s*none !important/);
 });

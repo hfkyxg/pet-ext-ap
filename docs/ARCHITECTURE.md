@@ -12,7 +12,7 @@ Extensão Chrome MV3 **vanilla** (sem bundler). Há um `package.json` só para s
 | **UI** | `src/popup/*` | Controles, preview, studio in-page / janela destacável; messaging tipado. |
 | **Assets** | `src/assets/`, `src/shared/sprites/` | Ícones, banners SVG, PNGs de sub-pets (`web_accessible_resources`). |
 | **Docs / Labs** | `docs/` | Vitrine HTML, arquitetura e markdown de produto em `docs/md/`. |
-| **Testes** | `tests/*.test.js` (**164**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |
+| **Testes** | `tests/*.test.js` (**187**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |
 
 ```
 manifest.json
@@ -100,6 +100,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 - Skip de `chrome.storage.local.set` quando o estado serializado **não mudou** após o merge — reduz ruído `onChanged` entre abas.
 - `onChanged` no content **não regride** XP/coins/counters (`Math.max`); popup `persist` idem.
 - Presença cross-tab é via Port (`clawd-presence`), não via re-save em loop.
+- **Um host por navegador:** `_isActiveHost()` / `_crossTabHidden` silenciam beep, fala, partículas e loops nas abas não-anfitriãs; `despawnPet` usa `_despawnTimer` + `_travelGen` (cancelável em `spawnPet`/`hidePet`).
 
 ### Caps já em produção
 
@@ -120,7 +121,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 | PNGs canônicos dos sub-pets | `node tests/tools/crop-literal-sprites.mjs` |
 | Frames/preview (não sobrescreve pacote) | `node tests/tools/make-sprites.mjs` |
 | Ícones da extensão | `node tests/tools/make-icons.mjs` |
-| Suíte de contratos | `npm test` (**164**) |
+| Suíte de contratos | `npm test` (**187**) |
 | Ecosystem estático | `npm run ecosystem` |
 | Smoke Edge | `npm run smoke` |
 

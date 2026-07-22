@@ -1281,7 +1281,26 @@ body.popup-detached {
   50% { translate: 0 -2px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .subpet-pixel-preview { animation: none; }
+  .subpet-pixel-preview,
+  .status-dot,
+  .online-dot,
+  .coins-pill .dot,
+  .xp-bar-fill.glow,
+  .stat-critical,
+  .stat-shine,
+  .onboarding-pet .pet-body,
+  .popup-outfit-pet .pet-body {
+    animation: none !important;
+  }
+  .pixel-custom-card,
+  .face-style-card,
+  .skin-art-card,
+  .tab-content,
+  .shop-card,
+  button.stat-action,
+  .btn-quick {
+    transition: none;
+  }
 }
 /* Glow do dragão só quando desbloqueado/ativo — nunca no locked */
 .subpet-card[data-species="dragon"]:not(.locked) .subpet-pixel-preview {
@@ -1498,6 +1517,12 @@ body.popup-detached {
   .pixel-custom-card,
   .face-style-card,
   .skin-art-card { transition: none; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 /* ---- LOJA ---- */

@@ -288,6 +288,41 @@ test('cross-tab: um pet por navegador — hide otimista, reconnect e ownership',
   assert.ok(require('../src/shared/catalog.js').CLAWD_PORT_MSG_TYPES.includes('requestHost'));
 });
 
+test('cross-tab: aba não-host não age sozinha (SFX/pesca/profissão/subpet)', () => {
+  const content = read('src/content/content.js');
+  assert.match(content, /_isActiveHost\(\)/);
+  /* beep/fala/partículas silenciam fora do host */
+  assert.match(content, /!this\._audioAllowed \|\| this\._crossTabHidden\) return/);
+  assert.match(content, /_crossTabHidden && !interactive\) return/);
+  assert.match(content, /_destroyed \|\| this\._crossTabHidden \|\| this\.S\.settings\.performanceMode/);
+  /* loops autônomos exigem ownership */
+  assert.match(content, /document\.hidden \|\| this\._crossTabHidden \|\| this\.isDragging/);
+  assert.match(content, /document\.hidden \|\| this\._crossTabHidden \|\| this\._videoWatching/);
+  assert.match(content, /profession !== 'fisher'[\s\S]{0,200}document\.hidden \|\| this\._crossTabHidden|document\.hidden \|\| this\._crossTabHidden[\s\S]{0,120}profession !== 'fisher'/);
+  assert.match(content, /owner\._crossTabHidden\) return/);
+  /* despawn cancelável — evita hide após spawnPet no meio da viagem */
+  assert.match(content, /_despawnTimer/);
+  assert.match(content, /_travelGen/);
+  assert.match(content, /case 'spawnPet':[\s\S]{0,220}clearTimeout\(this\._despawnTimer\)/);
+  assert.match(content, /case 'despawnPet':[\s\S]{0,500}_travelGen/);
+});
+
+test('SFX: sem eco — subpet dblclick único, wake silencioso, cheer sem celebrate duplo', () => {
+  const content = read('src/content/content.js');
+  const clickIdx = content.indexOf("this.node.addEventListener('click', (event) => {");
+  assert.ok(clickIdx > 0);
+  /* primeiro click handler do SubPet (antes da classe ClawdPet) */
+  const subpetClick = content.slice(clickIdx, clickIdx + 900);
+  assert.match(subpetClick, /dblclick cuida do special|cancela o cuddle/);
+  assert.doesNotMatch(subpetClick, /else this\.interact\('special'/);
+  assert.match(content, /subpet\.wakeUp\('Acordamos juntos! ✨',\s*\{\s*silent:\s*true\s*\}\)/);
+  const cheerVis = content.indexOf('hiddenFor > 1800000');
+  assert.ok(cheerVis > 0);
+  const cheerSlice = content.slice(cheerVis, cheerVis + 280);
+  assert.match(cheerSlice, /doCheer\(\)/);
+  assert.doesNotMatch(cheerSlice, /subpet\.interact\('celebrate'/);
+});
+
 test('AudioContext só nasce após gesto do usuário', () => {
   const content = read('src/content/content.js');
   assert.match(content, /_bindAudioUnlock/);
@@ -484,9 +519,11 @@ test('escalabilidade tick5 — save coalesce, particle timers e destroy limpam s
   assert.match(content, /setTimeout\(\(\) => this\._flushSave\(\), CLAWD_TIMINGS\.STORAGE_DEBOUNCE_MS\)/);
   assert.match(content, /_particleTimers/);
   assert.match(content, /_scrollIdleTimer/);
-  assert.match(content, /'_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer'/);
+  assert.match(content, /_idleVarKickoffTimer|_scrollDashTimer|_scrollReactTimer|_summonDropTimer|_poofOutTimer/);
+  assert.match(content, /'_idleVarTimer', '_idleVarClearTimer', '_idleVarKickoffTimer'/);
   assert.match(content, /this\._particleTimers\.forEach\(clearTimeout\)/);
   assert.match(content, /this\._timers\.length = 0/);
+  assert.match(content, /_clearIdleVariationClasses/);
   assert.match(content, /this\.S\.xp = Math\.max\(Number\(this\.S\.xp\) \|\| 0, Number\(fresh\.xp\) \|\| 0\)/);
   assert.match(content, /this\.S\.game\.coins = Math\.max\(Number\(this\.S\.game\.coins\) \|\| 0, Number\(fresh\.game\.coins\) \|\| 0\)/);
   assert.match(popup, /fresh\.xp = Math\.max\(Number\(fresh\.xp\) \|\| 0, Number\(S\.xp\) \|\| 0\)/);

@@ -7,12 +7,12 @@
 | Documento | Para quem | Conteúdo |
 |-----------|-----------|----------|
 | [../README.md](../README.md) | Todo mundo | Visão, instalação, funcionalidades (v3.8.0) |
-| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **169/169** |
+| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **187/187** |
 | [./ARCHITECTURE.md](./ARCHITECTURE.md) | Mantenedores | Camadas, padrões, contratos MV3 |
 | [./md/DOCUMENTACAO.md](./md/DOCUMENTACAO.md) | Desenvolvedores | Protocolo interno, APIs, privacidade |
 | [./md/MANUAL.md](./md/MANUAL.md) | Usuários finais | Controles, studio, status, FAQ |
-| [./md/VALIDACAO.md](./md/VALIDACAO.md) | QA / release | Matriz fases 1–6 + gate |
-| [./md/MELHORIAS.md](./md/MELHORIAS.md) | Produto | Registro histórico v3.2 → v3.6 |
+| [./md/VALIDACAO.md](./md/VALIDACAO.md) | QA / release | Matriz fases 1–6 + gate **187/187** |
+| [./md/MELHORIAS.md](./md/MELHORIAS.md) | Produto | Registro histórico v3.2 → v3.8 + polish |
 | [../CHANGELOG.md](../CHANGELOG.md) | Todos | Histórico de versões |
 | [./md/Documentacao_Projeto_Clawd.md](./md/Documentacao_Projeto_Clawd.md) | Executivo | Resumo de projeto |
 | [./md/README.md](./md/README.md) | — | Índice só dos `.md` de produto |
@@ -21,7 +21,7 @@
 
 ```powershell
 npm run check
-npm test                                          # 169/169
+npm test                                          # 187/187
 node tests/tools/validate-ecosystem.mjs           # 100% ações no map
 node tests/runtime-smoke.mjs                      # Edge/Chromium
 ```
@@ -36,7 +36,7 @@ src/
   popup/              # UI + studio detach
   assets/ + shared/sprites/
 tests/
-  *.test.js           # contratos (node --test) — 159
+  *.test.js           # contratos (node --test) — 187
   validation-complete.test.js
   runtime-smoke.mjs
   tools/              # geradores, shots, validate-ecosystem

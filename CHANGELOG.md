@@ -3,6 +3,24 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [Não lançado]
+
+### Adicionado
+
+- **"Aprontar" (travessura autônoma)** — `doMischief()` no pet (esgueira → reaparece rindo, reaproveitando estados `sneaking`/`peeking`) e `case 'mischief'` no subpet; ambos entram nos pools autônomos ponderados por personalidade (playful/curious). Fora do catálogo/grid — não altera as contagens de ações
+- **Reações à navegação** — **digitar (sustentado)** via `_bindTypingCompanion` (o pet "escreve junto" em rajadas espaçadas e volta à calma quando as teclas param; Dev entra em `typing`, demais ficam curiosos) e **assistir vídeo** via `_bindMediaWatching`/`_tickWatch` (vídeo grande tocando → o pet fica por perto reagindo baixinho 🍿/👀, com auto-walk e dwell suspensos até pausar/acabar)
+- Suíte **187/187** contratos (`tests/mischief-liveliness.test.js`, `tests/react-navigation.test.js` + regressões de polish/cross-tab)
+
+### Alterado
+
+- **Vida contínua** — cadência das variações idle mais viva (menos tempo-morto enquanto se navega): pet `max(6500, 15000 − playful·900)`, subpet `max(5500, 12000 − playful·700)`; ainda self-reschedule e throttled por `cooldownMs`/estado
+- **Docs** — VALIDACAO, README, MANUAL, MELHORIAS, ARCHITECTURE e showcase alinhados ao marco **187/187**
+
+### Corrigido
+
+- **Animações** — idle `!important` limpo no `setState`; `doDance` com `_danceTimers`; digitar sustentado; hug do subpet não cancela ação do dono; timers de FX/scroll/summon/poof rastreados no `destroy`; filtro energetic idle (`≤1100ms`); popup `prefers-reduced-motion` amplo
+- **Cross-tab / SFX** — aba não-host silenciosa (`_isActiveHost` / `_crossTabHidden` em loops, beep, fala e partículas); race `despawnPet`×`spawnPet` (`_despawnTimer` + `_travelGen`); subpet dblclick sem `special` duplo; wake sem chime eco; saudade longa sem `celebrate` duplicado após `doCheer`
+
 ## [3.8.0] — 2026-07-21
 
 ### Adicionado
