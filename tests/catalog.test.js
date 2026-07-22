@@ -209,7 +209,7 @@ test('chapéus externos não são recortados e o popup mostra o traje efetivo', 
   assert.match(styleSource, /data-acc-face="headphones"[\s\S]{0,180}z-index:\s*3/);
   assert.match(styleSource, /aic-nofx \.acc-head::after[\s\S]{0,260}animation:\s*none !important/);
   assert.match(styleSource, /ninjaband[\s\S]{0,260}preserva os olhos/);
-  assert.match(popupHtml, /href="\.\.\/content\/style\.css"/);
+  assert.match(popupSource, /clawd-content-css|content\/style\.css/, 'popup carrega o CSS do pet para o provador');
   assert.match(popupHtml, /class="outfit-preview-card"/);
   assert.match(popupHtml, /id="aic-clawd-node"/);
   assert.match(popupSource, /function renderOutfitPreview\(\)/);

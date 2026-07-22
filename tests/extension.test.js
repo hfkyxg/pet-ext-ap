@@ -298,6 +298,14 @@ test('popup.html contém elementos de onboarding e context-bar (v3.4)', () => {
   assert.doesNotMatch(popupJs, /CLAWD_PROFESSIONS\s*\|\|\s*\[\]\)\.find/);
 });
 
+test('popup não bloqueia boot com content/style.css síncrono no head', () => {
+  assert.doesNotMatch(popupHtml, /<link[^>]+href=["']\.\.\/content\/style\.css["'][^>]*>/,
+    'CSS do content não deve ser <link> síncrono no popup (bloqueia JS no MV3)');
+  assert.match(popupJs, /data-clawd-content-css|content\/style\.css/, 'popup.js deve injetar content CSS após o parse');
+  assert.match(popupJs, /__clawdPopupBootError/, 'boot do popup deve capturar erros');
+  assert.match(popupHtml, /i18n-entities\.js/, 'popup deve carregar i18n-entities');
+});
+
 test('content.js contém handlers de interação v3.4', () => {
   assert.match(contentSource, /_setupScrollReaction/, 'reação ao scroll deve existir');
   assert.match(contentSource, /visibilitychange/, 'reação ao retorno de aba deve existir');

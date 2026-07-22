@@ -1,14 +1,14 @@
 # Relatório de Validação — Claw'd v3.8.0
 
-**Data:** 22 de julho de 2026 (revalidação: fluidez subpet dt/off-screen + i18n/onboarding)  
+**Data:** 22 de julho de 2026 (revalidação: popup boot async CSS + fluidez subpet + i18n)  
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **196/196** contratos — subpet frame-rate independent + pause off-screen + i18n chrome/entidades
+**Marco:** **197/197** contratos — popup sem CSS síncrono bloqueante + subpet dt/off-screen + i18n
 
 ## Resultado
 
 - Verificações de sintaxe (`npm run check`): **aprovadas** (inclui `i18n-entities.js`)
-- Suíte `node:test`: **196/196**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **196/196**
+- Suíte `node:test`: **197/197**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **197/197**
 - `npm run audit`: **AUDIT_PACK_OK** (5 eixos)
 - Lint (`eslint src tests`): **0 erros**
 - Smoke Chromium: **runtimeErrors: 0** · reloads **3/3** · duo/partículas/props OK
@@ -22,7 +22,7 @@
 | Rostos / skins / idle | **9** / **7** / **7** |
 | Profissões / subpets | **12** / **8** |
 | Locales UI | **11** (pt-BR padrão) |
-| Contratos | **196** |
+| Contratos | **197** |
 
 ## Matriz de auditoria (5 eixos)
 
@@ -50,7 +50,9 @@
 | Subpet follow com `dt` (60 fps normalizado, cap 3×) | ✅ |
 | Subpet `IntersectionObserver` → pause rAF/CSS off-screen | ✅ |
 | Keyframes/hover/press do subpet mais suaves + `will-change` | ✅ |
-| Contratos: mischief, navegação, polish animação, cross-tab/SFX, subpet dt/observer | ✅ |
+| Popup: `content/style.css` injetado após parse (não bloqueia boot MV3) | ✅ |
+| Boot do popup com `__clawdPopupBootError` / fases | ✅ |
+| Contratos: mischief, navegação, polish, cross-tab/SFX, subpet dt/observer, gate CSS async | ✅ |
 
 ## Novidades v3.8.0 (base)
 

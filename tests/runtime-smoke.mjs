@@ -236,16 +236,18 @@ async function validatePopupRuntime(port, worker) {
           outfitFace: document.querySelector('#aic-clawd-node.popup-outfit-pet')?.dataset.accFace || null,
           outfitDetail: document.querySelector('#outfit-preview-detail')?.textContent || '',
           duplicateIds,
-          bootError: window.__clawdPopupBootError || null
+          bootError: window.__clawdPopupBootError || null,
+          bootPhase: window.__clawdPopupBootPhase || null
         };
       })()`);
+      if (value.bootError) return value;
       return value.readyState === 'complete'
         && value.professions === Object.keys(CLAWD_PROFESSIONS).length
         && value.actions === Object.keys(CLAWD_ACTIONS).length
         ? value
         : null;
     }, 12_000, 100).catch(async (err) => {
-      const partial = await popup.evaluate(`({ ready: document.readyState, title: document.title, body: document.body?.innerText?.slice(0,400), professions: document.querySelector('#profession-grid')?.children.length||0, actions: document.querySelector('#actions-grid')?.children.length||0 })`).catch(() => null);
+      const partial = await popup.evaluate(`({ ready: document.readyState, title: document.title, body: document.body?.innerText?.slice(0,400), professions: document.querySelector('#profession-grid')?.children.length||0, actions: document.querySelector('#actions-grid')?.children.length||0, bootError: window.__clawdPopupBootError || null, bootPhase: window.__clawdPopupBootPhase || null, typeofDefault: typeof clawdDefaultState, typeofActions: typeof CLAWD_ACTIONS })`).catch(() => null);
       throw new Error(`Popup snapshot falhou: ${err.message}; partial=${JSON.stringify(partial)}`);
     });
 

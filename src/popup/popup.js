@@ -3,9 +3,53 @@
    Requer: ../shared/i18n.js + ../shared/catalog.js
    =================================================== */
 
-let S = clawdDefaultState();
+let S;
+try {
+  S = clawdDefaultState();
+} catch (err) {
+  window.__clawdPopupBootError = 'clawdDefaultState: ' + (err && (err.stack || err.message || err));
+  console.error('[Clawd popup] default state failed', err);
+  S = {
+    name: "Claw'd", color: '#c71515', eyeColor: '#08080b', model: 'classic', faceStyle: 'classic',
+    skin: 'normal', scale: 1.5, animSpeed: 1, xp: 0, showMouth: true, showSpeech: true,
+    autoWalk: true, sleepEnabled: true, smooth: false, outline: false, petVisible: true,
+    profession: 'idle', tagTheme: 'light', jerseyColor: '#e74c3c',
+    accessoryHead: 'none', accessoryFace: 'none', accessoryBody: 'none',
+    stats: { happiness: 80, hunger: 80, energy: 80, hygiene: 80 },
+    game: { coins: 0, streak: { days: 0, lastDay: '' }, counters: {}, achievements: {}, inventory: [] },
+    favorites: { actions: [], professions: [], accessories: [], colors: [], nicknames: [], subpets: [] },
+    nicknameHistory: [], subpets: { active: null, unlocked: ['dog'], names: {}, colors: {}, eyeColors: {} },
+    settings: { locale: 'pt-BR', crossTab: true, travelFreq: 'sometimes', footprints: true, sounds: true,
+      soundVolume: 0.4, soundVolumeActions: 1, soundVolumeAmbient: 0.6, startCorner: 'br',
+      toastPosition: 'center', speechAnchor: 'auto', emotionBadgeSide: 'left',
+      performanceMode: false, minimalMode: false, noParticles: false, noIdleVariations: false,
+      noWeather: false, noAmbientSparks: false, quietStart: '', quietEnd: '', blockedSites: [],
+      lastPopupTab: 'appearance', trelloBoardUrl: '', trelloBoardId: '' },
+    personality: { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 },
+    customSpeech: [], particleColor: null, position: { x: null, y: null }, onboardingDone: false,
+    schemaVersion: 5
+  };
+}
+
+window.__clawdPopupBootPhase = 'script-parsed';
 
 function $(id) { return document.getElementById(id); }
+
+/* CSS do pet (grande): injeta após o parse para não segurar o boot do menu. */
+(function injectContentStyles() {
+  try {
+    if (document.querySelector('link[data-clawd-content-css]')) return;
+    const link = document.createElement('link');
+    link.setAttribute('data-clawd-content-css', '1');
+    link.rel = 'stylesheet';
+    link.href = (typeof chrome !== 'undefined' && chrome.runtime?.getURL)
+      ? chrome.runtime.getURL('src/content/style.css')
+      : '../content/style.css';
+    document.head.appendChild(link);
+  } catch (err) {
+    console.warn('[Clawd popup] content CSS', err);
+  }
+})();
 
 function currentLocale() {
   return (typeof clawdNormalizeLocale === 'function')
@@ -1981,6 +2025,9 @@ function updateStreakPill(days) {
 }
 
 function renderAll() {
+  if (typeof clawdDefaultState !== 'function' || typeof CLAWD_ACTIONS !== 'object' || !CLAWD_ACTIONS) {
+    throw new Error('Catálogo não carregou (i18n/catalog). Recarregue a extensão em chrome://extensions.');
+  }
   applyPopupI18n();
   renderHeader();
   renderNameArea();
@@ -2089,13 +2136,38 @@ function updateContextBar(status) {
 }
 
 chrome.storage.local.get(['clawdState'], (res) => {
-  scrubLastError();
-  S = clawdMigrateState(res.clawdState);
-  bindStatic();
-  renderAll();
-  activatePopupTab(S.settings?.lastPopupTab || 'appearance');
-  if (!S.onboardingDone) showOnboarding();
-  updateContextBar(null);
-  pollLiveStats();
-  setInterval(pollLiveStats, 4000);
+  window.__clawdPopupBootPhase = 'storage-cb';
+  try {
+    scrubLastError();
+    window.__clawdPopupBootPhase = 'migrate';
+    S = clawdMigrateState(res.clawdState);
+    window.__clawdPopupBootPhase = 'bindStatic';
+    bindStatic();
+    window.__clawdPopupBootPhase = 'renderAll';
+    renderAll();
+    window.__clawdPopupBootPhase = 'activateTab';
+    activatePopupTab(S.settings?.lastPopupTab || 'appearance');
+    if (!S.onboardingDone) {
+      window.__clawdPopupBootPhase = 'onboarding';
+      showOnboarding();
+    }
+    updateContextBar(null);
+    pollLiveStats();
+    setInterval(pollLiveStats, 4000);
+    window.__clawdPopupBootPhase = 'done';
+    window.__clawdPopupBootError = null;
+  } catch (err) {
+    const msg = `${window.__clawdPopupBootPhase || '?'}: ` + (err && (err.stack || err.message || String(err)));
+    window.__clawdPopupBootError = msg;
+    console.error('[Clawd popup boot]', window.__clawdPopupBootPhase, err);
+    try {
+      const pill = $('status-pill');
+      const text = $('status-text');
+      if (pill && text) {
+        pill.style.display = '';
+        pill.classList.add('error');
+        text.textContent = 'Erro ao abrir o menu — veja o console do popup.';
+      }
+    } catch (_) { /* ignore */ }
+  }
 });

@@ -8,7 +8,7 @@ Documentação em texto puro (sem build). Vitrine e arquitetura: [../README.md](
 |-----------|-----------|----------|
 | [MANUAL.md](./MANUAL.md) | Usuários finais | Controles, studio, status clicáveis, FAQ |
 | [DOCUMENTACAO.md](./DOCUMENTACAO.md) | Desenvolvedores | Protocolo interno, APIs, privacidade |
-| [VALIDACAO.md](./VALIDACAO.md) | QA / release | Matriz de validação + **196/196** |
+| [VALIDACAO.md](./VALIDACAO.md) | QA / release | Matriz de validação + **197/197** |
 | [MELHORIAS.md](./MELHORIAS.md) | Produto | Registro histórico v3.2 → v3.8 |
 | [Documentacao_Projeto_Clawd.md](./Documentacao_Projeto_Clawd.md) | Executivo | Visão arquitetural resumida |
 

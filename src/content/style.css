@@ -2804,22 +2804,26 @@
   45% { transform: scale(calc(var(--subpet-scale, 1) * 1.14), calc(var(--subpet-scale, 1) * 0.86)) scaleX(var(--subpet-direction)); }
 }
 @keyframes clawd-subpet-idle-look {
-  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(0); }
-  35% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(3px) rotate(4deg); }
-  70% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(-3px) rotate(-4deg); }
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(0) rotate(0deg); }
+  30% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(4px) rotate(5deg); }
+  65% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(-3px) rotate(-4deg); }
 }
 @keyframes clawd-subpet-idle-hop {
-  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
-  40% { transform: scale(calc(var(--subpet-scale, 1) * 0.94), calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-9px); }
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+  25% { transform: scale(calc(var(--subpet-scale, 1) * 0.92), calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) translateY(1px); }
+  55% { transform: scale(calc(var(--subpet-scale, 1) * 1.04), calc(var(--subpet-scale, 1) * 0.96)) scaleX(var(--subpet-direction)) translateY(-12px); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
 }
 @keyframes clawd-subpet-idle-wiggle {
   0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
-  25% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(-8deg); }
-  75% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(8deg); }
+  20% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(-10deg); }
+  50% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  80% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(10deg); }
 }
 @keyframes clawd-subpet-idle-stretch {
   0%, 100% { transform: scale(var(--subpet-scale, 1), var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
-  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.12), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)); }
+  35% { transform: scale(calc(var(--subpet-scale, 1) * 1.14), calc(var(--subpet-scale, 1) * 0.86)) scaleX(var(--subpet-direction)); }
+  65% { transform: scale(calc(var(--subpet-scale, 1) * 0.98), calc(var(--subpet-scale, 1) * 1.02)) scaleX(var(--subpet-direction)); }
 }
 .aic-subpet.react-jump .subpet-sprite { animation: clawd-subpet-react-jump 0.7s var(--clawd-ease-bounce, cubic-bezier(.34,1.56,.64,1)) both !important; }
 .aic-subpet.react-dance .subpet-sprite { animation: clawd-subpet-react-dance 0.55s ease-in-out 3 !important; }

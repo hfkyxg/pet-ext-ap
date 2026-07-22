@@ -14,11 +14,11 @@
 | **Trello** | Board [pet](https://trello.com/b/8wGr5tiQ/pet) + API via SW | ✅ |
 | **Layering** | Pet acima do name-tag; subpet na frente da etiqueta/balão | ✅ |
 | **Fluidez** | Ease cúbico walk/run; eco pet→subpet; micro-idle; anticipação de pulo | ✅ |
-| **Tests/Docs** | **169/169** na release; polish 22/07 → **196/196** | ✅ |
+| **Tests/Docs** | **169/169** na release; polish 22/07 → **197/197** | ✅ |
 
 ---
 
-## Polish 22/07/2026 — i18n chrome, onboarding, animações, cross-tab e subpet fluido
+## Polish 22/07/2026 — i18n chrome, onboarding, animações, cross-tab, subpet fluido e popup boot
 
 | Módulo | Entrega | Estado |
 |--------|---------|--------|
@@ -30,8 +30,9 @@
 | **SFX** | Sem eco em dblclick/wake/cheer; reduced-motion amplo no popup | ✅ |
 | **Navegação** | Digitar junto + assistir vídeo; mischief autônomo | ✅ |
 | **Subpet fluido** | Follow spring com `dt`; `IntersectionObserver` off-screen; keyframes/hover/press suaves | ✅ |
-| **Dev tooling** | `check` + ESLint cobrem `i18n-entities.js` | ✅ |
-| **Tests/Docs** | **196/196**; VALIDACAO + showcase + manuais alinhados | ✅ |
+| **Popup boot** | CSS do content injetado pós-parse (evita menu vazio no MV3); `__clawdPopupBootError` | ✅ |
+| **Dev tooling** | `check` + ESLint cobrem `i18n-entities.js`; `tests/tools/debug-popup-boot.mjs` | ✅ |
+| **Tests/Docs** | **197/197**; VALIDACAO + showcase + manuais alinhados | ✅ |
 
 ---
 

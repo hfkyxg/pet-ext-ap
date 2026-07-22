@@ -11,7 +11,8 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - **"Aprontar" (travessura autônoma)** — `doMischief()` no pet (esgueira → reaparece rindo, reaproveitando estados `sneaking`/`peeking`) e `case 'mischief'` no subpet; ambos entram nos pools autônomos ponderados por personalidade (playful/curious). Fora do catálogo/grid — não altera as contagens de ações
 - **Reações à navegação** — **digitar (sustentado)** via `_bindTypingCompanion` (o pet "escreve junto" em rajadas espaçadas e volta à calma quando as teclas param; Dev entra em `typing`, demais ficam curiosos) e **assistir vídeo** via `_bindMediaWatching`/`_tickWatch` (vídeo grande tocando → o pet fica por perto reagindo baixinho 🍿/👀, com auto-walk e dwell suspensos até pausar/acabar)
 - **Subpet off-screen** — `IntersectionObserver` pausa rAF + animações CSS (`.off-screen`) quando o companheiro sai da viewport; retoma ao reaparecer
-- Suíte **196/196** contratos (polish subpet dt/observer + mischief/navegação/i18n)
+- Suíte **197/197** contratos (polish subpet dt/observer + mischief/navegação/i18n + gate popup CSS async)
+- **Popup boot** — `content/style.css` deixou de ser `<link>` síncrono no `popup.html` (bloqueava o JS no MV3); agora é injetado após o parse; erros de boot vão para `__clawdPopupBootError`
 
 ### Alterado
 
@@ -20,7 +21,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - **Subpet fluido** — follow spring com `dt` normalizado a 60 fps (cap 3×); keyframes idle/hop/cuddle/wake/spin/celebrate mais suaves; hover/press squash; `will-change` em stack/subpet
 - **Dev tooling** — `npm run check` inclui `i18n-entities.js`; ESLint com globals `clawdEntityT` / `CLAWD_I18N_ENTITY` e bloco dedicado ao arquivo
 - **Vida contínua** — cadência das variações idle mais viva (menos tempo-morto enquanto se navega): pet `max(6500, 15000 − playful·900)`, subpet `max(5500, 12000 − playful·700)`; ainda self-reschedule e throttled por `cooldownMs`/estado
-- **Docs** — VALIDACAO, README, MANUAL, MELHORIAS, ARCHITECTURE e showcase alinhados ao marco **196/196** + fluidez do subpet
+- **Docs** — VALIDACAO, README, MANUAL, MELHORIAS, ARCHITECTURE e showcase alinhados ao marco **197/197** (popup boot + fluidez subpet)
 
 ### Corrigido
 
