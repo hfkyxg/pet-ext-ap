@@ -88,8 +88,8 @@ test('validação: clique 1/2/3+/5 → carinho/cambalhota/superdance/tantrum', (
   for (const cls of ['petting-subpet', 'being-petted', 'duo-play', 'duo-hug', 'nap-sync', 'sleep-settle', 'settling']) {
     assert.match(style, new RegExp(`\\.${cls}\\b|#aic-clawd-node\\.${cls}\\b|\\.aic-subpet\\.${cls}\\b`));
   }
-  assert.match(style, /clawd-subpet-run var\(--clawd-run-duration[\s\S]{0,80}steps\(2\)/);
-  assert.match(style, /clawd-subpet-run var\(--clawd-step-duration[\s\S]{0,80}steps\(2\)/);
+  assert.match(style, /clawd-subpet-run var\(--clawd-run-duration[\s\S]{0,80}ease-in-out/);
+  assert.match(style, /clawd-subpet-run var\(--clawd-step-duration[\s\S]{0,80}ease-in-out/);
 });
 
 test('validação: atalhos Alt+F/H/P/Z e bola/balão', () => {

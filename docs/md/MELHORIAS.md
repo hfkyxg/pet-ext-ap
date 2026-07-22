@@ -13,7 +13,8 @@
 | **Notificações** | `toastPosition` / `speechAnchor` / `emotionBadgeSide` | ✅ |
 | **Trello** | Board [pet](https://trello.com/b/8wGr5tiQ/pet) + API via SW | ✅ |
 | **Layering** | Pet acima do name-tag; subpet na frente da etiqueta/balão | ✅ |
-| **Tests/Docs** | **165/165**; VALIDACAO + showcase alinhados | ✅ |
+| **Fluidez** | Ease cúbico walk/run; eco pet→subpet; micro-idle; anticipação de pulo | ✅ |
+| **Tests/Docs** | **167/167**; VALIDACAO + showcase alinhados | ✅ |
 
 ---
 
@@ -114,7 +115,7 @@
 
 ### Resumo técnico
 
-- **Magic numbers eliminados**: `28000`, `350`, `60000`, `18`, `0.5`, `25000`, `32000` → `CLAWD_TIMINGS.*`
+- **Magic numbers eliminados**: timings centralizados em `CLAWD_TIMINGS.*` (`SUBPET_INTERACTION_MS: 20000`, `RANDOM_ACTION_MS: 18000`, `DUO_SCENE_MS: 22000`, etc.)
 - **Props animator**: engineer + footballer sem props visuais agora têm keyframes dedicados; chef pan stir soma ao steam existente
 - **Hover glow**: `drop-shadow(0 0 5px --clawd-glow)` + `brightness(1.06)` no `.smooth:hover` — derivado de hex color `+70` (44% alpha)
 - **RAF orphan guard**: `cancelAnimationFrame + return` se `!document.body.contains(node)` no tick do SubPet

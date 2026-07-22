@@ -387,7 +387,7 @@ Os **164 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 
 | Feature | Detalhe técnico |
 |---------|----------------|
-| **CLAWD_TIMINGS** | Objeto em `catalog.js` com 8 constantes (`SUBPET_INTERACTION_MS`, `STAT_DECAY_MS`, `STORAGE_DEBOUNCE_MS`, `PARTICLE_MAX: 18`, `SETTLE_EPS_PX: 0.5`, `DOUBLE_CLICK_WINDOW_MS: 220`, `RANDOM_ACTION_MS: 25000`, `DUO_SCENE_MS: 32000`). Elimina magic numbers em `content.js` e `popup.js`. |
+| **CLAWD_TIMINGS** | Objeto em `catalog.js` com 8 constantes (`SUBPET_INTERACTION_MS: 20000`, `STAT_DECAY_MS`, `STORAGE_DEBOUNCE_MS`, `PARTICLE_MAX: 18`, `SETTLE_EPS_PX: 0.5`, `DOUBLE_CLICK_WINDOW_MS: 220`, `RANDOM_ACTION_MS: 18000`, `DUO_SCENE_MS: 22000`). Elimina magic numbers em `content.js` e `popup.js`. |
 | **Props animados (12)** | Cada profissão tem um `<div class="profession-prop ...">` no template. Keyframes: `clawd-chef-stir`, `clawd-cursor-blink`, `clawd-boot-tap`, `clawd-bobber`, `clawd-note-float`, `clawd-glint`, `clawd-smoke-puff`, `clawd-steam`. Opacidade 0 por padrão; ativados via `.cooking`, `.typing`, `.keepy-uppy`, etc. |
 | **Studio in-page** | `openStudio()` injeta painel flutuante arrastável; `?detached=1` abre em janela popup separada. |
 | **Personalidade adaptativa** | `S.personality.playful/lazy/bold` lidos em `_scheduleInteraction()` e `_decayStats()` para ajustar intervalo e velocidade de decay. |
@@ -410,7 +410,8 @@ Os **164 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 | **Ambient FX (movimento)** | `_spawnAccessoryMotionFx()` dispara faíscas curtas ao **andar/correr/planar/dançar** ou equipar acessório — não há timer de loop idle; `noAmbientSparks` desliga faíscas de movimento. |
 | **Bola pé direito** | `.pet-ball { left: 48px }` + chuteira `left: 42px`; kick/roll/doPlay para a direita; sem `drop-shadow` blur; contador `.aic-juggle-count` à direita. |
 | **v3.7.3 UX** | `petVisible` no estado; `summonPetToTab` no SW; `minimalMode` → `.aic-minimal`; `clawdHasSavedPosition()` rejeita `{0,0}`; spawn usa `clawdDefaultPositionCoords(startCorner)`. |
-| **Validação** | Suíte **165/165** · v3.8.0 (i18n, posições, Trello, layering pet/subpet). |
+| **Validação** | Suíte **167/167** · v3.8.0 (i18n, posições, Trello, layering, fluidez pet↔subpet). |
+| **Fluidez pet↔subpet** | `clawdEaseInOutCubic` em walk/run; `_pulseReact` ecoa jump/dance/bath/happy; micro-idle do subpet; walk CSS `ease-in-out`; anticipação de pulo; duo ~72% chance; timings mais vivos. |
 
 ---
 

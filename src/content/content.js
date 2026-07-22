@@ -7,6 +7,11 @@
 
 (function clawdContentScope() {
 
+/* Ease compartilhado — locomoção pet/subpet (aceleração + desaceleração). */
+function clawdEaseInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
 /* Global error handler — graceful degradation, no pet crash */
 try {
   window.addEventListener('error', (event) => {
@@ -60,6 +65,9 @@ class SubPet {
     this._perch = false;
     this._blinking = false;
     this._blinkTimer = null;
+    this._idleVarTimer = null;
+    this._idleVarClearTimer = null;
+    this._idleVarLastTime = null;
     this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.node = null;
     this.create();
@@ -174,6 +182,7 @@ class SubPet {
     this._sfx('summon');
     this._loop();
     this._scheduleInteraction();
+    this._scheduleIdleVariation();
   }
 
   _pulseTap() {
@@ -404,10 +413,62 @@ class SubPet {
       'playing', 'cuddling', 'racing', 'spinning', 'celebrating',
       'exploring', 'vanishing', 'fire', 'split', 'perching', 'eating', 'cheering',
       'flying', 'summoning', 'wagging', 'double-hop', 'heavy-stomp', 'phasing', 'singing',
-      'watching-balloon', 'startled', 'tapped', 'settling', 'sleep-settle'
+      'watching-balloon', 'startled', 'tapped', 'settling', 'sleep-settle',
+      'react-jump', 'react-dance', 'react-splash', 'react-cheer', 'react-stretch',
+      'subpet-idle-look', 'subpet-idle-hop', 'subpet-idle-wiggle', 'subpet-idle-stretch'
       /* duo-hug / being-petted / duo-play / nap-sync: preservados — _beginInteraction não apaga a coreografia */
     );
     this._perch = false;
+  }
+
+  _pulseReact(cls, ms = 700) {
+    if (!this.node || this._reducedMotion) return;
+    this.node.classList.remove(cls);
+    void this.node.offsetWidth;
+    this.node.classList.add(cls);
+    this._later(() => this.node?.classList.remove(cls), ms);
+  }
+
+  _scheduleIdleVariation() {
+    if (!this.node) return;
+    const playful = (this.owner?.S?.personality?.playful ?? 5);
+    const base = Math.max(7000, 16000 - playful * 800);
+    const jitter = Math.random() * 5000;
+    clearTimeout(this._idleVarTimer);
+    this._idleVarTimer = setTimeout(() => this._doIdleVariation(), base + jitter);
+  }
+
+  _doIdleVariation() {
+    try {
+      if (!this.node || document.hidden || this._reducedMotion) return;
+      if (this.owner?.S?.settings?.noIdleVariations || this.owner?.S?.settings?.performanceMode) return;
+      if (this.state !== 'following' || this._interactionBusy) return;
+      if (this.owner?.state !== 'idle' || this.owner?.isQuiet?.()) return;
+      const pool = [
+        { id: 'look', cls: 'subpet-idle-look', ms: 1400 },
+        { id: 'hop', cls: 'subpet-idle-hop', ms: 900 },
+        { id: 'wiggle', cls: 'subpet-idle-wiggle', ms: 1100 },
+        { id: 'stretch', cls: 'subpet-idle-stretch', ms: 1300 }
+      ];
+      const now = Date.now();
+      if (!this._idleVarLastTime) this._idleVarLastTime = {};
+      const available = pool.filter(v => (now - (this._idleVarLastTime[v.id] || 0)) >= 9000);
+      if (!available.length) return;
+      const pick = available[Math.floor(Math.random() * available.length)];
+      this._idleVarLastTime[pick.id] = now;
+      this.node.classList.add(pick.cls);
+      clearTimeout(this._idleVarClearTimer);
+      this._idleVarClearTimer = setTimeout(() => this.node?.classList.remove(pick.cls), pick.ms + 80);
+      if (pick.id === 'hop' && this.species === 'rabbit') this.node.classList.add('double-hop');
+      if (pick.id === 'wiggle' && this.species === 'dog') this.node.classList.add('wagging');
+      this._later(() => {
+        if (!this._interactionBusy) {
+          this.node?.classList.remove('double-hop', 'wagging');
+        }
+      }, pick.ms + 100);
+    } finally {
+      this._scheduleIdleVariation();
+    }
   }
 
   _isNight() {
@@ -448,7 +509,10 @@ class SubPet {
     }
     // Dormindo: fica no lugar — nao herda walk/cheer do dono (so acordar p/ comer).
     if (this.state === 'sleeping') {
-      this.node.classList.remove('moving', 'owner-walking', 'owner-running', 'cheering');
+      this.node.classList.remove(
+        'moving', 'owner-walking', 'owner-running', 'cheering',
+        'react-jump', 'react-dance', 'react-splash', 'react-cheer', 'react-stretch'
+      );
       if (state === 'eating') this.interact('eat', { force: true });
       return;
     }
@@ -458,6 +522,37 @@ class SubPet {
     if (state === 'eating') this.interact('eat', { force: true });
     if (state === 'celebrate' && !this._interactionBusy) {
       this.interact('celebrate', { force: false });
+    }
+    /* Eco contagiante: o subpet brinca junto quando o pet age. */
+    if (this._interactionBusy) return;
+    if (state === 'jumping' || state === 'bouncing') {
+      this._pulseReact('react-jump', 720);
+      if (this.species === 'rabbit') {
+        this.node.classList.add('double-hop');
+        this._later(() => this.node?.classList.remove('double-hop'), 900);
+      }
+    } else if (state === 'dance-1' || state === 'dance-2' || state === 'dance-3'
+      || state === 'spinning' || state === 'somersault') {
+      this._pulseReact('react-dance', 1600);
+      if (this.species === 'dog') {
+        this.node.classList.add('wagging');
+        this._later(() => { if (!this._interactionBusy) this.node?.classList.remove('wagging'); }, 1600);
+      }
+    } else if (state === 'bathing') {
+      this._pulseReact('react-splash', 1300);
+      this._burst(['🫧', '💧'], 3);
+    } else if (state === 'excited' || state === 'happy') {
+      this._pulseReact('react-cheer', 900);
+      if (this.species === 'dog') {
+        this.node.classList.add('wagging');
+        this._later(() => { if (!this._interactionBusy) this.node?.classList.remove('wagging'); }, 1000);
+      }
+    } else if (state === 'stretching' || state === 'yawning') {
+      this._pulseReact('react-stretch', 1100);
+    } else if (state === 'hugging') {
+      this.interact('hug', { silent: true });
+    } else if (state === 'rolling' || state === 'flipping') {
+      this._pulseReact('react-jump', 800);
     }
   }
 
@@ -788,7 +883,7 @@ class SubPet {
       }
       if (this.owner.state !== 'idle') return;
       const p = this.owner.S?.personality || {};
-      const baseChance = this.owner.emotion === 'joyful' ? 0.78 : 0.48;
+      const baseChance = this.owner.emotion === 'joyful' ? 0.86 : 0.58;
       const personalityMod = (p.playful ?? 5) >= 7 ? 0.18 : (p.lazy ?? 5) >= 7 ? -0.16 : 0;
       const chance = Math.min(0.92, Math.max(0.18, baseChance + personalityMod));
       if (Math.random() > chance) return;
@@ -1064,6 +1159,8 @@ class SubPet {
     clearTimeout(this._sleepTimer);
     clearTimeout(this._wakeTimer);
     clearTimeout(this._clickTimer);
+    clearTimeout(this._idleVarTimer);
+    clearTimeout(this._idleVarClearTimer);
     this._actionTimers.forEach(clearTimeout);
     this._actionTimers.clear();
     this._interactionEndTimer = null;
@@ -3406,8 +3503,18 @@ class ClawdCompanion {
     if (asMusician) this._pulseProfessionFx('jamming', 3000);
     this.setState('dance-1');
     this.beep(660);
-    setTimeout(() => { if (this.state === 'dance-1') { this.node.classList.remove('dance-1'); this.state = 'dance-2'; this.node.classList.add('dance-2'); this.beep(770); this.spawnPixelSparks(['#a29bfe', '#ffffff'], { count: 3 }); } }, 900);
-    setTimeout(() => { if (this.state === 'dance-2') { this.node.classList.remove('dance-2'); this.state = 'dance-3'; this.node.classList.add('dance-3'); this.beep(880); } }, 1800);
+    if (this.subpet) {
+      this.node?.classList.add('duo-play');
+      this.subpet.node?.classList.add('duo-play');
+      this.subpet.interact('spin', { force: true, silent: true });
+      clearTimeout(this._duoPlayTimer);
+      this._duoPlayTimer = setTimeout(() => {
+        this.node?.classList.remove('duo-play');
+        this.subpet?.node?.classList.remove('duo-play');
+      }, 2800);
+    }
+    setTimeout(() => { if (this.state === 'dance-1') { this.node.classList.remove('dance-1'); this.state = 'dance-2'; this.node.classList.add('dance-2'); this.beep(770); this.spawnPixelSparks(['#a29bfe', '#ffffff'], { count: 3 }); this.subpet?.onOwnerState('dance-2'); } }, 900);
+    setTimeout(() => { if (this.state === 'dance-2') { this.node.classList.remove('dance-2'); this.state = 'dance-3'; this.node.classList.add('dance-3'); this.beep(880); this.subpet?.onOwnerState('dance-3'); } }, 1800);
     setTimeout(() => { if (this.state === 'dance-3') this.setState('idle'); }, 2800);
     this.bumpStat('happiness', 6);
     this.bumpStat('energy', -4);
@@ -3431,6 +3538,16 @@ class ClawdCompanion {
     };
     this._clearDanceTimers?.();
     this._danceTimers = [];
+    if (this.subpet) {
+      this.node?.classList.add('duo-play');
+      this.subpet.node?.classList.add('duo-play');
+      this.subpet.interact('celebrate', { force: true, silent: true });
+      clearTimeout(this._duoPlayTimer);
+      this._duoPlayTimer = setTimeout(() => {
+        this.node?.classList.remove('duo-play');
+        this.subpet?.node?.classList.remove('duo-play');
+      }, steps.length * 700 + 800);
+    }
     steps.forEach((step, i) => {
       this._danceTimers.push(setTimeout(() => {
         if (this._destroyed || this._crossTabHidden) return;
@@ -3439,6 +3556,7 @@ class ClawdCompanion {
         this.node.dataset.state = step;
         this.node.classList.add(step);
         this.beep(440 + i * 110, 0.08);
+        this.subpet?.onOwnerState(step);
       }, i * 700));
     });
     this._danceTimers.push(setTimeout(() => {
@@ -3456,17 +3574,23 @@ class ClawdCompanion {
 
   doJump() {
     if (this.state === 'sleeping') this.wakeUp();
-    this.setStateFor('jumping', 900);
-    this.showSpeech('Pulou! ✨', 1200);
-    this.spawnParticles(['✨', '💨'], { count: 3 });
-    this.spawnPixelSparks(['#ffffff', '#f1c40f', '#3498db', this.S.color || '#c71515'], { count: 6 });
-    this._spawnWalkDust(4);
-    // Poeira de impacto no pouso — sincronizada com o squash em 90% do keyframe (~0.63s)
-    this._jumpLandTimer = setTimeout(() => {
-      if (this._destroyed || this.state !== 'jumping') return;
-      this._lastWalkDust = 0; // ignora o throttle: é um segundo evento distinto (pouso)
-      this._spawnWalkDust(5);
-    }, 610);
+    this._pulseAnimClass('jump-anticipate', 140);
+    clearTimeout(this._jumpStartTimer);
+    this._jumpStartTimer = setTimeout(() => {
+      if (this._destroyed) return;
+      this.setStateFor('jumping', 900);
+      this.showSpeech('Pulou! ✨', 1200);
+      this.spawnParticles(['✨', '💨'], { count: 3 });
+      this.spawnPixelSparks(['#ffffff', '#f1c40f', '#3498db', this.S.color || '#c71515'], { count: 6 });
+      this._spawnWalkDust(4);
+      // Poeira de impacto no pouso — sincronizada com o squash em 90% do keyframe (~0.63s)
+      this._jumpLandTimer = setTimeout(() => {
+        if (this._destroyed || this.state !== 'jumping') return;
+        this._lastWalkDust = 0; // ignora o throttle: é um segundo evento distinto (pouso)
+        this._spawnWalkDust(5);
+        this._softLand();
+      }, 610);
+    }, 110);
     this.bumpStat('energy', -3);
     this.bumpStat('happiness', 3);
     this.addXp(2);
@@ -3679,7 +3803,8 @@ class ClawdCompanion {
 
     const step = (timestamp) => {
       if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const linear = Math.min((timestamp - startTime) / duration, 1);
+      const progress = clawdEaseInOutCubic(linear);
       const currentX = startX + dx * progress;
 
       this.updatePosition(currentX, rect.top);
@@ -3694,13 +3819,14 @@ class ClawdCompanion {
         this._trackParticle(dust, 600);
       }
 
-      if (progress < 1) {
+      if (linear < 1) {
         this._motionRaf = requestAnimationFrame(step);
       } else {
         this._motionRaf = null;
         this.isAutoWalking = false;
         this.stackNode.style.transform = '';
         this.setState('idle');
+        this._softLand();
       }
     };
     this._motionRaf = requestAnimationFrame(step);
@@ -4578,7 +4704,8 @@ class ClawdCompanion {
 
     const step = (timestamp) => {
       if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const linear = Math.min((timestamp - startTime) / duration, 1);
+      const progress = clawdEaseInOutCubic(linear);
 
       this.updatePosition(startX + dx * progress, startY + dy * progress);
 
@@ -4586,7 +4713,7 @@ class ClawdCompanion {
         this._spawnWalkDust(2);
         this._spawnAccessoryMotionFx('move');
       }
-      if (progress < 1) {
+      if (linear < 1) {
         this._motionRaf = requestAnimationFrame(step);
       } else {
         this._motionRaf = null;
@@ -4640,7 +4767,7 @@ class ClawdCompanion {
     if (this.S.settings.performanceMode) return;
     if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
     if (this.subpet.state === 'sleeping' || this.subpet._interactionBusy) return;
-    if (Math.random() > 0.55) return;
+    if (Math.random() > 0.72) return;
     const scenes = ['cuddle', 'play', 'nap', 'race', 'celebrate', 'pet', 'dance'];
     const pick = scenes[Math.floor(Math.random() * scenes.length)];
     this._playDuoScene(pick);
@@ -5230,23 +5357,39 @@ class ClawdCompanion {
         case 'toggleVisibility':
           this.isVisible = !this.isVisible;
           this.S.petVisible = this.isVisible;
-          this.node.style.display = this.isVisible ? '' : 'none';
           if (this.isVisible) {
+            this.node.style.display = '';
             this.refreshSubpet();
             if (this.subpet && !document.hidden) this.subpet._resumeRaf?.();
-          } else if (this.subpet) {
-            this.subpet.node.style.display = 'none';
-            this.subpet._pauseRaf();
+            this._celebrateSummon('Voltei! 👋');
+          } else {
             this.stopKeepyUppy();
             this.stopFishing();
+            if (this.subpet) this.subpet._pauseRaf();
+            this._poofOut(() => {
+              this.node.style.display = 'none';
+              if (this.subpet) this.subpet.node.style.display = 'none';
+            });
           }
           this.save();
           break;
         case 'resetPosition':
           this.S.position = { x: null, y: null };
+          this.cancelMovement();
           this.applyStartCorner();
+          if (this.isVisible) {
+            this._celebrateSummon('Me resgatou! Valeu! 🧭', {
+              state: 'happy',
+              sparks: ['#2ecc71', '#ffffff', '#f1c40f'],
+              chime: [[440, 0.05], [660, 0.06], [880, 0.08]]
+            });
+          }
           this.save();
           break;
+        case 'summonCheer':
+          if (this.isVisible) this._celebrateSummon('Tô com você nesta guia! 🧳');
+          sendResponse({ ok: true });
+          return true;
         case 'updateConfig':
           this.applyConfig(msg.key, msg.value);
           break;
@@ -5424,6 +5567,13 @@ class ClawdCompanion {
     this._bindStudio(panel);
     this._applyStudioPosition(panel);
     this._refreshStudio();
+    // Pet reage: fica curioso/animado quando o studio abre na página
+    if (this.isVisible && !this.S.settings?.minimalMode) {
+      if (this.state !== 'sleeping') this.setStateFor('excited', 1400);
+      this.spawnPixelSparks(['#a29bfe', '#ffffff', '#fd79a8'], { count: 4 });
+      this.chime([[660, 0.05], [880, 0.06]], 'actions');
+      this.showSpeech('Vamos me estilizar? ✨', 2400);
+    }
   }
 
   closeStudio() {
@@ -5614,6 +5764,40 @@ class ClawdCompanion {
           <em>${v}%</em>
         </button>`;
     }).join('');
+  }
+
+  /* Reação de "chegada" reutilizada por: Mostrar pet, Seguir nesta guia, Resgatar.
+     Queda com bounce + faíscas + pose + falinha. Respeita reduced-motion/minimal. */
+  _celebrateSummon(text = 'Cheguei! 🧳', {
+    state = 'waving',
+    sparks = ['#f1c40f', '#ffffff', '#fda7df', '#55a9dd'],
+    chime = [[523, 0.05], [659, 0.06], [784, 0.08]]
+  } = {}) {
+    if (this._destroyed || !this.node) return;
+    this.lastActivity = Date.now();
+    if (!this._reducedMotion && !this.S.settings?.minimalMode && !this.S.settings?.performanceMode) {
+      this.node.classList.remove('clawd-summon-drop');
+      void this.node.offsetWidth; // reflow → reinicia a animação a cada clique
+      this.node.classList.add('clawd-summon-drop');
+      setTimeout(() => this.node?.classList.remove('clawd-summon-drop'), 750);
+    }
+    this.spawnPixelSparks(sparks, { count: 6 });
+    if (this.state !== 'sleeping') this.setStateFor(state, 1800);
+    this.chime(chime, 'actions');
+    if (!this.S.settings?.minimalMode) this.showSpeech(text, 2400);
+  }
+
+  /* Some com estilo: faíscas + encolher antes de ocultar. done() executa após o poof. */
+  _poofOut(done) {
+    if (this._destroyed || !this.node) { done?.(); return; }
+    if (this._reducedMotion || this.S.settings?.performanceMode) { done?.(); return; }
+    this.spawnPixelSparks(['#b2bec3', '#dfe6e9', '#ffffff'], { count: 5 });
+    this.chime([[440, 0.05], [300, 0.07]], 'actions');
+    this.node.classList.add('clawd-poof-out');
+    setTimeout(() => {
+      this.node?.classList.remove('clawd-poof-out');
+      done?.();
+    }, 300);
   }
 
   _handleAction(action) {
@@ -5854,7 +6038,9 @@ class ClawdCompanion {
       /* v3.4 / tick5 */
       '_idleVarTimer', '_idleVarClearTimer', '_scrollIdleTimer', '_ballClickTimer',
       /* duo / petting */
-      '_pettingTimer', '_duoPlayTimer'
+      '_pettingTimer', '_duoPlayTimer',
+      /* jump anticipation / land */
+      '_jumpStartTimer', '_jumpLandTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;

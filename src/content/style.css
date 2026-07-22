@@ -26,8 +26,9 @@
   80%     { transform: scale(var(--agent-scale, 1.5)) translateX(3px); }
 }
 @keyframes clawd-breathe {
-  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1); }
-  50%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.96); }
+  0%,100% { transform: scale(var(--agent-scale, 1.5)) scaleY(1) translateY(0); }
+  35%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.97) translateY(0.5px); }
+  70%     { transform: scale(var(--agent-scale, 1.5)) scaleY(0.955) translateY(0); }
 }
 @keyframes clawd-shadow-pulse {
   0%,100% { opacity: 0.35; transform: scaleX(1); }
@@ -112,6 +113,11 @@
   75%  { transform: scale(var(--agent-scale, 1.5)) translateY(-28px) scaleY(1.05); }
   90%  { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(0.78); }
   100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+}
+@keyframes clawd-jump-anticipate {
+  0% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
+  55% { transform: scale(calc(var(--agent-scale, 1.5) * 1.06), calc(var(--agent-scale, 1.5) * 0.82)) translateY(2px); }
+  100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(0.9); }
 }
 /* Esticar ao acordar */
 @keyframes clawd-stretch {
@@ -2629,9 +2635,10 @@
 .aic-subpet .subpet-bubble.visible { opacity: 1; transform: scale(1); }
 
 @keyframes clawd-subpet-idle {
-  0%, 100% { transform: translateY(0) scale(1, 1); }
-  40% { transform: translateY(-3px) scale(1.02, 0.98); }
-  70% { transform: translateY(-1px) scale(0.99, 1.02); }
+  0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+  25% { transform: translateY(-2px) scale(1.03, 0.97) rotate(-1.5deg); }
+  50% { transform: translateY(-5px) scale(1.015, 0.985) rotate(0deg); }
+  75% { transform: translateY(-2px) scale(0.985, 1.02) rotate(1.5deg); }
 }
 @keyframes clawd-subpet-hop {
   0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
@@ -2642,18 +2649,19 @@
 }
 @keyframes clawd-subpet-run {
   0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
-  25% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px) rotate(-6deg); }
-  75% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-3px) rotate(6deg); }
+  25% { transform: scale(calc(var(--subpet-scale, 1) * 1.05), calc(var(--subpet-scale, 1) * 0.94)) scaleX(var(--subpet-direction)) translateY(-4px) rotate(-7deg); }
+  50% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(-1px) rotate(0deg); }
+  75% { transform: scale(calc(var(--subpet-scale, 1) * 1.05), calc(var(--subpet-scale, 1) * 0.94)) scaleX(var(--subpet-direction)) translateY(-4px) rotate(7deg); }
 }
 .aic-subpet.playing .subpet-sprite { animation: clawd-subpet-hop 0.4s ease-in-out infinite; }
 .aic-subpet.cuddling .subpet-sprite { animation: clawd-subpet-cuddle 0.5s ease-in-out 3; }
-.aic-subpet.racing .subpet-sprite { animation: clawd-subpet-run var(--clawd-run-duration, .18s) steps(2) infinite; }
+.aic-subpet.racing .subpet-sprite { animation: clawd-subpet-run var(--clawd-run-duration, .18s) ease-in-out infinite; }
 /* Walk/run do dono — cadência espelhada via CSS vars (não pode ganhar de carinho/duo). */
-.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run var(--clawd-run-duration, .18s) steps(2) infinite;
+.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle):not(.react-jump):not(.react-dance):not(.react-splash):not(.react-cheer):not(.react-stretch):not(.subpet-idle-look):not(.subpet-idle-hop):not(.subpet-idle-wiggle):not(.subpet-idle-stretch) .subpet-sprite {
+  animation: clawd-subpet-run var(--clawd-run-duration, .18s) ease-in-out infinite;
 }
-.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run var(--clawd-step-duration, .42s) steps(2) infinite;
+.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle):not(.react-jump):not(.react-dance):not(.react-splash):not(.react-cheer):not(.react-stretch):not(.subpet-idle-look):not(.subpet-idle-hop):not(.subpet-idle-wiggle):not(.subpet-idle-stretch) .subpet-sprite {
+  animation: clawd-subpet-run var(--clawd-step-duration, .42s) ease-in-out infinite;
 }
 .aic-subpet.eating .subpet-sprite { animation: clawd-subpet-eat 0.35s ease-in-out 5; }
 .aic-subpet.cheering .subpet-sprite { animation: clawd-subpet-celebrate 0.4s cubic-bezier(.34,1.56,.64,1) infinite; }
@@ -2747,6 +2755,60 @@
   45%, 62% { opacity: .12; transform: scale(calc(var(--subpet-scale, 1) * .72)) scaleX(var(--subpet-direction)) translateY(-8px); filter: brightness(1.35); }
 }
 
+/* Reações contagiosas ao pet + micro-vida idle (PNG e pixel) */
+@keyframes clawd-subpet-react-jump {
+  0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+  30% { transform: scale(calc(var(--subpet-scale, 1) * 0.9), calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) translateY(-12px); }
+  60% { transform: scale(calc(var(--subpet-scale, 1) * 1.08), calc(var(--subpet-scale, 1) * 0.9)) scaleX(var(--subpet-direction)) translateY(0); }
+  100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+}
+@keyframes clawd-subpet-react-dance {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
+  25% { transform: scale(calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) translateY(-6px) rotate(-10deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 0.96)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(8deg); }
+  75% { transform: scale(calc(var(--subpet-scale, 1) * 1.06)) scaleX(var(--subpet-direction)) translateY(-8px) rotate(-6deg); }
+}
+@keyframes clawd-subpet-react-splash {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  35% { transform: scale(calc(var(--subpet-scale, 1) * 1.12), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)) rotate(-4deg); }
+  70% { transform: scale(calc(var(--subpet-scale, 1) * 0.94), calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) rotate(5deg) translateY(-3px); }
+}
+@keyframes clawd-subpet-react-cheer {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+  40% { transform: scale(calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-7px); }
+}
+@keyframes clawd-subpet-react-stretch {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
+  45% { transform: scale(calc(var(--subpet-scale, 1) * 1.14), calc(var(--subpet-scale, 1) * 0.86)) scaleX(var(--subpet-direction)); }
+}
+@keyframes clawd-subpet-idle-look {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(0); }
+  35% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(3px) rotate(4deg); }
+  70% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateX(-3px) rotate(-4deg); }
+}
+@keyframes clawd-subpet-idle-hop {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
+  40% { transform: scale(calc(var(--subpet-scale, 1) * 0.94), calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-9px); }
+}
+@keyframes clawd-subpet-idle-wiggle {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
+  25% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(-8deg); }
+  75% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(8deg); }
+}
+@keyframes clawd-subpet-idle-stretch {
+  0%, 100% { transform: scale(var(--subpet-scale, 1), var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.12), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)); }
+}
+.aic-subpet.react-jump .subpet-sprite { animation: clawd-subpet-react-jump 0.7s var(--clawd-ease-bounce, cubic-bezier(.34,1.56,.64,1)) both !important; }
+.aic-subpet.react-dance .subpet-sprite { animation: clawd-subpet-react-dance 0.55s ease-in-out 3 !important; }
+.aic-subpet.react-splash .subpet-sprite { animation: clawd-subpet-react-splash 0.45s ease-in-out 3 !important; }
+.aic-subpet.react-cheer .subpet-sprite { animation: clawd-subpet-react-cheer 0.4s var(--clawd-ease-bounce, cubic-bezier(.34,1.56,.64,1)) 2 !important; }
+.aic-subpet.react-stretch .subpet-sprite { animation: clawd-subpet-react-stretch 1s ease-in-out both !important; }
+.aic-subpet.subpet-idle-look .subpet-sprite { animation: clawd-subpet-idle-look 1.35s ease-in-out both !important; }
+.aic-subpet.subpet-idle-hop .subpet-sprite { animation: clawd-subpet-idle-hop 0.85s var(--clawd-ease-bounce, cubic-bezier(.34,1.56,.64,1)) both !important; }
+.aic-subpet.subpet-idle-wiggle .subpet-sprite { animation: clawd-subpet-idle-wiggle 0.35s ease-in-out 3 !important; }
+.aic-subpet.subpet-idle-stretch .subpet-sprite { animation: clawd-subpet-idle-stretch 1.2s ease-in-out both !important; }
+
 @media (prefers-reduced-motion: reduce) {
   .aic-subpet .subpet-motion,
   .aic-subpet.playing .subpet-sprite,
@@ -2767,7 +2829,16 @@
   .aic-subpet.tapped .subpet-sprite,
   .aic-subpet.settling .subpet-sprite,
   .aic-subpet.sleep-settle .subpet-sprite,
-  .aic-subpet.hovering .subpet-sprite {
+  .aic-subpet.hovering .subpet-sprite,
+  .aic-subpet.react-jump .subpet-sprite,
+  .aic-subpet.react-dance .subpet-sprite,
+  .aic-subpet.react-splash .subpet-sprite,
+  .aic-subpet.react-cheer .subpet-sprite,
+  .aic-subpet.react-stretch .subpet-sprite,
+  .aic-subpet.subpet-idle-look .subpet-sprite,
+  .aic-subpet.subpet-idle-hop .subpet-sprite,
+  .aic-subpet.subpet-idle-wiggle .subpet-sprite,
+  .aic-subpet.subpet-idle-stretch .subpet-sprite {
     animation: none !important;
   }
 }
@@ -2777,7 +2848,7 @@
    ============================ */
 
 /* IDLE: respiração suave — exclui ações + micro-anims (look/land/greet/peek/duo) */
-#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.walking):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.stretching):not(.roaring):not(.highfive):not(.looking-around):not(.curious):not(.soft-landing):not(.tab-greet):not(.page-peeking):not(.duo-play):not(.petting-subpet):not(.sleep-settle):not(.rolling):not(.spinning):not(.bouncing):not(.cheering):not(.sneaking):not(.clapping):not(.peeking):not(.hugging):not(.dizzy):not(.holding-balloon):not(.clawd-idle-look):not(.clawd-idle-scratch):not(.clawd-idle-taptoe):not(.clawd-idle-sway):not(.clawd-idle-nudge):not(.clawd-idle-hop):not(.clawd-idle-shimmy):not(.clawd-summon-drop):not(.flipping):not(.meditating):not(.electrified) .pet-body {
+#aic-clawd-node:not(.happy):not(.sleeping):not(.excited):not(.waving):not(.somersault):not(.eating):not(.celebrate):not(.yawning):not(.shy):not(.tantrum):not(.dance-1):not(.dance-2):not(.dance-3):not(.pose):not(.bathing):not(.walking):not(.running):not(.keepy-uppy):not(.fishing):not(.jumping):not(.jump-anticipate):not(.stretching):not(.roaring):not(.highfive):not(.looking-around):not(.curious):not(.soft-landing):not(.tab-greet):not(.page-peeking):not(.duo-play):not(.petting-subpet):not(.sleep-settle):not(.rolling):not(.spinning):not(.bouncing):not(.cheering):not(.sneaking):not(.clapping):not(.peeking):not(.hugging):not(.dizzy):not(.holding-balloon):not(.clawd-idle-look):not(.clawd-idle-scratch):not(.clawd-idle-taptoe):not(.clawd-idle-sway):not(.clawd-idle-nudge):not(.clawd-idle-hop):not(.clawd-idle-shimmy):not(.clawd-summon-drop):not(.flipping):not(.meditating):not(.electrified) .pet-body {
   animation: clawd-breathe 3s ease-in-out infinite;
 }
 
@@ -2892,6 +2963,9 @@
 /* JUMPING (pulo) */
 #aic-clawd-node.jumping .pet-body {
   animation: clawd-jump 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards !important;
+}
+#aic-clawd-node.jump-anticipate .pet-body {
+  animation: clawd-jump-anticipate 0.14s ease-out forwards !important;
 }
 #aic-clawd-node.jumping .pixel-sprite {
   animation: none !important;
@@ -4464,9 +4538,10 @@
 
 /* ===== LOCOMOÇÃO PET + SUBPET FLIGHT / SUMMON ===== */
 @keyframes clawd-walk-bob {
-  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1); }
-  35% { transform: scale(var(--agent-scale, 1.5)) translateY(-2px) scaleY(1.02); }
-  70% { transform: scale(var(--agent-scale, 1.5)) translateY(-4px) scaleY(0.98); }
+  0%, 100% { transform: scale(var(--agent-scale, 1.5)) translateY(0) scaleY(1) rotate(0deg); }
+  25% { transform: scale(var(--agent-scale, 1.5)) translateY(-3px) scaleY(1.03) rotate(-1.5deg); }
+  50% { transform: scale(var(--agent-scale, 1.5)) translateY(-1px) scaleY(0.99) rotate(0deg); }
+  75% { transform: scale(var(--agent-scale, 1.5)) translateY(-4px) scaleY(1.02) rotate(1.5deg); }
 }
 #aic-clawd-node.walking .pet-body {
   animation: clawd-walk-bob var(--clawd-step-duration, .42s) cubic-bezier(.45,.05,.55,.95) infinite;
@@ -4518,14 +4593,14 @@
   55% { transform: translateY(-5px) scale(1.14); opacity: 1; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
-.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run var(--clawd-step-duration, .42s) steps(2) infinite;
+.aic-subpet.owner-walking:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle):not(.react-jump):not(.react-dance):not(.react-splash):not(.react-cheer):not(.react-stretch):not(.subpet-idle-look):not(.subpet-idle-hop):not(.subpet-idle-wiggle):not(.subpet-idle-stretch) .subpet-sprite {
+  animation: clawd-subpet-run var(--clawd-step-duration, .42s) ease-in-out infinite;
 }
-.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run var(--clawd-run-duration, .18s) steps(2) infinite;
+.aic-subpet.owner-running:not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.playing):not(.racing):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle):not(.react-jump):not(.react-dance):not(.react-splash):not(.react-cheer):not(.react-stretch):not(.subpet-idle-look):not(.subpet-idle-hop):not(.subpet-idle-wiggle):not(.subpet-idle-stretch) .subpet-sprite {
+  animation: clawd-subpet-run var(--clawd-run-duration, .18s) ease-in-out infinite;
 }
-.aic-subpet.moving:not(.flying):not(.playing):not(.racing):not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle) .subpet-sprite {
-  animation: clawd-subpet-run var(--clawd-step-duration, .42s) steps(2) infinite;
+.aic-subpet.moving:not(.flying):not(.playing):not(.racing):not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.exploring):not(.vanishing):not(.split):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.tapped):not(.settling):not(.waking):not(.cheering):not(.duo-hug):not(.being-petted):not(.duo-play):not(.startled):not(.sleep-settle):not(.react-jump):not(.react-dance):not(.react-splash):not(.react-cheer):not(.react-stretch):not(.subpet-idle-look):not(.subpet-idle-hop):not(.subpet-idle-wiggle):not(.subpet-idle-stretch) .subpet-sprite {
+  animation: clawd-subpet-run var(--clawd-step-duration, .42s) ease-in-out infinite;
 }
 .aic-subpet.flying .subpet-motion,
 .aic-subpet.summoning .subpet-motion {
@@ -4967,6 +5042,17 @@
   animation: clawd-summon-drop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
 }
 
+/* ---- Poof out (ao ocultar o pet) ---- */
+@keyframes clawd-poof-out {
+  0%   { transform: scale(var(--agent-scale, 1)) scale(1) rotate(0);        opacity: 1; }
+  40%  { transform: scale(var(--agent-scale, 1)) scale(1.18) rotate(-6deg); opacity: 0.85; }
+  100% { transform: scale(var(--agent-scale, 1)) scale(0.2) rotate(14deg);  opacity: 0; }
+}
+#aic-clawd-node.clawd-poof-out .pet-body,
+#aic-clawd-node.clawd-poof-out .smooth-sprite {
+  animation: clawd-poof-out 0.28s cubic-bezier(0.55, 0, 0.55, 0.2) both !important;
+}
+
 /* ---- Studio flutuante (personalização in-page) ---- */
 #aic-clawd-studio {
   position: fixed;
@@ -5173,7 +5259,9 @@
   #aic-clawd-node.clawd-idle-hop .pet-body,
   #aic-clawd-node.clawd-idle-shimmy .pet-body,
   #aic-clawd-node.clawd-summon-drop .pet-body,
-  #aic-clawd-node.clawd-summon-drop .smooth-sprite {
+  #aic-clawd-node.clawd-summon-drop .smooth-sprite,
+  #aic-clawd-node.clawd-poof-out .pet-body,
+  #aic-clawd-node.clawd-poof-out .smooth-sprite {
     animation: none !important;
   }
 }

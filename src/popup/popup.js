@@ -85,8 +85,14 @@ function summonPetToCurrentTab() {
       return;
     }
     sendRuntimeMsg({ action: 'summonPetToTab', tabId: tabs[0].id }, (res) => {
-      if (res?.ok) showStatusFeedback('Pet convocado nesta guia! 🧳');
-      else showStatusFeedback('Recarregue a página e tente de novo.', { error: true });
+      // Dispara a reação de chegada e usa a resposta do content como fonte de verdade:
+      // com cross-tab ligado o pet "viaja" (res.ok); desligado ele já está aqui.
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'summonCheer' })
+        .then(() => showStatusFeedback(res?.ok ? 'Pet convocado nesta guia! 🧳' : 'Pet já está com você aqui! 🧳'))
+        .catch(() => {
+          scrubLastError();
+          showStatusFeedback('Recarregue a página e tente de novo.', { error: true });
+        });
     });
   });
 }

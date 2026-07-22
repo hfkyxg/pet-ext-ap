@@ -142,7 +142,7 @@ test('sub-pets oferecem as interações do catálogo', () => {
     assert.match(content, new RegExp(`${species}:\\s*\\(`), `espécie ${species} sem handler _special`);
   }
   /* _clearActionClasses preserva classes duo */
-  assert.match(content, /_clearActionClasses\(\)[\s\S]{0,520}duo-hug[\s\S]{0,120}being-petted[\s\S]{0,120}duo-play[\s\S]{0,120}nap-sync/);
+  assert.match(content, /_clearActionClasses\(\)[\s\S]{0,900}duo-hug[\s\S]{0,120}being-petted[\s\S]{0,120}duo-play[\s\S]{0,120}nap-sync/);
 });
 
 test('sprites de sub-pet cobrem todas as espécies e não duplicam no showcase', () => {

@@ -16,7 +16,8 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 ### Alterado
 
 - Manifest **3.8.0**; content_scripts carregam `i18n.js` antes do catálogo
-- Suíte **165/165** contratos
+- Suíte **167/167** contratos
+- **Animações pet↔subpet** — locomoção com `clawdEaseInOutCubic`; subpet ecoa pulo/dança/banho/alegria; micro-idle do companheiro; duo/ações espontâneas mais frequentes; walk/run CSS fluido + anticipação de pulo
 
 ### Corrigido
 

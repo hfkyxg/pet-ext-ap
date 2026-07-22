@@ -287,6 +287,46 @@ test('qualidade: integridade das animações — nenhuma quebrada, sem keyframe 
   }
 });
 
+test('interação: vocabulário de movimento — pula, corre, rola, gira, quica, desliza (chain completa)', () => {
+  const { CLAWD_ACTIONS } = catalog;
+
+  /* 1. ações discretas de movimento existem no catálogo e no despacho */
+  const moveActions = ['jump', 'roll', 'spin', 'bounce', 'somersault', 'flip'];
+  for (const a of moveActions) {
+    assert.ok(CLAWD_ACTIONS[a], `ação de movimento ausente no catálogo: ${a}`);
+    assert.match(content, new RegExp(`\\n\\s*${a}:\\s*\\(\\) =>`), `sem handler em _handleAction: ${a}`);
+  }
+
+  /* 2. métodos de movimento no companion */
+  for (const m of ['doJump', 'doRoll', 'doSpin', 'doBounce', 'doSomersault', 'doFlip']) {
+    assert.match(content, new RegExp(`\\n  ${m}\\(`), `método ausente: ${m}`);
+  }
+
+  /* 3. estado → classe → animação → keyframe (o pet realmente se move na tela) */
+  const chain = [
+    { state: 'jumping', kf: 'clawd-jump' },      // pular
+    { state: 'rolling', kf: 'clawd-roll' },      // rolar
+    { state: 'spinning', kf: 'clawd-spin-action' }, // girar/rodar
+    { state: 'bouncing', kf: 'clawd-bounce-action' }, // quicar (subir ⬆️)
+    { state: 'soft-landing', kf: 'clawd-soft-land' }, // pouso do pulo/deslize
+  ];
+  for (const { state, kf } of chain) {
+    assert.match(style, new RegExp(`#aic-clawd-node\\.${state} \\.pet-body[\\s\\S]{0,160}animation:\\s*${kf}`),
+      `cadeia CSS quebrada: .${state} deveria animar ${kf}`);
+    assert.match(style, new RegExp(`@keyframes ${kf}\\b`), `keyframe ausente: ${kf}`);
+  }
+
+  /* 4. correr: estado running move as pernas + FX de corrida (pó/speed-lines) */
+  assert.match(content, /setState\('running'\)/);
+  assert.match(content, /newState === 'running'[\s\S]{0,120}_spawnWalkDust/);
+  assert.match(style, /@keyframes clawd-pixel-leg-cycle\b/);
+
+  /* 5. deslizar: física de arraste com momentum + atrito + pouso suave */
+  assert.match(content, /startGlide\(velocityX,\s*velocityY\)/);
+  assert.match(content, /const friction = hasWings/);
+  assert.match(content, /_pulseAnimClass\('soft-landing'/);
+});
+
 test('qualidade: contagens vivas batem com onboarding (harmonia UX)', () => {
   const acc = Object.keys(catalog.CLAWD_ACCESSORIES).length;
   const ach = Object.keys(catalog.CLAWD_ACHIEVEMENTS).length;
@@ -389,6 +429,31 @@ test('polish: subpet — pool autônomo ponderado por personalidade + dança em 
   /* Nova cena coordenada pet↔subpet */
   assert.match(content, /scenes = \['cuddle'[\s\S]{0,90}'dance'\]/);
   assert.match(content, /case 'dance':[\s\S]{0,180}doDance\(\)/);
+});
+
+test('fluidez: pet+subpet animam juntos — ease, eco, idle e anticipação', () => {
+  /* Locomoção com ease-in-out (não linear seca) */
+  assert.match(content, /function clawdEaseInOutCubic/);
+  assert.match(content, /clawdEaseInOutCubic\(linear\)/);
+  assert.match(content, /const progress = clawdEaseInOutCubic\(linear\)/);
+  assert.ok((content.match(/clawdEaseInOutCubic\(linear\)/g) || []).length >= 2,
+    'walk e run devem usar ease cúbico');
+  /* Subpet ecoa ações do pet */
+  assert.match(content, /_pulseReact\(/);
+  assert.match(content, /react-jump|react-dance|react-splash/);
+  assert.match(content, /onOwnerState\('dance-2'\)|onOwnerState\('dance-3'\)/);
+  /* Micro-vida do subpet mesmo em PNG estático */
+  assert.match(content, /_scheduleIdleVariation\(/);
+  assert.match(content, /subpet-idle-look|subpet-idle-hop|subpet-idle-wiggle/);
+  assert.match(style, /@keyframes clawd-subpet-react-jump/);
+  assert.match(style, /@keyframes clawd-subpet-idle-look/);
+  assert.match(style, /clawd-subpet-run[\s\S]{0,80}ease-in-out/);
+  /* Pulo com anticipação + pouso */
+  assert.match(content, /jump-anticipate/);
+  assert.match(style, /@keyframes clawd-jump-anticipate/);
+  assert.match(style, /\.jump-anticipate \.pet-body/);
+  /* Duo mais contagiante */
+  assert.match(content, /Math\.random\(\) > 0\.72/);
 });
 
 test('qualidade: curious vence breathe; shiny nofx; rostos/skins/idle expandidos', () => {
