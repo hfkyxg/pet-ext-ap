@@ -6,13 +6,13 @@ Extensão Chrome MV3 **vanilla** (sem bundler). Há um `package.json` só para s
 
 | Camada | Onde | Papel |
 |--------|------|--------|
-| **Catálogo (SSOT)** | `src/shared/catalog.js` | Fonte única de verdade: modelos, rostos, acessórios, profissões, sub-pets, loja, conquistas, migrações e helpers de estado. Carrega **antes** de `content.js` (lista no `manifest.json`). |
-| **Runtime** | `src/content/content.js` + `style.css` | Motor do mascote na página: DOM, animação (`rAF`), interações, stats, áudio. |
+| **Catálogo (SSOT)** | `src/shared/catalog.js` | Fonte única de verdade: modelos, rostos, acessórios, profissões, sub-pets, loja, conquistas, migrações e helpers de estado. Carrega **depois** de `i18n.js` e **antes** de `content.js` (lista no `manifest.json`). |
+| **Runtime** | `src/content/content.js` + `style.css` | Motor do mascote na página: DOM, animação (`rAF`), interações, stats, áudio. Subpet: follow com `dt` + `IntersectionObserver` off-screen. |
 | **Presença** | `src/background/background.js` | Service worker: bootstrap de storage, reinjeção segura, healthcheck cross-tab. |
-| **UI** | `src/popup/*` + `src/shared/i18n.js` | Controles, preview, studio; chrome i18n (11 locales); onboarding idioma/canto; messaging tipado. |
+| **UI** | `src/popup/*` + `src/shared/i18n.js` + `i18n-entities.js` | Controles, preview, studio; chrome i18n (11 locales); entidades dinâmicas; onboarding idioma/canto; messaging tipado. |
 | **Assets** | `src/assets/`, `src/shared/sprites/` | Ícones, banners SVG, PNGs de sub-pets (`web_accessible_resources`). |
 | **Docs / Labs** | `docs/` | Vitrine HTML, arquitetura e markdown de produto em `docs/md/`. |
-| **Testes** | `tests/*.test.js` (**194**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |
+| **Testes** | `tests/*.test.js` (**196**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |
 
 ```
 manifest.json
@@ -20,8 +20,9 @@ manifest.json
     ├─ background ──► presença / reinjeção
     ├─ popup ───────► UI ──messaging──► content
     └─ content_scripts (ordem fixa):
-           1. catalog.js   ← SSOT
-           2. content.js   ← runtime (usa globals do catálogo)
+           1. i18n.js      ← locales / speech
+           2. catalog.js   ← SSOT
+           3. content.js   ← runtime (usa globals do catálogo)
 ```
 
 ## Padrões presentes (nomeados, não inventados)
@@ -87,7 +88,7 @@ Até existir um plano explícito (lista de arquivos, ordem de carga, smoke de re
 |-----------|--------|
 | Intervalos de comportamento | `this._timers[]` — `clearInterval` + esvaziar em `destroy()` |
 | Timeouts nomeados | lista explícita em `destroy()` (`_saveTimer`, `_idleVarTimer`, `_scrollIdleTimer`, combo, etc.) |
-| Sub-pet | `SubPet._later` → `Set` `_actionTimers`, limpo no `destroy()` do sub-pet |
+| Sub-pet | `SubPet._later` → `Set` `_actionTimers`, limpo no `destroy()`; rAF com `dt`; `IntersectionObserver` pausa off-screen |
 | Partículas | `_trackParticle` registra em `_particleTimers`; cap `_canSpawnFx` ≤ **18** |
 | Listeners DOM | `AbortController` (`this._abort`) + remoção manual de scroll/visibility v3.4 |
 
@@ -110,7 +111,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 ## Contratos que não podem quebrar
 
 1. Paths do `manifest.json` (background, popup, icons, `web_accessible_resources`).
-2. Ordem `catalog.js` → `content.js` na injeção e no `scripting.executeScript` do background.
+2. Ordem `i18n.js` → `catalog.js` → `content.js` na injeção e no `scripting.executeScript` do background.
 3. Relativos dos testes (`require('../src/shared/catalog.js')`) e da docs (`../src/shared/...`).
 4. Zero build step — clonar e carregar a pasta em `chrome://extensions`.
 
@@ -121,7 +122,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 | PNGs canônicos dos sub-pets | `node tests/tools/crop-literal-sprites.mjs` |
 | Frames/preview (não sobrescreve pacote) | `node tests/tools/make-sprites.mjs` |
 | Ícones da extensão | `node tests/tools/make-icons.mjs` |
-| Suíte de contratos | `npm test` (**194**) |
+| Suíte de contratos | `npm test` (**196**) |
 | Ecosystem estático | `npm run ecosystem` |
 | Smoke Edge | `npm run smoke` |
 
@@ -138,7 +139,7 @@ O núcleo (animações, ações, sub-pets, schema v5, suíte de contratos) está
 | **Personalização** | `personality` + `customSpeech` + favoritos | Traços → quests/XP; presets de personalidade |
 | **Integração** | Hostname → contexto → reação | Mais hosts; opcional “site packs” sem permissões extras |
 | **Segurança** | Allowlist de mensagens + sanitize storage | Manter zero `eval`; revisar WAR ao adicionar assets |
-| **Performance** | Caps FX, pause hidden, save coalesce, reduced-motion | Budgets de rAF; ambient acessório leve |
+| **Performance** | Caps FX, pause hidden/off-screen, save coalesce, reduced-motion | Budgets de rAF; ambient acessório leve |
 | **Presença** | `.pixel-legs` + `.pixel-fx` + name-tag título/nome | Mais poses por ação; sync popup/live |
 | **Escalabilidade** | Monólito content + SSOT compartilhado | Só modularizar com plano de injeção MV3 |
 | **UX** | Onboarding + contagens alinhadas ao catálogo | Tours curtos por feature (profissão, sub-pet) |

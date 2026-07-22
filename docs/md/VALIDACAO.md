@@ -1,14 +1,14 @@
 # Relatório de Validação — Claw'd v3.8.0
 
-**Data:** 22 de julho de 2026 (revalidação: sync i18n popup completo + onboarding + polish)  
+**Data:** 22 de julho de 2026 (revalidação: fluidez subpet dt/off-screen + i18n/onboarding)  
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **194/194** contratos — popup/config sincronizam com o idioma (chrome + entidades + `renderAll`)
+**Marco:** **196/196** contratos — subpet frame-rate independent + pause off-screen + i18n chrome/entidades
 
 ## Resultado
 
-- Verificações de sintaxe (`npm run check`): **aprovadas**
-- Suíte `node:test`: **194/194**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **194/194**
+- Verificações de sintaxe (`npm run check`): **aprovadas** (inclui `i18n-entities.js`)
+- Suíte `node:test`: **196/196**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **196/196**
 - `npm run audit`: **AUDIT_PACK_OK** (5 eixos)
 - Lint (`eslint src tests`): **0 erros**
 - Smoke Chromium: **runtimeErrors: 0** · reloads **3/3** · duo/partículas/props OK
@@ -22,14 +22,14 @@
 | Rostos / skins / idle | **9** / **7** / **7** |
 | Profissões / subpets | **12** / **8** |
 | Locales UI | **11** (pt-BR padrão) |
-| Contratos | **187** |
+| Contratos | **196** |
 
 ## Matriz de auditoria (5 eixos)
 
 | Eixo | Evidências |
 |------|------------|
 | **Segurança** | `clawdSanitizePlainText`, allowlists de mensagem, Trello sem log de token, secrets em `clawdTrello` (não no export) — ver `tests/pro-i18n-notify.test.js`, `validation-complete` |
-| **Performance** | `PARTICLE_MAX` / `_reserveFx`, `performanceMode`, reduced-motion — `quality-fluid.test.js` |
+| **Performance** | `PARTICLE_MAX` / `_reserveFx`, `performanceMode`, reduced-motion, subpet `dt` + off-screen pause — `quality-fluid.test.js` |
 | **Automações** | CI: test + ecosystem + audit (`.github/workflows/validate.yml`) |
 | **Integrações** | Trello via SW (`api.trello.com`), i18n (`src/shared/i18n.js`), `docs/TRELLO.md` |
 | **Interações** | toast/speech/emotion positions; fluidez pet↔subpet; **host ativo** (`_isActiveHost` / `_crossTabHidden`); digitar/assistir; mischief |
@@ -47,7 +47,10 @@
 | Race `despawnPet` × `spawnPet` (`_despawnTimer` + `_travelGen`) | ✅ |
 | SFX sem eco: subpet dblclick, wake silencioso, cheer sem celebrate duplo | ✅ |
 | Popup `prefers-reduced-motion` cobre loops infinitos | ✅ |
-| Contratos novos: mischief, navegação, polish animação, cross-tab/SFX | ✅ |
+| Subpet follow com `dt` (60 fps normalizado, cap 3×) | ✅ |
+| Subpet `IntersectionObserver` → pause rAF/CSS off-screen | ✅ |
+| Keyframes/hover/press do subpet mais suaves + `will-change` | ✅ |
+| Contratos: mischief, navegação, polish animação, cross-tab/SFX, subpet dt/observer | ✅ |
 
 ## Novidades v3.8.0 (base)
 

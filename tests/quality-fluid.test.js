@@ -160,6 +160,21 @@ test('qualidade: lookAtCursor rAF+proximidade; will-change só ao mover', () => 
   assert.doesNotMatch(style, /#aic-clawd-node\[data-clawd-owned="true"\]\s*\{[^}]*will-change:\s*transform,\s*left,\s*top/s);
 });
 
+test('qualidade: subpet follow spring com dt (frame-rate independent)', () => {
+  assert.match(content, /lastTime = performance\.now\(\)/);
+  assert.match(content, /dt = Math\.min\(\(now - lastTime\) \/ 16\.667,\s*3\)/);
+  assert.match(content, /\(baseK \+ speciesBoost \+ dist \* 0\.0022\) \* dt/);
+});
+
+test('qualidade: subpet IntersectionObserver pausa off-screen', () => {
+  assert.match(content, /_setupVisibilityObserver\(/);
+  assert.match(content, /IntersectionObserver/);
+  assert.match(content, /_offScreen\s*=\s*true/);
+  assert.match(content, /_visibilityObserver\.disconnect/);
+  assert.match(style, /\.aic-subpet\.off-screen[\s\S]{0,120}animation-play-state:\s*paused/);
+  assert.match(style, /\.aic-subpet:active\s+\.subpet-sprite/);
+});
+
 /* ---------- INTERATIVO / INTUITIVO ---------- */
 
 test('qualidade: pet é focável, tem aria-label e balão/bola com título', () => {

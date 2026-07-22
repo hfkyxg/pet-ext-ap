@@ -10,14 +10,17 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - **Onboarding com setup inicial** — primeira abertura do popup pede **idioma** e **posição inicial** (`#onboarding-locale` / `#onboarding-corner`); sugere o idioma do navegador via `clawdNormalizeLocale`
 - **"Aprontar" (travessura autônoma)** — `doMischief()` no pet (esgueira → reaparece rindo, reaproveitando estados `sneaking`/`peeking`) e `case 'mischief'` no subpet; ambos entram nos pools autônomos ponderados por personalidade (playful/curious). Fora do catálogo/grid — não altera as contagens de ações
 - **Reações à navegação** — **digitar (sustentado)** via `_bindTypingCompanion` (o pet "escreve junto" em rajadas espaçadas e volta à calma quando as teclas param; Dev entra em `typing`, demais ficam curiosos) e **assistir vídeo** via `_bindMediaWatching`/`_tickWatch` (vídeo grande tocando → o pet fica por perto reagindo baixinho 🍿/👀, com auto-walk e dwell suspensos até pausar/acabar)
-- Suíte **194/194** contratos (`tests/mischief-liveliness.test.js`, `tests/react-navigation.test.js` + regressões de polish/cross-tab/i18n)
+- **Subpet off-screen** — `IntersectionObserver` pausa rAF + animações CSS (`.off-screen`) quando o companheiro sai da viewport; retoma ao reaparecer
+- Suíte **196/196** contratos (polish subpet dt/observer + mischief/navegação/i18n)
 
 ### Alterado
 
 - **i18n chrome completo** — `applyPopupI18n` + `CLAWD_I18N_EXTRA` cobrem onboarding, aparência, comportamento, ações e config; troca de idioma atualiza toda a estrutura do popup (RTL em `ar`); content recebe `updateSetting` de `locale`
 - **i18n dinâmico** — `i18n-entities.js` + `et()` traduz ações/profissões/loja/conquistas/acessórios/sub-pets (nomes **e** descrições EN); `applyLocaleChoice` chama `renderAll()` para sincronizar chrome + listas ao vivo; titles/`aria-label` via `data-i18n-title` / `data-i18n-aria`
+- **Subpet fluido** — follow spring com `dt` normalizado a 60 fps (cap 3×); keyframes idle/hop/cuddle/wake/spin/celebrate mais suaves; hover/press squash; `will-change` em stack/subpet
+- **Dev tooling** — `npm run check` inclui `i18n-entities.js`; ESLint com globals `clawdEntityT` / `CLAWD_I18N_ENTITY` e bloco dedicado ao arquivo
 - **Vida contínua** — cadência das variações idle mais viva (menos tempo-morto enquanto se navega): pet `max(6500, 15000 − playful·900)`, subpet `max(5500, 12000 − playful·700)`; ainda self-reschedule e throttled por `cooldownMs`/estado
-- **Docs** — VALIDACAO, README, MANUAL, MELHORIAS, ARCHITECTURE e showcase alinhados ao marco **194/194** + onboarding i18n
+- **Docs** — VALIDACAO, README, MANUAL, MELHORIAS, ARCHITECTURE e showcase alinhados ao marco **196/196** + fluidez do subpet
 
 ### Corrigido
 

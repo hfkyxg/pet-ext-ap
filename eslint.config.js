@@ -50,6 +50,8 @@ const clawdCatalogGlobals = {
   CLAWD_SPEECH_POOLS: 'readonly',
   CLAWD_LOCALE_LABELS: 'readonly',
   clawdT: 'readonly',
+  clawdEntityT: 'readonly',
+  CLAWD_I18N_ENTITY: 'readonly',
   clawdNormalizeLocale: 'readonly',
   clawdSpeechMessages: 'readonly',
   clawdSpeechPick: 'readonly',
@@ -144,6 +146,26 @@ export default [
         module: 'readonly',
         exports: 'readonly',
         CLAWD_LOCALES: 'readonly'
+      }
+    },
+    rules: {
+      'no-redeclare': 'off',
+      'no-void': 'off',
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      'no-unused-vars': ['warn', { args: 'none', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }]
+    }
+  },
+  {
+    /* i18n-entities.js DEFINE CLAWD_I18N_ENTITY + clawdEntityT — module.exports p/ testes */
+    files: ['src/shared/i18n-entities.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: {
+        ...globals.browser,
+        module: 'readonly',
+        exports: 'readonly',
+        clawdNormalizeLocale: 'readonly'
       }
     },
     rules: {

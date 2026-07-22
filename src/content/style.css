@@ -249,6 +249,7 @@
   transition: transform 0.25s var(--clawd-ease-bounce);
   /* Sombra seca 0-blur — bloom lavava olhos/acessórios no screenshot */
   filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.32));
+  will-change: transform;
 }
 
 /* --- STACK: sprite + camadas (acessórios acompanham todos os frames) --- */
@@ -264,6 +265,7 @@
   overflow: visible;
   isolation: isolate;
   transform: translateZ(0);
+  will-change: transform;
 }
 
 #aic-clawd-node .pixel-sprite {
@@ -2525,6 +2527,11 @@
   pointer-events: auto;
   cursor: pointer;
   transition: opacity 0.5s ease;
+  will-change: left, top;
+}
+.aic-subpet.off-screen {
+  animation-play-state: paused !important;
+  pointer-events: none;
 }
 .aic-subpet .subpet-motion {
   position: absolute;
@@ -2587,6 +2594,7 @@
 .aic-subpet.hovering:not(.sleeping):not(.playing) .subpet-sprite {
   filter: brightness(1.06) drop-shadow(0 3px 0 rgba(0,0,0,0.32));
   transform: scale(calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) translateY(-2px);
+  transition: transform 0.2s cubic-bezier(.34,1.4,.64,1), filter 0.2s ease;
 }
 .aic-subpet.tapped .subpet-sprite {
   animation: clawd-subpet-tap 0.28s cubic-bezier(.34,1.5,.64,1) both;
@@ -2603,6 +2611,16 @@
   0% { transform: scale(calc(var(--subpet-scale, 1) * 1.08), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)); }
   55% { transform: scale(calc(var(--subpet-scale, 1) * 0.97), calc(var(--subpet-scale, 1) * 1.04)) scaleX(var(--subpet-direction)) translateY(1px); }
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)); }
+}
+/* Micro-interação: hover suave no subpet idle */
+.aic-subpet:not(.sleeping):not(.playing):not(.racing):not(.exploring):not(.flying):not(.cuddling):not(.celebrating):not(.spinning):not(.eating):not(.cheering):not(.owner-walking):not(.owner-running):not(.summoning):not(.vanishing):not(.split):not(.fire):not(.perching):not(.wagging):not(.double-hop):not(.heavy-stomp):not(.phasing):not(.singing) .subpet-sprite {
+  transition: transform 0.3s cubic-bezier(.34,1.4,.64,1), filter 0.3s ease;
+}
+/* Pressão: squash responsivo */
+.aic-subpet:active .subpet-sprite {
+  transform: scale(calc(var(--subpet-scale, 1) * 0.9)) scaleX(var(--subpet-direction)) translateY(1px) !important;
+  filter: brightness(0.95) !important;
+  transition: transform 0.08s ease-out, filter 0.08s ease-out !important;
 }
 /* Acomoda ao deitar — squash curto antes da respiração de sono */
 .aic-subpet.sleep-settle .subpet-sprite {
@@ -2636,15 +2654,15 @@
 
 @keyframes clawd-subpet-idle {
   0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
-  25% { transform: translateY(-2px) scale(1.03, 0.97) rotate(-1.5deg); }
+  20% { transform: translateY(-2px) scale(1.02, 0.98) rotate(-1deg); }
   50% { transform: translateY(-5px) scale(1.015, 0.985) rotate(0deg); }
-  75% { transform: translateY(-2px) scale(0.985, 1.02) rotate(1.5deg); }
+  80% { transform: translateY(-2px) scale(0.99, 1.01) rotate(1deg); }
 }
 @keyframes clawd-subpet-hop {
   0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
-  12% { transform: scale(calc(var(--subpet-scale, 1) * 1.1), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)) translateY(1px); }
-  40% { transform: scale(calc(var(--subpet-scale, 1) * 0.92), calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) translateY(-14px) rotate(-4deg); }
-  72% { transform: scale(calc(var(--subpet-scale, 1) * 1.08), calc(var(--subpet-scale, 1) * 0.9)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(3deg); }
+  15% { transform: scale(calc(var(--subpet-scale, 1) * 1.08), calc(var(--subpet-scale, 1) * 0.92)) scaleX(var(--subpet-direction)) translateY(1px) rotate(0deg); }
+  45% { transform: scale(calc(var(--subpet-scale, 1) * 0.95), calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-16px) rotate(-3deg); }
+  75% { transform: scale(calc(var(--subpet-scale, 1) * 1.04), calc(var(--subpet-scale, 1) * 0.96)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(2deg); }
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
 }
 @keyframes clawd-subpet-run {
@@ -2722,8 +2740,9 @@
 .aic-subpet.split .subpet-sprite { animation: clawd-subpet-split 0.5s ease-in-out 3; }
 @keyframes clawd-subpet-cuddle {
   0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
-  25% { transform: scale(calc(var(--subpet-scale, 1) * 1.14), calc(var(--subpet-scale, 1) * 0.9)) scaleX(var(--subpet-direction)) rotate(-4deg); }
-  55% { transform: scale(calc(var(--subpet-scale, 1) * 0.94), calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) rotate(3deg) translateY(-2px); }
+  20% { transform: scale(calc(var(--subpet-scale, 1) * 1.16), calc(var(--subpet-scale, 1) * 0.88)) scaleX(var(--subpet-direction)) rotate(-5deg); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 0.92), calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) rotate(4deg) translateY(-3px); }
+  80% { transform: scale(calc(var(--subpet-scale, 1) * 1.04), calc(var(--subpet-scale, 1) * 0.96)) scaleX(var(--subpet-direction)) rotate(-1deg); }
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
 }
 @keyframes clawd-subpet-eat {
@@ -2733,18 +2752,21 @@
 }
 @keyframes clawd-subpet-wake {
   0% { transform: scale(calc(var(--subpet-scale, 1) * .65)) scaleX(var(--subpet-direction)) translateY(7px); filter: brightness(.55); }
-  55% { transform: scale(calc(var(--subpet-scale, 1) * 1.16)) scaleX(var(--subpet-direction)) translateY(-7px); filter: brightness(1.25); }
+  40% { transform: scale(calc(var(--subpet-scale, 1) * 1.2)) scaleX(var(--subpet-direction)) translateY(-8px); filter: brightness(1.3); }
+  70% { transform: scale(calc(var(--subpet-scale, 1) * 0.96)) scaleX(var(--subpet-direction)) translateY(1px); filter: brightness(1.05); }
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); filter: none; }
 }
 @keyframes clawd-subpet-spin {
   0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(0deg); }
-  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) rotate(180deg) translateY(-4px); }
+  30% { transform: scale(calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) rotate(120deg) translateY(-6px); }
+  60% { transform: scale(calc(var(--subpet-scale, 1) * 1.05)) scaleX(var(--subpet-direction)) rotate(240deg) translateY(-3px); }
   100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(360deg); }
 }
 @keyframes clawd-subpet-celebrate {
   0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(0deg); }
-  45% { transform: scale(calc(var(--subpet-scale, 1) * 1.1)) scaleX(var(--subpet-direction)) translateY(-10px) rotate(-7deg); }
-  70% { transform: scale(calc(var(--subpet-scale, 1) * .96)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(5deg); }
+  30% { transform: scale(calc(var(--subpet-scale, 1) * 1.12)) scaleX(var(--subpet-direction)) translateY(-12px) rotate(-8deg); }
+  55% { transform: scale(calc(var(--subpet-scale, 1) * 0.94)) scaleX(var(--subpet-direction)) translateY(-2px) rotate(4deg); }
+  80% { transform: scale(calc(var(--subpet-scale, 1) * 1.04)) scaleX(var(--subpet-direction)) translateY(-6px) rotate(-3deg); }
 }
 @keyframes clawd-subpet-explore {
   0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0) rotate(-2deg); filter: brightness(1); }

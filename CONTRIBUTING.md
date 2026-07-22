@@ -33,11 +33,12 @@ Obrigado por contribuir! Esta extensão é **Chrome MV3**, vanilla JS, **sem bun
 
 ## Arquitetura rápida
 
-- SSOT: `src/shared/catalog.js` + `src/shared/i18n.js`
+- SSOT: `src/shared/catalog.js` + `src/shared/i18n.js` + `src/shared/i18n-entities.js`
 - Content: `src/content/content.js` + `style.css`
 - Popup: `src/popup/*`
 - Service worker: `src/background/background.js` (presença cross-tab + Trello API)
 - Schema de settings: v5 (`toastPosition`, `speechAnchor`, `emotionBadgeSide`, `locale`, `trelloBoardUrl`, `trelloBoardId`)
+- Gate atual: **196/196** contratos (`npm test`)
 
 ## Feedback / Trello
 

@@ -181,6 +181,7 @@ class SubPet {
     this._loop();
     this._scheduleInteraction();
     this._scheduleIdleVariation();
+    this._setupVisibilityObserver();
   }
 
   _pulseTap() {
@@ -750,7 +751,8 @@ class SubPet {
     if (this._raf != null) return;
     const quiet = () => this._reducedMotion || this.owner.isQuiet?.();
     const SETTLE_EPS = CLAWD_TIMINGS.SETTLE_EPS_PX;
-    const tick = () => {
+    let lastTime = performance.now();
+    const tick = (timestamp) => {
       if (!this.node || !document.body.contains(this.node)) { cancelAnimationFrame(this._raf); this._raf = null; return; }
       if (document.hidden || this.state === 'sleeping') {
         this._rafPaused = true;
@@ -759,6 +761,8 @@ class SubPet {
       }
       this._rafPaused = false;
       const now = performance.now();
+      const dt = Math.min((now - lastTime) / 16.667, 3); // Normalized to 60fps, capped at 3x
+      lastTime = now;
       const moving = this._movingPose();
       const ownerRun = this.owner.state === 'running';
       const ownerWalk = this.owner.state === 'walking' || this.owner.state === 'keepy-uppy';
@@ -839,8 +843,8 @@ class SubPet {
         : ownerRun ? 0.18
         : ownerWalk ? 0.125
         : 0.09;
-      // Follow spring: acelera longe, amortece perto (mais fluido).
-      const k = Math.min(0.34, Math.max(0.045, baseK + speciesBoost + dist * 0.0022));
+      // Follow spring: acelera longe, amortece perto (mais fluido com dt).
+      const k = Math.min(0.34, Math.max(0.045, (baseK + speciesBoost + dist * 0.0022) * dt));
       this.x += (tx - this.x) * k;
       this.y += (ty - this.y) * k;
       // Fantasma atravessa bordas suavemente; demais respeitam a viewport.
@@ -1196,8 +1200,30 @@ class SubPet {
       this._fxPending = 0;
     }
     this._removeClone();
+    if (this._visibilityObserver) {
+      this._visibilityObserver.disconnect();
+      this._visibilityObserver = null;
+    }
     if (this.node) this.node.remove();
     this.node = null;
+  }
+
+  _setupVisibilityObserver() {
+    if (!this.node || typeof IntersectionObserver === 'undefined') return;
+    this._visibilityObserver = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      if (entry.isIntersecting) {
+        this._offScreen = false;
+        this._resumeRaf();
+        this.node?.classList.remove('off-screen');
+      } else {
+        this._offScreen = true;
+        this._pauseRaf();
+        this.node?.classList.add('off-screen');
+      }
+    }, { threshold: 0.1, rootMargin: '50px' });
+    this._visibilityObserver.observe(this.node);
   }
 }
 
