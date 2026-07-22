@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1130" height="260" viewBox="0 0 1130 260" role="img" aria-labelledby="title desc">
   <title id="title">Claw'd — companheiro de navegação pixel-art</title>
-  <desc id="desc">Banner da versão 3.2 com o modelo clássico e miniaturas dos quatro modelos pixel-art.</desc>
+  <desc id="desc">Banner da versão 3.8 com o modelo clássico e miniaturas dos quatro modelos pixel-art.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#141728"/>
@@ -49,15 +49,15 @@
 
   <text x="230" y="72" fill="#ffffff" font-size="42" font-weight="900" letter-spacing="-2">Claw'd</text>
   <text x="230" y="99" fill="#a3abd2" font-size="15">Seu companheiro de navegação pixel-art.</text>
-  <text x="230" y="126" fill="#ff566b" font-size="12" font-weight="800" letter-spacing="1.4">ESTÚDIO VISUAL v3.2</text>
+  <text x="230" y="126" fill="#ff566b" font-size="12" font-weight="800" letter-spacing="1.4">ESTÚDIO VISUAL v3.8</text>
 
   <g transform="translate(230 142)">
     <rect width="112" height="30" rx="7" fill="#201724" stroke="#7b2736"/>
     <text x="56" y="19" text-anchor="middle" fill="#ff7183" font-size="11" font-weight="800">4 MODELOS</text>
     <rect x="122" width="104" height="30" rx="7" fill="#161e29" stroke="#27445d"/>
-    <text x="174" y="19" text-anchor="middle" fill="#62c2ff" font-size="11" font-weight="800">4 ROSTOS</text>
+    <text x="174" y="19" text-anchor="middle" fill="#62c2ff" font-size="11" font-weight="800">9 ROSTOS</text>
     <rect x="236" width="140" height="30" rx="7" fill="#19231f" stroke="#276044"/>
-    <text x="306" y="19" text-anchor="middle" fill="#65e6a4" font-size="11" font-weight="800">14 ACESSÓRIOS</text>
+    <text x="306" y="19" text-anchor="middle" fill="#65e6a4" font-size="11" font-weight="800">31 ACESSÓRIOS</text>
   </g>
 
   <g transform="translate(632 38)">

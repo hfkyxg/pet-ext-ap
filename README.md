@@ -40,7 +40,7 @@ Ao redor do futebol há um sistema inteiro que conversa entre si: **12 profissõ
 
 ### Feito para durar (e para hackear)
 
-Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; saves usam **coalesce**; e **187 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
+Não há *build step* nem dependências externas: você clona, carrega a pasta no `chrome://extensions` e pronto. Por baixo, um **service worker** MV3 cuida da presença cross-tab e da reinjeção segura; o content script se auto-recupera de recargas; mensagens, storage e DOM passam por **sanitização e allowlists**; áudio só inicia após gesto do usuário; saves usam **coalesce**; e **197 testes automatizados** (mais um *smoke test* em Chromium real) guardam catálogos, schema, segurança, renderização, embaixadinhas e a integridade cruzada de todos os subsistemas. É um brinquedo — mas construído como software de verdade.
 
 ### Novidades em v3.8
 
@@ -222,7 +222,7 @@ Clique no ícone da extensão para abrir o **menu de personalização**:
 - **Visual liso** — suaviza os pixels sem transformar ou redesenhar o pet
 - **Contorno** — adiciona borda escura ao redor do mascote
 - **Exibir boca** — mostra ou remove o sorriso e as expressões da boca sem alterar a sprite
-- **Acessórios** — 14 opções em slots separados, cada uma com miniatura pixel-art real, descrição, dica e estado selecionado acessível
+- **Acessórios** — 31 opções em três slots (cabeça, rosto, corpo), cada uma com miniatura pixel-art real, descrição, dica e estado selecionado acessível
 
 ### Aba Profissão
 - **⚽ Jogador** — bola de futebol jogável no **pé direito** do pet (pixel-art; toque = embaixadinhas, duplo-clique = gol)
@@ -394,7 +394,7 @@ chrome.storage.local.set({
 
 ## 🗺️ Estado atual e próximos passos
 
-O núcleo da **v3.7.3** está implementado e validado: quatro silhuetas, **nove rostos**, sete skins, olhos independentes, favoritos, sub-pets, 12 profissões, **31 acessórios em 3 slots**, pixel art em camadas, status clicáveis, studio móvel, cross-tab, loja, conquistas e missão diária. O registro histórico e ideias de expansão estão em [MELHORIAS.md](./docs/md/MELHORIAS.md):
+O núcleo da **v3.8** está implementado e validado: quatro silhuetas, **nove rostos**, sete skins, olhos independentes, favoritos, sub-pets, 12 profissões, **31 acessórios em 3 slots**, 11 idiomas, pixel art em camadas, status clicáveis, studio móvel, cross-tab, loja, conquistas e missão diária. O registro histórico e ideias de expansão estão em [MELHORIAS.md](./docs/md/MELHORIAS.md):
 
 | Área | Destaques |
 |------|-----------|

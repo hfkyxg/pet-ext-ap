@@ -125,13 +125,27 @@ test('README e documentação identificam a versão e o ano atuais', () => {
   assert.match(readme, /MIT © 2026/);
   assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
   assert.match(docs, /2026/);
-  assert.match(banner, /ESTÚDIO VISUAL v3\.2/);
+  assert.match(banner, /ESTÚDIO VISUAL v3\.[2-9]/);
   assert.match(banner, /id="pet-classic"/);
   assert.match(modelGallery, /id="classic"/);
   assert.match(modelGallery, /id="mini"/);
   assert.match(modelGallery, /id="claws"/);
   assert.match(modelGallery, /id="guardian"/);
   assert.doesNotMatch(`${banner}\n${modelGallery}`, /\s(?:w|h)="\d+"/);
+
+  /* Guarda de deriva: os selos do banner devem refletir as contagens reais do
+     catálogo (fonte da verdade) — nunca mais ficam obsoletos silenciosamente. */
+  const catalog = require('../src/shared/catalog.js');
+  const models = Object.keys(catalog.CLAWD_MODELS).length;
+  const faces = Object.keys(catalog.CLAWD_FACE_STYLES).length;
+  const accessories = Object.keys(catalog.CLAWD_ACCESSORIES).length;
+  assert.match(banner, new RegExp(`${models} MODELOS`), `banner deve anunciar ${models} modelos`);
+  assert.match(banner, new RegExp(`${faces} ROSTOS`), `banner deve anunciar ${faces} rostos`);
+  assert.match(banner, new RegExp(`${accessories} ACESSÓRIOS`), `banner deve anunciar ${accessories} acessórios`);
+  /* Versão do banner alinhada ao major.minor do manifest (ex.: 3.8.0 → v3.8). */
+  const [maj, min] = manifest.version.split('.');
+  assert.match(banner, new RegExp(`ESTÚDIO VISUAL v${maj}\\.${min}`),
+    `banner deve anunciar v${maj}.${min} (manifest ${manifest.version})`);
 });
 
 test('documentação interativa é local, completa e ligada aos catálogos reais', () => {

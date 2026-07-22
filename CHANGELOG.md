@@ -20,6 +20,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - **i18n dinâmico** — `i18n-entities.js` + `et()` traduz ações/profissões/loja/conquistas/acessórios/sub-pets (nomes **e** descrições EN); `applyLocaleChoice` chama `renderAll()` para sincronizar chrome + listas ao vivo; titles/`aria-label` via `data-i18n-title` / `data-i18n-aria`
 - **Subpet fluido** — follow spring com `dt` normalizado a 60 fps (cap 3×); keyframes idle/hop/cuddle/wake/spin/celebrate mais suaves; hover/press squash; `will-change` em stack/subpet
 - **Dev tooling** — `npm run check` inclui `i18n-entities.js`; ESLint com globals `clawdEntityT` / `CLAWD_I18N_ENTITY` e bloco dedicado ao arquivo
+- **Banner/README sincronizados à fonte da verdade** — `pet-banner.svg` atualizado (v3.8, **9 rostos**, **31 acessórios**) e números obsoletos do README corrigidos (197 testes, 31 acessórios, v3.8). Novo **guarda de deriva** trava os selos do banner às contagens reais do catálogo (modelos/rostos/acessórios) e à versão do manifest — nunca mais ficam obsoletos silenciosamente
 - **Vida contínua** — cadência das variações idle mais viva (menos tempo-morto enquanto se navega): pet `max(6500, 15000 − playful·900)`, subpet `max(5500, 12000 − playful·700)`; ainda self-reschedule e throttled por `cooldownMs`/estado
 - **Docs** — VALIDACAO, README, MANUAL, MELHORIAS, ARCHITECTURE e showcase alinhados ao marco **197/197** (popup boot + fluidez subpet)
 
