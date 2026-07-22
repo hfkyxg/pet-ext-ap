@@ -158,6 +158,42 @@ body {
   font-size: 12px;
   margin-bottom: 14px;
 }
+.onboarding-setup {
+  text-align: left;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.onboarding-setup-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+.onboarding-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.onboarding-field label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.onboarding-field select {
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
 .onboarding-features {
   display: flex;
   flex-direction: column;

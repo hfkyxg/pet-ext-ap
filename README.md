@@ -44,7 +44,7 @@ Não há *build step* nem dependências externas: você clona, carrega a pasta n
 
 ### Novidades em v3.8
 
-A **v3.8.0** traz **11 idiomas**, posições configuráveis de toast/balão/badge, integração **Trello**, layering pet/subpet corrigido e **animações contagiosas**: caminhada/corrida com easing cúbico, subpet que ecoa pulo/dança/banho/alegria, micro-idle do companheiro, anticipação de pulo e duo/ações espontâneas mais frequentes. Polish recente: **um pet por navegador** sem SFX fantasma na aba não-host, digitar/assistir, “aprontar”, e animações sem eco de som. **187/187** contratos.
+A **v3.8.0** traz **11 idiomas** (chrome do popup + fala; onboarding com idioma/canto na 1ª abertura), posições configuráveis de toast/balão/badge, integração **Trello**, layering pet/subpet corrigido e **animações contagiosas**: caminhada/corrida com easing cúbico, subpet que ecoa pulo/dança/banho/alegria, micro-idle do companheiro, anticipação de pulo e duo/ações espontâneas mais frequentes. Polish recente: **um pet por navegador** sem SFX fantasma na aba não-host, digitar/assistir, “aprontar”, e animações sem eco de som. **187/187** contratos.
 
 ### Novidades em v3.7
 

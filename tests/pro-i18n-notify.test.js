@@ -113,8 +113,37 @@ test('pro: createTrelloCard allowlist + CSS data-pos / popup selects', () => {
   assert.match(html, /id="select-speech-pos"/);
   assert.match(html, /id="select-emotion-side"/);
   assert.match(html, /id="select-locale"/);
+  assert.match(html, /id="onboarding-locale"/);
+  assert.match(html, /id="onboarding-corner"/);
+  assert.match(html, /data-i18n="onboarding_title"/);
+  assert.match(html, /data-i18n="onboarding_start"/);
+  assert.match(html, /data-i18n-option="corner_br"/);
   assert.match(html, /id="btn-trello-idea"/);
   assert.match(html, /i18n\.js/);
+
+  const popupJs = fs.readFileSync(path.join(root, 'src/popup/popup.js'), 'utf8');
+  assert.match(popupJs, /function applyPopupI18n/);
+  assert.match(popupJs, /function applyLocaleChoice/);
+  assert.match(popupJs, /function fillLocaleSelect/);
+  assert.match(popupJs, /onboarding-locale/);
+  assert.match(popupJs, /guessBrowserLocale/);
+  assert.match(popupJs, /document\.documentElement\.dir/);
+  assert.match(popupJs, /menu_title/);
+
+  assert.equal(clawdT('onboarding_title', 'pt-BR').includes("Claw'd"), true);
+  assert.equal(clawdT('onboarding_setup', 'en'), 'Initial setup');
+  assert.ok(clawdT('btn_hide_pet', 'en').length > 0);
+  assert.ok(clawdT('corner_br', 'ja').length > 0);
+  for (const loc of CLAWD_LOCALES) {
+    assert.ok(clawdT('onboarding_start', loc).length > 0, `onboarding_start ${loc}`);
+    assert.ok(clawdT('btn_show_pet', loc).length > 0, `btn_show_pet ${loc}`);
+  }
+
+  // normalização de locale do browser (en-US → en, pt → pt-BR)
+  assert.equal(i18n.clawdNormalizeLocale('en-US'), 'en');
+  assert.equal(i18n.clawdNormalizeLocale('pt'), 'pt-BR');
+  assert.equal(i18n.clawdNormalizeLocale('zh-TW'), 'zh-CN');
+  assert.equal(i18n.clawdNormalizeLocale('ar'), 'ar');
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
   assert.equal(manifest.version, '3.8.0');

@@ -260,6 +260,275 @@ var CLAWD_I18N_UI = {
   }
 };
 
+/**
+ * Chrome extra (onboarding + labels do popup).
+ * Mesclado em CLAWD_I18N_UI — locales sem chave usam fallback en → pt-BR via clawdT.
+ */
+var CLAWD_I18N_EXTRA = {
+  'pt-BR': {
+    onboarding_title: "Bem-vindo ao Claw'd!",
+    onboarding_sub: 'Escolha o idioma e a posição inicial — você pode mudar depois em Configurações.',
+    onboarding_setup: 'Configuração inicial',
+    onboarding_feat_prof: 'Profissões',
+    onboarding_feat_prof_desc: '12 trabalhos com reações únicas a cada site',
+    onboarding_feat_acc: 'Acessórios',
+    onboarding_feat_acc_desc: '31 itens em 3 slots: cabeça, rosto e corpo',
+    onboarding_feat_ach: 'Conquistas',
+    onboarding_feat_ach_desc: '34 conquistas + 12 desafios semanais rotativos',
+    onboarding_feat_play: 'Interações',
+    onboarding_feat_play_desc: 'Clique, arraste, role — o pet sempre reage!',
+    onboarding_start: 'Começar! 🐾',
+    corner_br: 'Canto inferior direito',
+    corner_bl: 'Canto inferior esquerdo',
+    corner_tr: 'Canto superior direito',
+    corner_tl: 'Canto superior esquerdo',
+    label_pet_name: 'Nome do pet',
+    label_model: 'Modelo do pet',
+    label_color: 'Cor principal',
+    label_face: 'Rosto e olhos',
+    label_scale: 'Tamanho',
+    label_speed: 'Velocidade da animação',
+    label_visual: 'Estilo visual',
+    toggle_smooth: 'Visual liso',
+    toggle_outline: 'Contorno',
+    toggle_mouth: 'Boca animada',
+    toggle_speech: 'Balão de fala',
+    toggle_walk: 'Andar automático',
+    toggle_sleep: 'Dormir quando ocioso',
+    toggle_crosstab: 'Passear entre abas',
+    toggle_footprints: 'Pegadas',
+    toggle_sounds: 'Sons 8-bit',
+    toggle_sounds_desc: 'Bipes sutis nas ações',
+    toggle_performance: 'Modo desempenho',
+    toggle_minimal: 'Modo minimalista',
+    toggle_no_particles: 'Sem partículas',
+    toggle_no_idle: 'Sem variações idle',
+    toggle_no_weather: 'Sem clima sazonal',
+    toggle_no_ambient: 'Sem faíscas de acessório',
+    label_tag_theme: 'Tema do name-tag',
+    theme_light: 'Claro', theme_dark: 'Escuro', theme_neon: 'Neon',
+    theme_invisible: 'Oculto', theme_rainbow: 'Arco-íris',
+    theme_holographic: 'Holográfico', theme_minimal: 'Minimal',
+    label_volume: 'Volume geral',
+    label_volume_actions: 'Volume de ações',
+    label_volume_ambient: 'Volume ambiente',
+    label_quiet: 'Horário de silêncio',
+    label_quiet_until: 'até',
+    label_blocked: 'Sites bloqueados',
+    label_blocked_desc: 'O pet não aparece nesses domínios.',
+    btn_hide_pet: 'Ocultar pet',
+    btn_show_pet: 'Mostrar pet',
+    btn_follow_tab: 'Seguir nesta guia',
+    btn_rescue: 'Resgatar pet',
+    btn_studio: 'Studio na página',
+    btn_detach: 'Janela solta',
+    quick_wave: 'Oi', quick_dance: 'Dança', quick_pose: 'Pose',
+    quick_sleep: 'Sono', quick_balloon: 'Balão', quick_cheer: 'Yeah',
+    outfit_kicker: 'Provador ao vivo',
+    outfit_title: 'Seu visual atual',
+    outfit_detail: 'Três slots combináveis',
+    travel_rarely: 'Raramente', travel_sometimes: 'Às vezes', travel_often: 'Com frequência',
+    menu_title: "Claw'd — Menu"
+  },
+  en: {
+    onboarding_title: "Welcome to Claw'd!",
+    onboarding_sub: 'Pick your language and start corner — you can change these later in Settings.',
+    onboarding_setup: 'Initial setup',
+    onboarding_feat_prof: 'Professions',
+    onboarding_feat_prof_desc: '12 jobs with unique reactions on each site',
+    onboarding_feat_acc: 'Accessories',
+    onboarding_feat_acc_desc: '31 items in 3 slots: head, face and body',
+    onboarding_feat_ach: 'Achievements',
+    onboarding_feat_ach_desc: '34 achievements + 12 rotating weekly challenges',
+    onboarding_feat_play: 'Interactions',
+    onboarding_feat_play_desc: 'Click, drag, scroll — the pet always reacts!',
+    onboarding_start: "Let's go! 🐾",
+    corner_br: 'Bottom right',
+    corner_bl: 'Bottom left',
+    corner_tr: 'Top right',
+    corner_tl: 'Top left',
+    label_pet_name: 'Pet name',
+    label_model: 'Pet model',
+    label_color: 'Main color',
+    label_face: 'Face and eyes',
+    label_scale: 'Size',
+    label_speed: 'Animation speed',
+    label_visual: 'Visual style',
+    toggle_smooth: 'Smooth look',
+    toggle_outline: 'Outline',
+    toggle_mouth: 'Animated mouth',
+    toggle_speech: 'Speech bubble',
+    toggle_walk: 'Auto walk',
+    toggle_sleep: 'Sleep when idle',
+    toggle_crosstab: 'Wander across tabs',
+    toggle_footprints: 'Footprints',
+    toggle_sounds: '8-bit sounds',
+    toggle_sounds_desc: 'Subtle beeps on actions',
+    toggle_performance: 'Performance mode',
+    toggle_minimal: 'Minimal mode',
+    toggle_no_particles: 'No particles',
+    toggle_no_idle: 'No idle variations',
+    toggle_no_weather: 'No seasonal weather',
+    toggle_no_ambient: 'No accessory sparks',
+    label_tag_theme: 'Name-tag theme',
+    theme_light: 'Light', theme_dark: 'Dark', theme_neon: 'Neon',
+    theme_invisible: 'Hidden', theme_rainbow: 'Rainbow',
+    theme_holographic: 'Holographic', theme_minimal: 'Minimal',
+    label_volume: 'Master volume',
+    label_volume_actions: 'Actions volume',
+    label_volume_ambient: 'Ambient volume',
+    label_quiet: 'Quiet hours',
+    label_quiet_until: 'until',
+    label_blocked: 'Blocked sites',
+    label_blocked_desc: 'The pet will not appear on these domains.',
+    btn_hide_pet: 'Hide pet',
+    btn_show_pet: 'Show pet',
+    btn_follow_tab: 'Follow this tab',
+    btn_rescue: 'Rescue pet',
+    btn_studio: 'In-page studio',
+    btn_detach: 'Detached window',
+    quick_wave: 'Hi', quick_dance: 'Dance', quick_pose: 'Pose',
+    quick_sleep: 'Sleep', quick_balloon: 'Balloon', quick_cheer: 'Yeah',
+    outfit_kicker: 'Live fitting room',
+    outfit_title: 'Your current look',
+    outfit_detail: 'Three combinable slots',
+    travel_rarely: 'Rarely', travel_sometimes: 'Sometimes', travel_often: 'Often',
+    menu_title: "Claw'd — Menu"
+  },
+  es: {
+    onboarding_title: "¡Bienvenido a Claw'd!",
+    onboarding_sub: 'Elige idioma y esquina inicial — puedes cambiarlo luego en Ajustes.',
+    onboarding_setup: 'Configuración inicial',
+    onboarding_feat_prof: 'Profesiones', onboarding_feat_prof_desc: '12 trabajos con reacciones únicas',
+    onboarding_feat_acc: 'Accesorios', onboarding_feat_acc_desc: '31 ítems en 3 ranuras',
+    onboarding_feat_ach: 'Logros', onboarding_feat_ach_desc: '34 logros + 12 retos semanales',
+    onboarding_feat_play: 'Interacciones', onboarding_feat_play_desc: 'Clic, arrastre, scroll — ¡siempre reacciona!',
+    onboarding_start: '¡Empezar! 🐾',
+    corner_br: 'Inferior derecha', corner_bl: 'Inferior izquierda',
+    corner_tr: 'Superior derecha', corner_tl: 'Superior izquierda',
+    btn_hide_pet: 'Ocultar mascota', btn_show_pet: 'Mostrar mascota',
+    btn_follow_tab: 'Seguir en esta pestaña', btn_rescue: 'Rescatar mascota',
+    menu_title: "Claw'd — Menú"
+  },
+  'zh-CN': {
+    onboarding_title: '欢迎使用 Claw’d！',
+    onboarding_sub: '先选择语言和起始角落 — 之后可在设置中更改。',
+    onboarding_setup: '初始设置',
+    onboarding_feat_prof: '职业', onboarding_feat_prof_desc: '12 种职业，站点反应各不相同',
+    onboarding_feat_acc: '配件', onboarding_feat_acc_desc: '31 件配件，3 个槽位',
+    onboarding_feat_ach: '成就', onboarding_feat_ach_desc: '34 成就 + 12 每周挑战',
+    onboarding_feat_play: '互动', onboarding_feat_play_desc: '点击、拖动、滚动 — 宠物都会反应！',
+    onboarding_start: '开始！🐾',
+    corner_br: '右下', corner_bl: '左下', corner_tr: '右上', corner_tl: '左上',
+    btn_hide_pet: '隐藏宠物', btn_show_pet: '显示宠物',
+    btn_follow_tab: '跟随此标签页', btn_rescue: '找回宠物',
+    menu_title: "Claw'd — 菜单"
+  },
+  ja: {
+    onboarding_title: "Claw'dへようこそ！",
+    onboarding_sub: '言語と開始位置を選んでください。後から設定で変更できます。',
+    onboarding_setup: '初期設定',
+    onboarding_feat_prof: '職業', onboarding_feat_prof_desc: 'サイトごとに反応する12の職業',
+    onboarding_feat_acc: 'アクセサリー', onboarding_feat_acc_desc: '31アイテム・3スロット',
+    onboarding_feat_ach: '実績', onboarding_feat_ach_desc: '34実績＋週次チャレンジ12',
+    onboarding_feat_play: '操作', onboarding_feat_play_desc: 'クリック・ドラッグ・スクロールで反応！',
+    onboarding_start: 'はじめる！🐾',
+    corner_br: '右下', corner_bl: '左下', corner_tr: '右上', corner_tl: '左上',
+    btn_hide_pet: 'ペットを隠す', btn_show_pet: 'ペットを表示',
+    btn_follow_tab: 'このタブへ呼ぶ', btn_rescue: 'ペットを救出',
+    menu_title: "Claw'd — メニュー"
+  },
+  fr: {
+    onboarding_title: "Bienvenue dans Claw'd !",
+    onboarding_sub: 'Choisissez la langue et le coin de départ — modifiable plus tard.',
+    onboarding_setup: 'Configuration initiale',
+    onboarding_feat_prof: 'Métiers', onboarding_feat_prof_desc: '12 métiers avec réactions uniques',
+    onboarding_feat_acc: 'Accessoires', onboarding_feat_acc_desc: '31 objets, 3 emplacements',
+    onboarding_feat_ach: 'Succès', onboarding_feat_ach_desc: '34 succès + 12 défis hebdo',
+    onboarding_feat_play: 'Interactions', onboarding_feat_play_desc: 'Clic, glisser, scroll — il réagit !',
+    onboarding_start: 'C’est parti ! 🐾',
+    corner_br: 'Bas droite', corner_bl: 'Bas gauche', corner_tr: 'Haut droite', corner_tl: 'Haut gauche',
+    btn_hide_pet: 'Masquer le pet', btn_show_pet: 'Afficher le pet',
+    btn_follow_tab: 'Suivre cet onglet', btn_rescue: 'Secourir le pet',
+    menu_title: "Claw'd — Menu"
+  },
+  de: {
+    onboarding_title: "Willkommen bei Claw'd!",
+    onboarding_sub: 'Sprache und Startecke wählen — später in den Einstellungen änderbar.',
+    onboarding_setup: 'Ersteinrichtung',
+    onboarding_feat_prof: 'Berufe', onboarding_feat_prof_desc: '12 Berufe mit einzigartigen Reaktionen',
+    onboarding_feat_acc: 'Accessoires', onboarding_feat_acc_desc: '31 Items in 3 Slots',
+    onboarding_feat_ach: 'Erfolge', onboarding_feat_ach_desc: '34 Erfolge + 12 Wochen-Challenges',
+    onboarding_feat_play: 'Interaktionen', onboarding_feat_play_desc: 'Klicken, ziehen, scrollen — er reagiert!',
+    onboarding_start: 'Los geht’s! 🐾',
+    corner_br: 'Unten rechts', corner_bl: 'Unten links', corner_tr: 'Oben rechts', corner_tl: 'Oben links',
+    btn_hide_pet: 'Pet ausblenden', btn_show_pet: 'Pet anzeigen',
+    btn_follow_tab: 'Diesem Tab folgen', btn_rescue: 'Pet retten',
+    menu_title: "Claw'd — Menü"
+  },
+  ko: {
+    onboarding_title: "Claw'd에 오신 걸 환영해요!",
+    onboarding_sub: '언어와 시작 위치를 고르세요. 나중에 설정에서 바꿀 수 있어요.',
+    onboarding_setup: '초기 설정',
+    onboarding_feat_prof: '직업', onboarding_feat_prof_desc: '사이트마다 반응하는 12가지 직업',
+    onboarding_feat_acc: '액세서리', onboarding_feat_acc_desc: '31개 아이템, 3슬롯',
+    onboarding_feat_ach: '업적', onboarding_feat_ach_desc: '업적 34 + 주간 도전 12',
+    onboarding_feat_play: '상호작용', onboarding_feat_play_desc: '클릭·드래그·스크롤에 반응!',
+    onboarding_start: '시작! 🐾',
+    corner_br: '오른쪽 아래', corner_bl: '왼쪽 아래', corner_tr: '오른쪽 위', corner_tl: '왼쪽 위',
+    btn_hide_pet: '펫 숨기기', btn_show_pet: '펫 보이기',
+    btn_follow_tab: '이 탭으로 부르기', btn_rescue: '펫 구하기',
+    menu_title: "Claw'd — 메뉴"
+  },
+  hi: {
+    onboarding_title: "Claw'd में आपका स्वागत है!",
+    onboarding_sub: 'भाषा और शुरुआती कोना चुनें — बाद में सेटिंग से बदल सकते हैं।',
+    onboarding_setup: 'प्रारंभिक सेटअप',
+    onboarding_feat_prof: 'पेशा', onboarding_feat_prof_desc: 'हर साइट पर अलग प्रतिक्रिया वाले 12 पेशे',
+    onboarding_feat_acc: 'एक्सेसरी', onboarding_feat_acc_desc: '31 आइटम, 3 स्लॉट',
+    onboarding_feat_ach: 'उपलब्धियाँ', onboarding_feat_ach_desc: '34 उपलब्धियाँ + 12 साप्ताहिक चुनौतियाँ',
+    onboarding_feat_play: 'इंक्रिया', onboarding_feat_play_desc: 'क्लिक, ड्रैग, स्क्रॉल — हमेशा प्रतिक्रिया!',
+    onboarding_start: 'शुरू करें! 🐾',
+    corner_br: 'नीचे दाएँ', corner_bl: 'नीचे बाएँ', corner_tr: 'ऊपर दाएँ', corner_tl: 'ऊपर बाएँ',
+    btn_hide_pet: 'पेट छिपाएँ', btn_show_pet: 'पेट दिखाएँ',
+    btn_follow_tab: 'इस टैब पर लाएँ', btn_rescue: 'पेट बचाएँ',
+    menu_title: "Claw'd — मेनू"
+  },
+  ar: {
+    onboarding_title: "!Claw'd مرحبًا بك في",
+    onboarding_sub: 'اختر اللغة والركن الابتدائي — يمكنك تغييرهما لاحقًا في الإعدادات.',
+    onboarding_setup: 'الإعداد الأولي',
+    onboarding_feat_prof: 'المهن', onboarding_feat_prof_desc: '12 مهنة بردود فعل فريدة',
+    onboarding_feat_acc: 'الإكسسوارات', onboarding_feat_acc_desc: '31 عنصرًا في 3 خانات',
+    onboarding_feat_ach: 'الإنجازات', onboarding_feat_ach_desc: '34 إنجازًا + 12 تحديًا أسبوعيًا',
+    onboarding_feat_play: 'التفاعل', onboarding_feat_play_desc: 'نقر وسحب وتمرير — يتفاعل دائمًا!',
+    onboarding_start: '!هيا نبدأ 🐾',
+    corner_br: 'أسفل اليمين', corner_bl: 'أسفل اليسار', corner_tr: 'أعلى اليمين', corner_tl: 'أعلى اليسار',
+    btn_hide_pet: 'إخفاء الحيوان', btn_show_pet: 'إظهار الحيوان',
+    btn_follow_tab: 'اتبع هذا التبويب', btn_rescue: 'إنقاذ الحيوان',
+    menu_title: "Claw'd — القائمة"
+  },
+  ru: {
+    onboarding_title: "Добро пожаловать в Claw'd!",
+    onboarding_sub: 'Выберите язык и угол старта — потом можно изменить в настройках.',
+    onboarding_setup: 'Первичная настройка',
+    onboarding_feat_prof: 'Профессии', onboarding_feat_prof_desc: '12 профессий с уникальными реакциями',
+    onboarding_feat_acc: 'Аксессуары', onboarding_feat_acc_desc: '31 предмет, 3 слота',
+    onboarding_feat_ach: 'Достижения', onboarding_feat_ach_desc: '34 достижения + 12 недель. вызовов',
+    onboarding_feat_play: 'Взаимодействие', onboarding_feat_play_desc: 'Клик, перетаскивание, скролл — всегда реагирует!',
+    onboarding_start: 'Начать! 🐾',
+    corner_br: 'Низ справа', corner_bl: 'Низ слева', corner_tr: 'Верх справа', corner_tl: 'Верх слева',
+    btn_hide_pet: 'Скрыть питомца', btn_show_pet: 'Показать питомца',
+    btn_follow_tab: 'На эту вкладку', btn_rescue: 'Спасти питомца',
+    menu_title: "Claw'd — Меню"
+  }
+};
+
+Object.keys(CLAWD_I18N_EXTRA).forEach((loc) => {
+  if (!CLAWD_I18N_UI[loc]) CLAWD_I18N_UI[loc] = {};
+  Object.assign(CLAWD_I18N_UI[loc], CLAWD_I18N_EXTRA[loc]);
+});
+
 /** Pools de fala — pt-BR e en completos; demais: núcleo + fallback en. */
 var CLAWD_SPEECH_POOLS = {
   'pt-BR': {
@@ -465,7 +734,18 @@ var CLAWD_LOCALE_LABELS = {
 
 function clawdNormalizeLocale(locale) {
   const list = (typeof CLAWD_LOCALES !== 'undefined' && CLAWD_LOCALES) || Object.keys(CLAWD_I18N_UI);
+  if (!locale || typeof locale !== 'string') return 'pt-BR';
   if (list.includes(locale)) return locale;
+  const lower = locale.trim().toLowerCase();
+  const exact = list.find((code) => code.toLowerCase() === lower);
+  if (exact) return exact;
+  const primary = lower.split(/[-_]/)[0];
+  const byPrimary = {
+    pt: 'pt-BR', en: 'en', es: 'es', zh: 'zh-CN', ja: 'ja',
+    fr: 'fr', de: 'de', ko: 'ko', hi: 'hi', ar: 'ar', ru: 'ru'
+  };
+  const mapped = byPrimary[primary];
+  if (mapped && list.includes(mapped)) return mapped;
   return 'pt-BR';
 }
 

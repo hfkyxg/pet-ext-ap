@@ -75,16 +75,16 @@
         </button>
       </div>
       <div class="quick-actions" id="quick-actions" aria-label="Ações rápidas">
-        <button type="button" class="btn-quick" data-quick-action="wave" title="Acenar (Alt+…)"><span aria-hidden="true">👋</span><small>Oi</small></button>
-        <button type="button" class="btn-quick" data-quick-action="dance" title="Dançar"><span aria-hidden="true">🕺</span><small>Dança</small></button>
-        <button type="button" class="btn-quick" data-quick-action="pose" title="Pose (Alt+P)"><span aria-hidden="true">📸</span><small>Pose</small></button>
-        <button type="button" class="btn-quick" data-quick-action="sleep" title="Dormir (Alt+Z)"><span aria-hidden="true">😴</span><small>Sono</small></button>
-        <button type="button" class="btn-quick" data-quick-action="balloon" title="Balão"><span aria-hidden="true">🎈</span><small>Balão</small></button>
-        <button type="button" class="btn-quick" data-quick-action="cheer" title="Torcer"><span aria-hidden="true">🎉</span><small>Yeah</small></button>
+        <button type="button" class="btn-quick" data-quick-action="wave" title="Acenar"><span aria-hidden="true">👋</span><small data-i18n="quick_wave">Oi</small></button>
+        <button type="button" class="btn-quick" data-quick-action="dance" title="Dançar"><span aria-hidden="true">🕺</span><small data-i18n="quick_dance">Dança</small></button>
+        <button type="button" class="btn-quick" data-quick-action="pose" title="Pose"><span aria-hidden="true">📸</span><small data-i18n="quick_pose">Pose</small></button>
+        <button type="button" class="btn-quick" data-quick-action="sleep" title="Dormir"><span aria-hidden="true">😴</span><small data-i18n="quick_sleep">Sono</small></button>
+        <button type="button" class="btn-quick" data-quick-action="balloon" title="Balão"><span aria-hidden="true">🎈</span><small data-i18n="quick_balloon">Balão</small></button>
+        <button type="button" class="btn-quick" data-quick-action="cheer" title="Torcer"><span aria-hidden="true">🎉</span><small data-i18n="quick_cheer">Yeah</small></button>
       </div>
       <div class="header-dock-row">
-        <button type="button" class="btn-dock" id="btn-open-studio" title="Abre o studio flutuante na página (arraste para mover)">📌 Studio na página</button>
-        <button type="button" class="btn-dock" id="btn-detach-window" title="Abre o menu numa janela que você pode mover pela tela">🪟 Janela solta</button>
+        <button type="button" class="btn-dock" id="btn-open-studio" data-i18n-title="btn_studio" title="Abre o studio flutuante na página"><span aria-hidden="true">📌</span> <span data-i18n="btn_studio">Studio na página</span></button>
+        <button type="button" class="btn-dock" id="btn-detach-window" data-i18n-title="btn_detach" title="Abre o menu numa janela solta"><span aria-hidden="true">🪟</span> <span data-i18n="btn_detach">Janela solta</span></button>
       </div>
     </div>
   </header>
@@ -100,19 +100,37 @@
     <span id="status-text"></span>
   </span>
 
-  <!-- ONBOARDING OVERLAY -->
+  <!-- ONBOARDING OVERLAY — setup inicial (idioma + canto) -->
   <div id="clawd-onboarding" class="onboarding-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
     <div class="onboarding-card">
       <div class="onboarding-icon" aria-hidden="true">🦀</div>
-      <h2 id="onboarding-title">Bem-vindo ao Claw'd!</h2>
-      <p class="onboarding-sub">Seu novo companheiro de navegação pixel-art está pronto.</p>
-      <div class="onboarding-features">
-        <div class="onboarding-feature"><span>💼</span><div><b>Profissões</b><small>12 trabalhos com reações únicas a cada site</small></div></div>
-        <div class="onboarding-feature"><span>🎨</span><div><b>Acessórios</b><small>31 itens em 3 slots: cabeça, rosto e corpo</small></div></div>
-        <div class="onboarding-feature"><span>🏆</span><div><b>Conquistas</b><small>34 conquistas + 12 desafios semanais rotativos</small></div></div>
-        <div class="onboarding-feature"><span>❤️</span><div><b>Interações</b><small>Clique, arraste, role — o pet sempre reage!</small></div></div>
+      <h2 id="onboarding-title" data-i18n="onboarding_title">Bem-vindo ao Claw'd!</h2>
+      <p class="onboarding-sub" data-i18n="onboarding_sub">Escolha o idioma e a posição inicial — você pode mudar depois em Configurações.</p>
+
+      <div class="onboarding-setup" aria-labelledby="onboarding-setup-title">
+        <strong id="onboarding-setup-title" class="onboarding-setup-title" data-i18n="onboarding_setup">Configuração inicial</strong>
+        <div class="onboarding-field">
+          <label for="onboarding-locale" data-i18n="lang_label">Idioma</label>
+          <select id="onboarding-locale" aria-describedby="onboarding-setup-title"></select>
+        </div>
+        <div class="onboarding-field">
+          <label for="onboarding-corner" data-i18n="start_corner">Posição inicial preferida</label>
+          <select id="onboarding-corner">
+            <option value="br" selected data-i18n-option="corner_br">Canto inferior direito</option>
+            <option value="bl" data-i18n-option="corner_bl">Canto inferior esquerdo</option>
+            <option value="tr" data-i18n-option="corner_tr">Canto superior direito</option>
+            <option value="tl" data-i18n-option="corner_tl">Canto superior esquerdo</option>
+          </select>
+        </div>
       </div>
-      <button class="btn-primary onboarding-start" id="onboarding-start">Começar! 🐾</button>
+
+      <div class="onboarding-features">
+        <div class="onboarding-feature"><span>💼</span><div><b data-i18n="onboarding_feat_prof">Profissões</b><small data-i18n="onboarding_feat_prof_desc">12 trabalhos com reações únicas a cada site</small></div></div>
+        <div class="onboarding-feature"><span>🎨</span><div><b data-i18n="onboarding_feat_acc">Acessórios</b><small data-i18n="onboarding_feat_acc_desc">31 itens em 3 slots: cabeça, rosto e corpo</small></div></div>
+        <div class="onboarding-feature"><span>🏆</span><div><b data-i18n="onboarding_feat_ach">Conquistas</b><small data-i18n="onboarding_feat_ach_desc">34 conquistas + 12 desafios semanais rotativos</small></div></div>
+        <div class="onboarding-feature"><span>❤️</span><div><b data-i18n="onboarding_feat_play">Interações</b><small data-i18n="onboarding_feat_play_desc">Clique, arraste, role — o pet sempre reage!</small></div></div>
+      </div>
+      <button class="btn-primary onboarding-start" id="onboarding-start" data-i18n="onboarding_start">Começar! 🐾</button>
     </div>
   </div>
 
@@ -133,9 +151,9 @@
 
     <section class="outfit-preview-card" aria-labelledby="outfit-preview-title">
       <div class="outfit-preview-copy">
-        <span class="outfit-preview-kicker">Provador ao vivo</span>
-        <strong id="outfit-preview-title">Seu visual atual</strong>
-        <small id="outfit-preview-detail">Três slots combináveis</small>
+        <span class="outfit-preview-kicker" data-i18n="outfit_kicker">Provador ao vivo</span>
+        <strong id="outfit-preview-title" data-i18n="outfit_title">Seu visual atual</strong>
+        <small id="outfit-preview-detail" data-i18n="outfit_detail">Três slots combináveis</small>
       </div>
       <div class="outfit-preview-stage">
         <div class="popup-outfit-pet" id="aic-clawd-node" data-model="classic" data-face-style="classic" data-acc-head="none" data-acc-face="none" data-acc-body="none" data-skin="normal" role="img" aria-label="Prévia do visual do pet">
@@ -165,7 +183,7 @@
     </section>
 
     <div class="control-group">
-      <label for="input-name">Nome do pet <button type="button" class="fav-star name-star" id="name-star" title="Favoritar apelido">☆</button></label>
+      <label for="input-name"><span data-i18n="label_pet_name">Nome do pet</span> <button type="button" class="fav-star name-star" id="name-star" title="Favoritar apelido">☆</button></label>
       <div class="input-row">
         <input type="text" id="input-name" list="name-history" placeholder="Ex: Claw'd" maxlength="20" autocomplete="off">
         <datalist id="name-history"></datalist>
@@ -174,13 +192,13 @@
     </div>
 
     <div class="control-group">
-      <span class="control-label" id="model-label">Modelo do pet</span>
+      <span class="control-label" id="model-label" data-i18n="label_model">Modelo do pet</span>
       <div class="model-grid" id="model-grid" role="listbox" aria-labelledby="model-label"></div>
       <p class="customization-description" id="model-description"></p>
     </div>
 
     <div class="control-group">
-      <span class="control-label" id="color-label">Cor principal</span>
+      <span class="control-label" id="color-label" data-i18n="label_color">Cor principal</span>
       <div class="color-grid" id="fav-color-row" style="display:none" role="listbox" aria-label="Cores favoritas"></div>
       <div class="color-grid" id="color-grid" role="listbox" aria-labelledby="color-label"></div>
       <div class="input-row color-row">
@@ -192,7 +210,7 @@
     </div>
 
     <div class="control-group">
-      <label>Rosto e olhos</label>
+      <label data-i18n="label_face">Rosto e olhos</label>
       <div class="face-style-grid" id="face-style-grid"></div>
       <p class="customization-description" id="face-style-description"></p>
       <div class="input-row color-row eye-color-row">
@@ -203,35 +221,32 @@
     </div>
 
     <div class="control-group">
-      <label for="range-scale">Tamanho <span class="value-badge" id="scale-badge">1.5×</span></label>
+      <label for="range-scale"><span data-i18n="label_scale">Tamanho</span> <span class="value-badge" id="scale-badge">1.5×</span></label>
       <input type="range" id="range-scale" min="0.8" max="3" step="0.1" value="1.5">
     </div>
 
     <div class="control-group">
-      <label for="range-speed">Velocidade da animação <span class="value-badge" id="speed-badge">1×</span></label>
+      <label for="range-speed"><span data-i18n="label_speed">Velocidade da animação</span> <span class="value-badge" id="speed-badge">1×</span></label>
       <input type="range" id="range-speed" min="0.5" max="2" step="0.25" value="1">
     </div>
 
     <div class="control-group">
-      <label>Estilo visual</label>
+      <label data-i18n="label_visual">Estilo visual</label>
       <div class="toggle-row compact">
         <div class="toggle-info">
-          <span class="toggle-label">Visual liso</span>
-          <span class="toggle-desc">Geometria angular contínua, sem células ou grade</span>
+          <span class="toggle-label" data-i18n="toggle_smooth">Visual liso</span>
         </div>
         <label class="toggle-switch"><input type="checkbox" id="toggle-smooth"><span class="slider"></span></label>
       </div>
       <div class="toggle-row compact">
         <div class="toggle-info">
-          <span class="toggle-label">Contorno</span>
-          <span class="toggle-desc">Borda escura ao redor do pet</span>
+          <span class="toggle-label" data-i18n="toggle_outline">Contorno</span>
         </div>
         <label class="toggle-switch"><input type="checkbox" id="toggle-outline"><span class="slider"></span></label>
       </div>
       <div class="toggle-row compact">
         <div class="toggle-info">
-          <span class="toggle-label">Exibir boca</span>
-          <span class="toggle-desc">Mostra o sorriso e as expressões da boca</span>
+          <span class="toggle-label" data-i18n="toggle_mouth">Boca animada</span>
         </div>
         <label class="toggle-switch"><input type="checkbox" id="toggle-mouth"><span class="slider"></span></label>
       </div>
@@ -281,44 +296,39 @@
   <div class="tab-panel" id="tab-behavior">
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">Balão de fala</span>
-        <span class="toggle-desc">Mensagens aleatórias do pet</span>
+        <span class="toggle-label" data-i18n="toggle_speech">Balão de fala</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-speech" checked><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">Andar automático</span>
-        <span class="toggle-desc">Pet passeia pela tela sozinho</span>
+        <span class="toggle-label" data-i18n="toggle_walk">Andar automático</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-walk" checked><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">Dormir quando ocioso</span>
-        <span class="toggle-desc">Boceja e adormece após ~30s parado</span>
+        <span class="toggle-label" data-i18n="toggle_sleep">Dormir quando ocioso</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-sleep" checked><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">🌐 Passear entre abas</span>
-        <span class="toggle-desc">Um único pet viaja pelas abas abertas</span>
+        <span class="toggle-label" data-i18n="toggle_crosstab">🌐 Passear entre abas</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-crosstab" checked><span class="slider"></span></label>
     </div>
     <div class="control-group indent">
       <label for="select-travel">Frequência do passeio</label>
       <select id="select-travel">
-        <option value="rarely">Raramente</option>
-        <option value="sometimes" selected>Às vezes</option>
-        <option value="always">Sempre que troco de aba</option>
+        <option value="rarely" data-i18n-option="travel_rarely">Raramente</option>
+        <option value="sometimes" selected data-i18n-option="travel_sometimes">Às vezes</option>
+        <option value="always" data-i18n-option="travel_often">Sempre que troco de aba</option>
       </select>
     </div>
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">🐾 Pegadas</span>
-        <span class="toggle-desc">Mostra pegadas nas abas sem o pet</span>
+        <span class="toggle-label" data-i18n="toggle_footprints">🐾 Pegadas</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-footprints"><span class="slider"></span></label>
     </div>
@@ -364,10 +374,10 @@
   <div class="tab-panel" id="tab-actions">
     <div class="actions-grid" id="actions-grid"></div>
     <div class="divider"></div>
-    <button id="btn-toggle" class="btn btn-outline"><span>👁️</span> Ocultar pet</button>
-    <button id="btn-summon-tab" class="btn btn-outline"><span>🧳</span> Seguir nesta guia</button>
-    <button id="btn-reset" class="btn btn-outline"><span>🛟</span> Resgatar pet</button>
-    <button id="btn-open-studio-actions" class="btn btn-outline"><span>📌</span> Studio na página</button>
+    <button id="btn-toggle" class="btn btn-outline"><span>👁️</span> <span id="btn-toggle-label" data-i18n="btn_hide_pet">Ocultar pet</span></button>
+    <button id="btn-summon-tab" class="btn btn-outline"><span>🧳</span> <span data-i18n="btn_follow_tab">Seguir nesta guia</span></button>
+    <button id="btn-reset" class="btn btn-outline"><span>🛟</span> <span data-i18n="btn_rescue">Resgatar pet</span></button>
+    <button id="btn-open-studio-actions" class="btn btn-outline"><span>📌</span> <span data-i18n="btn_studio">Studio na página</span></button>
   </div>
 
   <!-- PAINEL SUB-PETS -->
@@ -423,62 +433,61 @@
     </div>
 
     <div class="control-group">
-      <label>Tema do name-tag</label>
+      <label data-i18n="label_tag_theme">Tema do name-tag</label>
       <div class="mini-grid" id="tag-theme-grid">
-        <button class="mini-card active" data-theme="light"><span>🔆</span>Claro</button>
-        <button class="mini-card" data-theme="dark"><span>🌙</span>Escuro</button>
-        <button class="mini-card" data-theme="neon"><span>💠</span>Neon</button>
-        <button class="mini-card" data-theme="invisible"><span>🫥</span>Oculto</button>
-        <button class="mini-card" data-theme="rainbow"><span>🌈</span>Arco-íris</button>
-        <button class="mini-card" data-theme="holographic"><span>✨</span>Holográfico</button>
-        <button class="mini-card" data-theme="minimal"><span>🪶</span>Minimal</button>
+        <button class="mini-card active" data-theme="light"><span>🔆</span><span data-i18n="theme_light">Claro</span></button>
+        <button class="mini-card" data-theme="dark"><span>🌙</span><span data-i18n="theme_dark">Escuro</span></button>
+        <button class="mini-card" data-theme="neon"><span>💠</span><span data-i18n="theme_neon">Neon</span></button>
+        <button class="mini-card" data-theme="invisible"><span>🫥</span><span data-i18n="theme_invisible">Oculto</span></button>
+        <button class="mini-card" data-theme="rainbow"><span>🌈</span><span data-i18n="theme_rainbow">Arco-íris</span></button>
+        <button class="mini-card" data-theme="holographic"><span>✨</span><span data-i18n="theme_holographic">Holográfico</span></button>
+        <button class="mini-card" data-theme="minimal"><span>🪶</span><span data-i18n="theme_minimal">Minimal</span></button>
       </div>
     </div>
 
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">🔊 Sons 8-bit</span>
-        <span class="toggle-desc">Bipes sutis nas ações (off por padrão)</span>
+        <span class="toggle-label" data-i18n="toggle_sounds">🔊 Sons 8-bit</span>
+        <span class="toggle-desc" data-i18n="toggle_sounds_desc">Bipes sutis nas ações (off por padrão)</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-sounds" checked><span class="slider"></span></label>
     </div>
     <div class="control-group indent">
-      <label for="range-volume">Volume geral <span class="value-badge" id="volume-badge">40%</span></label>
+      <label for="range-volume"><span data-i18n="label_volume">Volume geral</span> <span class="value-badge" id="volume-badge">40%</span></label>
       <input type="range" id="range-volume" min="0" max="1" step="0.1" value="0.4">
     </div>
     <div class="control-group indent">
-      <label for="range-volume-actions">Volume de ações <span class="value-badge" id="volume-actions-badge">100%</span></label>
+      <label for="range-volume-actions"><span data-i18n="label_volume_actions">Volume de ações</span> <span class="value-badge" id="volume-actions-badge">100%</span></label>
       <input type="range" id="range-volume-actions" min="0" max="1" step="0.1" value="1">
     </div>
     <div class="control-group indent">
-      <label for="range-volume-ambient">Volume ambiente <span class="value-badge" id="volume-ambient-badge">60%</span></label>
+      <label for="range-volume-ambient"><span data-i18n="label_volume_ambient">Volume ambiente</span> <span class="value-badge" id="volume-ambient-badge">60%</span></label>
       <input type="range" id="range-volume-ambient" min="0" max="1" step="0.1" value="0.6">
     </div>
 
     <div class="control-group">
-      <label>🤫 Horário de silêncio</label>
+      <label data-i18n="label_quiet">🤫 Horário de silêncio</label>
       <div class="input-row">
         <input type="time" id="quiet-start" title="Início">
-        <span class="muted">até</span>
+        <span class="muted" data-i18n="label_quiet_until">até</span>
         <input type="time" id="quiet-end" title="Fim">
         <button class="btn-mini" id="quiet-clear" title="Limpar">✖</button>
       </div>
-      <span class="toggle-desc">O pet não fala nem anda nesse intervalo.</span>
     </div>
 
     <div class="control-group">
-      <label for="blocked-sites">🚫 Sites bloqueados</label>
+      <label for="blocked-sites" data-i18n="label_blocked">🚫 Sites bloqueados</label>
       <textarea id="blocked-sites" rows="3" placeholder="um domínio por linha&#10;ex: meubanco.com.br"></textarea>
-      <span class="toggle-desc">O pet não aparece nesses domínios.</span>
+      <span class="toggle-desc" data-i18n="label_blocked_desc">O pet não aparece nesses domínios.</span>
     </div>
 
     <div class="control-group">
       <label for="select-corner" data-i18n="start_corner">Posição inicial preferida</label>
       <select id="select-corner">
-        <option value="br" selected>Canto inferior direito</option>
-        <option value="bl">Canto inferior esquerdo</option>
-        <option value="tr">Canto superior direito</option>
-        <option value="tl">Canto superior esquerdo</option>
+        <option value="br" selected data-i18n-option="corner_br">Canto inferior direito</option>
+        <option value="bl" data-i18n-option="corner_bl">Canto inferior esquerdo</option>
+        <option value="tr" data-i18n-option="corner_tr">Canto superior direito</option>
+        <option value="tl" data-i18n-option="corner_tl">Canto superior esquerdo</option>
       </select>
     </div>
 
@@ -516,48 +525,42 @@
 
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">🚀 Modo desempenho</span>
-        <span class="toggle-desc">Desativa partículas, 3D e sub-pet</span>
+        <span class="toggle-label" data-i18n="toggle_performance">🚀 Modo desempenho</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-performance"><span class="slider"></span></label>
     </div>
 
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">🪶 Modo minimalista</span>
-        <span class="toggle-desc">Oculta badge NOVATO, emoji flutuante e props de profissão</span>
+        <span class="toggle-label" data-i18n="toggle_minimal">🪶 Modo minimalista</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-minimal"><span class="slider"></span></label>
     </div>
 
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">✨ Sem partículas</span>
-        <span class="toggle-desc">Desativa apenas efeitos de partículas</span>
+        <span class="toggle-label" data-i18n="toggle_no_particles">✨ Sem partículas</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-no-particles"><span class="slider"></span></label>
     </div>
 
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">💤 Sem variações idle</span>
-        <span class="toggle-desc">Desativa animações idle decorativas</span>
+        <span class="toggle-label" data-i18n="toggle_no_idle">💤 Sem variações idle</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-no-idle"><span class="slider"></span></label>
     </div>
 
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">🌧️ Sem clima sazonal</span>
-        <span class="toggle-desc">Desativa partículas de neve, folhas, etc.</span>
+        <span class="toggle-label" data-i18n="toggle_no_weather">🌧️ Sem clima sazonal</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-no-weather"><span class="slider"></span></label>
     </div>
 
     <div class="toggle-row">
       <div class="toggle-info">
-        <span class="toggle-label">✨ Sem faíscas de acessório</span>
-        <span class="toggle-desc">Desativa sparkles contínuos de hélice, asas e capa</span>
+        <span class="toggle-label" data-i18n="toggle_no_ambient">✨ Sem faíscas de acessório</span>
       </div>
       <label class="toggle-switch"><input type="checkbox" id="toggle-no-ambient-sparks"><span class="slider"></span></label>
     </div>

@@ -111,8 +111,8 @@ O equipamento indicado pela profissão é temporário e aparece com o selo **PRO
 - **Sites bloqueados** — um domínio por linha (ex.: `meubanco.com.br`); o pet não aparece nesses hosts nem em subdomínios;
 - **Exportar / Importar dados** — backup JSON do progresso (XP, conquistas, favoritos, sub-pets);
 - **Modo minimalista** — oculta badge de nível, emoji flutuante e props de profissão (aba ⚙️ Config);
-- **Posição inicial preferida** — canto inferior direito por padrão; saves inválidos `{0,0}` são ignorados (evita spawn no canto superior esquerdo).
-- **Idioma** — pt-BR (padrão) ou en/es/zh-CN/ja/fr/de/ko/hi/ar/ru; labels do popup e pools de fala.
+- **Posição inicial preferida** — canto inferior direito por padrão; saves inválidos `{0,0}` são ignorados (evita spawn no canto superior esquerdo). Na **primeira abertura**, o overlay de boas-vindas já pede idioma + canto.
+- **Idioma** — pt-BR (padrão) ou en/es/zh-CN/ja/fr/de/ko/hi/ar/ru. Trocar em ⚙️ **Config** (ou no onboarding) traduz **toda** a estrutura do menu (abas, toggles, botões, opções). O pet passa a falar no idioma escolhido. Árabe ativa layout RTL.
 - **Posição dos toasts** — centro ou cantos (bl/br/tl/tr).
 - **Posição do balão** — automático (borda) ou fixo (esquerda/direita/acima/abaixo).
 - **Lado do badge de emoção** — esquerda (padrão) ou direita.

@@ -1,8 +1,8 @@
 # Relatório de Validação — Claw'd v3.8.0
 
-**Data:** 22 de julho de 2026 (revalidação: polish de animações + cross-tab/SFX)  
+**Data:** 22 de julho de 2026 (revalidação: i18n chrome + onboarding setup + polish animações/cross-tab)  
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **187/187** contratos — mischief/navegação, polish de animações, ownership cross-tab e SFX sem eco
+**Marco:** **187/187** contratos — onboarding idioma/canto, chrome i18n global, polish animações/cross-tab/SFX
 
 ## Resultado
 
@@ -57,7 +57,10 @@
 | Âncora do balão (`auto\|left\|right\|above\|below`) | ✅ |
 | Lado do badge de emoção (`left\|right`) | ✅ |
 | `settings.locale` + `clawdT` / speech pools | ✅ |
-| UI traduzida (11 locales) | ✅ |
+| UI traduzida (11 locales) — chrome do popup + onboarding | ✅ |
+| Onboarding: idioma + canto inicial; sync Config | ✅ |
+| `clawdNormalizeLocale` (browser `en-US`/`pt`/…) | ✅ |
+| RTL (`dir=rtl`) no locale `ar` | ✅ |
 | Trello: settings + `createTrelloCard` no SW | ✅ |
 | Layering pet/subpet × name-tag/balão | ✅ |
 | Locomoção eased + eco contagioso + micro-idle | ✅ |

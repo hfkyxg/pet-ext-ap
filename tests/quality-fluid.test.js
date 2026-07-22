@@ -182,10 +182,16 @@ test('qualidade: atalhos de teclado e ações do catálogo alinhados', () => {
 test('qualidade: onboarding + feedback visual no popup', () => {
   assert.match(popupHtml, /id="clawd-onboarding"/);
   assert.match(popupHtml, /id="onboarding-start"/);
+  assert.match(popupHtml, /id="onboarding-locale"/);
+  assert.match(popupHtml, /id="onboarding-corner"/);
+  assert.match(popupHtml, /data-i18n="onboarding_title"/);
+  assert.match(popupCss, /\.onboarding-setup/);
   assert.match(popupCss, /\.action-btn:hover/);
   assert.match(popupCss, /\.action-btn:active/);
   assert.match(popupCss, /\.accessory-card:hover|\.profession-card:hover/);
   assert.match(popupJs, /showOnboarding|onboardingDone/);
+  assert.match(popupJs, /applyLocaleChoice|fillLocaleSelect/);
+  assert.match(popupJs, /guessBrowserLocale/);
 });
 
 /* ---------- ATRATIVO / PRESENÇA ---------- */

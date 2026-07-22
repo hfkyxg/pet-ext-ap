@@ -17,10 +17,31 @@ function t(key) {
   return (typeof clawdT === 'function') ? clawdT(key, currentLocale()) : key;
 }
 
-/** Reaplica labels i18n no chrome do popup (tabs, config, footer). */
+/** Preenche selects de idioma (config + onboarding) com CLAWD_LOCALES. */
+function fillLocaleSelect(sel) {
+  if (!sel) return;
+  const current = sel.value;
+  if (!sel.options.length) {
+    (CLAWD_LOCALES || []).forEach((code) => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = (CLAWD_LOCALE_LABELS && CLAWD_LOCALE_LABELS[code]) || code;
+      sel.appendChild(opt);
+    });
+  }
+  const loc = currentLocale();
+  if ([...sel.options].some((o) => o.value === loc)) sel.value = loc;
+  else if (current) sel.value = current;
+}
+
+/** Reaplica labels i18n no chrome do popup (tabs, config, onboarding, footer). */
 function applyPopupI18n() {
   const loc = currentLocale();
-  document.documentElement.lang = loc === 'zh-CN' ? 'zh-CN' : loc.split('-')[0];
+  const htmlLang = loc === 'zh-CN' ? 'zh-CN' : loc.split('-')[0];
+  document.documentElement.lang = htmlLang;
+  document.documentElement.dir = loc === 'ar' ? 'rtl' : 'ltr';
+  document.title = t('menu_title');
+
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.getAttribute('data-i18n');
     if (!key) return;
@@ -36,15 +57,30 @@ function applyPopupI18n() {
     if (!key) return;
     el.textContent = t(key);
   });
-  const sel = $('select-locale');
-  if (sel && !sel.options.length) {
-    (CLAWD_LOCALES || []).forEach((code) => {
-      const opt = document.createElement('option');
-      opt.value = code;
-      opt.textContent = (CLAWD_LOCALE_LABELS && CLAWD_LOCALE_LABELS[code]) || code;
-      sel.appendChild(opt);
-    });
-  }
+
+  fillLocaleSelect($('select-locale'));
+  fillLocaleSelect($('onboarding-locale'));
+  syncVisibilityButton(S.petVisible !== false);
+}
+
+/** Aplica locale no estado + UI + content script (sem loop nos selects). */
+function applyLocaleChoice(rawLocale, { persistSetting = true } = {}) {
+  const loc = (typeof clawdNormalizeLocale === 'function')
+    ? clawdNormalizeLocale(rawLocale)
+    : (rawLocale || 'pt-BR');
+  if (!S.settings) S.settings = {};
+  S.settings.locale = loc;
+  if (persistSetting) setSetting('locale', loc);
+  const configSel = $('select-locale');
+  const onboardSel = $('onboarding-locale');
+  if (configSel && configSel.value !== loc) configSel.value = loc;
+  if (onboardSel && onboardSel.value !== loc) onboardSel.value = loc;
+  applyPopupI18n();
+}
+
+function guessBrowserLocale() {
+  const nav = (typeof navigator !== 'undefined' && (navigator.language || navigator.userLanguage)) || 'pt-BR';
+  return (typeof clawdNormalizeLocale === 'function') ? clawdNormalizeLocale(nav) : 'pt-BR';
 }
 
 function scrubLastError() {
@@ -98,11 +134,17 @@ function summonPetToCurrentTab() {
 }
 
 function syncVisibilityButton(visible = S.petVisible !== false) {
+  const label = $('btn-toggle-label');
+  if (label) {
+    label.setAttribute('data-i18n', visible ? 'btn_hide_pet' : 'btn_show_pet');
+    label.textContent = t(visible ? 'btn_hide_pet' : 'btn_show_pet');
+    return;
+  }
   const btn = $('btn-toggle');
   if (!btn) return;
   btn.innerHTML = visible
-    ? '<span>👁️</span> Ocultar pet'
-    : '<span>👁️</span> Mostrar pet';
+    ? `<span>👁️</span> <span id="btn-toggle-label" data-i18n="btn_hide_pet">${t('btn_hide_pet')}</span>`
+    : `<span>👁️</span> <span id="btn-toggle-label" data-i18n="btn_show_pet">${t('btn_show_pet')}</span>`;
 }
 
 /* Persistência segura: read-modify-write */
@@ -1594,9 +1636,7 @@ function bindConfig() {
   const localeSel = $('select-locale');
   if (localeSel) {
     localeSel.addEventListener('change', e => {
-      setSetting('locale', e.target.value);
-      S.settings.locale = e.target.value;
-      applyPopupI18n();
+      applyLocaleChoice(e.target.value);
     });
   }
   bindTrelloControls();
@@ -1931,13 +1971,63 @@ function renderAll() {
 function showOnboarding() {
   const overlay = $('clawd-onboarding');
   if (!overlay) return;
+
+  // Primeira abertura: sugere o idioma do navegador se ainda for o default.
+  const stored = S.settings?.locale;
+  if (!stored || stored === 'pt-BR') {
+    const guessed = guessBrowserLocale();
+    if (guessed && guessed !== stored) {
+      S.settings = S.settings || {};
+      S.settings.locale = guessed;
+    }
+  }
+
+  fillLocaleSelect($('onboarding-locale'));
+  fillLocaleSelect($('select-locale'));
+
+  const cornerSel = $('onboarding-corner');
+  const configCorner = $('select-corner');
+  const startCorner = S.settings?.startCorner || 'br';
+  if (cornerSel) cornerSel.value = startCorner;
+  if (configCorner) configCorner.value = startCorner;
+
+  applyPopupI18n();
   overlay.style.display = 'flex';
+
+  const onboardLocale = $('onboarding-locale');
+  if (onboardLocale && !onboardLocale.dataset.bound) {
+    onboardLocale.dataset.bound = '1';
+    onboardLocale.addEventListener('change', (e) => {
+      applyLocaleChoice(e.target.value);
+    });
+  }
+  if (cornerSel && !cornerSel.dataset.bound) {
+    cornerSel.dataset.bound = '1';
+    cornerSel.addEventListener('change', (e) => {
+      const corner = e.target.value;
+      setSetting('startCorner', corner);
+      if (configCorner) configCorner.value = corner;
+    });
+  }
+
   const btn = $('onboarding-start');
-  if (btn) btn.addEventListener('click', () => {
-    overlay.style.display = 'none';
-    persist(st => { st.onboardingDone = true; });
-    S.onboardingDone = true;
-  }, { once: true });
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const loc = onboardLocale?.value || currentLocale();
+      const corner = cornerSel?.value || S.settings?.startCorner || 'br';
+      applyLocaleChoice(loc);
+      setSetting('startCorner', corner);
+      if (configCorner) configCorner.value = corner;
+      overlay.style.display = 'none';
+      persist(st => {
+        st.onboardingDone = true;
+        st.settings = st.settings || {};
+        st.settings.locale = currentLocale();
+        st.settings.startCorner = corner;
+      });
+      S.onboardingDone = true;
+    }, { once: true });
+  }
 }
 
 function updateContextBar(status) {

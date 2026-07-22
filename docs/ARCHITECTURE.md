@@ -9,7 +9,7 @@ Extensão Chrome MV3 **vanilla** (sem bundler). Há um `package.json` só para s
 | **Catálogo (SSOT)** | `src/shared/catalog.js` | Fonte única de verdade: modelos, rostos, acessórios, profissões, sub-pets, loja, conquistas, migrações e helpers de estado. Carrega **antes** de `content.js` (lista no `manifest.json`). |
 | **Runtime** | `src/content/content.js` + `style.css` | Motor do mascote na página: DOM, animação (`rAF`), interações, stats, áudio. |
 | **Presença** | `src/background/background.js` | Service worker: bootstrap de storage, reinjeção segura, healthcheck cross-tab. |
-| **UI** | `src/popup/*` | Controles, preview, studio in-page / janela destacável; messaging tipado. |
+| **UI** | `src/popup/*` + `src/shared/i18n.js` | Controles, preview, studio; chrome i18n (11 locales); onboarding idioma/canto; messaging tipado. |
 | **Assets** | `src/assets/`, `src/shared/sprites/` | Ícones, banners SVG, PNGs de sub-pets (`web_accessible_resources`). |
 | **Docs / Labs** | `docs/` | Vitrine HTML, arquitetura e markdown de produto em `docs/md/`. |
 | **Testes** | `tests/*.test.js` (**187**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |

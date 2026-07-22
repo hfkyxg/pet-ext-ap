@@ -18,10 +18,12 @@
 
 ---
 
-## Polish 22/07/2026 — animações, cross-tab e SFX
+## Polish 22/07/2026 — i18n chrome, onboarding, animações e cross-tab
 
 | Módulo | Entrega | Estado |
 |--------|---------|--------|
+| **Onboarding** | Setup inicial: idioma + canto; sugere locale do browser | ✅ |
+| **i18n chrome** | `CLAWD_I18N_EXTRA` + `applyPopupI18n` em toda a estrutura do popup; RTL `ar` | ✅ |
 | **Animações** | Idle limpo no `setState`; dance rastreada; digitar sustentado; hug seguro | ✅ |
 | **Cross-tab** | `_isActiveHost`; loops/SFX/fala/partículas só no host; despawn cancelável | ✅ |
 | **SFX** | Sem eco em dblclick/wake/cheer; reduced-motion amplo no popup | ✅ |
@@ -163,7 +165,7 @@
 |------|------|--------|
 | Docs sync | Sincronizar documentação com estado vivo (loop tick 6) | ✅ Concluído (81/81) |
 | Micro-animações | Variações idle (look/scratch/taptoe), frames pixel-art para flip/meditate/electric/nap | ✅ (tick 2) |
-| UX onboarding | Overlay de boas-vindas na primeira abertura do popup | Parcial / em produto |
+| UX onboarding | Overlay de boas-vindas + setup idioma/canto na 1ª abertura | ✅ |
 | Interações | Atalhos Alt+F/H/P/Z, reação ao scroll, duplo-clique, retorno de aba, click frenético | ✅ |
 | Summon elaborado | Animação de queda com bounce ao injetar o pet | Opcional |
 
