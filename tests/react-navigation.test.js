@@ -82,4 +82,51 @@ test('limpeza: timers de digitar/assistir são cancelados no destroy', () => {
   const slice = content.slice(idx, idx + 3200);
   assert.match(slice, /_typingStopTimer/);
   assert.match(slice, /clearInterval\(this\._watchTimer\)/);
+  assert.match(slice, /_navContextTimer/);
+  assert.match(slice, /_scrollSoftTimer/);
+});
+
+test('navegar SPA: _bindBrowseNavigation patch History + popstate/hashchange', () => {
+  assert.match(content, /this\._bindBrowseNavigation\(signal\);/);
+  assert.match(content, /\n {2}_bindBrowseNavigation\(signal\)\s*\{/);
+  assert.match(content, /\n {2}_onBrowseNavigate\(_reason\)\s*\{/);
+  const idx = content.indexOf('_bindBrowseNavigation(signal) {');
+  const slice = content.slice(idx, idx + 2200);
+  assert.match(slice, /addEventListener\('popstate'/);
+  assert.match(slice, /addEventListener\('hashchange'/);
+  assert.match(slice, /\['pushState', 'replaceState'\]\.forEach/);
+  assert.match(slice, /history\[method\] = wrapped/);
+  assert.match(slice, /signal\.addEventListener\('abort'/);
+  assert.match(slice, /queueMicrotask\(\(\) => fire\(method\)\)/);
+});
+
+test('navegar SPA: _onBrowseNavigate anima, acorda e reavalia contexto', () => {
+  const idx = content.indexOf('_onBrowseNavigate(_reason) {');
+  const slice = content.slice(idx, idx + 1800);
+  assert.match(slice, /this\.lastActivity = Date\.now\(\)/);
+  assert.match(slice, /this\.state === 'sleeping'\) this\.wakeUp\(\)/);
+  assert.match(slice, /_lastNavReactAt/);
+  assert.match(slice, /setStateFor\('curious'/);
+  assert.match(slice, /setStateFor\('waving'/);
+  assert.match(slice, /_handleAction\('lookAround'\)/);
+  assert.match(slice, /_detectPageContext\(\)/);
+  assert.match(slice, /subpet\.interact\('explore'/);
+});
+
+test('scroll de leitura: micro-reação além do scroll rápido', () => {
+  const idx = content.indexOf('_setupScrollReaction() {');
+  const slice = content.slice(idx, idx + 2800);
+  assert.match(slice, /speed > 1200/);
+  assert.match(slice, /speed > 380/);
+  assert.match(slice, /_scrollSoftReacting/);
+  assert.match(slice, /_pulseAnimClass\('page-peeking'/);
+});
+
+test('clique em link/botão: reação mais frequente e variada', () => {
+  const idx = content.indexOf('_bindPagePlayfulness(signal) {');
+  const slice = content.slice(idx, idx + 3200);
+  assert.match(slice, /a\[href\], button, \[role="button"\]/);
+  assert.match(slice, /interactive \? 0\.34 : 0\.14/);
+  assert.match(slice, /setStateFor\('curious'/);
+  assert.match(slice, /setStateFor\('excited'/);
 });

@@ -30,9 +30,31 @@ test('aprontar: pet tem doMischief compondo estados verificados (sneaking → pe
 });
 
 test('aprontar: loop de ação aleatória despacha mischief direto (fora do catálogo)', () => {
-  /* mischief entra na pool ponderada e é interceptado antes de _handleAction */
-  assert.match(content, /'clap', 'lookAround', 'mischief'\]/);
+  /* mischief entra na fila embaralhada e é interceptado antes de _handleAction */
+  assert.match(content, /'play', 'mischief'\]/);
   assert.match(content, /if \(pick === 'mischief'\)\s*\{\s*\n\s*this\.doMischief\(\);/);
+});
+
+test('cadência viva: _nextPetAction rota a ficha completa (sem starvation)', () => {
+  assert.match(content, /\n {2}_nextPetAction\(\)\s*\{/);
+  assert.match(content, /const pick = this\._nextPetAction\(\);/);
+  const idx = content.indexOf('\n  _nextPetAction() {');
+  const slice = content.slice(idx, idx + 2800);
+  assert.match(slice, /'wave', 'dance', 'somersault'/);
+  assert.match(slice, /'balloon'/);
+  assert.match(slice, /'mischief'/);
+  assert.match(slice, /this\._actionQueue = base/);
+  assert.match(slice, /this\._actionQueue\.shift\(\)/);
+});
+
+test('cadência viva: subpet também rota a ficha via _nextSubAction', () => {
+  assert.match(content, /\n {2}_nextSubAction\(\)\s*\{/);
+  assert.match(content, /this\.interact\(this\._nextSubAction\(\)\)/);
+});
+
+test('cadência viva: watchdog destrava estados transitórios presos', () => {
+  assert.match(content, /this\._stateSince = Date\.now\(\)/);
+  assert.match(content, /stuckFor > 12000 && sinceUser > 6000/);
 });
 
 test('integridade: mischief é interno — não polui catálogo nem contagens do grid', () => {

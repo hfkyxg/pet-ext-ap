@@ -8,13 +8,13 @@ var CLAWD_SCHEMA_VERSION = 5;
 
 /* ---- Constantes de timing centralizadas (usadas por content.js e testes) ---- */
 var CLAWD_TIMINGS = {
-  SUBPET_INTERACTION_MS:  20000,  /* intervalo base da ação espontânea do subpet */
+  SUBPET_INTERACTION_MS:  14000,  /* intervalo base da ação espontânea do subpet */
   STAT_DECAY_MS:          60000,  /* tick de decaimento de stats */
   STORAGE_DEBOUNCE_MS:      350,  /* janela de coalescing antes do flush para o storage */
   PARTICLE_MAX:              18,  /* limite concorrente de partículas */
   SETTLE_EPS_PX:            0.5,  /* distância mínima para considerar o subpet parado */
   DOUBLE_CLICK_WINDOW_MS:   220,  /* janela de duplo clique */
-  RANDOM_ACTION_MS:       18000,  /* tick de ação aleatória do pet principal */
+  RANDOM_ACTION_MS:       12000,  /* tick de ação aleatória do pet principal */
   DUO_SCENE_MS:           22000,  /* tick do duo pet↔subpet */
 };
 

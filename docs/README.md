@@ -7,11 +7,11 @@
 | Documento | Para quem | Conteúdo |
 |-----------|-----------|----------|
 | [../README.md](../README.md) | Todo mundo | Visão, instalação, funcionalidades (v3.8.0) |
-| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **187/187** |
+| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **194/194** |
 | [./ARCHITECTURE.md](./ARCHITECTURE.md) | Mantenedores | Camadas, padrões, contratos MV3 |
 | [./md/DOCUMENTACAO.md](./md/DOCUMENTACAO.md) | Desenvolvedores | Protocolo interno, APIs, privacidade |
 | [./md/MANUAL.md](./md/MANUAL.md) | Usuários finais | Controles, studio, status, FAQ |
-| [./md/VALIDACAO.md](./md/VALIDACAO.md) | QA / release | Matriz fases 1–6 + gate **187/187** |
+| [./md/VALIDACAO.md](./md/VALIDACAO.md) | QA / release | Matriz fases 1–6 + gate **194/194** |
 | [./md/MELHORIAS.md](./md/MELHORIAS.md) | Produto | Registro histórico v3.2 → v3.8 + polish |
 | [../CHANGELOG.md](../CHANGELOG.md) | Todos | Histórico de versões |
 | [./md/Documentacao_Projeto_Clawd.md](./md/Documentacao_Projeto_Clawd.md) | Executivo | Resumo de projeto |
@@ -21,7 +21,7 @@
 
 ```powershell
 npm run check
-npm test                                          # 187/187
+npm test                                          # 194/194
 node tests/tools/validate-ecosystem.mjs           # 100% ações no map
 node tests/runtime-smoke.mjs                      # Edge/Chromium
 ```

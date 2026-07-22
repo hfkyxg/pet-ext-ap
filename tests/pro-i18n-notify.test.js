@@ -138,12 +138,36 @@ test('pro: createTrelloCard allowlist + CSS data-pos / popup selects', () => {
     assert.ok(clawdT('onboarding_start', loc).length > 0, `onboarding_start ${loc}`);
     assert.ok(clawdT('btn_show_pet', loc).length > 0, `btn_show_pet ${loc}`);
   }
-
-  // normalização de locale do browser (en-US → en, pt → pt-BR)
   assert.equal(i18n.clawdNormalizeLocale('en-US'), 'en');
   assert.equal(i18n.clawdNormalizeLocale('pt'), 'pt-BR');
   assert.equal(i18n.clawdNormalizeLocale('zh-TW'), 'zh-CN');
   assert.equal(i18n.clawdNormalizeLocale('ar'), 'ar');
+
+  assert.match(html, /i18n-entities\.js/);
+  assert.match(popupJs, /function et\(/);
+  assert.match(popupJs, /clawdEntityT/);
+  assert.match(popupJs, /if \(typeof renderAll === 'function'\) renderAll\(\)/);
+
+  const entities = require(path.join(root, 'src/shared/i18n-entities.js'));
+  assert.equal(entities.clawdEntityT('action', 'wave', 'Acenar', 'en'), 'Wave');
+  assert.equal(entities.clawdEntityT('action', 'wave', 'Acenar', 'pt-BR'), 'Acenar');
+  assert.equal(entities.clawdEntityT('prof', 'idle', 'Livre', 'en'), 'Free');
+  assert.equal(entities.clawdEntityT('acc_desc', 'cap', 'Boné…', 'en'), 'Sporty cap with brim, panels and button');
+  assert.equal(entities.clawdEntityT('ach_desc', 'first_pet', '1º…', 'en'), 'First click on the pet');
+  assert.equal(entities.clawdEntityT('subpet_desc', 'dog', 'Leal…', 'en'), 'Loyal — wags when happy');
+  assert.ok(entities.CLAWD_I18N_ENTITY.en.action.dance);
+  assert.ok(entities.CLAWD_I18N_ENTITY.en.shop);
+  assert.ok(entities.CLAWD_I18N_ENTITY.en.subpet_desc);
+  assert.ok(Object.keys(entities.CLAWD_I18N_ENTITY.en.ach).length >= 30);
+
+  assert.equal(clawdT('shop_buy', 'en'), 'Buy');
+  assert.equal(clawdT('shop_buy', 'pt-BR'), 'Comprar');
+  assert.equal(clawdT('nick_click_use', 'en'), 'Click to use');
+  assert.equal(clawdT('level_lock_fmt', 'pt-BR').includes('Nível'), true);
+  assert.match(popupJs, /data-i18n-aria/);
+  assert.match(popupJs, /et\('subpet_desc'/);
+  assert.match(popupJs, /t\('shop_decor_active'\)/);
+  assert.match(html, /data-i18n-aria="quick_actions_aria"/);
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
   assert.equal(manifest.version, '3.8.0');

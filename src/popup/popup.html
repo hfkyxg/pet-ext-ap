@@ -74,13 +74,13 @@
           <span class="stat-delta" aria-hidden="true"></span>
         </button>
       </div>
-      <div class="quick-actions" id="quick-actions" aria-label="Ações rápidas">
-        <button type="button" class="btn-quick" data-quick-action="wave" title="Acenar"><span aria-hidden="true">👋</span><small data-i18n="quick_wave">Oi</small></button>
-        <button type="button" class="btn-quick" data-quick-action="dance" title="Dançar"><span aria-hidden="true">🕺</span><small data-i18n="quick_dance">Dança</small></button>
-        <button type="button" class="btn-quick" data-quick-action="pose" title="Pose"><span aria-hidden="true">📸</span><small data-i18n="quick_pose">Pose</small></button>
-        <button type="button" class="btn-quick" data-quick-action="sleep" title="Dormir"><span aria-hidden="true">😴</span><small data-i18n="quick_sleep">Sono</small></button>
-        <button type="button" class="btn-quick" data-quick-action="balloon" title="Balão"><span aria-hidden="true">🎈</span><small data-i18n="quick_balloon">Balão</small></button>
-        <button type="button" class="btn-quick" data-quick-action="cheer" title="Torcer"><span aria-hidden="true">🎉</span><small data-i18n="quick_cheer">Yeah</small></button>
+      <div class="quick-actions" id="quick-actions" data-i18n-aria="quick_actions_aria" aria-label="Ações rápidas">
+        <button type="button" class="btn-quick" data-quick-action="wave" data-i18n-title="quick_wave" title="Oi"><span aria-hidden="true">👋</span><small data-i18n="quick_wave">Oi</small></button>
+        <button type="button" class="btn-quick" data-quick-action="dance" data-i18n-title="quick_dance" title="Dança"><span aria-hidden="true">🕺</span><small data-i18n="quick_dance">Dança</small></button>
+        <button type="button" class="btn-quick" data-quick-action="pose" data-i18n-title="quick_pose" title="Pose"><span aria-hidden="true">📸</span><small data-i18n="quick_pose">Pose</small></button>
+        <button type="button" class="btn-quick" data-quick-action="sleep" data-i18n-title="quick_sleep" title="Sono"><span aria-hidden="true">😴</span><small data-i18n="quick_sleep">Sono</small></button>
+        <button type="button" class="btn-quick" data-quick-action="balloon" data-i18n-title="quick_balloon" title="Balão"><span aria-hidden="true">🎈</span><small data-i18n="quick_balloon">Balão</small></button>
+        <button type="button" class="btn-quick" data-quick-action="cheer" data-i18n-title="quick_cheer" title="Yeah"><span aria-hidden="true">🎉</span><small data-i18n="quick_cheer">Yeah</small></button>
       </div>
       <div class="header-dock-row">
         <button type="button" class="btn-dock" id="btn-open-studio" data-i18n-title="btn_studio" title="Abre o studio flutuante na página"><span aria-hidden="true">📌</span> <span data-i18n="btn_studio">Studio na página</span></button>
@@ -216,7 +216,7 @@
       <div class="input-row color-row eye-color-row">
         <input type="color" id="input-eye-color" value="#08080b" title="Cor dos olhos do pet">
         <span class="color-label" id="eye-color-hex">#08080b</span>
-        <small>Cor independente</small>
+        <small data-i18n="label_eye_independent">Cor independente</small>
       </div>
     </div>
 
@@ -253,42 +253,42 @@
     </div>
 
     <div class="control-group">
-      <label>Skin do corpo</label>
+      <label data-i18n="label_skin">Skin do corpo</label>
       <div class="skin-art-grid" id="skin-grid"></div>
     </div>
 
     <div class="control-group">
-      <label>Acessório — Cabeça</label>
+      <label data-i18n="label_acc_head">Acessório — Cabeça</label>
       <div class="accessory-grid" id="acc-head-grid"></div>
-      <p class="accessory-description" id="acc-head-description">Escolha um chapéu para ver os detalhes.</p>
+      <p class="accessory-description" id="acc-head-description" data-i18n="hint_acc_head">Escolha um chapéu para ver os detalhes.</p>
     </div>
     <div class="control-group">
-      <label>Acessório — Rosto</label>
+      <label data-i18n="label_acc_face">Acessório — Rosto</label>
       <div class="accessory-grid" id="acc-face-grid"></div>
-      <p class="accessory-description" id="acc-face-description">Escolha um acessório para ver os detalhes.</p>
+      <p class="accessory-description" id="acc-face-description" data-i18n="hint_acc_face">Escolha um acessório para ver os detalhes.</p>
     </div>
     <div class="control-group">
-      <label>Acessório — Corpo <span class="value-badge" style="font-size:9px">NOVO</span></label>
+      <label><span data-i18n="label_acc_body">Acessório — Corpo</span> <span class="value-badge" style="font-size:9px" data-i18n="badge_new">NOVO</span></label>
       <div class="accessory-grid" id="acc-body-grid"></div>
-      <p class="accessory-description" id="acc-body-description">Escolha um item de corpo para ver os detalhes.</p>
+      <p class="accessory-description" id="acc-body-description" data-i18n="hint_acc_body">Escolha um item de corpo para ver os detalhes.</p>
     </div>
 
   </div>
 
   <!-- PAINEL PROFISSÃO -->
   <div class="tab-panel" id="tab-profession">
-    <p class="section-hint">A profissão define o comportamento e as reações do pet ao contexto da página.</p>
+    <p class="section-hint" data-i18n="hint_profession">A profissão define o comportamento e as reações do pet ao contexto da página.</p>
     <div class="profession-grid" id="profession-grid"></div>
 
     <div class="control-group" id="jersey-group" style="display:none">
-      <label>Camisa do time</label>
+      <label data-i18n="label_jersey">Camisa do time</label>
       <div class="color-grid" id="jersey-grid"></div>
-      <div class="keepy-record" id="keepy-record">⚽ Recorde de embaixadinhas: <b>0</b></div>
+      <div class="keepy-record" id="keepy-record"><span data-i18n="keepy_record_fmt">⚽ Recorde de embaixadinhas:</span> <b>0</b></div>
     </div>
 
     <div class="prof-status" id="prof-status">
       <span class="prof-status-icon">🐾</span>
-      <span id="prof-status-text">Modo livre — sem profissão ativa</span>
+      <span id="prof-status-text" data-i18n="prof_idle_status">Modo livre — sem profissão ativa</span>
     </div>
   </div>
 
@@ -319,7 +319,7 @@
       <label class="toggle-switch"><input type="checkbox" id="toggle-crosstab" checked><span class="slider"></span></label>
     </div>
     <div class="control-group indent">
-      <label for="select-travel">Frequência do passeio</label>
+      <label for="select-travel" data-i18n="label_travel_freq">Frequência do passeio</label>
       <select id="select-travel">
         <option value="rarely" data-i18n-option="travel_rarely">Raramente</option>
         <option value="sometimes" selected data-i18n-option="travel_sometimes">Às vezes</option>
@@ -335,37 +335,37 @@
 
     <!-- Sliders de Personalidade -->
     <div class="control-group personality-section">
-      <label class="section-label-personality">🧠 Personalidade</label>
-      <p class="section-hint">Ajusta com que frequência o pet age de cada forma.</p>
+      <label class="section-label-personality" data-i18n="label_personality">🧠 Personalidade</label>
+      <p class="section-hint" data-i18n="hint_personality">Ajusta com que frequência o pet age de cada forma.</p>
       <div class="personality-row">
-        <span class="personality-label" title="Frequência de danças e ações espontâneas">🎪 Brincalhão</span>
+        <span class="personality-label" data-i18n="pers_playful">🎪 Brincalhão</span>
         <input type="range" id="personality-playful" min="0" max="10" step="1" value="5">
         <span class="personality-value" id="val-playful">5</span>
       </div>
       <div class="personality-row">
-        <span class="personality-label" title="Quanto tempo leva para adormecer">😴 Preguiçoso</span>
+        <span class="personality-label" data-i18n="pers_lazy">😴 Preguiçoso</span>
         <input type="range" id="personality-lazy" min="0" max="10" step="1" value="3">
         <span class="personality-value" id="val-lazy">3</span>
       </div>
       <div class="personality-row">
-        <span class="personality-label" title="Frequência de explorar e espiar">🔎 Curioso</span>
+        <span class="personality-label" data-i18n="pers_curious">🔎 Curioso</span>
         <input type="range" id="personality-curious" min="0" max="10" step="1" value="7">
         <span class="personality-value" id="val-curious">7</span>
       </div>
       <div class="personality-row">
-        <span class="personality-label" title="Frequência de falas e balões">💬 Social</span>
+        <span class="personality-label" data-i18n="pers_social">💬 Social</span>
         <input type="range" id="personality-social" min="0" max="10" step="1" value="5">
         <span class="personality-value" id="val-social">5</span>
       </div>
       <div class="personality-row">
-        <span class="personality-label" title="Reação e frequência de pedir comida">🍖 Comilão</span>
+        <span class="personality-label" data-i18n="pers_foodie">🍖 Comilão</span>
         <input type="range" id="personality-foodie" min="0" max="10" step="1" value="4">
         <span class="personality-value" id="val-foodie">4</span>
       </div>
       <div class="personality-presets">
-        <button class="btn-preset" data-preset="energetic">⚡ Enérgico</button>
-        <button class="btn-preset" data-preset="relaxed">😌 Relaxado</button>
-        <button class="btn-preset" data-preset="curious">🔎 Curioso</button>
+        <button class="btn-preset" data-preset="energetic" data-i18n="preset_energetic">⚡ Enérgico</button>
+        <button class="btn-preset" data-preset="relaxed" data-i18n="preset_relaxed">😌 Relaxado</button>
+        <button class="btn-preset" data-preset="curious" data-i18n="preset_curious">🔎 Curioso</button>
       </div>
     </div>
   </div>
@@ -382,35 +382,35 @@
 
   <!-- PAINEL SUB-PETS -->
   <div class="tab-panel" id="tab-pets">
-    <p class="section-hint">O Claw'd também merece um pet! Desbloqueie subindo de nível. Só 1 ativo por vez.</p>
+    <p class="section-hint" data-i18n="hint_subpets">O Claw'd também merece um pet! Desbloqueie subindo de nível. Só 1 ativo por vez.</p>
     <div class="subpet-grid" id="subpet-grid"></div>
     <div class="control-group" id="subpet-name-group" style="display:none">
-      <label for="input-subpet-name">Nome do sub-pet</label>
+      <label for="input-subpet-name" data-i18n="label_subpet_name">Nome do sub-pet</label>
       <input type="text" id="input-subpet-name" maxlength="16" placeholder="Ex: Rex">
       <div class="input-row subpet-color-row">
-        <label for="input-subpet-color">Cor do sub-pet</label>
+        <label for="input-subpet-color" data-i18n="label_subpet_color">Cor do sub-pet</label>
         <input type="color" id="input-subpet-color" value="#8d5a2b" title="Cor principal do sub-pet">
         <span class="color-label" id="subpet-color-hex">#8d5a2b</span>
       </div>
       <div class="input-row subpet-color-row">
-        <label for="input-subpet-eye-color">Cor dos olhos</label>
+        <label for="input-subpet-eye-color" data-i18n="label_subpet_eye">Cor dos olhos</label>
         <input type="color" id="input-subpet-eye-color" value="#111111" title="Cor dos olhos do sub-pet">
         <span class="color-label" id="subpet-eye-color-hex">#111111</span>
       </div>
     </div>
     <section class="subpet-interactions" aria-labelledby="subpet-interactions-title">
       <div class="subpet-interactions-head">
-        <span id="subpet-interactions-title">Interações ao vivo</span>
-        <small>acorda ao interagir</small>
+        <span id="subpet-interactions-title" data-i18n="subpet_interactions">Interações ao vivo</span>
+        <small data-i18n="subpet_wake_hint">acorda ao interagir</small>
       </div>
       <div class="subpet-action-grid" id="subpet-action-grid"></div>
-      <p class="subpet-action-status" id="subpet-action-status" aria-live="polite">Ative um sub-pet para brincar.</p>
+      <p class="subpet-action-status" id="subpet-action-status" aria-live="polite" data-i18n="subpet_inactive">Ative um sub-pet para brincar.</p>
     </section>
   </div>
 
   <!-- PAINEL LOJA -->
   <div class="tab-panel" id="tab-shop">
-    <p class="section-hint">Ganhe 🪙 PixelCoins navegando, brincando e completando desafios (≈1 coin a cada 5 XP).</p>
+    <p class="section-hint" data-i18n="hint_shop">Ganhe 🪙 PixelCoins navegando, brincando e completando desafios (≈1 coin a cada 5 XP).</p>
     <div class="shop-grid" id="shop-grid"></div>
   </div>
 
@@ -468,10 +468,10 @@
     <div class="control-group">
       <label data-i18n="label_quiet">🤫 Horário de silêncio</label>
       <div class="input-row">
-        <input type="time" id="quiet-start" title="Início">
+        <input type="time" id="quiet-start" data-i18n-title="quiet_start" title="Início">
         <span class="muted" data-i18n="label_quiet_until">até</span>
-        <input type="time" id="quiet-end" title="Fim">
-        <button class="btn-mini" id="quiet-clear" title="Limpar">✖</button>
+        <input type="time" id="quiet-end" data-i18n-title="quiet_end" title="Fim">
+        <button class="btn-mini" id="quiet-clear" data-i18n-title="quiet_clear" title="Limpar">✖</button>
       </div>
     </div>
 
@@ -566,19 +566,19 @@
     </div>
 
     <div class="control-group">
-      <label for="input-particle-color">🎨 Cor das partículas</label>
+      <label for="input-particle-color" data-i18n="label_particle_color">🎨 Cor das partículas</label>
       <div class="input-row color-row">
-        <input type="color" id="input-particle-color" value="#f1c40f" title="Cor customizada das partículas">
+        <input type="color" id="input-particle-color" value="#f1c40f" data-i18n-title="particle_color_title" title="Cor customizada das partículas">
         <span class="color-label" id="particle-color-hex">#f1c40f</span>
-        <button class="btn-mini" id="particle-color-clear" title="Usar padrão">✖</button>
+        <button class="btn-mini" id="particle-color-clear" data-i18n-title="particle_clear_title" title="Usar padrão">✖</button>
       </div>
-      <span class="toggle-desc">Deixe vazio para usar a cor padrão das ações.</span>
+      <span class="toggle-desc" data-i18n="hint_particle_color">Deixe vazio para usar a cor padrão das ações.</span>
     </div>
 
     <div class="control-group">
-      <label for="custom-speech">💬 Frases personalizadas do pet</label>
+      <label for="custom-speech" data-i18n="label_custom_speech">💬 Frases personalizadas do pet</label>
       <textarea id="custom-speech" rows="3" placeholder="Uma frase por linha&#10;ex: Olá mundo! 🌍"></textarea>
-      <span class="toggle-desc">O pet dirá essas frases aleatoriamente.</span>
+      <span class="toggle-desc" data-i18n="hint_custom_speech">O pet dirá essas frases aleatoriamente.</span>
     </div>
 
     <div class="divider"></div>
@@ -617,6 +617,7 @@
   </footer>
 
   <script src="../shared/i18n.js"></script>
+  <script src="../shared/i18n-entities.js"></script>
   <script src="../shared/catalog.js"></script>
   <script src="popup.js"></script>
 </body>

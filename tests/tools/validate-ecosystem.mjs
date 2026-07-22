@@ -69,6 +69,8 @@ for (const v of cat.CLAWD_IDLE_VARIATIONS) {
 console.log('\n=== 5. Popup IDs ===');
 const popupJs = fs.readFileSync('src/popup/popup.js', 'utf8');
 const popupHtml = fs.readFileSync('src/popup/popup.html', 'utf8');
+if (!popupHtml.includes('i18n-entities.js')) bad('popup missing i18n-entities.js');
+else ok('popup loads i18n-entities');
 const ids = [...popupJs.matchAll(/getElementById\(['"]([^'"]+)['"]\)/g)].map((x) => x[1]);
 const unique = [...new Set(ids)];
 const missingIds = unique.filter(
@@ -146,6 +148,7 @@ console.log('\n=== 10. Sintaxe JS (node --check) ===');
 const { spawnSync } = await import('node:child_process');
 for (const file of [
   'src/shared/i18n.js',
+  'src/shared/i18n-entities.js',
   'src/shared/catalog.js',
   'src/content/content.js',
   'src/popup/popup.js',

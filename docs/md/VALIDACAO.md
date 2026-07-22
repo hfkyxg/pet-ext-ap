@@ -1,14 +1,14 @@
 # Relatório de Validação — Claw'd v3.8.0
 
-**Data:** 22 de julho de 2026 (revalidação: i18n chrome + onboarding setup + polish animações/cross-tab)  
+**Data:** 22 de julho de 2026 (revalidação: sync i18n popup completo + onboarding + polish)  
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **187/187** contratos — onboarding idioma/canto, chrome i18n global, polish animações/cross-tab/SFX
+**Marco:** **194/194** contratos — popup/config sincronizam com o idioma (chrome + entidades + `renderAll`)
 
 ## Resultado
 
 - Verificações de sintaxe (`npm run check`): **aprovadas**
-- Suíte `node:test`: **187/187**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **187/187**
+- Suíte `node:test`: **194/194**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **3.8.0** · badge **194/194**
 - `npm run audit`: **AUDIT_PACK_OK** (5 eixos)
 - Lint (`eslint src tests`): **0 erros**
 - Smoke Chromium: **runtimeErrors: 0** · reloads **3/3** · duo/partículas/props OK
@@ -57,7 +57,7 @@
 | Âncora do balão (`auto\|left\|right\|above\|below`) | ✅ |
 | Lado do badge de emoção (`left\|right`) | ✅ |
 | `settings.locale` + `clawdT` / speech pools | ✅ |
-| UI traduzida (11 locales) — chrome do popup + onboarding | ✅ |
+| UI traduzida (11 locales) — chrome + listas dinâmicas + titles/aria | ✅ |
 | Onboarding: idioma + canto inicial; sync Config | ✅ |
 | `clawdNormalizeLocale` (browser `en-US`/`pt`/…) | ✅ |
 | RTL (`dir=rtl`) no locale `ar` | ✅ |

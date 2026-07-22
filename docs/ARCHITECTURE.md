@@ -12,7 +12,7 @@ Extensão Chrome MV3 **vanilla** (sem bundler). Há um `package.json` só para s
 | **UI** | `src/popup/*` + `src/shared/i18n.js` | Controles, preview, studio; chrome i18n (11 locales); onboarding idioma/canto; messaging tipado. |
 | **Assets** | `src/assets/`, `src/shared/sprites/` | Ícones, banners SVG, PNGs de sub-pets (`web_accessible_resources`). |
 | **Docs / Labs** | `docs/` | Vitrine HTML, arquitetura e markdown de produto em `docs/md/`. |
-| **Testes** | `tests/*.test.js` (**187**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |
+| **Testes** | `tests/*.test.js` (**194**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |
 
 ```
 manifest.json
@@ -121,7 +121,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 | PNGs canônicos dos sub-pets | `node tests/tools/crop-literal-sprites.mjs` |
 | Frames/preview (não sobrescreve pacote) | `node tests/tools/make-sprites.mjs` |
 | Ícones da extensão | `node tests/tools/make-icons.mjs` |
-| Suíte de contratos | `npm test` (**187**) |
+| Suíte de contratos | `npm test` (**194**) |
 | Ecosystem estático | `npm run ecosystem` |
 | Smoke Edge | `npm run smoke` |
 

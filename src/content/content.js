@@ -886,15 +886,29 @@ class SubPet {
       const personalityMod = (p.playful ?? 5) >= 7 ? 0.18 : (p.lazy ?? 5) >= 7 ? -0.16 : 0;
       const chance = Math.min(0.92, Math.max(0.18, baseChance + personalityMod));
       if (Math.random() > chance) return;
+      /* Rotação embaralhada — garante que o subpet realize TODA a sua ficha. */
+      this.interact(this._nextSubAction());
+    }, CLAWD_TIMINGS.SUBPET_INTERACTION_MS);
+  }
+
+  /* Fila embaralhada da ficha do subpet (espécie + reforço de personalidade):
+     cada interação sai uma vez por ciclo — brincar, cuidar, explorar, aprontar, etc. */
+  _nextSubAction() {
+    if (!this._interactQueue || !this._interactQueue.length) {
+      const p = this.owner.S?.personality || {};
       /* Base por espécie + reforço por personalidade do dono (mesmo padrão do pet). */
       const pool = this._speciesPool().slice();
       if ((p.playful ?? 5) >= 7) pool.push('play', 'celebrate', 'spin', 'mischief');
       if ((p.lazy ?? 5) >= 7) pool.push('nap', 'cuddle');
       if ((p.curious ?? 5) >= 7) pool.push('explore', 'special', 'mischief');
       if ((p.social ?? 5) >= 7) pool.push('hug', 'cuddle');
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      this.interact(pick);
-    }, CLAWD_TIMINGS.SUBPET_INTERACTION_MS);
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      this._interactQueue = pool;
+    }
+    return this._interactQueue.shift();
   }
 
   interact(kind, { force = false, silent = false } = {}) {
@@ -1966,11 +1980,12 @@ class ClawdCompanion {
     }
   }
 
-  /* ---- Reação ao Scroll (v3.4) — único caminho: velocidade real ---- */
+  /* ---- Reação ao Scroll (v3.4) — velocidade real: suave + rápido ---- */
   _setupScrollReaction() {
     let lastScrollY = window.scrollY;
     let lastScrollTime = Date.now();
     this._scrollReacting = false;
+    this._scrollSoftReacting = false;
     this._scrollHandler = () => {
       if (this._destroyed) return;
       this.lastActivity = Date.now();
@@ -1984,6 +1999,7 @@ class ClawdCompanion {
       const speed = dy / dt * 1000;
       lastScrollY = window.scrollY;
       lastScrollTime = now;
+      /* Scroll rápido → empolgação (+ dash se muito rápido) */
       if (speed > 1200 && !this._scrollReacting) {
         this._scrollReacting = true;
         if (this.state === 'idle' || this.state === 'walking') {
@@ -2012,6 +2028,18 @@ class ClawdCompanion {
         }
         clearTimeout(this._scrollReactTimer);
         this._scrollReactTimer = setTimeout(() => { this._scrollReacting = false; }, 2000);
+        return;
+      }
+      /* Scroll de leitura → micro-reação (não fica morto enquanto navega) */
+      if (speed > 380 && !this._scrollSoftReacting && !this._scrollReacting &&
+          this.state === 'idle' && this.isVisible && !this.isQuiet() && !this._crossTabHidden) {
+        this._scrollSoftReacting = true;
+        this._pulseAnimClass('page-peeking', 900);
+        if ((this.S.personality?.curious ?? 5) >= 6 && Math.random() < 0.35) {
+          this.setStateFor('curious', 1100);
+        }
+        clearTimeout(this._scrollSoftTimer);
+        this._scrollSoftTimer = setTimeout(() => { this._scrollSoftReacting = false; }, 3200);
       }
     };
     window.addEventListener('scroll', this._scrollHandler, { passive: true });
@@ -2281,6 +2309,7 @@ class ClawdCompanion {
     if (this.state === 'sleeping' && newState !== 'sleeping') this._yawned = false;
     this.node.classList.remove(this.state);
     this.state = newState;
+    this._stateSince = Date.now();
     this.node.dataset.state = newState;
     if (newState !== 'idle') this.node.classList.add(newState);
     this._syncMovingHint();
@@ -2615,8 +2644,86 @@ class ClawdCompanion {
     }, { passive: true, signal });
 
     this._bindPagePlayfulness(signal);
+    this._bindBrowseNavigation(signal);
     this._bindTypingCompanion(signal);
     this._bindMediaWatching(signal);
+  }
+
+  /* Navegação in-page (SPA) — History API + popstate/hashchange.
+     Sem isso o pet só reage em full reload; com isso acompanha a navegação. */
+  _bindBrowseNavigation(signal) {
+    this._lastBrowseUrl = location.href;
+    const fire = (reason) => {
+      if (this._destroyed) return;
+      const href = location.href;
+      if (href === this._lastBrowseUrl) return;
+      this._lastBrowseUrl = href;
+      this._onBrowseNavigate(reason);
+    };
+
+    window.addEventListener('popstate', () => fire('popstate'), { signal });
+    window.addEventListener('hashchange', () => fire('hashchange'), { signal });
+
+    /* Empacota pushState/replaceState; restaura no abort do AbortController. */
+    const restores = [];
+    ['pushState', 'replaceState'].forEach((method) => {
+      const orig = history[method];
+      if (typeof orig !== 'function') return;
+      const bound = orig.bind(history);
+      const wrapped = function clawdHistoryWrap(...args) {
+        const ret = bound(...args);
+        queueMicrotask(() => fire(method));
+        return ret;
+      };
+      history[method] = wrapped;
+      restores.push(() => {
+        if (history[method] === wrapped) history[method] = bound;
+      });
+    });
+    signal.addEventListener('abort', () => {
+      restores.forEach((r) => { try { r(); } catch (_) { /* ignore */ } });
+    }, { once: true });
+  }
+
+  /* Reação visual ao mudar de rota sem reload — anima + reavalia contexto. */
+  _onBrowseNavigate(_reason) {
+    this.lastActivity = Date.now();
+    this._dwellVisibleSince = Date.now();
+    if (!this.isVisible || this.isQuiet() || this._crossTabHidden) return;
+    if (this.state === 'sleeping') this.wakeUp();
+
+    /* Throttle: SPA pode emitir várias mudanças em sequência. */
+    if (Date.now() - (this._lastNavReactAt || 0) < 4500) {
+      clearTimeout(this._navContextTimer);
+      this._navContextTimer = setTimeout(() => {
+        if (!this._destroyed) this._detectPageContext();
+      }, 700);
+      return;
+    }
+    this._lastNavReactAt = Date.now();
+
+    if (this.state === 'idle' || this.state === 'walking' || this.state === 'curious') {
+      const roll = Math.random();
+      if (roll < 0.4) {
+        this.setStateFor('curious', 1600);
+        this.showSpeech(Math.random() < 0.5 ? 'Nova página! 👀' : 'Pra onde vamos? 🗺️', 1800);
+        this.beep(620, 0.04, 'triangle', 'ambient');
+      } else if (roll < 0.7) {
+        this._pulseAnimClass('page-peeking', 1400);
+        this.setStateFor('waving', 1200);
+        this.showSpeech('Oi de novo! 👋', 1400);
+      } else {
+        this._handleAction('lookAround');
+      }
+      if (this.subpet && !this.subpet._interactionBusy && Math.random() < 0.5) {
+        this.subpet.interact('explore', { force: true, silent: true });
+      }
+    }
+
+    clearTimeout(this._navContextTimer);
+    this._navContextTimer = setTimeout(() => {
+      if (!this._destroyed) this._detectPageContext();
+    }, 900);
   }
 
   _bindPagePlayfulness(signal) {
@@ -2653,16 +2760,35 @@ class ClawdCompanion {
       }
     }, { signal });
 
-    // Clique na página (fora do pet) → aceno ocasional
+    // Clique na página (fora do pet) → aceno/curiosidade; links/botões reagem mais
     document.addEventListener('click', (e) => {
       if (e.target?.closest?.('#aic-clawd-node, .aic-subpet, .aic-lake, .aic-toyball')) return;
       if (!this.isVisible || this.isQuiet() || this._crossTabHidden || this.state !== 'idle') return;
-      if (Math.random() > 0.14) return;
-      if (Date.now() - (this._lastPageClickReact || 0) < 9000) return;
+      const interactive = e.target?.closest?.('a[href], button, [role="button"], summary, [onclick]');
+      const chance = interactive ? 0.34 : 0.14;
+      const cooldown = interactive ? 5500 : 9000;
+      if (Math.random() > chance) return;
+      if (Date.now() - (this._lastPageClickReact || 0) < cooldown) return;
       this._lastPageClickReact = Date.now();
-      this.setStateFor('waving', 1300);
-      this.showSpeech('Oi! 👋', 1300);
-      this.beep(700, 0.04);
+      this.lastActivity = Date.now();
+      if (interactive) {
+        const r = Math.random();
+        if (r < 0.4) {
+          this.setStateFor('curious', 1400);
+          this.showSpeech(Math.random() < 0.5 ? 'Clicou! 👀' : 'Vamos ver… ✨', 1400);
+        } else if (r < 0.75) {
+          this.setStateFor('waving', 1200);
+          this.showSpeech('Oi! 👋', 1200);
+        } else {
+          this.setStateFor('excited', 900);
+          this._pulseAnimClass('page-peeking', 1000);
+        }
+        this.beep(680, 0.04, 'triangle', 'ambient');
+      } else {
+        this.setStateFor('waving', 1300);
+        this.showSpeech('Oi! 👋', 1300);
+        this.beep(700, 0.04);
+      }
     }, { signal });
 
     // Tema do SO → atmosfeira na sombra
@@ -4715,6 +4841,39 @@ class ClawdCompanion {
     }, 1300);
   }
 
+  /* Rotação de ações do pet — fila embaralhada da pool completa: cada ação
+     é realizada uma vez por ciclo (sem starvation), com reforço por personalidade
+     e favoritos. Cobre aceno, dança, balão, pulo, giro, rolar, cambalhota, etc. */
+  _nextPetAction() {
+    if (!this._actionQueue || !this._actionQueue.length) {
+      const p = this.S.personality || {};
+      /* Pool completa — vocabulário inteiro do pet (aceno, dança, balão, pulo,
+         giro, rolar, cambalhota, espiar, meditar, elétrico, brincar, aprontar…). */
+      const pool = [
+        'wave', 'dance', 'somersault', 'jump', 'highfive', 'roar', 'balloon', 'hug',
+        'wink', 'clap', 'lookAround', 'stretch', 'roll', 'spin', 'bounce', 'cheer',
+        'sneak', 'peek', 'flip', 'pose', 'meditate', 'electric', 'play', 'mischief'
+      ];
+      if (this.S.profession === 'footballer') pool.push('keepy');
+      /* Reforço por personalidade (mais peso, ainda com cobertura de toda a pool). */
+      const traitBoost = [];
+      if ((p.playful ?? 5) >= 7) traitBoost.push('dance', 'jump', 'somersault', 'balloon', 'mischief');
+      if ((p.lazy ?? 5) >= 7) traitBoost.push('wink', 'stretch', 'meditate');
+      if ((p.curious ?? 5) >= 7) traitBoost.push('lookAround', 'peek', 'clap', 'mischief');
+      if ((p.social ?? 5) >= 7) traitBoost.push('wave', 'highfive', 'hug');
+      const base = pool.concat(traitBoost);
+      for (const fav of (this.S.favorites?.actions || [])) {
+        if (pool.includes(fav)) base.push(fav);
+      }
+      for (let i = base.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [base[i], base[j]] = [base[j], base[i]];
+      }
+      this._actionQueue = base;
+    }
+    return this._actionQueue.shift();
+  }
+
   /* ---------- LOOP DE COMPORTAMENTO ---------- */
   startBehaviorLoop() {
     // Sono + bocejo + birra — a cada 5s
@@ -4747,6 +4906,26 @@ class ClawdCompanion {
       }
     }, 5000));
 
+    // Watchdog anti-travamento — nenhuma ação deve prender o pet fora do idle.
+    // Se um estado transitório persistir muito além da sua duração natural (~4s) e
+    // não houver interação recente do usuário, destrava para o idle. Isso garante
+    // que aceno/balão/dança/etc. voltem a acontecer mesmo após qualquer edge case.
+    this._timers.push(setInterval(() => {
+      if (document.hidden || this._crossTabHidden || this.isDragging) return;
+      /* estados legítimos/longos ou autogeridos — não mexer */
+      const managed = ['idle', 'walking', 'running', 'sleeping', 'holding-balloon',
+        'fishing', 'reeling', 'keepy-uppy', 'racing'];
+      if (managed.includes(this.state)) return;
+      const stuckFor = Date.now() - (this._stateSince || Date.now());
+      const sinceUser = Date.now() - (this.lastActivity || 0);
+      /* só destrava se ninguém está interagindo agora (preserva digitar/curioso ativo) */
+      if (stuckFor > 12000 && sinceUser > 6000) {
+        this._typingActive = false;
+        this.popBalloon?.({ silent: true });
+        this.setState('idle');
+      }
+    }, 5000));
+
     // Decaimento de stats
     this._timers.push(setInterval(() => {
       if (document.hidden || this._crossTabHidden) return;
@@ -4772,18 +4951,11 @@ class ClawdCompanion {
     this._timers.push(setInterval(() => {
       if (document.hidden || this._crossTabHidden) return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
-      const baseChance = this.emotion === 'joyful' ? 0.6 : 0.45;
+      const baseChance = this.emotion === 'joyful' ? 0.78 : 0.62;
       if (Math.random() > baseChance) return;
-      /* Pool ponderada por personalidade (playful → dance/jump; lazy → stretch/wink; curious → lookAround) */
-      const p = this.S.personality || {};
-      const pool = ['wave', 'dance', 'somersault', 'keepy', 'jump', 'highfive', 'roar', 'balloon', 'hug', 'wink', 'clap', 'lookAround', 'mischief'];
-      const traitBoost = [];
-      if ((p.playful ?? 5) >= 7) traitBoost.push('dance', 'jump', 'somersault', 'balloon', 'mischief');
-      if ((p.lazy ?? 5) >= 7) traitBoost.push('wink', 'stretch', 'meditate');
-      if ((p.curious ?? 5) >= 7) traitBoost.push('lookAround', 'peek', 'clap', 'mischief');
-      if ((p.social ?? 5) >= 7) traitBoost.push('wave', 'highfive', 'hug');
-      const weightedPool = traitBoost.length ? pool.concat(traitBoost) : pool;
-      const pick = this.getWeightedRandom(weightedPool, this.S.favorites.actions);
+      /* Rotação embaralhada garante que TODA ação seja realizada ao longo do tempo
+         (nada de starvation por sorteio) — inclui aprontar/balão/aceno/dança/etc. */
+      const pick = this._nextPetAction();
       /* "aprontar" é comportamento interno (fora do catálogo/grid) — despacho direto */
       if (pick === 'mischief') {
         this.doMischief();
@@ -6382,7 +6554,7 @@ class ClawdCompanion {
       /* v3.3 */
       '_comboTimer', '_speedrunTimer',
       /* v3.4 / tick5 */
-      '_idleVarTimer', '_idleVarClearTimer', '_idleVarKickoffTimer', '_scrollIdleTimer', '_scrollDashTimer', '_scrollReactTimer', '_ballClickTimer',
+      '_idleVarTimer', '_idleVarClearTimer', '_idleVarKickoffTimer', '_scrollIdleTimer', '_scrollDashTimer', '_scrollReactTimer', '_scrollSoftTimer', '_ballClickTimer',
       /* duo / petting */
       '_pettingTimer', '_duoPlayTimer',
       /* jump anticipation / land */
@@ -6393,6 +6565,8 @@ class ClawdCompanion {
       '_mischiefTimer',
       /* digitar junto (sustentado) */
       '_typingStopTimer',
+      /* navegação SPA / re-detect de contexto */
+      '_navContextTimer',
       /* summon / poof */
       '_summonDropTimer', '_poofOutTimer'
     ].forEach(key => {

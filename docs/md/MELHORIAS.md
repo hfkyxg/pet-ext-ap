@@ -14,7 +14,7 @@
 | **Trello** | Board [pet](https://trello.com/b/8wGr5tiQ/pet) + API via SW | ✅ |
 | **Layering** | Pet acima do name-tag; subpet na frente da etiqueta/balão | ✅ |
 | **Fluidez** | Ease cúbico walk/run; eco pet→subpet; micro-idle; anticipação de pulo | ✅ |
-| **Tests/Docs** | **169/169** na release; polish 22/07 → **187/187** | ✅ |
+| **Tests/Docs** | **169/169** na release; polish 22/07 → **194/194** | ✅ |
 
 ---
 
@@ -24,11 +24,12 @@
 |--------|---------|--------|
 | **Onboarding** | Setup inicial: idioma + canto; sugere locale do browser | ✅ |
 | **i18n chrome** | `CLAWD_I18N_EXTRA` + `applyPopupI18n` em toda a estrutura do popup; RTL `ar` | ✅ |
+| **i18n dinâmico** | `i18n-entities.js` + `et()` (labels **e** desc EN); `applyLocaleChoice` → `renderAll()` | ✅ |
 | **Animações** | Idle limpo no `setState`; dance rastreada; digitar sustentado; hug seguro | ✅ |
 | **Cross-tab** | `_isActiveHost`; loops/SFX/fala/partículas só no host; despawn cancelável | ✅ |
 | **SFX** | Sem eco em dblclick/wake/cheer; reduced-motion amplo no popup | ✅ |
 | **Navegação** | Digitar junto + assistir vídeo; mischief autônomo | ✅ |
-| **Tests/Docs** | **187/187**; VALIDACAO + showcase + manuais alinhados | ✅ |
+| **Tests/Docs** | **194/194**; VALIDACAO + showcase + manuais alinhados | ✅ |
 
 ---
 

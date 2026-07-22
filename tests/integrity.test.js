@@ -423,7 +423,7 @@ test('content e background alinham cleanup DOM e harden mensagens', () => {
   assert.match(background, /clawdValidatePortMessage/);
   assert.match(background, /travelInFlight\.from === tabId/);
   assert.doesNotMatch(background, /stateSync/);
-  assert.match(popup, /label\.textContent\s*=\s*String\(daily\.label/);
+  assert.match(popup, /label\.textContent\s*=\s*et\('daily',\s*daily\.type,\s*daily\.label/);
 });
 
 test('os contadores usados pelo futebol existem no estado padrão', () => {

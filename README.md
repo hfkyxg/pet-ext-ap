@@ -44,7 +44,7 @@ Não há *build step* nem dependências externas: você clona, carrega a pasta n
 
 ### Novidades em v3.8
 
-A **v3.8.0** traz **11 idiomas** (chrome do popup + fala; onboarding com idioma/canto na 1ª abertura), posições configuráveis de toast/balão/badge, integração **Trello**, layering pet/subpet corrigido e **animações contagiosas**: caminhada/corrida com easing cúbico, subpet que ecoa pulo/dança/banho/alegria, micro-idle do companheiro, anticipação de pulo e duo/ações espontâneas mais frequentes. Polish recente: **um pet por navegador** sem SFX fantasma na aba não-host, digitar/assistir, “aprontar”, e animações sem eco de som. **187/187** contratos.
+A **v3.8.0** traz **11 idiomas** (chrome do popup + fala; onboarding com idioma/canto na 1ª abertura), posições configuráveis de toast/balão/badge, integração **Trello**, layering pet/subpet corrigido e **animações contagiosas**: caminhada/corrida com easing cúbico, subpet que ecoa pulo/dança/banho/alegria, micro-idle do companheiro, anticipação de pulo e duo/ações espontâneas mais frequentes. Polish recente: **um pet por navegador** sem SFX fantasma na aba não-host, digitar/assistir, “aprontar”, e animações sem eco de som. **194/194** contratos.
 
 ### Novidades em v3.7
 
@@ -65,7 +65,7 @@ O Claw'd não quer sua atenção o tempo todo. Ele só quer estar lá, no rodap�
 
 Abra a [Documentação Interativa](./docs/index.html#demonstracao) para percorrer uma sessão guiada de **45 segundos e 18 etapas**: entrada, perspectiva 3D, carinho, ações, scroll, passeio, arraste com inércia, sono, despertar, pesca, futebol, desafio do Tutor, acessórios, modo liso e subpet especial.
 
-A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **187/187 contratos**, **8/8 scripts**, **4 modelos**, **9 rostos**, **12 profissões**, **31 acessórios (3 slots)**, **30 ações** (+ kick/keepy/superdance fora do popup), **7 ações do subpet**, **34 conquistas**, smoke expandido (skins/duo/partículas/multi-clique/subpets/props), **3/3 reloads limpos** e **0 erros de runtime**.
+A demonstração é HTML/CSS/JavaScript local — não um vídeo simulado — e inclui reprodução/pausa, navegação por capítulo, teclado, movimento reduzido e um storyboard quadro a quadro. A galeria reutiliza as próprias camadas pixel-art de `src/content/style.css` para o pet principal; os **sub-pets** carregam os mesmos PNGs do pacote (`../src/shared/sprites/subpets/<id>.png`). Os selos do topo refletem a validação atual: **194/194 contratos**, **8/8 scripts**, **4 modelos**, **9 rostos**, **12 profissões**, **31 acessórios (3 slots)**, **30 ações** (+ kick/keepy/superdance fora do popup), **7 ações do subpet**, **34 conquistas**, smoke expandido (skins/duo/partículas/multi-clique/subpets/props), **3/3 reloads limpos** e **0 erros de runtime**.
 
 ---
 
@@ -475,7 +475,7 @@ node tests/tools/crop-literal-sprites.mjs
 
 ### Checklist de PR
 
-- [ ] `node --test tests/*.test.js` verde (187 contratos)
+- [ ] `node --test tests/*.test.js` verde (194 contratos)
 - [ ] `npm run ecosystem` e `npm run audit` verdes
 - [ ] Docs/manual/showcase coerentes com contagens reais (30 ações + extras, 31 acessórios, 34 conquistas, 14 quests, 12 weekly, schema v5, 11 locales)
 - [ ] Sem secrets (`.env`, credenciais Trello) no diff

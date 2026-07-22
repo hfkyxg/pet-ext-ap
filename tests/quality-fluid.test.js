@@ -259,7 +259,7 @@ test('qualidade: name-tag preserva título + nome (não apaga spans)', () => {
 test('qualidade: destroy limpa timers, rAF, abort e partículas', () => {
   const idx = content.indexOf('destroy({ skipExtensionApis = false');
   assert.ok(idx > 0, 'destroy do companion deve existir');
-  const destroySlice = content.slice(idx, idx + 2500);
+  const destroySlice = content.slice(idx, idx + 4500);
   assert.match(destroySlice, /_abort\.abort\(/);
   assert.match(destroySlice, /cancelAnimationFrame/);
   assert.match(destroySlice, /_motionRaf|_glideRaf/);

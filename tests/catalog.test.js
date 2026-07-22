@@ -152,7 +152,7 @@ test('chapéus têm descrição, arte refinada e movimento sincronizado ao passo
   assert.match(styleSource, /#aic-clawd-node\.running \.acc-head[\s\S]{0,150}clawd-headwear-step/);
   assert.match(popupSource, /card\.title = def\.desc/);
   assert.match(popupSource, /card\.setAttribute\('aria-pressed'/);
-  assert.match(popupSource, /description\.textContent = automatic/);
+  assert.match(popupSource, /description\.textContent = tf\('acc_prof_in_use', automatic/);
   assert.match(popupHtml, /id="acc-head-description"/);
 });
 

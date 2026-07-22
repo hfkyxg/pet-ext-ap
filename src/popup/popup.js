@@ -17,6 +17,19 @@ function t(key) {
   return (typeof clawdT === 'function') ? clawdT(key, currentLocale()) : key;
 }
 
+function tf(key, ...vals) {
+  let s = t(key);
+  vals.forEach((v, i) => { s = s.replace(new RegExp(`\\{${i}\\}`, 'g'), String(v)); });
+  return s;
+}
+
+/** Label de entidade do catálogo (EN+ via i18n-entities; pt-BR = fallback do catálogo). */
+function et(kind, id, fallback) {
+  return (typeof clawdEntityT === 'function')
+    ? clawdEntityT(kind, id, fallback, currentLocale())
+    : (fallback != null ? String(fallback) : String(id || ''));
+}
+
 /** Preenche selects de idioma (config + onboarding) com CLAWD_LOCALES. */
 function fillLocaleSelect(sel) {
   if (!sel) return;
@@ -57,6 +70,11 @@ function applyPopupI18n() {
     if (!key) return;
     el.textContent = t(key);
   });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-aria');
+    if (!key) return;
+    el.setAttribute('aria-label', t(key));
+  });
 
   fillLocaleSelect($('select-locale'));
   fillLocaleSelect($('onboarding-locale'));
@@ -75,7 +93,9 @@ function applyLocaleChoice(rawLocale, { persistSetting = true } = {}) {
   const onboardSel = $('onboarding-locale');
   if (configSel && configSel.value !== loc) configSel.value = loc;
   if (onboardSel && onboardSel.value !== loc) onboardSel.value = loc;
-  applyPopupI18n();
+  // Reaplica chrome + listas dinâmicas (ações, loja, conquistas, etc.)
+  if (typeof renderAll === 'function') renderAll();
+  else applyPopupI18n();
 }
 
 function guessBrowserLocale() {
@@ -101,7 +121,7 @@ function sendMsg(message) {
       if (!pill) return;
       pill.style.display = '';
       pill.classList.add('error');
-      $('status-text').textContent = 'Abra em um site real para aplicar ao vivo!';
+      $('status-text').textContent = t('status_need_real_site');
       setTimeout(() => { pill.style.display = 'none'; }, 3000);
     });
   });
@@ -117,17 +137,17 @@ function sendRuntimeMsg(message, onDone) {
 function summonPetToCurrentTab() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (scrubLastError() || !tabs[0]) {
-      showStatusFeedback('Abra um site real primeiro.', { error: true });
+      showStatusFeedback(t('status_open_site_first'), { error: true });
       return;
     }
     sendRuntimeMsg({ action: 'summonPetToTab', tabId: tabs[0].id }, (res) => {
       // Dispara a reação de chegada e usa a resposta do content como fonte de verdade:
       // com cross-tab ligado o pet "viaja" (res.ok); desligado ele já está aqui.
       chrome.tabs.sendMessage(tabs[0].id, { action: 'summonCheer' })
-        .then(() => showStatusFeedback(res?.ok ? 'Pet convocado nesta guia! 🧳' : 'Pet já está com você aqui! 🧳'))
+        .then(() => showStatusFeedback(res?.ok ? t('status_summoned') : t('status_already_here')))
         .catch(() => {
           scrubLastError();
-          showStatusFeedback('Recarregue a página e tente de novo.', { error: true });
+          showStatusFeedback(t('status_reload'), { error: true });
         });
     });
   });
@@ -213,7 +233,7 @@ function makeStar(category, id, onAfter) {
   const btn = document.createElement('button');
   btn.className = 'fav-star' + (isFav(category, id) ? ' favorited' : '');
   btn.textContent = isFav(category, id) ? '⭐' : '☆';
-  btn.title = 'Favoritar';
+  btn.title = t('fav_title');
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleFavorite(category, id);
@@ -305,7 +325,9 @@ function syncHeaderPetPreview() {
   preview.classList.toggle('has-propeller', effective.head === 'propeller');
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
-  preview.setAttribute('aria-label', `${CLAWD_MODELS[S.model]?.label || 'Clássico'}, ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'}`);
+  const modelLabel = et('model', S.model, CLAWD_MODELS[S.model]?.label || 'Clássico');
+  const faceLabel = et('face', S.faceStyle, CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico');
+  preview.setAttribute('aria-label', `${modelLabel}, ${faceLabel}`);
 }
 
 function renderStats(stats) {
@@ -391,7 +413,7 @@ function activatePopupTab(tabId) {
 
 function openStudioOnPage() {
   sendMsg({ action: 'openStudio' });
-  showStatusFeedback('Studio aberto na página — arraste o cabeçalho para mover');
+  showStatusFeedback(t('status_studio_open'));
 }
 
 function detachPopupWindow() {
@@ -456,9 +478,13 @@ function renderOutfitPreview() {
   const body = CLAWD_ACCESSORIES[effective.body];
   const automatic = [effective.autoHead, effective.autoFace]
     .filter(Boolean)
-    .map(id => CLAWD_ACCESSORIES[id]?.label)
+    .map(id => et('acc', id, CLAWD_ACCESSORIES[id]?.label))
     .filter(Boolean);
-  const equipped = [head?.label, face?.label, body?.label].filter(Boolean);
+  const equipped = [
+    head ? et('acc', effective.head, head.label) : null,
+    face ? et('acc', effective.face, face.label) : null,
+    body ? et('acc', effective.body, body.label) : null
+  ].filter(Boolean);
 
   preview.dataset.accHead = effective.head;
   preview.dataset.accFace = effective.face;
@@ -482,10 +508,10 @@ function renderOutfitPreview() {
   preview.setAttribute('aria-label', equipped.length
     ? `Prévia do pet com ${equipped.join(' e ')}`
     : 'Prévia do pet sem acessórios');
-  $('outfit-preview-title').textContent = equipped.length ? equipped.join(' + ') : 'Visual sem acessórios';
+  $('outfit-preview-title').textContent = equipped.length ? equipped.join(' + ') : t('outfit_none');
   $('outfit-preview-detail').textContent = automatic.length
     ? `${automatic.join(' + ')} temporário da profissão; sua escolha pessoal está salva.`
-    : `${CLAWD_MODELS[S.model]?.label || 'Clássico'} · ${CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico'} · ${S.smooth ? 'liso sem grade' : 'pixel-art'} · três slots combináveis`;
+    : `${et('model', S.model, CLAWD_MODELS[S.model]?.label || 'Clássico')} · ${et('face', S.faceStyle, CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico')} · ${S.smooth ? t('outfit_smooth') : t('outfit_pixel')} · ${t('outfit_slots')}`;
 }
 
 function syncPopupNameTag(name = S.name) {
@@ -563,7 +589,7 @@ function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
   const top = document.createElement('div');
   top.className = 'daily-top';
   const title = document.createElement('span');
-  title.textContent = '🎯 Missão diária';
+  title.textContent = `🎯 ${t('daily_title')}`;
   const progressEl = document.createElement('b');
   progressEl.textContent = `${progress}/${daily.target} · ${pct}%`;
   top.appendChild(title);
@@ -571,7 +597,7 @@ function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
 
   const label = document.createElement('div');
   label.className = 'daily-label';
-  label.textContent = String(daily.label || '');
+  label.textContent = et('daily', daily.type, daily.label);
 
   const bar = document.createElement('div');
   bar.className = 'daily-bar';
@@ -587,10 +613,10 @@ function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
   button.className = 'daily-claim';
   button.disabled = !done || !!daily.claimed;
   button.textContent = daily.claimed
-    ? '✅ Resgatada'
+    ? `✅ ${t('quest_claimed')}`
     : done
-      ? `Resgatar +${daily.rewardCoins} 🪙`
-      : `+${daily.rewardXp} XP ao concluir`;
+      ? `${tf('quest_claim_coins', daily.rewardCoins)} 🪙`
+      : tf('quest_reward_xp', daily.rewardXp);
 
   box.appendChild(top);
   box.appendChild(label);
@@ -614,7 +640,7 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
   const top = document.createElement('div');
   top.className = 'daily-top';
   const title = document.createElement('span');
-  title.textContent = `${weekly.badge || '🏆'} Desafio semanal`;
+  title.textContent = `${weekly.badge || '🏆'} ${t('weekly_title')}`;
   const progressEl = document.createElement('b');
   progressEl.textContent = `${progress}/${weekly.target} · ${pct}%`;
   top.appendChild(title);
@@ -622,12 +648,12 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
 
   const label = document.createElement('div');
   label.className = 'daily-label';
-  label.textContent = String(weekly.label || '');
+  label.textContent = et('weekly', weekly.type, weekly.label);
 
   const desc = document.createElement('div');
   desc.className = 'daily-label';
   desc.style.cssText = 'font-size:10px;opacity:0.7;';
-  desc.textContent = String(weekly.desc || '');
+  desc.textContent = et('weekly_desc', weekly.type, weekly.desc);
 
   const bar = document.createElement('div');
   bar.className = 'daily-bar';
@@ -645,10 +671,10 @@ function renderWeeklyChallenge(weekly = clawdEnsureWeeklyChallenge(S)) {
   button.style.borderColor = '#9b59b6';
   button.disabled = !done || !!weekly.claimed;
   button.textContent = weekly.claimed
-    ? '✅ Resgatado'
+    ? `✅ ${t('quest_claimed')}`
     : done
-      ? `Resgatar +${weekly.rewardCoins} 🪙`
-      : `+${weekly.rewardXp} XP ao concluir`;
+      ? `${tf('quest_claim_coins', weekly.rewardCoins)} 🪙`
+      : tf('quest_reward_xp', weekly.rewardXp);
 
   box.appendChild(top);
   box.appendChild(label);
@@ -692,7 +718,7 @@ function renderFavNicks() {
     const chip = document.createElement('span');
     chip.className = 'nick-chip';
     chip.textContent = `⭐ ${n}`;
-    chip.title = 'Clique para usar';
+    chip.title = t('nick_click_use');
     chip.addEventListener('click', () => {
       $('input-name').value = n;
       setConfig('name', n);
@@ -748,10 +774,11 @@ function renderColors() {
   if (presetRow) {
     presetRow.innerHTML = '';
     CLAWD_COLOR_PRESETS.forEach(preset => {
+      const presetLabel = et('color', preset.id, preset.label);
       const chip = document.createElement('button');
       chip.className = 'preset-chip' + (S.color === preset.color ? ' active' : '');
-      chip.textContent = preset.label;
-      chip.title = `${preset.label}: ${preset.color}`;
+      chip.textContent = presetLabel;
+      chip.title = `${presetLabel}: ${preset.color}`;
       chip.addEventListener('click', () => {
         $('input-color').value = preset.color;
         $('input-eye-color').value = preset.eyeColor;
@@ -786,7 +813,7 @@ function renderModels() {
     card.title = def.desc;
     card.appendChild(createPetArtPreview({ model: id, className: 'model-art-preview' }));
     const label = document.createElement('span');
-    label.innerHTML = `<b>${def.badge}</b>${def.label}`;
+    label.innerHTML = `<b>${def.badge}</b>${et('model', id, def.label)}`;
     card.appendChild(label);
     card.addEventListener('click', () => {
       setConfig('model', id);
@@ -812,7 +839,7 @@ function renderFaceStyles() {
     card.title = def.desc;
     card.appendChild(createPetArtPreview({ faceStyle: id, className: 'face-art-preview' }));
     const label = document.createElement('span');
-    label.innerHTML = `<b>${def.badge}</b>${def.label}`;
+    label.innerHTML = `<b>${def.badge}</b>${et('face', id, def.label)}`;
     card.appendChild(label);
     card.addEventListener('click', () => {
       setConfig('faceStyle', id);
@@ -836,7 +863,7 @@ function renderSkins() {
     card.title = def.desc;
     card.appendChild(createPetArtPreview({ skin: id, className: 'skin-art-preview' }));
     const label = document.createElement('span');
-    label.textContent = def.label;
+    label.textContent = et('skin', id, def.label);
     card.appendChild(label);
     card.addEventListener('click', () => {
       setConfig('skin', id);
@@ -880,10 +907,10 @@ function renderAccessories() {
     noneArt.appendChild(removeMark);
     const noneName = document.createElement('span');
     noneName.className = 'acc-name';
-    noneName.textContent = 'Nenhum';
+    noneName.textContent = t('acc_none');
     noneCard.append(noneArt, noneName);
-    const slotName = slot === 'head' ? 'cabeça' : slot === 'face' ? 'rosto' : 'corpo';
-    noneCard.title = `Remover acessório de ${slotName}`;
+    const slotName = slot === 'head' ? t('acc_slot_head') : slot === 'face' ? t('acc_slot_face') : t('acc_slot_body');
+    noneCard.title = tf('acc_remove_fmt', slotName);
     noneCard.setAttribute('aria-label', noneCard.title);
     noneCard.setAttribute('aria-pressed', String(current === 'none'));
     noneCard.addEventListener('click', () => { setConfig(configKey, 'none'); renderAccessories(); });
@@ -907,45 +934,47 @@ function renderAccessories() {
         body: slot === 'body' ? id : 'none',
         className: 'accessory-art-preview'
       }));
+      const accLabel = et('acc', id, def.label);
+      const accDesc = et('acc_desc', id, def.desc);
       const name = document.createElement('span');
       name.className = 'acc-name';
-      name.textContent = def.label;
+      name.textContent = accLabel;
       card.appendChild(name);
       if (slot === 'body') {
         const slotBadge = document.createElement('span');
         slotBadge.className = 'acc-slot-badge';
-        slotBadge.textContent = 'CORPO';
+        slotBadge.textContent = t('acc_badge_body');
         card.appendChild(slotBadge);
       }
       if (!unlocked) {
         const lock = document.createElement('span');
         lock.className = 'lock-badge';
-        lock.textContent = def.unlock.type === 'level' ? `🔒 Lv.${def.unlock.level}` : '🔒 Loja';
+        lock.textContent = def.unlock.type === 'level' ? `🔒 Lv.${def.unlock.level}` : t('acc_badge_shop');
         card.appendChild(lock);
       }
       card.setAttribute('aria-pressed', String(current === id));
       if (autoId === id) {
         const badge = document.createElement('span');
         badge.className = 'auto-gear-badge';
-        badge.textContent = 'PROF.';
-        badge.title = 'Equipado temporariamente pela profissão ativa';
+        badge.textContent = t('acc_badge_prof');
+        badge.title = t('acc_prof_temp');
         card.appendChild(badge);
         card.setAttribute('aria-current', 'true');
       }
       if (unlocked) {
-        card.title = def.desc;
-        card.setAttribute('aria-label', `${def.label}. ${def.desc}`);
+        card.title = accDesc;
+        card.setAttribute('aria-label', `${accLabel}. ${accDesc}`);
         card.appendChild(makeStar('accessories', id, renderAccessories));
         card.addEventListener('click', () => { setConfig(configKey, id); renderAccessories(); });
       } else {
         const unlockHint = def.unlock.type === 'level'
-          ? `Desbloqueia no nível ${def.unlock.level}`
-          : `Compre na Lojinha por ${def.unlock.price} 🪙`;
-        card.title = `${def.desc}. ${unlockHint}`;
-        card.setAttribute('aria-label', `${def.label}. ${card.title}`);
+          ? tf('acc_unlock_level', def.unlock.level)
+          : tf('acc_buy_shop', def.unlock.price);
+        card.title = `${accDesc}. ${unlockHint}`;
+        card.setAttribute('aria-label', `${accLabel}. ${card.title}`);
       }
       if (autoId === id) {
-        card.setAttribute('aria-label', `${card.getAttribute('aria-label')}. Equipado temporariamente pela profissão ativa.`);
+        card.setAttribute('aria-label', `${card.getAttribute('aria-label')}. ${t('acc_prof_temp')}.`);
       }
       grid.appendChild(card);
     });
@@ -955,15 +984,21 @@ function renderAccessories() {
     const description = $(descId);
     if (!description) return;
     const automatic = autoId && CLAWD_ACCESSORIES[autoId];
-    description.textContent = automatic
-      ? `${automatic.emoji} ${automatic.label} está em uso pela profissão. ${selected ? `Sua escolha ${selected.label}` : 'A opção sem acessório'} volta no modo Livre.`
-      : selected
-      ? `${selected.emoji} ${selected.label} — ${selected.desc}`
-      : slot === 'head'
-        ? 'Sem chapéu selecionado.'
+    if (automatic) {
+      const autoLabel = et('acc', autoId, automatic.label);
+      const middle = selected
+        ? tf('acc_your_choice', et('acc', current, selected.label))
+        : t('acc_none_option');
+      description.textContent = tf('acc_prof_in_use', automatic.emoji, autoLabel, middle);
+    } else if (selected) {
+      description.textContent = `${selected.emoji} ${et('acc', current, selected.label)} — ${et('acc_desc', current, selected.desc)}`;
+    } else {
+      description.textContent = slot === 'head'
+        ? t('acc_empty_head')
         : slot === 'face'
-        ? 'Sem acessório de rosto selecionado.'
-        : 'Sem acessório de corpo selecionado.';
+        ? t('acc_empty_face')
+        : t('acc_empty_body');
+    }
   });
   renderOutfitPreview();
 }
@@ -980,7 +1015,7 @@ function renderProfessions() {
     card.className = 'profession-card'
       + (S.profession === id ? ' active' : '')
       + (isFav('professions', id) ? ' favorited' : '');
-    card.innerHTML = `<span class="prof-icon">${def.emoji}</span><span class="prof-name">${def.label}</span><span class="prof-desc">${def.desc}</span>`;
+    card.innerHTML = `<span class="prof-icon">${def.emoji}</span><span class="prof-name">${et('prof', id, def.label)}</span><span class="prof-desc">${et('prof_desc', id, def.desc)}</span>`;
     card.appendChild(makeStar('professions', id, renderProfessions));
     card.addEventListener('click', () => {
       setConfig('profession', id);
@@ -996,11 +1031,12 @@ function renderProfessions() {
 
 function updateProfStatus(profession) {
   const def = CLAWD_PROFESSIONS[profession] || CLAWD_PROFESSIONS.idle;
-  const gear = Object.values(def.gear || {}).map(id => CLAWD_ACCESSORIES[id]?.label).filter(Boolean);
+  const gear = Object.values(def.gear || {}).map(id => et('acc', id, CLAWD_ACCESSORIES[id]?.label)).filter(Boolean);
   document.querySelector('.prof-status-icon').textContent = def.emoji;
   $('prof-status-text').textContent = profession === 'idle'
-    ? 'Modo livre — sem profissão ativa'
-    : `${def.label} ativo — ${def.desc.toLowerCase()}${gear.length ? ` · traje: ${gear.join(' + ')}` : ''}`;
+    ? t('prof_idle_status')
+    : tf('prof_active_fmt', et('prof', profession, def.label), et('prof_desc', profession, def.desc).toLowerCase())
+      + (gear.length ? tf('prof_gear_fmt', gear.join(' + ')) : '');
   $('jersey-group').style.display = profession === 'footballer' ? '' : 'none';
 }
 
@@ -1018,7 +1054,11 @@ function renderJersey() {
     });
     grid.appendChild(sw);
   });
-  $('keepy-record').querySelector('b').textContent = S.game.counters.keepyRecord || 0;
+  const rec = $('keepy-record');
+  rec.replaceChildren(document.createTextNode(`${t('keepy_record_fmt')} `));
+  const recB = document.createElement('b');
+  recB.textContent = S.game.counters.keepyRecord || 0;
+  rec.appendChild(recB);
 }
 
 /* =====================================================
@@ -1029,13 +1069,14 @@ function renderActions() {
   grid.innerHTML = '';
   favSort(Object.keys(CLAWD_ACTIONS), 'actions').forEach(id => {
     const def = CLAWD_ACTIONS[id];
+    const label = et('action', id, def.label);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'action-btn' + (isFav('actions', id) ? ' favorited' : '');
     btn.dataset.action = id;
-    btn.setAttribute('aria-label', def.label);
-    btn.title = def.label;
-    btn.innerHTML = `<span class="action-emoji" aria-hidden="true">${def.emoji}</span><span class="action-label">${def.label}</span>`;
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+    btn.innerHTML = `<span class="action-emoji" aria-hidden="true">${def.emoji}</span><span class="action-label">${label}</span>`;
     btn.appendChild(makeStar('actions', id, renderActions));
     btn.addEventListener('click', () => {
       sendMsg({ action: 'triggerAction', value: id });
@@ -1043,7 +1084,7 @@ function renderActions() {
       void btn.offsetWidth;
       btn.classList.add('playing', 'action-ripple');
       setTimeout(() => btn.classList.remove('playing', 'action-ripple'), 420);
-      showStatusFeedback(`${def.emoji} ${def.label}!`);
+      showStatusFeedback(`${def.emoji} ${label}!`);
       setTimeout(pollLiveStats, 600);
     });
     grid.appendChild(btn);
@@ -1060,19 +1101,21 @@ function renderSubpetActions() {
   grid.innerHTML = '';
 
   Object.entries(CLAWD_SUBPET_ACTIONS).forEach(([id, def]) => {
+    const label = et('subact', id, def.label);
+    const feedback = et('subact_fb', id, def.feedback);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'subpet-action-btn';
     btn.disabled = !active;
     btn.dataset.action = id;
-    btn.title = active ? `${def.label}: ${def.feedback}` : 'Ative um sub-pet primeiro';
-    btn.innerHTML = `<span aria-hidden="true">${def.emoji}</span><b>${def.label}</b>`;
+    btn.title = active ? `${label}: ${feedback}` : t('subpet_inactive');
+    btn.innerHTML = `<span aria-hidden="true">${def.emoji}</span><b>${label}</b>`;
     btn.addEventListener('click', () => {
       if (!S.subpets.active) return;
       const species = S.subpets.active;
-      const petName = (S.subpets.names || {})[species] || CLAWD_SUBPETS[species]?.label || 'Sub-pet';
+      const petName = (S.subpets.names || {})[species] || et('subpet', species, CLAWD_SUBPETS[species]?.label) || 'Sub-pet';
       sendMsg({ action: 'triggerSubpetAction', value: id });
-      status.textContent = `${def.emoji} ${petName}: ${def.feedback}`;
+      status.textContent = `${def.emoji} ${petName}: ${feedback}`;
       btn.classList.add('playing');
       setTimeout(() => btn.classList.remove('playing'), 420);
     });
@@ -1080,10 +1123,10 @@ function renderSubpetActions() {
   });
 
   if (!active) {
-    status.textContent = 'Ative um sub-pet para brincar.';
+    status.textContent = t('subpet_inactive');
   } else {
-    const petName = (S.subpets.names || {})[active] || CLAWD_SUBPETS[active]?.label || 'Sub-pet';
-    status.textContent = `${petName} está acordado e pronto para interagir.`;
+    const petName = (S.subpets.names || {})[active] || et('subpet', active, CLAWD_SUBPETS[active]?.label) || 'Sub-pet';
+    status.textContent = `${petName} ${t('subpet_ready')}`;
   }
 }
 
@@ -1135,10 +1178,12 @@ function renderSubpets() {
     card.appendChild(stage);
     const nameEl = document.createElement('span');
     nameEl.className = 'subpet-name';
-    nameEl.textContent = name || def.label;
+    nameEl.textContent = name || et('subpet', id, def.label);
     const descEl = document.createElement('span');
     descEl.className = 'subpet-desc';
-    descEl.textContent = unlocked ? def.special : `🔒 Nível ${def.level}`;
+    descEl.textContent = unlocked
+      ? et('subpet_desc', id, def.special)
+      : tf('level_lock_fmt', def.level);
     card.append(nameEl, descEl);
     if (unlocked) {
       card.appendChild(makeStar('subpets', id, renderSubpets));
@@ -1243,15 +1288,15 @@ function renderShop() {
     card.className = 'shop-card' + (owned ? ' owned' : '');
     card.innerHTML = `
       <span class="shop-emoji">${def.emoji}</span>
-      <span class="shop-name">${def.label}</span>
-      <span class="shop-price">${owned ? '✅ Comprado' : `🪙 ${def.price}`}</span>`;
+      <span class="shop-name">${et('shop', id, def.label)}</span>
+      <span class="shop-price">${owned ? t('shop_owned') : `🪙 ${def.price}`}</span>`;
     const btn = document.createElement('button');
     btn.className = 'shop-btn';
     if (!owned) {
       const afford = (S.game.coins || 0) >= def.price;
-      btn.textContent = 'Comprar';
+      btn.textContent = t('shop_buy');
       btn.disabled = !afford;
-      if (!afford) btn.title = 'PixelCoins insuficientes';
+      if (!afford) btn.title = t('shop_cant_afford');
       btn.addEventListener('click', () => {
         persist(st => {
           if ((st.game.coins || 0) < def.price) return;
@@ -1265,7 +1310,7 @@ function renderShop() {
         setTimeout(() => { renderShop(); renderHeader(); renderAccessories(); }, 120);
       });
     } else if (def.kind === 'accessory') {
-      btn.textContent = 'Equipar';
+      btn.textContent = t('shop_equip');
       btn.addEventListener('click', () => {
         const accSlot = CLAWD_ACCESSORIES[id]?.slot;
         const configKey = accSlot === 'head' ? 'accessoryHead' : accSlot === 'body' ? 'accessoryBody' : 'accessoryFace';
@@ -1273,15 +1318,15 @@ function renderShop() {
         renderAccessories();
       });
     } else if (def.kind === 'ball') {
-      btn.textContent = equipped ? 'Equipada ✓' : 'Equipar';
+      btn.textContent = equipped ? t('shop_equipped') : t('shop_equip');
       btn.disabled = equipped;
       btn.addEventListener('click', () => { setConfig('ballSkin', id); renderShop(); });
     } else if (def.kind === 'decor') {
-      btn.textContent = 'Decoração ativa ✓';
+      btn.textContent = t('shop_decor_active');
       btn.disabled = true;
-      btn.title = id === 'cushion' ? 'Almofada pixel aparece sob o pet na página' : 'Item decorativo ativo';
+      btn.title = id === 'cushion' ? t('shop_cushion_hint') : t('shop_decor_active');
     } else {
-      btn.textContent = 'Decoração ✓';
+      btn.textContent = t('shop_decor_active');
       btn.disabled = true;
     }
     card.appendChild(btn);
@@ -1307,23 +1352,23 @@ function renderAchievements() {
     row.innerHTML = `
       <span class="ach-emoji">${def.emoji}</span>
       <div class="ach-info">
-        <span class="ach-name">${def.label}</span>
-        <span class="ach-desc">${def.desc}</span>
+        <span class="ach-name">${et('ach', id, def.label)}</span>
+        <span class="ach-desc">${et('ach_desc', id, def.desc)}</span>
         <div class="ach-bar"><div class="ach-fill" style="width:${pct}%"></div></div>
       </div>
       <span class="ach-state">${unlocked ? '🏆' : `${Math.min(cur, def.goal)}/${def.goal}`}</span>`;
     list.appendChild(row);
   });
-  $('ach-summary').textContent = `${unlockedCount} / ${Object.keys(CLAWD_ACHIEVEMENTS).length} desbloqueadas`;
+  $('ach-summary').textContent = tf('ach_unlocked_fmt', unlockedCount, Object.keys(CLAWD_ACHIEVEMENTS).length);
   const st = S.game.streak || { days: 0 };
   const days = Math.max(0, Math.min(9999, Number(st.days) || 0));
   const streakBox = $('streak-box');
   streakBox.replaceChildren();
-  streakBox.append('🔥 Streak: ');
+  streakBox.append(t('streak_box_prefix') + ' ');
   const streakB = document.createElement('b');
-  streakB.textContent = `${days} dia${days === 1 ? '' : 's'}`;
+  streakB.textContent = days === 1 ? t('streak_days_one') : tf('streak_days_many', days);
   streakBox.appendChild(streakB);
-  streakBox.append(' — volte amanhã para bônus de XP!');
+  streakBox.append(t('streak_box_hint'));
   renderDailyQuest(S.daily);
   renderWeeklyChallenge(clawdEnsureWeeklyChallenge(S));
 }
@@ -1354,7 +1399,7 @@ function renderConfig() {
   const pcEl = $('input-particle-color');
   if (pcEl && S.particleColor) pcEl.value = S.particleColor;
   const pcHex = $('particle-color-hex');
-  if (pcHex) pcHex.textContent = S.particleColor || '(padrão)';
+  if (pcHex) pcHex.textContent = S.particleColor || t('particle_default');
   /* v3.3: frases customizadas */
   const csEl = $('custom-speech');
   if (csEl) csEl.value = (S.customSpeech || []).join('\n');
@@ -1472,9 +1517,9 @@ function bindTrelloControls() {
   };
   const submitCard = (kind) => {
     const promptLabel = kind === 'bug' ? t('trello_bug') : t('trello_idea');
-    const name = window.prompt(promptLabel + ' — título:', '');
+    const name = window.prompt(`${promptLabel} ${t('trello_prompt_title')}`, '');
     if (!name || !name.trim()) return;
-    const desc = window.prompt('Descrição (opcional):', '') || '';
+    const desc = window.prompt(t('trello_prompt_desc'), '') || '';
     status('…');
     sendRuntimeMsg({
       action: 'createTrelloCard',
@@ -1606,7 +1651,7 @@ function bindConfig() {
     const pcEl2 = $('input-particle-color');
     if (pcEl2) pcEl2.value = '#f1c40f';
     const hexEl = $('particle-color-hex');
-    if (hexEl) hexEl.textContent = '(padrão)';
+    if (hexEl) hexEl.textContent = t('particle_default');
     setConfig('particleColor', 'default');
   });
   /* v3.3: frases customizadas */
@@ -1686,7 +1731,7 @@ function bindConfig() {
       try {
         const parsed = JSON.parse(reader.result);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-          alert('❌ Arquivo inválido.');
+          alert(t('import_invalid'));
           return;
         }
         const data = clawdMigrateState(parsed);
@@ -1694,23 +1739,23 @@ function bindConfig() {
           scrubLastError();
           S = data;
           renderAll();
-          alert('✅ Dados importados! Recarregue as páginas abertas para aplicar.');
+          alert(t('import_ok'));
         });
       } catch (_) {
-        alert('❌ Arquivo inválido.');
+        alert(t('import_invalid'));
       }
     };
     reader.readAsText(file);
   });
   $('btn-reset-all').addEventListener('click', () => {
-    if (!confirm('Resetar TODO o progresso (XP, moedas, conquistas, favoritos)?')) return;
-    if (!confirm('Tem certeza? Essa ação não pode ser desfeita!')) return;
+    if (!confirm(t('reset_confirm_1'))) return;
+    if (!confirm(t('reset_confirm_2'))) return;
     const fresh = clawdDefaultState();
     chrome.storage.local.set({ clawdState: fresh }, () => {
       scrubLastError();
       S = fresh;
       renderAll();
-      alert('🔄 Progresso resetado. Recarregue as páginas abertas.');
+      alert(t('reset_done'));
     });
   });
 }
@@ -1834,10 +1879,10 @@ function bindStatic() {
 
   // Status interativos: felicidade / comida / energia / higiene
   const STAT_FEEDBACK = {
-    happy: 'Carinho enviado ❤️',
-    feed: 'Hora do lanche 🍖',
-    play: 'Vamos brincar! ⚡',
-    bath: 'Banho liberado 🧼'
+    happy: t('status_stat_happy'),
+    feed: t('status_stat_feed'),
+    play: t('status_stat_play'),
+    bath: t('status_stat_bath')
   };
   document.querySelectorAll('.stat-action').forEach(btn => {
     const run = () => {
@@ -1845,7 +1890,7 @@ function bindStatic() {
       if (!action) return;
       pulseStatButton(btn);
       sendMsg({ action: 'triggerAction', value: action });
-      showStatusFeedback(STAT_FEEDBACK[action] || 'Ação enviada!');
+      showStatusFeedback(STAT_FEEDBACK[action] || t('status_action_sent'));
       /* otimista: sobe o medidor local até o content sincronizar */
       const key = btn.dataset.statKey;
       const bump = Number(String(btn.dataset.statDelta || '+10').replace('+', '')) || 10;
@@ -1859,8 +1904,8 @@ function bindStatic() {
 
   // Ações rápidas no header
   const QUICK_FEEDBACK = {
-    wave: 'Acenando 👋', dance: 'Hora de dançar 🕺', pose: 'Pose! 📸',
-    sleep: 'ZzZz… 😴', balloon: 'Balão 🎈', cheer: 'Yeah! 🎉'
+    wave: t('status_quick_wave'), dance: t('status_quick_dance'), pose: t('status_quick_pose'),
+    sleep: t('status_quick_sleep'), balloon: t('status_quick_balloon'), cheer: t('status_quick_cheer')
   };
   document.querySelectorAll('.btn-quick').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1870,7 +1915,7 @@ function bindStatic() {
       void btn.offsetWidth;
       btn.classList.add('quick-pulse');
       sendMsg({ action: 'triggerAction', value: action });
-      showStatusFeedback(QUICK_FEEDBACK[action] || 'Ação enviada!');
+      showStatusFeedback(QUICK_FEEDBACK[action] || t('status_action_sent'));
       setTimeout(() => btn.classList.remove('quick-pulse'), 400);
     });
   });
@@ -1897,13 +1942,13 @@ function bindStatic() {
     S.petVisible = next;
     persist(st => { st.petVisible = next; });
     syncVisibilityButton(next);
-    showStatusFeedback(next ? 'Pet visível de novo!' : 'Pet oculto nesta guia.');
+    showStatusFeedback(next ? t('status_pet_shown') : t('status_pet_hidden'));
   });
   const summonBtn = $('btn-summon-tab');
   if (summonBtn) summonBtn.addEventListener('click', summonPetToCurrentTab);
   $('btn-reset').addEventListener('click', () => {
     sendMsg({ action: 'resetPosition' });
-    showStatusFeedback('Pet resgatado na tela! 🛟');
+    showStatusFeedback(t('status_rescued'));
   });
 
   bindConfig();
@@ -2037,7 +2082,7 @@ function updateContextBar(status) {
   const ctx  = status?.pageContext || 'idle';
   const profData = CLAWD_PROFESSIONS[prof] || CLAWD_PROFESSIONS.idle;
   const emoji = profData?.emoji || '💼';
-  const label = profData?.label || 'Livre';
+  const label = et('prof', prof, profData?.label || 'Livre');
   $('context-bar-profession').textContent = `${emoji} ${label}`;
   $('context-bar-page').textContent = ctx;
   bar.style.display = 'flex';

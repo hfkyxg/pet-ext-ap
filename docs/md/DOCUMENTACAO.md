@@ -410,7 +410,7 @@ Os **164 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 | **Ambient FX (movimento)** | `_spawnAccessoryMotionFx()` dispara faíscas curtas ao **andar/correr/planar/dançar** ou equipar acessório — não há timer de loop idle; `noAmbientSparks` desliga faíscas de movimento. |
 | **Bola pé direito** | `.pet-ball { left: 48px }` + chuteira `left: 42px`; kick/roll/doPlay para a direita; sem `drop-shadow` blur; contador `.aic-juggle-count` à direita. |
 | **v3.7.3 UX** | `petVisible` no estado; `summonPetToTab` no SW; `minimalMode` → `.aic-minimal`; `clawdHasSavedPosition()` rejeita `{0,0}`; spawn usa `clawdDefaultPositionCoords(startCorner)`. |
-| **Validação** | Suíte **187/187** · v3.8.0 (i18n chrome + onboarding, Trello, layering, fluidez, polish cross-tab/SFX/animações). |
+| **Validação** | Suíte **194/194** · v3.8.0 (i18n chrome + onboarding, Trello, layering, fluidez, polish cross-tab/SFX/animações). |
 | **Fluidez pet↔subpet** | `clawdEaseInOutCubic` em walk/run; `_pulseReact` ecoa jump/dance/bath/happy; micro-idle do subpet; walk CSS `ease-in-out`; anticipação de pulo; duo ~72% chance; timings mais vivos. |
 | **Cross-tab / SFX** | `_isActiveHost` + `_crossTabHidden`; despawn cancelável; beep/fala/partículas só no host; sem eco wake/cheer/dblclick. |
 

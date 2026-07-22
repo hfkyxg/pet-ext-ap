@@ -221,7 +221,8 @@ test('harmonia: personalidade e customSpeech no estado, migração e sanitize', 
 test('harmonia: content pondera customSpeech e idle por traços', () => {
   assert.match(content, /customSpeech/);
   assert.match(content, /personality\?\.social/);
-  assert.match(content, /traitBoost/);
+  /* Rotação embaralhada (_nextPetAction) reforça traços sem traitBoost legado */
+  assert.match(content, /_nextPetAction\(\)/);
   assert.match(content, /playful.*>=\s*7[\s\S]*dance/s);
   assert.match(content, /lazy.*>=\s*7[\s\S]*stretch/s);
   assert.match(content, /curious.*>=\s*7[\s\S]*lookAround/s);
@@ -234,7 +235,7 @@ test('harmonia: content pondera customSpeech e idle por traços', () => {
     'wave', 'highfive', 'hug'
   ];
   for (const id of boostActions) {
-    assert.ok(CLAWD_ACTIONS[id], `traitBoost aponta para ação inexistente: ${id}`);
+    assert.ok(CLAWD_ACTIONS[id], `reforço de traço aponta para ação inexistente: ${id}`);
   }
 });
 
