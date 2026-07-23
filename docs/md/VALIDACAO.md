@@ -1,8 +1,8 @@
 # Relatório de Validação — Claw'd v4.0.0
 
-**Data:** 23 de julho de 2026 (revalidação: load unpacked MV3 + badge 250 + fala/gestos/movimento)
+**Data:** 23 de julho de 2026 (revalidação: modo liso nítido + load unpacked MV3 + badge 250)
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **250/250** contratos — schema v6 + Central de Calma + 11 subpets + harness sem `_` + fala sem colisão + movimento sincronizado + acessibilidade
+**Marco:** **250/250** contratos — schema v6 + Central de Calma + 11 subpets + modo liso sem AA pastoso + harness sem `_` + fala/movimento/a11y
 
 ## Resultado
 
@@ -51,8 +51,20 @@
 | Prioridade da interação | `AUTONOMY_GRACE_MS` impede fala/cena/idle/passeio autônomo de sobrepor uma ação recente | ✅ |
 | Bem-estar sem pressão | grounding é avançado pelo usuário; humor baixo sugere apoio sem abrir modal à força; dados ficam locais | ✅ |
 | Sons e timers | padrões procedurais curtos, AudioContext pós-gesto e `_calmSoundTimers` limpo no teardown | ✅ |
+| Modo liso nítido | sem `drop-shadow` no `.pet-body`/stack (evita AA com `scale(1.5)`); contorno via `box-shadow`; profundidade no `.ground-shadow` | ✅ |
 
-Contratos específicos: `tests/motion-harmony.test.js`. Diretrizes: [`docs/MOTION.md`](../MOTION.md).
+Contratos específicos: `tests/motion-harmony.test.js`, `tests/catalog.test.js` (modo liso). Diretrizes: [`docs/MOTION.md`](../MOTION.md).
+
+## Polish 23/07/2026 — modo liso
+
+| Item | Status |
+|------|--------|
+| `filter: none` no `.pet-body` (não combina com `scale`) | ✅ |
+| Stack liso sem `drop-shadow` / sem layer GPU forçada | ✅ |
+| Contorno liso com `box-shadow` nos sólidos (classic/mini/guardian) | ✅ |
+| Keyframes body sem sombra (pose, meditar, elétrico, arco-íris, sleep, excited) | ✅ |
+| Name-tag `top: 48px` no liso (menos overlap nas pernas) | ✅ |
+| Contratos anti-regressão no catálogo / validation-complete / quality-fluid | ✅ |
 
 ## Polish 22/07/2026 (neste marco)
 

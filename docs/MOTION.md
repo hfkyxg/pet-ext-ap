@@ -11,6 +11,7 @@ Este documento é a fonte de manutenção para animações, transições e inter
 5. `prefers-reduced-motion: reduce`, `.aic-reduced-motion` e o modo desempenho devem interromper movimento decorativo, partículas e loops autônomos.
 6. Toda interação precisa funcionar com ponteiro e teclado, ter foco visível e expor o estado assistivo correspondente.
 7. Ações explícitas têm prioridade: loops autônomos aguardam `AUTONOMY_GRACE_MS` após qualquer interação recente antes de falar, passear, variar o idle ou iniciar uma cena em dupla.
+8. Escala (`--agent-scale`) e `filter: drop-shadow` não convivem no mesmo elemento: o Chromium rasteriza a sombra com AA e desfigura o modo liso. Profundidade fica no `.ground-shadow`; contorno liso usa `box-shadow` nos sólidos.
 
 ## Vocabulário de movimento
 

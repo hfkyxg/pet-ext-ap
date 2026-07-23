@@ -454,8 +454,8 @@ test('polish: tokens de easing, reduced-motion na boca, hover compõe glow, sem 
   assert.match(style, /var\(--clawd-ease-snap\)/);
   /* Reduced-motion também zera a animação da boca (idle/talk/chew) */
   assert.match(style, /aic-reduced-motion \.emotion-mouth[\s\S]{0,180}animation:\s*none !important/);
-  /* Hover num pet alegre intensifica o glow em vez de sobrescrevê-lo */
-  assert.match(style, /emotion-glow:not\(\.smooth\)[\s\S]{0,120}:hover \.pet-body/);
+  /* Hover num pet alegre intensifica o chão (sem filter no body scaleado) */
+  assert.match(style, /emotion-glow:not\(\.smooth\)[\s\S]{0,120}:hover \.ground-shadow/);
   /* Timer vestigial removido (nunca era atribuído) */
   assert.doesNotMatch(content, /_ambientWeatherTimer/);
 });

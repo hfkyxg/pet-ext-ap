@@ -362,9 +362,10 @@ test('validação: skins com animação + partículas pixel ricas', () => {
   assert.match(style, /\.aic-pixel-spark\.spark-star/);
   assert.match(style, /@keyframes clawd-walk-dust-rich/);
   assert.match(content, /spark-sm[\s\S]{0,80}spark-star/);
-  /* Anti-bloom: sombra seca no corpo; sparks/dust sem scale/rotate mole */
-  assert.match(style, /\.pet-body \{[\s\S]{0,280}drop-shadow\(2px 3px 0/);
-  assert.doesNotMatch(style, /\.pet-body \{[\s\S]{0,280}drop-shadow\(0px 5px 8px/);
+  /* Anti-bloom: sem filter de sombra no .pet-body (scale+filter desfigura o liso) */
+  assert.match(style, /#aic-clawd-node \.pet-body \{[\s\S]{0,420}filter:\s*none/);
+  assert.doesNotMatch(style, /#aic-clawd-node \.pet-body \{[^}]*drop-shadow\(/);
+  assert.match(style, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[\s\S]{0,120}filter:\s*none/);
   assert.match(style, /@keyframes clawd-pixel-spark \{[\s\S]{0,220}translate\(var\(--spark-x/);
   assert.doesNotMatch(style, /@keyframes clawd-pixel-spark \{[\s\S]{0,280}rotate\(180deg\)/);
 

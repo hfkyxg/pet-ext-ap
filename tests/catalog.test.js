@@ -406,8 +406,13 @@ test('sub-pets suportam apelidos e paletas customizadas por espécie', () => {
 });
 
 test('modo liso troca a grade por uma silhueta contínua do mesmo pet', () => {
-  assert.match(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[\s\S]*filter:\s*drop-shadow/);
+  // Sem filter no stack/body: drop-shadow + scale(1.5) desfigura a silhueta.
+  assert.match(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[\s\S]*?filter:\s*none/);
+  assert.match(styleSource, /#aic-clawd-node \.pet-body\s*\{[\s\S]*?filter:\s*none/);
   assert.doesNotMatch(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[^}]*blur\(/);
+  assert.doesNotMatch(styleSource, /#aic-clawd-node\.smooth \.sprite-stack\s*\{[^}]*drop-shadow\(/);
+  assert.match(styleSource, /#aic-clawd-node\.smooth\.outlined \.smooth-core\s*\{[\s\S]*?box-shadow:/);
+  assert.match(styleSource, /#aic-clawd-node\.smooth \.name-tag\s*\{[\s\S]*?top:\s*48px/);
   assert.match(styleSource, /#aic-clawd-node\.smooth,[\s\S]*background-color:\s*transparent !important;[\s\S]*background-image:\s*none !important;/);
   assert.match(contentSource, /class="smooth-sprite" id="aic-smooth-sprite"/);
   assert.match(styleSource, /#aic-clawd-node\.smooth \.pixel-legs,[\s\S]*#aic-clawd-node\.smooth \.pixel-fx\s*\{[\s\S]*display:\s*none !important;[\s\S]*box-shadow:\s*none !important;/);

@@ -54,7 +54,7 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Rosto e olhos** — **9 rostos** (Clássico, Brilho, Focado, Sonolento, Piscadela, Fofinho, Bravo, Apaixonado, Babão) e cor de olhos independente do corpo;
 - **Tamanho** — de 0.8× (mini) a 3× (gigante);
 - **Velocidade da animação** — deixe-o zen (0.5×) ou hiperativo (3×);
-- **Visual liso** — conserva a geometria angular do pet, mas usa superfícies contínuas no lugar das células quadradas; não exibe grade ou textura e não transforma o Claw'd em slime;
+- **Visual liso** — conserva a geometria angular do pet com superfícies contínuas (sem grade/células); silhueta nítida mesmo com escala 1.5× — sem “borra” de sombra; contorno opcional usa traço seco nos blocos;
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
 - **Exibir boca** — ligada por padrão; desligue para remover somente a boca (olhos, piscadas e balões de emoji continuam ativos);
 - **Skin do corpo** — **11 skins** (Normal, Orelhas caídas, Robô, Sardas, Listras, Manchas, Brilho, Cósmica, Cristal, Brasa e Oceano), combináveis com qualquer modelo e rosto, com cor de destaque e intensidade ajustáveis;

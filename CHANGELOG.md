@@ -6,7 +6,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 ## [4.0.0] — Foco & Bem-estar
 
 Marco maior: o Claw'd deixa de ser só um mascote e vira um **companheiro de foco e bem-estar**.
-Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **240/240**.
+Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **250/250**.
 
 ### Adicionado
 
@@ -19,7 +19,7 @@ Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **240/240**.
 ### Alterado
 
 - **Schema v6** — novos blocos `focus`/`wellbeing`/`screenTime` + settings de Pomodoro, guarda e bem-estar em `catalog.js` (SSOT), com sanitizers dedicados e migração `if (v < 6)`
-- **Banner/README/showcase** — versão **v4.0** e badge **240/240**; docs sincronizadas ao catálogo
+- **Banner/README/showcase** — versão **v4.0** e badge **250/250**; docs sincronizadas ao catálogo
 - **Interação pet/subpet** — long press consistente em mouse e toque (abraço/habilidade especial), `Shift+Enter`, foco visível, instruções acessíveis e subpet que acompanha o ponteiro
 - **Sistema de movimento** — tokens de duração/easing equivalentes no runtime, popup e showcase; transições restritas às propriedades necessárias; documentação canônica em `docs/MOTION.md`
 - **Acessibilidade do popup** — tabs ARIA com ←/→/Home/End; Pomodoro e humor sincronizam `disabled`/`aria-pressed`; onboarding e overlays preservam o foco
@@ -61,6 +61,7 @@ Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **240/240**.
 
 ### Corrigido
 
+- **Modo liso nítido** — removido `filter: drop-shadow` do `.pet-body` (com `scale(1.5)`) e do `.sprite-stack` no liso; contorno usa `box-shadow` nos sólidos; keyframes (pose/meditar/elétrico/arco-íris/sleep/excited) sem sombra no body; name-tag mais baixo no liso; contratos em `catalog`/`validation-complete`/`quality-fluid`
 - **Load unpacked MV3** — harness de smoke local movido de `_harness.html` (nome reservado pelo Chromium) para `tests/harness.html`; contrato em `extension.test.js` rejeita arquivos/pastas com `_` no pacote (exceto `_locales`/`_metadata`)
 - **Badge da suíte** — showcase/docs alinhados a **250/250** contratos
 - **Animações** — idle `!important` limpo no `setState`; `doDance` com `_danceTimers`; digitar sustentado; hug do subpet não cancela ação do dono; timers de FX/scroll/summon/poof rastreados no `destroy`; filtro energetic idle (`≤1100ms`); popup `prefers-reduced-motion` amplo

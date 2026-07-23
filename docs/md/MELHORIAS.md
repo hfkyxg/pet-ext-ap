@@ -18,7 +18,7 @@
 | **Fala/gestos** | Balões em quatro direções sem colisão; olhar 3D isolado; long press mouse/touch; `Shift+Enter`; foco visível | ✅ |
 | **A11y** | Diálogos modais com trap/Escape/restauração; tabs ARIA com teclado; estados assistivos | ✅ |
 | **Performance** | Showcase subpet em rAF; pause hidden/reduced; cleanup rastreado | ✅ |
-| **Tests/Docs** | **240/240**; `MOTION.md`, README, manual, arquitetura, validação e vitrine alinhados | ✅ |
+| **Tests/Docs** | **250/250**; `MOTION.md`, README, manual, arquitetura, validação e vitrine alinhados; modo liso sem `drop-shadow`+`scale` | ✅ |
 
 ---
 
