@@ -1332,12 +1332,14 @@ body.popup-detached {
   align-items: center;
   justify-content: center;
 }
+/* Host 72×60 — trio e demais ficam legíveis no grid do popup. */
 .subpet-pixel-preview {
   display: block;
-  width: 4px;
-  height: 4px;
-  /* art 12×10 @4px — referência Subpets oficial */
-  transform: scale(1.05);
+  position: relative;
+  width: 72px;
+  height: 60px;
+  flex: 0 0 auto;
+  transform: scale(1);
   transform-origin: center center;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -1346,17 +1348,46 @@ body.popup-detached {
     filter var(--motion-fast) ease,
     opacity var(--motion-fast) ease;
   animation: clawd-popup-subpet-idle 2.2s ease-in-out infinite;
-}
-.subpet-pixel-preview--bitmap {
-  width: 60px;
-  height: 50px;
-  transform: scale(1);
-  transform-origin: center center;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
 }
-/* Locked: full-color sheet look — NÃO greyscale (destrói a arte) */
+.subpet-pixel-preview--bitmap {
+  background-color: transparent;
+  background-image: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.subpet-pixel-preview--bitmap .subpet-pixel-bitmap {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  user-select: none;
+}
+/* Sem filter no host de tinta: filter no pai clipa box-shadow do .subpet-pixel-ink. */
+.subpet-pixel-preview--pixels {
+  filter: none;
+}
+/* Tinta pixel (fallback sem PNG): origem top-left; sombra no próprio ink, sem filter no pai. */
+.subpet-pixel-ink {
+  position: absolute;
+  left: 6px;
+  top: 5px;
+  width: 4px;
+  height: 4px;
+  pointer-events: none;
+  transform-origin: top left;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  /* Sem filter aqui: clipa o próprio box-shadow da grade. */
+  filter: none;
+}
 .subpet-card.locked .subpet-pixel-preview {
   animation: none;
   opacity: 0.75;
@@ -1366,10 +1397,6 @@ body.popup-detached {
 .subpet-card.active .subpet-pixel-preview {
   transform: scale(1.08);
   filter: drop-shadow(0 4px 6px rgba(0,0,0,.32)) drop-shadow(0 0 8px rgba(46,204,113,.25));
-}
-.subpet-card:hover:not(.locked) .subpet-pixel-preview--bitmap,
-.subpet-card.active .subpet-pixel-preview--bitmap {
-  transform: scale(1.08);
 }
 @keyframes clawd-popup-subpet-idle {
   0%, 100% { translate: 0 0; }
@@ -1427,6 +1454,12 @@ body.popup-detached {
 .subpet-color-row { margin-top: 8px; align-items: center; gap: 7px; }
 .subpet-color-row label { margin: 0; font-size: 10px; color: var(--muted); flex: 1; }
 .subpet-color-row input[type="color"] { width: 28px; height: 24px; padding: 1px; }
+.btn-subpet-reset {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 11px;
+  padding: 7px 10px;
+}
 .subpet-interactions {
   margin-top: 12px;
   padding: 11px;

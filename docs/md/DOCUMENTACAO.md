@@ -383,7 +383,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **250 testes** cobrem estado padrão, schema v6 e migração de saves (sem XSS/poluição de protótipo), foco/bem-estar, Central de Calma, histórico local, quatro modelos, **nove rostos**, 11 skins com destaque e intensidade ajustáveis, missão diária, acessórios, camadas, modo liso nítido (sem `drop-shadow`+`scale`), emoções, pesca, **11 subpets** (`dt` + off-screen), layout de fala sem colisão, long press mouse/touch, atalhos assistivos, documentação interativa, popup, manifest, contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlists, save coalesce, todas as ações e reconciliação de reload. `motion-harmony.test.js` trava tokens, ausência de `transition: all`, reduced-motion, halo independente, timing SSOT, lifecycle dos overlays, tabs ARIA e rAF do showcase; `interaction-layout.test.js` cobre geometria, fala dupla, viewport, olhar isolado, gestos, a11y e cleanup; `wellbeing-value.test.js` cobre as novas espécies, grounding, sons, streak, privacidade e alvos de toque. O contrato da vitrine exige 18 etapas, IDs íntegros, catálogos reais e ausência de dependências remotas. O smoke test executa Edge/Chromium em perfil isolado e valida modelos, acessórios, estúdio, boca, profissões, ações, pesca, popup, subpet, fala nos cantos em desktop/375 px e três reloads sem erros ou duplicação. Gate estático: `node tests/tools/validate-ecosystem.mjs`. A validação manual complementar deve incluir touch, reduced-motion, export/import e viagem cross-tab entre janelas reais.
+Os **253 testes** cobrem estado padrão, schema v6 e migração de saves (sem XSS/poluição de protótipo), foco/bem-estar, Central de Calma, histórico local, quatro modelos, **nove rostos**, 11 skins com destaque e intensidade ajustáveis, missão diária, acessórios, camadas, modo liso nítido (sem `drop-shadow`+`scale`), emoções, pesca, **11 subpets** (`dt` + off-screen + `.aic-presence-hidden`), layout de fala sem colisão, long press mouse/touch, atalhos assistivos, documentação interativa, popup, manifest, contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlists, save coalesce, todas as ações e reconciliação de reload. `motion-harmony.test.js` trava tokens, ausência de `transition: all`, reduced-motion, halo independente, timing SSOT, lifecycle dos overlays, tabs ARIA e rAF do showcase; `interaction-layout.test.js` cobre geometria, fala dupla, viewport, olhar isolado, gestos, a11y e cleanup; `wellbeing-value.test.js` cobre as novas espécies, grounding, sons, streak, privacidade e alvos de toque. O contrato da vitrine exige 18 etapas, IDs íntegros, catálogos reais e ausência de dependências remotas. O smoke test executa Edge/Chromium em perfil isolado e valida modelos, acessórios, estúdio, boca, profissões, ações, pesca, popup, subpet, fala nos cantos em desktop/375 px e três reloads sem erros ou duplicação. Gate estático: `node tests/tools/validate-ecosystem.mjs`. A validação manual complementar deve incluir touch, reduced-motion, export/import e viagem cross-tab entre janelas reais.
 
 ### Segurança (resumo)
 
@@ -401,7 +401,7 @@ Os **250 testes** cobrem estado padrão, schema v6 e migração de saves (sem XS
 
 | Feature | Detalhe técnico |
 |---------|----------------|
-| **CLAWD_TIMINGS** | Objeto em `catalog.js` com 12 constantes: `SUBPET_INTERACTION_MS: 14000`, `STAT_DECAY_MS`, `STORAGE_DEBOUNCE_MS`, `PARTICLE_MAX: 18`, `SETTLE_EPS_PX: 0.5`, `DOUBLE_CLICK_WINDOW_MS: 220`, `RANDOM_ACTION_MS: 12000`, `DUO_SCENE_MS: 22000`, `FOCUS_TICK_MS: 1000`, `BREATH_PHASE_MS: 4000`, `MOTION_EXIT_MS: 400` e `AUTONOMY_GRACE_MS: 5000`. Elimina magic numbers e sincroniza relógio, respiração, saída dos overlays e prioridade das interações explícitas. |
+| **CLAWD_TIMINGS** | Objeto em `catalog.js` com 12 constantes: `SUBPET_INTERACTION_MS: 9000`, `STAT_DECAY_MS`, `STORAGE_DEBOUNCE_MS`, `PARTICLE_MAX: 18`, `SETTLE_EPS_PX: 0.5`, `DOUBLE_CLICK_WINDOW_MS: 220`, `RANDOM_ACTION_MS: 8000`, `DUO_SCENE_MS: 16000`, `FOCUS_TICK_MS: 1000`, `BREATH_PHASE_MS: 4000`, `MOTION_EXIT_MS: 400` e `AUTONOMY_GRACE_MS: 5000`. Elimina magic numbers e sincroniza relógio, respiração, saída dos overlays e prioridade das interações explícitas. |
 | **Props animados (12)** | Cada profissão tem um `<div class="profession-prop ...">` no template. Keyframes: `clawd-chef-stir`, `clawd-cursor-blink`, `clawd-boot-tap`, `clawd-bobber`, `clawd-note-float`, `clawd-glint`, `clawd-smoke-puff`, `clawd-steam`. Opacidade 0 por padrão; ativados via `.cooking`, `.typing`, `.keepy-uppy`, etc. |
 | **Studio in-page** | `openStudio()` injeta painel flutuante arrastável; `?detached=1` abre em janela popup separada. |
 | **Personalidade adaptativa** | `S.personality.playful/lazy/bold` lidos em `_scheduleInteraction()` e `_decayStats()` para ajustar intervalo e velocidade de decay. |
@@ -424,9 +424,9 @@ Os **250 testes** cobrem estado padrão, schema v6 e migração de saves (sem XS
 | **Ambient FX (movimento)** | `_spawnAccessoryMotionFx()` dispara faíscas curtas ao **andar/correr/planar/dançar** ou equipar acessório — não há timer de loop idle; `noAmbientSparks` desliga faíscas de movimento. |
 | **Bola pé direito** | `.pet-ball { left: 48px }` + chuteira `left: 42px`; kick/roll/doPlay para a direita; sem `drop-shadow` blur; contador `.aic-juggle-count` à direita. |
 | **v3.7.3 UX** | `petVisible` no estado; `summonPetToTab` no SW; `minimalMode` → `.aic-minimal`; `clawdHasSavedPosition()` rejeita `{0,0}`; spawn usa `clawdDefaultPositionCoords(startCorner)`. |
-| **Validação** | Suíte **250/250** · v4.0.0 (schema v6, Central de Calma, foco/bem-estar, modo liso nítido, movimento harmonizado, fala sem colisão, gestos acessíveis, 11 subpets com dt/off-screen). |
+| **Validação** | Suíte **253/253** · v4.0.0 (schema v6, Central de Calma, foco/bem-estar, modo liso nítido, movimento harmonizado, fala sem colisão, gestos acessíveis, 11 subpets com dt/off-screen). |
 | **Fluidez pet↔subpet** | `clawdEaseInOutCubic` em walk/run; `_pulseReact` ecoa jump/dance/bath/happy; micro-idle do subpet; walk CSS `ease-in-out`; anticipação de pulo; duo ~72% chance; timings mais vivos; keyframes/hover/press suaves. |
-| **Cross-tab / SFX** | `_isActiveHost` + `_crossTabHidden`; despawn cancelável; beep/fala/partículas só no host; sem eco wake/cheer/dblclick. |
+| **Cross-tab / SFX** | `_isActiveHost` + `_crossTabHidden` + `.aic-presence-hidden`; despawn cancelável; beep/fala/partículas só no host; sem eco wake/cheer/dblclick. |
 
 ---
 
@@ -445,4 +445,4 @@ Os **250 testes** cobrem estado padrão, schema v6 e migração de saves (sem XS
 
 ---
 
-*Documentação Técnica — Claw'd · atualizada em 22/07/2026*
+*Documentação Técnica — Claw'd · atualizada em 23/07/2026*

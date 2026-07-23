@@ -224,40 +224,40 @@ const rabbitSleep = frame(
   '............'
 );
 
-/* ---- DINO (teal, 3 espinhos) ---- */
+/* ---- DINO (teal, 3 espinhos, silhueta do sheet Subpets-selection) ---- */
 const dinoStand = frame(
   '............',
-  '...D.D.D....',
-  '..BBBBBBB...',
-  '.BBBBBBBBB..',
-  'BBBKKBBKKBBB',
-  'BBBBBBBBBBBB',
+  '..D..D..D...',
   '.BBBBBBBBBB.',
-  '..BB....BB..',
-  '..D......D..',
-  '............'
+  '.BBBBBBBBBB.',
+  '.BBKKBBKKBB.',
+  '.BBBBBNBBBB.',
+  '.BBBBBBBBBB.',
+  '.BBBBBBBBBB.',
+  '..BBBBBBBB..',
+  '..BB.BB.BB..'
 );
 const dinoWalk = frame(
   '............',
-  '...D.D.D....',
-  '..BBBBBBB...',
-  '.BBBBBBBBB..',
-  'BBBKKBBKKBBB',
-  'BBBBBBBBBBBB',
+  '..D..D..D...',
   '.BBBBBBBBBB.',
-  '..BB....BB..',
-  '.D........D.',
-  '............'
+  '.BBBBBBBBBB.',
+  '.BBKKBBKKBB.',
+  '.BBBBBNBBBB.',
+  '.BBBBBBBBBB.',
+  '.BBBBBBBBBB.',
+  '..BBBBBBBB..',
+  '.BB..BB..BB.'
 );
 const dinoSleep = frame(
   '............',
-  '...D.D.D....',
-  '..BBBBBBB...',
-  '.BBBBBBBBB..',
-  'BB........BB',
-  'BBBBBBBBBBBB',
+  '..D..D..D...',
   '.BBBBBBBBBB.',
-  '............',
+  '.BBBBBBBBBB.',
+  '.BB......BB.',
+  '.BBBBBNBBBB.',
+  '.BBBBBBBBBB.',
+  '.BBBBBBBBBB.',
   '............',
   '............'
 );
@@ -436,154 +436,191 @@ const slimeSpecial = frame(
   '............'
 );
 
-/* ---- RAPOSA (laranja, orelhas e cauda escuras, brilho de estrela) ---- */
+/* ---- RAPOSA (orelhas ALTAS pontudas + rosa, bochechas brancas, cauda) ---- */
+/* Raposa: orelhas pontudas (estilo gato), focinho branco, cauda à direita — com ar em volta */
 const foxStand = frame(
   '............',
-  '.D......D...',
-  '.DBBBBBBBBD.',
-  'BBBBBBBBBBBB',
-  'BBBKKBBKKBBB',
-  'BBBBBKKBBBBB',
-  '.BBBBPPBBBBD',
-  '.BB......BBD',
-  '..D......D..',
+  '.D.P....P.D.',
+  '.DPPBBBBPPD.',
+  '..BBBBBBBB..',
+  '.BBKKBBKKBB.',
+  '..BBBNBBB.D.',
+  '..BWWWBBBDD.',
+  '...BPPBB.DD.',
+  '....D..D.D..',
+  '............'
+);
+const foxIdleBob = frame(
+  '............',
+  '.D.P....P.D.',
+  '.DPPBBBBPPD.',
+  '..BBBBBBBB..',
+  '.BBKKBBKKBB.',
+  '..BBBNBBB.D.',
+  '..BWWWBBBDD.',
+  '...BPPBB.DD.',
+  '...D....D.D.',
   '............'
 );
 const foxWalk = frame(
   '............',
-  '.D......D...',
-  '.DBBBBBBBBD.',
-  'BBBBBBBBBBBB',
-  'BBBKKBBKKBBB',
-  'BBBBBKKBBBBB',
-  'DBBBBPPBBBB.',
-  'DBB......BB.',
-  '.D........D.',
+  '.D.P....P.D.',
+  '.DPPBBBBPPD.',
+  '..BBBBBBBB..',
+  '.BBKKBBKKBB.',
+  '.DBBBNBBB.D.',
+  '.D.BWWWBBDD.',
+  '....BPPBB.D.',
+  '...D....D.D.',
   '............'
 );
 const foxSleep = frame(
   '............',
-  '.D......D...',
-  '.DBBBBBBBBD.',
-  'BBBBBBBBBBBB',
-  'BB........BB',
-  'BBBBBKKBBBBB',
-  '.BBBBPPBBBBD',
-  '............',
-  '............',
+  '.D.P....P.D.',
+  '.DPPBBBBPPD.',
+  '..BBBBBBBB..',
+  '.BB......BB.',
+  '..BBBNBBB.D.',
+  '..BWWWBBBDD.',
+  '.........DD.',
+  '..........D.',
   '............'
 );
 const foxSpecial = frame(
-  '.....Y......',
-  '.D......D...',
-  '.DBBBBBBBBD.',
-  'BBBBBBBBBBBB',
-  'BBBYYBBYYBBB',
-  'BBBBBKKBBBBB',
-  '.BBBBPPBBBBD',
-  '.BB......BBD',
-  '..D......D..',
-  '..........Y.'
+  'Y...........',
+  '.D.P....P.D.',
+  '.DPPBBBBPPD.',
+  '..BBYBBYBB..',
+  '.BBKKBBKKBB.',
+  '..BBBNBBB.D.',
+  '..BWWWBBBDD.',
+  'Y..BPPBB.DD.',
+  '....D..D.D.Y',
+  '............'
 );
 
-/* ---- CAPIVARA (marrom quente, focinho largo e pausa aconchegante) ---- */
+/* Capivara: pão largo, orelhas miúdas, olhos laterais, focinho creme (não “tijolo cheio”) */
 const capybaraStand = frame(
   '............',
+  '...D....D...',
+  '.BBBBBBBBBB.',
+  'BKKBBBBBBKKB',
+  'BBBBBNNBBBBB',
+  'BBTTTTTTTTBB',
+  '.BBBBBBBBBB.',
+  '.BBB....BBB.',
   '..D......D..',
-  '..BBBBBBBB..',
+  '............'
+);
+const capybaraIdleBob = frame(
+  '............',
+  '...D....D...',
   '.BBBBBBBBBB.',
-  'BBBKKBBKKBBB',
-  'BBBBBNBBBBBB',
-  'BBBTTTTBBBBB',
+  'BKKBBBBBBKKB',
+  'BBBBBNNBBBBB',
+  'BBTTTTTTTTBB',
   '.BBBBBBBBBB.',
-  '..DD....DD..',
+  '..BB....BB..',
+  '...D....D...',
   '............'
 );
 const capybaraWalk = frame(
   '............',
-  '..D......D..',
-  '..BBBBBBBB..',
+  '...D....D...',
   '.BBBBBBBBBB.',
-  'BBBKKBBKKBBB',
-  'BBBBBNBBBBBB',
-  'BBBTTTTBBBBB',
+  'BKKBBBBBBKKB',
+  'BBBBBNNBBBBB',
+  'BBTTTTTTTTBB',
   '.BBBBBBBBBB.',
-  '.DD......DD.',
+  '.BBB....BBB.',
+  '.D........D.',
   '............'
 );
 const capybaraSleep = frame(
   '............',
-  '..D......D..',
-  '..BBBBBBBB..',
+  '...D....D...',
   '.BBBBBBBBBB.',
-  'BBB......BBB',
-  'BBBBBNBBBBBB',
-  'BBBTTTTBBBBB',
+  'B..........B',
+  'BBBBBNNBBBBB',
+  'BBTTTTTTTTBB',
   '.BBBBBBBBBB.',
+  '............',
   '............',
   '............'
 );
 const capybaraSpecial = frame(
-  '............',
-  '..D......D..',
-  '..BBBBBBBB..',
+  '..L......L..',
+  '...D....D...',
   '.BBBBBBBBBB.',
-  'BBBKKBBKKBBB',
-  'BBBBBNBBBBBB',
-  'BBBTTTTBBBBB',
+  'BKKBBBBBBKKB',
+  'BBBBBNNBBBBB',
+  'BBTTTTTTTTBB',
   '.BBBBBBBBBB.',
-  '.LDD....DDL.',
-  'L..........L'
+  '.LBB....BBL.',
+  'L.D......D.L',
+  '............'
 );
 
-/* ---- AXOLOTE (rosa-coral, brânquias externas e bolhas) ---- */
+/* Axolote: brânquias laterais + pontas aqua, corpo oval com ar, pezinhos aqua */
 const axolotlStand = frame(
   '............',
-  'G.G......G.G',
-  '.GG.BBBB.GG.',
+  '.A.G....G.A.',
+  'A.GBBBBBG.A.',
+  'G.BBBBBBBB.G',
+  '.BBKKBBKKBB.',
+  '.BBBWPPWBBB.',
   '..BBBBBBBB..',
-  '.BBBKKBBKKBB',
-  '.BBBBPPBBBB.',
+  '..A.BBBB.A..',
+  '...A....A...',
+  '............'
+);
+const axolotlIdleBob = frame(
+  '............',
+  'A.G......G.A',
+  '.AGBBBBBG.A.',
+  'G.BBBBBBBB.G',
+  '.BBKKBBKKBB.',
+  '.BBBWPPWBBB.',
   '..BBBBBBBB..',
-  '...BB..BB...',
+  '..A.BBBB.A..',
   '..A......A..',
   '............'
 );
 const axolotlWalk = frame(
   '............',
-  'G.G......G.G',
-  '.GG.BBBB.GG.',
+  '.A.G....G.A.',
+  'A.GBBBBBG.A.',
+  'G.BBBBBBBB.G',
+  '.BBKKBBKKBB.',
+  '.BBBWPPWBBB.',
   '..BBBBBBBB..',
-  '.BBBKKBBKKBB',
-  '.BBBBPPBBBB.',
-  '..BBBBBBBB..',
-  '..BB....BB..',
-  '.A........A.',
+  '.A..BBBB..A.',
+  'A..........A',
   '............'
 );
 const axolotlSleep = frame(
   '............',
-  'G.G......G.G',
-  '.GG.BBBB.GG.',
-  '..BBBBBBBB..',
+  '.A.G....G.A.',
+  'A.GBBBBBG.A.',
+  'G.BBBBBBBB.G',
   '.BB......BB.',
-  '.BBBBPPBBBB.',
+  '.BBBWPPWBBB.',
   '..BBBBBBBB..',
   '............',
   '............',
   '............'
 );
 const axolotlSpecial = frame(
-  'A.G......G.A',
-  'G.G......G.G',
-  '.GG.BBBB.GG.',
-  '..BBBBBBBB..',
-  '.BBBKKBBKKBB',
-  '.BBBBPPBBBB.',
+  'Y...........',
+  '.A.G.YY.G.A.',
+  'A.GBBBBBG.A.',
+  'G.BBBBBBBB.G',
+  '.BBKKBBKKBB.',
+  '.BBBWPPWBBB.',
   'A.BBBBBBBB.A',
-  '...BB..BB...',
-  '..A......A..',
-  'A..........A'
+  '..A.BBBB.A..',
+  'Y..A....A..Y',
+  '............'
 );
 
 const CLAWD_SUBPET_SPRITES = {
@@ -635,7 +672,7 @@ const CLAWD_SUBPET_SPRITES = {
   dino: {
     colors: {
       B: '#3ecfcf', D: '#1f8a8a', K: '#111111',
-      W: '#ffffff', Y: '#b8f0f0'
+      W: '#ffffff', Y: '#b8f0f0', N: '#1a6e6e'
     },
     frames: {
       idle: bob(dinoStand, dinoStand),
@@ -681,11 +718,11 @@ const CLAWD_SUBPET_SPRITES = {
   },
   fox: {
     colors: {
-      B: '#e77d34', D: '#9f4624', K: '#111111',
-      W: '#fff2de', P: '#f6b08a', Y: '#ffd166'
+      B: '#ff9a3c', D: '#d45a18', K: '#111111', N: '#1a1a1a',
+      W: '#fffaf2', P: '#ff9ac8', Y: '#ffe066'
     },
     frames: {
-      idle: bob(foxStand, foxStand),
+      idle: bob(foxStand, foxIdleBob),
       walk: bob(foxWalk, foxStand),
       sleep: [foxSleep],
       special: bob(foxSpecial, foxStand)
@@ -693,11 +730,11 @@ const CLAWD_SUBPET_SPRITES = {
   },
   capybara: {
     colors: {
-      B: '#9b6b43', D: '#68452d', K: '#111111',
-      N: '#4a3022', T: '#f8ead7', L: '#79b86b'
+      B: '#d4a06c', D: '#9a6540', K: '#111111',
+      N: '#3d2818', T: '#fff6e4', L: '#8ed96a'
     },
     frames: {
-      idle: bob(capybaraStand, capybaraStand),
+      idle: bob(capybaraStand, capybaraIdleBob),
       walk: bob(capybaraWalk, capybaraStand),
       sleep: [capybaraSleep],
       special: bob(capybaraSpecial, capybaraStand)
@@ -705,11 +742,11 @@ const CLAWD_SUBPET_SPRITES = {
   },
   axolotl: {
     colors: {
-      B: '#f18da6', G: '#d65a7a', K: '#111111',
-      P: '#ffd1dc', A: '#77d9e8', W: '#ffffff'
+      B: '#ff9bc4', G: '#e84888', K: '#111111',
+      P: '#ffd0e4', A: '#5adcff', W: '#ffffff', Y: '#fff5a8'
     },
     frames: {
-      idle: bob(axolotlStand, axolotlStand),
+      idle: bob(axolotlStand, axolotlIdleBob),
       walk: bob(axolotlWalk, axolotlStand),
       sleep: [axolotlSleep],
       special: bob(axolotlSpecial, axolotlStand)

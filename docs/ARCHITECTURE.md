@@ -112,6 +112,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 - `onChanged` no content **não regride** XP/coins/counters (`Math.max`); popup `persist` idem.
 - Presença cross-tab é via Port (`clawd-presence`), não via re-save em loop.
 - **Um host por navegador:** `_isActiveHost()` / `_crossTabHidden` silenciam beep, fala, partículas e loops nas abas não-anfitriãs; `despawnPet` usa `_despawnTimer` + `_travelGen` (cancelável em `spawnPet`/`hidePet`).
+- **Hide visual efetiva:** `_applyVisibilityDisplay` aplica `.aic-presence-hidden` (`display: none !important` em pet e subpet). Inline `style.display='none'` **não** supera `#aic-clawd-node { display: block !important }` — sem a classe, clones apareciam em várias janelas/abas.
 
 ### Caps já em produção
 
@@ -132,7 +133,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 | PNGs canônicos dos sub-pets | `node tests/tools/crop-literal-sprites.mjs` |
 | Frames/preview (não sobrescreve pacote) | `node tests/tools/make-sprites.mjs` |
 | Ícones da extensão | `node tests/tools/make-icons.mjs` |
-| Suíte de contratos | `npm test` (**240**) |
+| Suíte de contratos | `npm test` (**253**) |
 | Ecosystem estático | `npm run ecosystem` |
 | Smoke Edge | `npm run smoke` |
 

@@ -1572,6 +1572,48 @@ function renderActions() {
 /* =====================================================
    SUB-PETS
    ===================================================== */
+function preferSubpetPreviewPose(id, sprite) {
+  if ((id === 'dragon' || id === 'bird') && sprite.frames?.flying) return 'flying';
+  return 'idle';
+}
+
+/** Preview do card: PNG canônico; cor custom → tint do mesmo PNG (não o frame letter). */
+function fillSubpetPixelPreview(preview, { species, sprite, palette, pose, hasCustom }) {
+  const imgUrl = typeof clawdSubPetImageUrl === 'function' ? clawdSubPetImageUrl(species) : '';
+  if (imgUrl) {
+    preview.classList.add('subpet-pixel-preview--bitmap');
+    preview.style.boxShadow = 'none';
+    const img = document.createElement('img');
+    img.className = 'subpet-pixel-bitmap';
+    img.src = imgUrl;
+    img.alt = '';
+    img.decoding = 'async';
+    img.draggable = false;
+    preview.appendChild(img);
+    if (hasCustom && typeof clawdTintSubPetImage === 'function') {
+      window.__clawdSubpetTintSeq = (window.__clawdSubpetTintSeq || 0) + 1;
+      const token = String(window.__clawdSubpetTintSeq);
+      preview.dataset.tintToken = token;
+      clawdTintSubPetImage(imgUrl, sprite.colors, palette).then((tinted) => {
+        if (!tinted || !preview.isConnected || preview.dataset.tintToken !== token) return;
+        if (preview.dataset.species !== species) return;
+        img.src = tinted;
+      });
+    }
+    return;
+  }
+  /* Fallback ink — filter:none no host (--pixels) para não clipar box-shadow. */
+  preview.classList.add('subpet-pixel-preview--pixels');
+  const ink = document.createElement('span');
+  ink.className = 'subpet-pixel-ink';
+  ink.style.boxShadow = clawdBuildPixelShadow(
+    clawdSubPetFrame(sprite, pose, 0),
+    palette,
+    CLAWD_SUBPET_CELL
+  );
+  preview.appendChild(ink);
+}
+
 function renderSubpetActions() {
   const grid = $('subpet-action-grid');
   const status = $('subpet-action-status');
@@ -1624,32 +1666,26 @@ function renderSubpets() {
     card.dataset.species = id;
     const name = (S.subpets.names || {})[id];
     const sprite = CLAWD_SUBPET_SPRITES[id] || CLAWD_SUBPET_SPRITES.dog;
-    const previewColor = (S.subpets.colors || {})[id] || sprite.colors.B;
-    const previewEyes = (S.subpets.eyeColors || {})[id] || sprite.colors.K || '#111111';
-    const hasCustom = /^#[\da-f]{6}$/i.test((S.subpets.colors || {})[id] || '')
-      || /^#[\da-f]{6}$/i.test((S.subpets.eyeColors || {})[id] || '');
-    const palette = clawdSubPetPalette(sprite, /^#[\da-f]{6}$/i.test(previewColor) ? previewColor : null, previewEyes);
-    const preferPose = id === 'dragon' && sprite.frames.flying ? 'flying'
-      : id === 'bird' && sprite.frames.flying ? 'flying'
-      : 'idle';
+    const storedColor = (S.subpets.colors || {})[id];
+    const storedEyes = (S.subpets.eyeColors || {})[id];
+    const palette = clawdSubPetPalette(sprite, storedColor, storedEyes);
+    const hasCustom = typeof clawdSubPetHasCustomPalette === 'function'
+      ? clawdSubPetHasCustomPalette(sprite, storedColor, storedEyes)
+      : !!(storedColor || storedEyes);
+    const preferPose = preferSubpetPreviewPose(id, sprite);
     const preview = document.createElement('span');
     preview.className = 'subpet-pixel-preview';
     preview.dataset.species = id;
     preview.dataset.pose = preferPose;
     preview.dataset.frame = '0';
     preview.setAttribute('aria-hidden', 'true');
-    const imgUrl = typeof clawdSubPetImageUrl === 'function' ? clawdSubPetImageUrl(id) : '';
-    if (imgUrl && !hasCustom) {
-      preview.classList.add('subpet-pixel-preview--bitmap');
-      preview.style.backgroundImage = `url("${imgUrl}")`;
-      preview.style.backgroundRepeat = 'no-repeat';
-      preview.style.backgroundPosition = 'center';
-      preview.style.backgroundSize = 'contain';
-      preview.style.boxShadow = 'none';
-    } else {
-      const frame = clawdSubPetFrame(sprite, preferPose, 0);
-      preview.style.boxShadow = clawdBuildPixelShadow(frame, palette, CLAWD_SUBPET_CELL);
-    }
+    fillSubpetPixelPreview(preview, {
+      species: id,
+      sprite,
+      palette,
+      pose: preferPose,
+      hasCustom
+    });
     const stage = document.createElement('div');
     stage.className = 'subpet-art-stage';
     stage.appendChild(preview);
@@ -1691,13 +1727,17 @@ function renderSubpets() {
   group.style.display = S.subpets.active ? '' : 'none';
   if (S.subpets.active) {
     $('input-subpet-name').value = (S.subpets.names || {})[S.subpets.active] || '';
-    const defaultColor = CLAWD_COLORS[Object.keys(CLAWD_SUBPETS).indexOf(S.subpets.active) % CLAWD_COLORS.length] || '#8d5a2b';
-    const color = (S.subpets.colors || {})[S.subpets.active] || defaultColor;
-    const eyeColor = (S.subpets.eyeColors || {})[S.subpets.active] || '#111111';
-    $('input-subpet-color').value = color;
-    $('subpet-color-hex').textContent = color;
-    $('input-subpet-eye-color').value = eyeColor;
-    $('subpet-eye-color-hex').textContent = eyeColor;
+    const activeSprite = CLAWD_SUBPET_SPRITES[S.subpets.active] || {};
+    const naturalBody = clawdNormalizeHexColor?.(activeSprite.colors?.B)
+      || (/^#[\da-f]{6}$/i.test(activeSprite.colors?.B || '') ? activeSprite.colors.B : '#8d5a2b');
+    const naturalEye = clawdNormalizeHexColor?.(activeSprite.colors?.K)
+      || (/^#[\da-f]{6}$/i.test(activeSprite.colors?.K || '') ? activeSprite.colors.K : '#111111');
+    const color = (S.subpets.colors || {})[S.subpets.active] || naturalBody;
+    const eyeColor = (S.subpets.eyeColors || {})[S.subpets.active] || naturalEye;
+    $('input-subpet-color').value = /^#[\da-f]{6}$/i.test(color) ? color : naturalBody;
+    $('subpet-color-hex').textContent = $('input-subpet-color').value;
+    $('input-subpet-eye-color').value = /^#[\da-f]{6}$/i.test(eyeColor) ? eyeColor : naturalEye;
+    $('subpet-eye-color-hex').textContent = $('input-subpet-eye-color').value;
   }
   renderSubpetActions();
 }
@@ -1714,6 +1754,8 @@ function startSubpetPreviewAnims() {
     if (document.hidden) return;
     document.querySelectorAll('.subpet-pixel-preview[data-species]').forEach((preview) => {
       if (preview.classList.contains('subpet-pixel-preview--bitmap')) return;
+      const ink = preview.querySelector('.subpet-pixel-ink');
+      if (!ink) return;
       const id = preview.dataset.species;
       const sprite = CLAWD_SUBPET_SPRITES[id];
       if (!sprite) return;
@@ -1733,10 +1775,10 @@ function startSubpetPreviewAnims() {
       const next = (Number(preview.dataset.frame || 0) + 1) % set.length;
       preview.dataset.frame = String(next);
       preview.dataset.pose = pose;
-      const color = (S.subpets.colors || {})[id] || sprite.colors.B;
-      const eyes = (S.subpets.eyeColors || {})[id] || sprite.colors.K || '#111111';
-      const palette = clawdSubPetPalette(sprite, /^#[\da-f]{6}$/i.test(color) ? color : null, eyes);
-      preview.style.boxShadow = clawdBuildPixelShadow(set[next], palette, CLAWD_SUBPET_CELL);
+      const savedColor = (S.subpets.colors || {})[id];
+      const savedEyes = (S.subpets.eyeColors || {})[id];
+      const palette = clawdSubPetPalette(sprite, savedColor, savedEyes);
+      ink.style.boxShadow = clawdBuildPixelShadow(set[next], palette, CLAWD_SUBPET_CELL);
     });
   }, 220);
 }
@@ -2362,12 +2404,17 @@ function bindStatic() {
     const color = e.target.value;
     $('subpet-color-hex').textContent = color;
     S.subpets.colors = S.subpets.colors || {};
-    S.subpets.colors[species] = color;
+    const natural = clawdNormalizeHexColor?.(CLAWD_SUBPET_SPRITES[species]?.colors?.B)
+      || String(CLAWD_SUBPET_SPRITES[species]?.colors?.B || '').toLowerCase();
+    if (String(color).toLowerCase() === natural) delete S.subpets.colors[species];
+    else S.subpets.colors[species] = color;
     sendMsg({ action: 'setSubpetColor', species, value: color });
     persist(st => {
       st.subpets.colors = st.subpets.colors || {};
-      st.subpets.colors[species] = color;
+      if (String(color).toLowerCase() === natural) delete st.subpets.colors[species];
+      else st.subpets.colors[species] = color;
     });
+    renderSubpets();
   });
   $('input-subpet-eye-color').addEventListener('input', (e) => {
     const species = S.subpets.active;
@@ -2375,12 +2422,45 @@ function bindStatic() {
     const color = e.target.value;
     $('subpet-eye-color-hex').textContent = color;
     S.subpets.eyeColors = S.subpets.eyeColors || {};
-    S.subpets.eyeColors[species] = color;
+    const natural = clawdNormalizeHexColor?.(CLAWD_SUBPET_SPRITES[species]?.colors?.K)
+      || String(CLAWD_SUBPET_SPRITES[species]?.colors?.K || '#111111').toLowerCase()
+      || '#111111';
+    if (String(color).toLowerCase() === natural) delete S.subpets.eyeColors[species];
+    else S.subpets.eyeColors[species] = color;
     sendMsg({ action: 'setSubpetEyeColor', species, value: color });
     persist(st => {
       st.subpets.eyeColors = st.subpets.eyeColors || {};
-      st.subpets.eyeColors[species] = color;
+      if (String(color).toLowerCase() === natural) delete st.subpets.eyeColors[species];
+      else st.subpets.eyeColors[species] = color;
     });
+    renderSubpets();
+  });
+
+  $('btn-subpet-reset-colors')?.addEventListener('click', () => {
+    const species = S.subpets.active;
+    if (!species) return;
+    const sprite = CLAWD_SUBPET_SPRITES[species] || {};
+    const naturalBody = clawdNormalizeHexColor?.(sprite.colors?.B)
+      || (/^#[\da-f]{6}$/i.test(sprite.colors?.B || '') ? sprite.colors.B : '#8d5a2b');
+    const naturalEye = clawdNormalizeHexColor?.(sprite.colors?.K)
+      || (/^#[\da-f]{6}$/i.test(sprite.colors?.K || '') ? sprite.colors.K : '#111111');
+    S.subpets.colors = S.subpets.colors || {};
+    S.subpets.eyeColors = S.subpets.eyeColors || {};
+    delete S.subpets.colors[species];
+    delete S.subpets.eyeColors[species];
+    $('input-subpet-color').value = naturalBody;
+    $('subpet-color-hex').textContent = naturalBody;
+    $('input-subpet-eye-color').value = naturalEye;
+    $('subpet-eye-color-hex').textContent = naturalEye;
+    sendMsg({ action: 'setSubpetColor', species, value: naturalBody });
+    sendMsg({ action: 'setSubpetEyeColor', species, value: naturalEye });
+    persist(st => {
+      st.subpets.colors = st.subpets.colors || {};
+      st.subpets.eyeColors = st.subpets.eyeColors || {};
+      delete st.subpets.colors[species];
+      delete st.subpets.eyeColors[species];
+    });
+    renderSubpets();
   });
 
   // Status interativos: felicidade / comida / energia / higiene

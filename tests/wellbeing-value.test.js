@@ -24,6 +24,29 @@ test('valor: catálogo oferece 11 subpets e as três novas espécies têm identi
     assert.ok(sprite?.frames?.sleep?.length >= 1, `${id} precisa dormir`);
     assert.ok(sprite?.frames?.special?.length >= 1, `${id} precisa de frame especial`);
   }
+  /* Silhuetas bem distintas — orelhas+cauda (raposa) ≠ pão+creme (capivara) ≠ brânquias laterais (axo) */
+  const foxIdle = catalog.clawdSubPetFrame(catalog.CLAWD_SUBPET_SPRITES.fox, 'idle', 0).join('\n');
+  const capyIdle = catalog.clawdSubPetFrame(catalog.CLAWD_SUBPET_SPRITES.capybara, 'idle', 0).join('\n');
+  const axoIdle = catalog.clawdSubPetFrame(catalog.CLAWD_SUBPET_SPRITES.axolotl, 'idle', 0).join('\n');
+  assert.match(foxIdle, /\.D\.P\.\.\.\.P\.D\./); /* orelhas pontudas com interior rosa */
+  assert.match(foxIdle, /\.\.BWWWBBBDD\./); /* focinho branco + cauda */
+  assert.match(foxIdle, /\.\.\.BPPBB\.DD\./); /* blush + cauda */
+  assert.match(capyIdle, /BBTTTTTTTTBB/); /* focinho creme */
+  assert.match(capyIdle, /BKKBBBBBBKKB/); /* olhos nas laterais */
+  assert.match(capyIdle, /BBBBBNNBBBBB/); /* nariz largo */
+  assert.match(axoIdle, /\.A\.G\.\.\.\.G\.A\./); /* brânquias laterais com pontas aqua */
+  assert.match(axoIdle, /A\.GBBBBBG\.A\./);
+  assert.match(axoIdle, /\.BBBWPPWBBB\./); /* blush + brilho */
+  /* Personalidade interativa no runtime */
+  assert.match(content, /species === 'dog' \|\| this\.species === 'fox'/);
+  assert.match(content, /capy-sway/);
+  assert.match(content, /axo-gills/);
+  assert.match(content, /fox-sparkle/);
+  assert.match(content, /Caça às estrelas/);
+  assert.match(content, /Pausa sem pressa/);
+  assert.match(contentCss, /clawd-subpet-capy-sway/);
+  assert.match(contentCss, /clawd-subpet-axo-gills/);
+  assert.match(contentCss, /data-species="fox"/);
 });
 
 test('valor: novos sprites PNG estão empacotados e ligados ao catálogo', () => {

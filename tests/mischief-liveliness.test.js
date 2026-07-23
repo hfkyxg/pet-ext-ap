@@ -49,7 +49,8 @@ test('cadência viva: _nextPetAction rota a ficha completa (sem starvation)', ()
 
 test('cadência viva: subpet também rota a ficha via _nextSubAction', () => {
   assert.match(content, /\n {2}_nextSubAction\(\)\s*\{/);
-  assert.match(content, /this\.interact\(this\._nextSubAction\(\)\)/);
+  assert.match(content, /const pick = ownerBusy \? this\._nextLightSubAction\(\) : this\._nextSubAction\(\)/);
+  assert.match(content, /this\.interact\(pick\)/);
 });
 
 test('cadência viva: watchdog destrava estados transitórios presos', () => {
@@ -82,12 +83,24 @@ test('aprontar: subpet tem case mischief e o expõe nos pools por espécie/perso
 });
 
 test('cadência viva: variações idle do pet e do subpet mais frequentes (menos tempo-morto)', () => {
-  /* pet: base menor que a antiga (22000 - playful*1000) */
-  assert.match(content, /Math\.max\(6500,\s*15000 - playful \* 900\)/);
-  /* subpet: base menor que a antiga (16000 - playful*800) */
-  assert.match(content, /Math\.max\(5500,\s*12000 - playful \* 700\)/);
+  /* pet: piso 4500 — mais vivo que o antigo 6500 */
+  assert.match(content, /Math\.max\(4500,\s*15000 - playful \* 900\)/);
+  /* subpet: piso 4500 — acompanha o dono inclusive em walk */
+  assert.match(content, /Math\.max\(4500,\s*12000 - playful \* 700\)/);
   /* ainda self-reschedule e respeita cooldown por variação */
   assert.match(content, /finally\s*\{\s*this\._scheduleIdleVariation\(\)/);
+});
+
+test('cadência viva: subpet age leve com dono busy e timings apertados', () => {
+  assert.equal(catalog.CLAWD_TIMINGS.RANDOM_ACTION_MS, 8000);
+  assert.equal(catalog.CLAWD_TIMINGS.DUO_SCENE_MS, 16000);
+  assert.equal(catalog.CLAWD_TIMINGS.SUBPET_INTERACTION_MS, 9000);
+  assert.match(content, /_nextLightSubAction\(\)/);
+  assert.match(content, /ownerBusy \? this\._nextLightSubAction\(\) : this\._nextSubAction\(\)/);
+  assert.match(content, /\['walking', 'running', 'curious', 'typing', 'excited', 'waving'\]/);
+  assert.match(content, /Math\.random\(\) > 0\.6\) return/); /* duo ~40% */
+  assert.match(content, /\}, 12000\)\);/); /* auto-walk */
+  assert.match(content, /\}, 28000\)\);/); /* fala aleatória */
 });
 
 test('limpeza: _mischiefTimer é cancelado no destroy (sem timer órfão)', () => {

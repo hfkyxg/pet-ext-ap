@@ -271,15 +271,33 @@ test('porta cross-tab trata bfcache / lastError sem vazar', () => {
 test('cross-tab: um pet por navegador — hide otimista, reconnect e ownership', () => {
   const content = read('src/content/content.js');
   const background = read('src/background/background.js');
-  /* Boot esconde até spawnPet; disconnect esconde + reconecta */
+  const style = read('src/content/style.css');
+  /* Hide-before-paint: flag no construtor + classe aic-presence-hidden (none !important)
+     — style.display sozinho perde para display:block !important do host. */
+  assert.match(content, /_crossTabHidden = initialState\.settings\?\.crossTab !== false/);
+  assert.match(content, /aic-presence-hidden/);
+  assert.match(content, /_crossTabHidden[\s\S]{0,120}aic-presence-hidden[\s\S]{0,80}appendChild\(this\.node\)/s);
+  /* Boot reforça hide até spawnPet; disconnect SEMPRE esconde (mesmo bfcache/_portSuspended) */
   assert.match(content, /crossTab !== false[\s\S]{0,80}setHidden\(true\)/);
-  assert.match(content, /_portDisconnectListener[\s\S]{0,900}setHidden\(true\)[\s\S]{0,80}_scheduleCrossTabReconnect/s);
+  assert.match(content, /_portDisconnectListener[\s\S]{0,900}settings\?\.crossTab\)[\s\S]{0,120}setHidden\(true\)[\s\S]{0,200}_portSuspended/s);
   assert.match(content, /_applyVisibilityDisplay\(/);
   assert.match(content, /isVisible && !this\._crossTabHidden/);
-  /* completeTravel esconde não-destinos; assignHost força hide em orphan */
-  assert.match(background, /function completeTravel[\s\S]{0,500}hidePet/s);
-  assert.match(background, /prevHost[\s\S]{0,200}forceHidePet/);
+  assert.match(content, /classList\.toggle\('aic-presence-hidden'/);
+  /* refreshSubpet não usa style.display (enganoso com block !important) */
+  assert.match(content, /petHidden = !this\.isVisible \|\| !!this\._crossTabHidden/);
+  assert.match(style, /aic-presence-hidden[\s\S]{0,120}display:\s*none\s*!important/s);
+  /* broadcastOwnership unifica assignHost + completeTravel; send falho → forceHidePet */
+  assert.match(background, /function broadcastOwnership/);
+  assert.match(background, /function sendPresence/);
+  assert.match(background, /function forceHideTab/);
+  assert.match(background, /function assignHost[\s\S]{0,80}broadcastOwnership/s);
+  assert.match(background, /function completeTravel[\s\S]{0,400}broadcastOwnership/s);
+  assert.match(background, /msg\.type === 'hidePet' \|\| msg\.type === 'despawnPet'[\s\S]{0,80}forceHideTab/s);
+  assert.match(background, /prevHost[\s\S]{0,200}forceHideTab|forceHidePet/);
   assert.ok(require('../src/shared/catalog.js').CLAWD_RUNTIME_ACTIONS.includes('forceHidePet'));
+  /* Respawn / troca de aba usam a janela focada (não currentWindow da SW) */
+  assert.match(background, /function respawnAnywhere[\s\S]{0,200}lastFocusedWindow:\s*true/s);
+  assert.match(background, /chrome\.tabs\.onActivated[\s\S]{0,900}lastFocusedWindow:\s*true/s);
   /* Ação do popup em aba sem pet → requestHost + fila até spawnPet */
   assert.match(content, /_pendingAction = action/);
   assert.match(content, /requestHost/);

@@ -18,7 +18,7 @@ test('digitar: _bindTypingCompanion é registrado e ligado ao AbortSignal', () =
   assert.match(content, /\n {2}_bindTypingCompanion\(signal\)\s*\{/);
   /* só reage em campos editáveis */
   const idx = content.indexOf('_bindTypingCompanion(signal) {');
-  const slice = content.slice(idx, idx + 2600);
+  const slice = content.slice(idx, idx + 3800);
   assert.match(slice, /INPUT\|TEXTAREA/);
   assert.match(slice, /isContentEditable/);
   /* keydown em captura, passivo e com signal (cleanup automático) */
@@ -32,9 +32,11 @@ test('digitar: reage em rajadas espaçadas e volta à calma quando para', () => 
   const idx = content.indexOf('_bindTypingCompanion(signal) {');
   const slice = content.slice(idx, idx + 2600);
   /* throttle da reação visível (não pisca a cada tecla) */
-  assert.match(slice, /_lastTypingBurst \|\| 0\) < 2600/);
+  assert.match(slice, /_lastTypingBurst \|\| 0\) < 1800/);
   /* timer que encerra o "digitar junto" quando as teclas cessam */
   assert.match(slice, /_typingStopTimer = setTimeout\(endTyping, 1500\)/);
+  /* eco ocasional do subpet enquanto digita */
+  assert.match(slice, /subpet\._pulseReact/);
   /* respeita visível/quiet/cross-tab/performanceMode */
   assert.match(slice, /!this\.isVisible \|\| this\.isQuiet\(\) \|\| this\._crossTabHidden \|\| this\.S\.settings\.performanceMode\) return/);
   /* Dev digita ("typing"); demais ficam curiosos — estado sustentado (não setStateFor) */
@@ -60,7 +62,7 @@ test('assistir: _bindMediaWatching + _tickWatch registrados e ligados ao AbortSi
   /* cooldown de reengate */
   assert.match(slice, /_lastWatchStart \|\| 0\) < 20000/);
   /* loop calmo enquanto assiste */
-  assert.match(slice, /setInterval\(\(\) => this\._tickWatch\(\), 13000\)/);
+  assert.match(slice, /setInterval\(\(\) => this\._tickWatch\(\), 9000\)/);
 });
 
 test('assistir: pet fica por perto — auto-walk e dwell suspensos durante o vídeo', () => {
@@ -106,7 +108,7 @@ test('navegar SPA: _onBrowseNavigate anima, acorda e reavalia contexto', () => {
   const slice = content.slice(idx, idx + 1800);
   assert.match(slice, /this\.lastActivity = Date\.now\(\)/);
   assert.match(slice, /this\.state === 'sleeping'\) this\.wakeUp\(\)/);
-  assert.match(slice, /_lastNavReactAt/);
+  assert.match(slice, /_lastNavReactAt \|\| 0\) < 2800/);
   assert.match(slice, /setStateFor\('curious'/);
   assert.match(slice, /setStateFor\('waving'/);
   assert.match(slice, /_pulsePageReaction\('page-navigating'/);
@@ -117,18 +119,21 @@ test('navegar SPA: _onBrowseNavigate anima, acorda e reavalia contexto', () => {
 
 test('scroll de leitura: micro-reação além do scroll rápido', () => {
   const idx = content.indexOf('_setupScrollReaction() {');
-  const slice = content.slice(idx, idx + 2800);
+  const slice = content.slice(idx, idx + 3600);
   assert.match(slice, /speed > 1200/);
   assert.match(slice, /speed > 380/);
   assert.match(slice, /_scrollSoftReacting/);
   assert.match(slice, /_pulsePageReaction\('page-scrolling'/);
+  assert.match(slice, /_scrollSoftTimer = setTimeout\(\(\) => \{ this\._scrollSoftReacting = false; \}, 2000\)/);
+  assert.match(slice, /subpet\._pulseReact/);
 });
 
 test('clique em link/botão: reação mais frequente e variada', () => {
   const idx = content.indexOf('_bindPagePlayfulness(signal) {');
   const slice = content.slice(idx, idx + 3200);
   assert.match(slice, /a\[href\], button, \[role="button"\]/);
-  assert.match(slice, /interactive \? 0\.34 : 0\.14/);
+  assert.match(slice, /interactive \? 0\.48 : 0\.2/);
+  assert.match(slice, /interactive \? 3500 : 7000/);
   assert.match(slice, /setStateFor\('curious'/);
   assert.match(slice, /setStateFor\('excited'/);
 

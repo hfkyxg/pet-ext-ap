@@ -1,14 +1,14 @@
 # Relatório de Validação — Claw'd v4.0.0
 
-**Data:** 23 de julho de 2026 (revalidação: modo liso nítido + load unpacked MV3 + badge 250)
+**Data:** 23 de julho de 2026 (revalidação: `.aic-presence-hidden` + sprites trio + badge 253)
 **Ambiente:** Windows · Node.js · Edge/Chromium  
-**Marco:** **250/250** contratos — schema v6 + Central de Calma + 11 subpets + modo liso sem AA pastoso + harness sem `_` + fala/movimento/a11y
+**Marco:** **253/253** contratos — schema v6 + Central de Calma + 11 subpets + **um pet no navegador** (`broadcastOwnership` / `.aic-presence-hidden` / hide-before-paint) + cadência viva + personalização sem silhueta preta + modo liso nítido + harness sem `_`
 
 ## Resultado
 
 - Verificações de sintaxe (`npm run check`): **aprovadas** (inclui `i18n-entities.js`)
-- Suíte `node:test`: **250/250**
-- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **4.0.0** · badge **250/250**
+- Suíte `node:test`: **253/253**
+- `validate-ecosystem`: **ECOSYSTEM_STATIC_OK** · version **4.0.0** · badge **253/253**
 - `npm run audit`: **AUDIT_PACK_OK** (5 eixos)
 - Lint (`eslint src tests`): **0 erros**
 - Smoke Chromium: **runtimeErrors: 0** · reloads **3/3** · duo/partículas/props + layout de fala desktop/375 px OK
@@ -22,7 +22,7 @@
 | Rostos / skins / idle | **9** / **11** / **7** |
 | Profissões / subpets | **12** / **11** |
 | Locales UI | **11** (pt-BR padrão) |
-| Contratos | **250** |
+| Contratos | **253** |
 
 ## Matriz de auditoria (5 eixos)
 
@@ -32,7 +32,7 @@
 | **Performance** | `PARTICLE_MAX` / `_reserveFx`, `performanceMode`, reduced-motion, subpet `dt` + off-screen pause, rAF no showcase — `quality-fluid.test.js` + `motion-harmony.test.js` |
 | **Automações** | CI: test + ecosystem + audit (`.github/workflows/validate.yml`) |
 | **Integrações** | Trello via SW (`api.trello.com`), i18n (`src/shared/i18n.js`), `docs/TRELLO.md` |
-| **Interações** | tabs ARIA, overlays modais, Pomodoro/humor assistivos, grounding autoguiado, sons curtos, fluidez pet↔subpet; **host ativo** (`_isActiveHost` / `_crossTabHidden`); digitar/assistir; mischief |
+| **Interações** | tabs ARIA, overlays modais, Pomodoro/humor assistivos, grounding autoguiado, sons curtos, fluidez pet↔subpet; **host ativo** (`_isActiveHost` / `_crossTabHidden` / `.aic-presence-hidden`); digitar/assistir; mischief; cadência viva (timings 8/9/16s + subpet leve com dono busy) |
 
 ## Harmonia de movimento e interação
 
@@ -55,7 +55,7 @@
 
 Contratos específicos: `tests/motion-harmony.test.js`, `tests/catalog.test.js` (modo liso). Diretrizes: [`docs/MOTION.md`](../MOTION.md).
 
-## Polish 23/07/2026 — modo liso
+## Polish 23/07/2026 — modo liso + presença + trio
 
 | Item | Status |
 |------|--------|
@@ -65,6 +65,9 @@ Contratos específicos: `tests/motion-harmony.test.js`, `tests/catalog.test.js` 
 | Keyframes body sem sombra (pose, meditar, elétrico, arco-íris, sleep, excited) | ✅ |
 | Name-tag `top: 48px` no liso (menos overlap nas pernas) | ✅ |
 | Contratos anti-regressão no catálogo / validation-complete / quality-fluid | ✅ |
+| `.aic-presence-hidden` (`display:none !important`) esconde pet+subpet nas abas não-host | ✅ |
+| `refreshSubpet` usa `_crossTabHidden`/`isVisible` (não `style.display`, enganoso com `block !important`) | ✅ |
+| Sprites Raposa/Capivara/Axolote redesenhados (silhuetas distintas + preview 72×60) | ✅ |
 
 ## Polish 22/07/2026 (neste marco)
 

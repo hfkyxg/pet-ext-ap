@@ -516,8 +516,8 @@ test('fluidez: pet+subpet animam juntos — ease, eco, idle e anticipação', ()
   assert.match(content, /jump-anticipate/);
   assert.match(style, /@keyframes clawd-jump-anticipate/);
   assert.match(style, /\.jump-anticipate \.pet-body/);
-  /* Duo mais contagiante */
-  assert.match(content, /Math\.random\(\) > 0\.72/);
+  /* Duo mais contagiante (~40% de chance) */
+  assert.match(content, /Math\.random\(\) > 0\.6/);
 });
 
 test('qualidade: curious vence breathe; shiny nofx; rostos/skins/idle expandidos', () => {

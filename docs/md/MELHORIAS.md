@@ -12,13 +12,14 @@
 | **Foco** | Pomodoro persistente no service worker, relógio e controles no popup | ✅ |
 | **Bem-estar** | Respiração 4–4–4–4, humor, lembretes e bloqueio suave | ✅ |
 | **Central de Calma** | Reset de 1 minuto, grounding 5-4-3-2-1, quatro sons curtos e insights locais de sete dias | ✅ |
-| **Subpets** | **11 espécies**; Raposa, Capivara e Axolote com sprite, habilidade e SFX próprios | ✅ |
+| **Subpets** | **11 espécies**; Raposa/Capivara/Axolote com silhuetas distintas + PNG; preview popup 72×60 | ✅ |
+| **Presença** | Um host por navegador; `.aic-presence-hidden` esconde clones multi-janela | ✅ |
 | **Tempo consciente** | Guarda anti-doomscroll, tempo de tela e regras por site | ✅ |
 | **Movimento** | Tokens comuns, zero `transition: all`, halo independente, saída por `transitionend` e graça anti-sobreposição autônoma | ✅ |
 | **Fala/gestos** | Balões em quatro direções sem colisão; olhar 3D isolado; long press mouse/touch; `Shift+Enter`; foco visível | ✅ |
 | **A11y** | Diálogos modais com trap/Escape/restauração; tabs ARIA com teclado; estados assistivos | ✅ |
 | **Performance** | Showcase subpet em rAF; pause hidden/reduced; cleanup rastreado | ✅ |
-| **Tests/Docs** | **250/250**; `MOTION.md`, README, manual, arquitetura, validação e vitrine alinhados; modo liso sem `drop-shadow`+`scale` | ✅ |
+| **Tests/Docs** | **253/253**; `MOTION.md`, README, manual, arquitetura, validação e vitrine alinhados; modo liso sem `drop-shadow`+`scale`; FAQ multi-pet | ✅ |
 
 ---
 
@@ -150,7 +151,7 @@
 
 ### Resumo técnico
 
-- **Magic numbers eliminados**: timings centralizados em `CLAWD_TIMINGS.*` (valores atuais: `SUBPET_INTERACTION_MS: 14000`, `RANDOM_ACTION_MS: 12000`, `DUO_SCENE_MS: 22000`; na v4 também `FOCUS_TICK_MS`, `BREATH_PHASE_MS`, `MOTION_EXIT_MS` e `AUTONOMY_GRACE_MS`).
+- **Magic numbers eliminados**: timings centralizados em `CLAWD_TIMINGS.*` (valores atuais: `SUBPET_INTERACTION_MS: 9000`, `RANDOM_ACTION_MS: 8000`, `DUO_SCENE_MS: 16000`; na v4 também `FOCUS_TICK_MS`, `BREATH_PHASE_MS`, `MOTION_EXIT_MS` e `AUTONOMY_GRACE_MS`).
 - **Props animator**: engineer + footballer sem props visuais agora têm keyframes dedicados; chef pan stir soma ao steam existente
 - **Hover glow**: `drop-shadow(0 0 5px --clawd-glow)` + `brightness(1.06)` no `.smooth:hover` — derivado de hex color `+70` (44% alpha)
 - **RAF orphan guard**: `cancelAnimationFrame + return` se `!document.body.contains(node)` no tick do SubPet

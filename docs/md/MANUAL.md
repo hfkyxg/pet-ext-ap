@@ -104,7 +104,7 @@ O equipamento indicado pela profissão é temporário e aparece com o selo **PRO
 - **Balão de fala** — liga/desliga as mensagens aleatórias;
 - **Andar automático** — ele passeia sozinho pela tela de tempos em tempos;
 - **Dormir quando ocioso** — desative se quiser o pet sempre acordado;
-- **Passear entre abas** — mantém **somente um** Claw'd principal no navegador (aba anfitriã); as demais ficam sem pet ativo (sem sons/efeitos fantasma) e podem mostrar pegadas;
+- **Passear entre abas** — mantém **somente um** Claw'd (e o subpet ativo) no navegador inteiro, inclusive com várias janelas lado a lado; as demais abas ficam sem pet visível (sem sons/efeitos fantasma) e podem mostrar pegadas. Confirme que o toggle está **ligado** em Comportamento;
 - **Pegadas** — mostra onde o pet não está quando o passeio entre abas está ativo;
 - **Sons** — bipes 8-bit em ações (ligado por padrão); o volume fica no controle ao lado (ao arrastar, um chirp de prévia toca no próprio menu);
 - **Horário de silêncio** — intervalo em que o pet não fala, anda sozinho nem toca sons;
@@ -136,7 +136,7 @@ Se o sistema estiver com **Reduzir movimento** ativado, halos, transições e lo
 
 ### 🐕 Sub-pets
 
-O catálogo oferece **11 subpets**: Cachorro, Gato, Pássaro, Coelho, Dinossauro, Dragão, Fantasma, Slime, **Raposa, Capivara e Axolote**. Ao selecionar um, você pode definir um **apelido**, a **cor do corpo** e uma **cor independente para os olhos**. O nome aparece nas falas; o corpo recebe uma sombra mais escura automaticamente para preservar a profundidade da pixel-art.
+O catálogo oferece **11 subpets**: Cachorro, Gato, Pássaro, Coelho, Dinossauro, Dragão, Fantasma, Slime, **Raposa, Capivara e Axolote**. Cada um tem silhueta própria (a Raposa com orelhas e cauda, a Capivara em “pão” largo com focinho creme, o Axolote com brânquias aqua). Ao selecionar um, você pode definir um **apelido**, a **cor do corpo** e uma **cor independente para os olhos**. O nome aparece nas falas; cores iguais ao natural mantêm o PNG nítido.
 
 Clique ou use Enter/Espaço no subpet para fazer carinho (há um leve “squash” ao pressionar). Use **duplo clique**, **segure por um instante** ou pressione **Shift+Enter/Shift+Espaço** para ativar a habilidade especial da espécie; um anel indica o gesto de segurar. Ao mover o ponteiro sobre ele, o subpet acompanha o movimento com uma reação curta. Se estiver dormindo, acordará com uma animação própria; quando o Claw'd principal acorda, os dois despertam juntos. Fora da área visível da página, o companheiro pausa sozinho e volta a animar quando reaparece.
 
@@ -202,8 +202,11 @@ Atualize para v3.7.3+: saves antigos com posição `{0,0}` são descartados e o 
 **O pet sumiu!**
 Abra o menu → aba Ações → **🔄 Resgatar pet**. Ele volta ao canto da tela.
 
-**Apareceu mais de um pet depois de atualizar a extensão.**
-Na v3.2, basta clicar em **Recarregar** em `chrome://extensions`: a extensão remove automaticamente instâncias antigas de todas as abas e recria somente o pet principal na aba ativa.
+**Apareceu mais de um pet (ou pet+subpet) em abas/janelas diferentes.**
+1. Confirme em Comportamento que **🌐 Passear entre abas** está **ligado** (com o toggle desligado, cada aba mostra o pet).
+2. Recarregue a extensão em `chrome://extensions` e depois as abas abertas.
+3. Em Ações, use **🧳 Seguir nesta guia** na janela onde você quer o pet — as outras devem esconder.
+A partir da v4.0, o hide visual usa `.aic-presence-hidden` (necessário porque o CSS do pet força `display: block !important`).
 
 **Ele não aparece em uma página.**
 Algumas páginas internas do navegador (chrome://, loja de extensões, PDFs) não aceitam extensões — é limitação do Chrome, não do pet.

@@ -210,6 +210,52 @@ function send(tabId, msg) {
   return true;
 }
 
+/** Force-hide via tabs API quando o Port morreu (aba zumbi / SW dormiu). */
+function forceHideTab(tabId) {
+  if (tabId == null) return;
+  try {
+    chrome.tabs.sendMessage(tabId, { action: 'forceHidePet' }, () => { scrubLastError(); });
+  } catch (_) {
+    scrubLastError();
+  }
+}
+
+/**
+ * Envia pelo Port; se hide/despawn falhar, força hide na aba.
+ * Evita pet órfão visível quando o canal já morreu.
+ */
+function sendPresence(tabId, msg) {
+  const ok = send(tabId, msg);
+  if (!ok && msg && (msg.type === 'hidePet' || msg.type === 'despawnPet')) {
+    forceHideTab(tabId);
+  }
+  return ok;
+}
+
+/**
+ * Ownership único: um host spawnado, demais hide (+ forceHide se Port morto).
+ * Usado por assignHost e completeTravel.
+ */
+function broadcastOwnership(hostId, spawnMsg = { type: 'spawnPet' }) {
+  clearTravelInFlight();
+  clearTravelDebounce();
+  const prevHost = hostTabId;
+  hostTabId = hostId;
+  persistHost();
+  let spawned = false;
+  for (const [id] of ports) {
+    if (id === hostId) {
+      spawned = send(id, spawnMsg);
+    } else {
+      sendPresence(id, { type: 'hidePet' });
+    }
+  }
+  if (prevHost != null && prevHost !== hostId && !ports.has(prevHost)) {
+    forceHideTab(prevHost);
+  }
+  return spawned;
+}
+
 function getSettings(cb) {
   chrome.storage.local.get(['clawdState'], (res) => {
     scrubLastError();
@@ -369,23 +415,7 @@ reconcileFocusAlarm();
 
 /* ---- Escolhe/atribui a aba anfitriã ---- */
 function assignHost(tabId) {
-  clearTravelInFlight();
-  clearTravelDebounce();
-  const prevHost = hostTabId;
-  hostTabId = tabId;
-  persistHost();
-  for (const [id] of ports) {
-    if (id === tabId) send(id, { type: 'spawnPet' });
-    else send(id, { type: 'hidePet' });
-  }
-  /* Host anterior sem Port vivo (SW dormiu / aba zumbi) — força hide via tabs API. */
-  if (prevHost != null && prevHost !== tabId && !ports.has(prevHost)) {
-    try {
-      chrome.tabs.sendMessage(prevHost, { action: 'forceHidePet' }, () => { scrubLastError(); });
-    } catch (_) {
-      scrubLastError();
-    }
-  }
+  broadcastOwnership(tabId);
 }
 
 /* ---- Viagem animada origem → destino ---- */
@@ -403,10 +433,10 @@ function travel(toTabId) {
   travelInFlight = { from, to: toTabId, direction };
   /* Esconde todas as outras abas imediatamente — evita clone durante a animação. */
   for (const [id] of ports) {
-    if (id !== from && id !== toTabId) send(id, { type: 'hidePet' });
+    if (id !== from && id !== toTabId) sendPresence(id, { type: 'hidePet' });
   }
-  send(toTabId, { type: 'hidePet' });
-  send(from, { type: 'despawnPet', direction });
+  sendPresence(toTabId, { type: 'hidePet' });
+  sendPresence(from, { type: 'despawnPet', direction });
   // fallback: se a origem não confirmar em 3s, conclui mesmo assim
   travelInFlight.timeout = setTimeout(completeTravel, 3000);
 }
@@ -416,19 +446,11 @@ function completeTravel() {
   const { to, direction, timeout } = travelInFlight;
   clearTimeout(timeout);
   travelInFlight = null;
-  hostTabId = to;
-  persistHost();
-  let spawned = false;
-  for (const [id] of ports) {
-    if (id === to) {
-      spawned = send(to, {
-        type: 'spawnPet',
-        direction: direction === 'left' ? 'right' : 'left'
-      });
-    } else {
-      send(id, { type: 'hidePet' });
-    }
-  }
+  /* Mesmo caminho de assignHost: hide + forceHide em Port morto. */
+  const spawned = broadcastOwnership(to, {
+    type: 'spawnPet',
+    direction: direction === 'left' ? 'right' : 'left'
+  });
   if (!spawned) {
     // destino morreu no meio do caminho — respawna em qualquer aba viva
     respawnAnywhere();
@@ -437,7 +459,7 @@ function completeTravel() {
 
 function respawnAnywhere() {
   clearTravelDebounce();
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
     scrubLastError();
     const activeId = tabs[0]?.id;
     if (activeId != null && ports.has(activeId)) { assignHost(activeId); return; }
@@ -455,7 +477,7 @@ function handlePresenceMessage(tabId, raw) {
       restoreHost(() => {
         // Mid-travel: origem anima saída; demais abas ficam ocultas (nunca clone).
         if (travelInFlight) {
-          if (tabId !== travelInFlight.from) send(tabId, { type: 'hidePet' });
+          if (tabId !== travelInFlight.from) sendPresence(tabId, { type: 'hidePet' });
           return;
         }
         if (hostTabId == null || !ports.has(hostTabId)) {
@@ -463,7 +485,7 @@ function handlePresenceMessage(tabId, raw) {
         } else if (tabId === hostTabId) {
           send(tabId, { type: 'spawnPet' });
         } else {
-          send(tabId, { type: 'hidePet' });
+          sendPresence(tabId, { type: 'hidePet' });
         }
       });
       break;
@@ -535,7 +557,7 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
     travelDebounce = setTimeout(() => {
       travelDebounce = null;
       // ainda é a aba ativa e registrada?
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
         scrubLastError();
         if (tabs[0]?.id === tabId && ports.has(tabId)) travel(tabId);
       });

@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
 const {
   CLAWD_ACCESSORIES,
   CLAWD_MODELS,
@@ -403,6 +405,134 @@ test('sub-pets suportam apelidos e paletas customizadas por espécie', () => {
   assert.match(contentSource, /this\.S\.subpets\s*=\s*fresh\.subpets;\s*this\.refreshSubpet\(\);/);
   assert.match(contentSource, /clawdAssignPlain\(\{\}, st\.subpets\.names\)/);
   assert.match(contentSource, /chrome\.storage\.local\.set\(\{\s*clawdState:\s*clawdMigrateState\(st\)\s*\}\)/);
+});
+
+test('personalização de subpet: cor natural mantém PNG; só custom derruba bitmap', () => {
+  const {
+    CLAWD_SUBPET_SPRITES,
+    clawdSubPetHasCustomPalette,
+    clawdNormalizeHexColor,
+    clawdSubPetPalette,
+    clawdBuildPixelShadow,
+    clawdSubPetFrame
+  } = require('../src/shared/catalog.js');
+
+  for (const [id, sprite] of Object.entries(CLAWD_SUBPET_SPRITES)) {
+    assert.ok(sprite?.frames?.idle?.length, `${id} sem idle`);
+    assert.ok(sprite?.image?.url?.includes(`${id}.png`), `${id} sem PNG`);
+    /* Sem cor salva / cor = natural → NÃO é custom (PNG literal) */
+    assert.equal(clawdSubPetHasCustomPalette(sprite, null, null), false, `${id} natural`);
+    const naturalB = clawdNormalizeHexColor(sprite.colors.B);
+    const naturalK = clawdNormalizeHexColor(sprite.colors.K) || '#111111';
+    if (naturalB) {
+      assert.equal(clawdSubPetHasCustomPalette(sprite, naturalB, null), false, `${id} body natural`);
+      assert.equal(clawdSubPetHasCustomPalette(sprite, naturalB, naturalK), false, `${id} body+eye natural`);
+    }
+    /* Olho default #111111 não conta como custom se for o K do sprite */
+    assert.equal(clawdSubPetHasCustomPalette(sprite, null, naturalK), false, `${id} eye natural`);
+    /* Cor realmente diferente → custom (canvas tingido / ink) */
+    assert.equal(clawdSubPetHasCustomPalette(sprite, '#ff00aa', null), true, `${id} body custom`);
+    const customPal = clawdSubPetPalette(sprite, '#ff00aa', null);
+    assert.equal(customPal.B.toLowerCase(), '#ff00aa');
+    if (sprite.colors.G) {
+      assert.notEqual(customPal.G.toLowerCase(), String(sprite.colors.G).toLowerCase(), `${id} G acompanha corpo`);
+    }
+    const shadow = clawdBuildPixelShadow(clawdSubPetFrame(sprite, 'idle', 0), customPal);
+    assert.match(shadow, /#ff00aa/i, `${id} shadow usa body custom`);
+    assert.ok(shadow.split(',').length >= 8, `${id} shadow precisa de pixels`);
+  }
+  const {
+    clawdSubPetFrameToDataUrl,
+    clawdTintSubPetImage
+  } = require('../src/shared/catalog.js');
+  assert.equal(typeof clawdSubPetFrameToDataUrl, 'function');
+  assert.equal(typeof clawdTintSubPetImage, 'function');
+  /* Em Node sem canvas/document → string vazia (browser gera data-URL). */
+  assert.equal(
+    clawdSubPetFrameToDataUrl(clawdSubPetFrame(CLAWD_SUBPET_SPRITES.dog, 'idle', 0), CLAWD_SUBPET_SPRITES.dog.colors),
+    ''
+  );
+
+  /* Dino: silhueta do sheet (3 espinhos, corpo chapado, 3 patas) */
+  const dino = CLAWD_SUBPET_SPRITES.dino;
+  const dinoIdle = clawdSubPetFrame(dino, 'idle', 0).join('\n');
+  assert.match(dinoIdle, /\.\.D\.\.D\.\.D\.\.\./);
+  assert.match(dinoIdle, /\.BBKKBBKKBB\./);
+  assert.match(dinoIdle, /\.BBBBBNBBBB\./);
+  assert.match(dinoIdle, /\.\.BB\.BB\.BB\.\./); /* 3 patas centradas (sheet) */
+  assert.doesNotMatch(dinoIdle, /BBBBBYYBBBBB/);
+  assert.doesNotMatch(dinoIdle, /\.BB\.BB\.BB\.\.\./); /* regressão: patas puxadas à esquerda */
+  let dinoFill = 0;
+  clawdSubPetFrame(dino, 'idle', 0).forEach((r) => {
+    for (const ch of r) if (ch !== '.') dinoFill += 1;
+  });
+  assert.ok(dinoFill >= 60, `dino fill ${dinoFill} muito baixo`);
+  const dinoPng = fs.readFileSync(path.join(root, 'src/shared/sprites/subpets/dino.png'));
+  assert.ok(dinoPng.length > 200, 'dino.png ausente/vazio');
+
+  /* Content: PNG literal ou canvas tingido (cor custom); filter nunca no .subpet-motion */
+  assert.match(contentSource, /subpet-bitmap/);
+  assert.match(contentSource, /_mountBitmap\(/);
+  assert.match(contentSource, /_resolvePose\(/);
+  assert.match(contentSource, /_useLiteralPng\(/);
+  assert.match(contentSource, /clawdTintSubPetImage/);
+  assert.match(contentSource, /_tintCacheUrl/);
+  assert.match(styleSource, /\.aic-subpet\s*\{[\s\S]*?all:\s*initial/);
+  assert.match(styleSource, /\.subpet-motion\s*\{[\s\S]*?filter:\s*none/);
+  assert.match(styleSource, /subpet-sprite--bitmap[\s\S]*?\.subpet-bitmap[\s\S]*?object-fit:\s*contain\s*!important/);
+  assert.match(contentSource, /owner \* 0\.55/);
+
+  /* Popup: PNG canônico; custom → clawdTintSubPetImage (não frame letter) */
+  assert.match(popupSource, /fillSubpetPixelPreview/);
+  assert.match(popupSource, /preferSubpetPreviewPose/);
+  assert.match(popupSource, /hasCustom/);
+  assert.match(popupSource, /clawdTintSubPetImage/);
+  assert.doesNotMatch(popupSource, /clawdSubPetFrameToDataUrl\(frame/);
+  assert.match(popupStyle, /\.subpet-pixel-preview\s*\{[\s\S]*?width:\s*72px/);
+  assert.match(popupStyle, /\.subpet-pixel-preview\s*\{[\s\S]*?height:\s*60px/);
+  assert.match(popupSource, /subpet-pixel-preview--bitmap/);
+  assert.match(popupSource, /subpet-pixel-bitmap/);
+  assert.match(popupStyle, /object-fit:\s*contain/);
+  assert.doesNotMatch(popupSource, /subpet-pixel-preview--tinted/);
+  assert.doesNotMatch(popupStyle, /subpet-pixel-preview--tinted/);
+  assert.match(popupSource, /activeSprite\.colors\?\.B/);
+  assert.match(popupSource, /clawdSubPetPalette\(/);
+  assert.match(popupSource, /clawdSubPetHasCustomPalette/);
+  assert.match(popupSource, /btn-subpet-reset-colors/);
+  assert.match(popupHtml, /id="btn-subpet-reset-colors"/);
+  assert.match(contentSource, /clawdSubPetHasCustomPalette/);
+  assert.match(contentSource, /transformOrigin = 'top left'/);
+  assert.match(contentSource, /delete this\.S\.subpets\.colors\[msg\.species\]/);
+  assert.match(contentSource, /delete this\.S\.subpets\.eyeColors\[msg\.species\]/);
+
+  /* Sanitize limpa #111111 / quase-preto acidental no corpo de espécies claras */
+  const { clawdDefaultState, clawdMigrateState } = require('../src/shared/catalog.js');
+  const dirty = clawdDefaultState();
+  dirty.subpets.colors = { dino: '#111111', dog: '#4a90e2', rabbit: '#0a0a0a' };
+  dirty.subpets.eyeColors = { dino: '#111111' };
+  const cleaned = clawdMigrateState(dirty);
+  assert.equal(cleaned.subpets.colors.dino, undefined);
+  assert.equal(cleaned.subpets.colors.rabbit, undefined);
+  assert.equal(cleaned.subpets.colors.dog, '#4a90e2');
+  assert.equal(cleaned.subpets.eyeColors.dino, undefined);
+
+  return clawdTintSubPetImage('', CLAWD_SUBPET_SPRITES.dog.colors, CLAWD_SUBPET_SPRITES.dog.colors).then((url) => {
+    assert.equal(url, '');
+  });
+});
+
+test('modelos do pet principal: corpo via --clawd-pixel-body sem pernas duplicadas', () => {
+  assert.match(styleSource, /box-shadow:\s*var\(--clawd-pixel-body\)\s*!important/);
+  assert.match(styleSource, /box-shadow:\s*var\(--clawd-legs-idle\)/);
+  /* Regressão: corpo hardcoded com pernas (octopus) não pode voltar */
+  assert.doesNotMatch(
+    styleSource,
+    /#aic-clawd-node \.pixel-sprite\s*\{[^}]*8px 24px var\(--agent-color\),\s*16px 24px var\(--agent-color\),\s*24px 24px var\(--agent-color\),\s*32px 24px var\(--agent-color\)/
+  );
+  for (const id of Object.keys(require('../src/shared/catalog.js').CLAWD_MODELS)) {
+    assert.match(styleSource, new RegExp(`data-model="${id}"[\\s\\S]*?--clawd-pixel-body:`));
+    assert.match(styleSource, new RegExp(`data-model="${id}"[\\s\\S]*?--clawd-legs-idle:`));
+  }
 });
 
 test('modo liso troca a grade por uma silhueta contínua do mesmo pet', () => {

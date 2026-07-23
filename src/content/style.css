@@ -211,6 +211,14 @@
 
   transition: transform .14s var(--clawd-ease-standard), opacity var(--clawd-dur-base) ease;
 }
+/* Cross-tab / petVisible: precisa !important — o host usa display:block !important
+   e style.display='none' inline NÃO ganha dessa regra (clones em várias janelas). */
+#aic-clawd-node[data-clawd-owned="true"].aic-presence-hidden,
+.aic-subpet.aic-presence-hidden {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
 #aic-clawd-node[data-clawd-owned="true"].aic-moving,
 #aic-clawd-node[data-clawd-owned="true"].dragging {
   will-change: transform, left, top;
@@ -2742,19 +2750,34 @@
    SUB-PET
    ============================ */
 .aic-subpet {
+  /* Isola do CSS da página (Google etc. estiliza img/div e desfigura o PNG). */
+  all: initial;
   --subpet-direction: 1;
   --subpet-look-x: 0px;
   --subpet-look-y: 0px;
-  position: fixed;
+  --subpet-scale: 1;
+  --subpet-body: #888888;
+  --subpet-eye: #111111;
+  position: fixed !important;
   /* O pet principal mantém a fala/etiqueta acima; o companheiro segue visível
      ao lado sem atravessar controles nem disputar o mesmo stacking context. */
-  z-index: 2147483646;
+  z-index: 2147483646 !important;
   width: 56px;
   height: 48px;
-  pointer-events: auto;
+  display: block !important;
+  box-sizing: border-box !important;
+  pointer-events: auto !important;
   cursor: pointer;
+  user-select: none;
   transition: opacity 0.5s ease;
   will-change: left, top;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: visible !important;
+}
+.aic-subpet *,
+.aic-subpet *::before,
+.aic-subpet *::after {
+  box-sizing: border-box !important;
 }
 .aic-subpet.off-screen {
   animation-play-state: paused !important;
@@ -2765,6 +2788,22 @@
   inset: 0;
   transform-origin: bottom center;
   animation: clawd-subpet-idle 2.4s ease-in-out infinite;
+  /* NUNCA filter aqui: clipa box-shadow do ink (dino/custom → blob ciano). */
+  filter: none;
+  overflow: visible;
+}
+/* Sombra de chão sem filter — segura no ink e no PNG. */
+.aic-subpet .subpet-motion::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
 }
 .aic-subpet.moving .subpet-motion,
 .aic-subpet.playing .subpet-motion,
@@ -2787,6 +2826,7 @@
 .aic-subpet .subpet-sprite {
   position: absolute;
   top: 0; left: 0;
+  z-index: 1;
   width: 4px;
   height: 4px;
   background: transparent;
@@ -2796,10 +2836,10 @@
   transform-origin: top left;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  /* Sombra seca — blur forte “lavava” os olhos pretos para cinza. */
-  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28));
+  /* filter no host de box-shadow = silhueta clipada. Só PNG (.--bitmap) usa filter. */
+  filter: none !important;
   will-change: auto;
-  transition: filter 0.2s ease, transform 0.18s cubic-bezier(.34,1.4,.64,1);
+  transition: transform 0.18s cubic-bezier(.34,1.4,.64,1);
 }
 .aic-subpet.moving .subpet-sprite,
 .aic-subpet.flying .subpet-sprite,
@@ -2809,20 +2849,45 @@
 }
 .aic-subpet .subpet-sprite.subpet-sprite--bitmap {
   transform-origin: center bottom;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28)) !important;
+  background-image: none !important;
+  overflow: visible !important;
 }
-.aic-subpet.blinking .subpet-sprite {
-  filter: brightness(0.9) saturate(0.8) drop-shadow(0 2px 0 rgba(0,0,0,0.22));
+.aic-subpet .subpet-sprite.subpet-sprite--bitmap .subpet-bitmap {
+  all: unset;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  vertical-align: bottom !important;
+  transform: none !important;
+  position: static !important;
+  float: none !important;
 }
 /* Piscada em PNG literal: squish leve sem trocar para box-shadow */
 .aic-subpet.blinking .subpet-sprite.subpet-sprite--bitmap {
-  filter: brightness(0.82) saturate(0.72) drop-shadow(0 2px 0 rgba(0,0,0,0.22));
+  filter: brightness(0.82) saturate(0.72) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28)) !important;
   transform: scale(var(--subpet-scale, 1), calc(var(--subpet-scale, 1) * 0.86)) scaleX(var(--subpet-direction, 1));
 }
 .aic-subpet.hovering:not(.sleeping):not(.playing) .subpet-sprite {
-  filter: brightness(1.06) drop-shadow(0 3px 0 rgba(0,0,0,0.32));
   transform: translate(var(--subpet-look-x), var(--subpet-look-y))
     scale(calc(var(--subpet-scale, 1) * 1.08)) scaleX(var(--subpet-direction)) translateY(-2px);
-  transition: transform 0.2s cubic-bezier(.34,1.4,.64,1), filter 0.2s ease;
+  transition: transform 0.2s cubic-bezier(.34,1.4,.64,1);
+}
+.aic-subpet.hovering:not(.sleeping):not(.playing) .subpet-sprite.subpet-sprite--bitmap {
+  filter: brightness(1.06) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.32)) !important;
 }
 .aic-subpet.tapped .subpet-sprite {
   animation: clawd-subpet-tap 0.28s cubic-bezier(.34,1.5,.64,1) both;
@@ -2985,15 +3050,39 @@
 .aic-subpet.celebrating .subpet-sprite { animation: clawd-subpet-celebrate 0.5s cubic-bezier(.34,1.56,.64,1) 4; }
 .aic-subpet.exploring .subpet-sprite { animation: clawd-subpet-explore 0.34s ease-in-out infinite; }
 .aic-subpet.vanishing .subpet-sprite { animation: clawd-subpet-vanish 1.9s ease-in-out both; }
-.aic-subpet.sleeping .subpet-sprite { filter: brightness(0.7) saturate(0.45) drop-shadow(0 2px 0 rgba(0,0,0,0.28)); }
-.aic-subpet.fire .subpet-sprite { filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28)) brightness(1.12) saturate(1.2); }
+.aic-subpet.sleeping .subpet-sprite.subpet-sprite--bitmap {
+  filter: brightness(0.7) saturate(0.45) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28)) !important;
+}
+.aic-subpet.fire .subpet-sprite.subpet-sprite--bitmap {
+  filter: brightness(1.12) saturate(1.2) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28)) !important;
+}
 .aic-subpet.perching .subpet-motion { animation: clawd-subpet-idle 1.6s ease-in-out infinite; }
 .aic-subpet.wagging .subpet-sprite { animation: clawd-subpet-wag 0.28s ease-in-out infinite; }
 .aic-subpet.double-hop .subpet-sprite { animation: clawd-subpet-double-hop 0.7s cubic-bezier(.34,1.4,.64,1) 2; }
 .aic-subpet.heavy-stomp .subpet-sprite { animation: clawd-subpet-stomp 0.34s ease-in infinite; }
+.aic-subpet.capy-sway .subpet-sprite { animation: clawd-subpet-capy-sway 1.1s ease-in-out infinite; }
+.aic-subpet.axo-gills .subpet-sprite { animation: clawd-subpet-axo-gills 0.55s ease-in-out infinite; }
+.aic-subpet.fox-sparkle .subpet-sprite.subpet-sprite--bitmap {
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28)) drop-shadow(0 0 6px rgba(255, 213, 74, 0.55)) brightness(1.08) !important;
+}
+.aic-subpet.cozy-glow .subpet-sprite.subpet-sprite--bitmap {
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28)) drop-shadow(0 0 8px rgba(126, 207, 106, 0.4)) brightness(1.05) !important;
+}
+.aic-subpet.bubble-bob .subpet-motion { animation: clawd-subpet-bubble-bob 0.7s ease-in-out infinite; }
+.aic-subpet[data-species="fox"]:not(.sleeping) .subpet-motion {
+  animation-duration: 1.7s;
+}
+.aic-subpet[data-species="capybara"]:not(.sleeping) .subpet-motion {
+  animation-duration: 2.6s;
+}
+.aic-subpet[data-species="axolotl"]:not(.sleeping) .subpet-motion {
+  animation-duration: 1.9s;
+}
 .aic-subpet.phasing .subpet-sprite {
   animation: clawd-subpet-phase 1.2s ease-in-out infinite;
-  filter: brightness(1.15) saturate(0.7);
+}
+.aic-subpet.phasing .subpet-sprite.subpet-sprite--bitmap {
+  filter: brightness(1.15) saturate(0.7) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28)) !important;
 }
 .aic-subpet.singing .subpet-motion { animation: clawd-subpet-sing 0.9s ease-in-out infinite; }
 .aic-subpet-clone {
@@ -3009,6 +3098,18 @@
 @keyframes clawd-subpet-wag {
   0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(-6deg) translateY(0); }
   50% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(8deg) translateY(-2px); }
+}
+@keyframes clawd-subpet-capy-sway {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(-3deg) translateY(0); }
+  50% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(4deg) translateY(-2px); }
+}
+@keyframes clawd-subpet-axo-gills {
+  0%, 100% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) rotate(-4deg) translateY(0); }
+  50% { transform: scale(calc(var(--subpet-scale, 1) * 1.04)) scaleX(var(--subpet-direction)) rotate(5deg) translateY(-3px); }
+}
+@keyframes clawd-subpet-bubble-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 @keyframes clawd-subpet-double-hop {
   0% { transform: scale(var(--subpet-scale, 1)) scaleX(var(--subpet-direction)) translateY(0); }
@@ -3147,6 +3248,9 @@
   .aic-subpet.wagging .subpet-sprite,
   .aic-subpet.double-hop .subpet-sprite,
   .aic-subpet.heavy-stomp .subpet-sprite,
+  .aic-subpet.capy-sway .subpet-sprite,
+  .aic-subpet.axo-gills .subpet-sprite,
+  .aic-subpet.bubble-bob .subpet-motion,
   .aic-subpet.phasing .subpet-sprite,
   .aic-subpet.singing .subpet-motion,
   .aic-subpet.tapped .subpet-sprite,
@@ -3498,21 +3602,9 @@
 }
 
 /* ============================================================
-   SPRITE PADRÃO — frame estático do modelo de referência
-   As pernas só entram no ciclo quando o pet está se deslocando.
+   SPRITE PADRÃO — silhueta via --clawd-pixel-body (por data-model).
+   Pernas ficam em .pixel-legs — NÃO duplicar no corpo.
    ============================================================ */
-#aic-clawd-node .pixel-sprite {
-  animation: none !important;
-  box-shadow:
-    8px 0 var(--agent-color), 12px 0 var(--agent-color), 16px 0 var(--agent-color), 20px 0 var(--agent-color), 24px 0 var(--agent-color), 28px 0 var(--agent-color), 32px 0 var(--agent-color),
-    8px 4px var(--agent-color), 12px 4px #000, 16px 4px var(--agent-color), 20px 4px var(--agent-color), 24px 4px var(--agent-color), 28px 4px #000, 32px 4px var(--agent-color),
-    8px 8px var(--agent-color), 12px 8px var(--agent-color), 16px 8px var(--agent-color), 20px 8px var(--agent-color), 24px 8px var(--agent-color), 28px 8px var(--agent-color), 32px 8px var(--agent-color),
-    0 12px var(--agent-color), 4px 12px var(--agent-color), 8px 12px var(--agent-color), 12px 12px var(--agent-color), 16px 12px var(--agent-color), 20px 12px var(--agent-color), 24px 12px var(--agent-color), 28px 12px var(--agent-color), 32px 12px var(--agent-color), 36px 12px var(--agent-color), 40px 12px var(--agent-color),
-    0 16px var(--agent-color), 4px 16px var(--agent-color), 8px 16px var(--agent-color), 12px 16px var(--agent-color), 16px 16px var(--agent-color), 20px 16px var(--agent-color), 24px 16px var(--agent-color), 28px 16px var(--agent-color), 32px 16px var(--agent-color), 36px 16px var(--agent-color), 40px 16px var(--agent-color),
-    8px 20px var(--agent-color), 12px 20px var(--agent-color), 16px 20px var(--agent-color), 20px 20px var(--agent-color), 24px 20px var(--agent-color), 28px 20px var(--agent-color), 32px 20px var(--agent-color),
-    8px 24px var(--agent-color), 16px 24px var(--agent-color), 24px 24px var(--agent-color), 32px 24px var(--agent-color),
-    8px 28px var(--agent-color), 16px 28px var(--agent-color), 24px 28px var(--agent-color), 32px 28px var(--agent-color) !important;
-}
 #aic-clawd-node.walking .pixel-sprite,
 #aic-clawd-node.running .pixel-sprite,
 #aic-clawd-node.keepy-uppy .pixel-sprite { animation: none !important; }
@@ -4951,12 +5043,12 @@
   33% { transform: translateY(-5px) rotate(1deg) scale(1.03, 0.97); }
   66% { transform: translateY(-9px) rotate(4deg) scale(0.98, 1.04); }
 }
-.aic-subpet.flying .subpet-sprite {
-  filter: drop-shadow(0 3px 0 rgba(0,0,0,0.3));
+.aic-subpet.flying .subpet-sprite.subpet-sprite--bitmap {
+  filter: drop-shadow(0 3px 0 rgba(0,0,0,0.3)) !important;
 }
-.aic-subpet.fire.flying .subpet-sprite,
-.aic-subpet.fire .subpet-sprite {
-  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28)) brightness(1.12) saturate(1.25);
+.aic-subpet.fire.flying .subpet-sprite.subpet-sprite--bitmap,
+.aic-subpet.fire .subpet-sprite.subpet-sprite--bitmap {
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.28)) brightness(1.12) saturate(1.25) !important;
 }
 .aic-subpet.summoning .subpet-motion {
   animation: clawd-subpet-summon 0.65s cubic-bezier(.34,1.56,.64,1) both !important;

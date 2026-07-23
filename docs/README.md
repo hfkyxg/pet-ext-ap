@@ -7,12 +7,12 @@
 | Documento | Para quem | Conteúdo |
 |-----------|-----------|----------|
 | [../README.md](../README.md) | Todo mundo | Visão, instalação, funcionalidades (v4.0.0) |
-| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **250/250** |
+| [./index.html](./index.html) | Exploração visual | Demo guiada, labs, catálogos · badge **253/253** |
 | [./ARCHITECTURE.md](./ARCHITECTURE.md) | Mantenedores | Camadas, padrões, contratos MV3 |
 | [./MOTION.md](./MOTION.md) | UI / runtime / QA | Timings, rAF, overlays, teclado e movimento reduzido |
 | [./md/DOCUMENTACAO.md](./md/DOCUMENTACAO.md) | Desenvolvedores | Protocolo interno, APIs, privacidade |
 | [./md/MANUAL.md](./md/MANUAL.md) | Usuários finais | Controles, studio, status, FAQ |
-| [./md/VALIDACAO.md](./md/VALIDACAO.md) | QA / release | Matriz de QA + gate **250/250** |
+| [./md/VALIDACAO.md](./md/VALIDACAO.md) | QA / release | Matriz de QA + gate **253/253** |
 | [./md/MELHORIAS.md](./md/MELHORIAS.md) | Produto | Registro histórico v3.2 → v4.0 + polish |
 | [../CHANGELOG.md](../CHANGELOG.md) | Todos | Histórico de versões |
 | [./md/Documentacao_Projeto_Clawd.md](./md/Documentacao_Projeto_Clawd.md) | Executivo | Resumo de projeto |
@@ -22,7 +22,7 @@
 
 ```powershell
 npm run check
-npm test                                          # 250/250
+npm test                                          # 253/253
 node tests/tools/validate-ecosystem.mjs           # 100% ações no map
 node tests/runtime-smoke.mjs                      # Edge/Chromium
 ```

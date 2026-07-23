@@ -8,14 +8,14 @@ var CLAWD_SCHEMA_VERSION = 6;
 
 /* ---- Constantes de timing centralizadas (usadas por content.js e testes) ---- */
 var CLAWD_TIMINGS = {
-  SUBPET_INTERACTION_MS:  14000,  /* intervalo base da ação espontânea do subpet */
+  SUBPET_INTERACTION_MS:   9000,  /* intervalo base da ação espontânea do subpet */
   STAT_DECAY_MS:          60000,  /* tick de decaimento de stats */
   STORAGE_DEBOUNCE_MS:      350,  /* janela de coalescing antes do flush para o storage */
   PARTICLE_MAX:              18,  /* limite concorrente de partículas */
   SETTLE_EPS_PX:            0.5,  /* distância mínima para considerar o subpet parado */
   DOUBLE_CLICK_WINDOW_MS:   220,  /* janela de duplo clique */
-  RANDOM_ACTION_MS:       12000,  /* tick de ação aleatória do pet principal */
-  DUO_SCENE_MS:           22000,  /* tick do duo pet↔subpet */
+  RANDOM_ACTION_MS:        8000,  /* tick de ação aleatória do pet principal */
+  DUO_SCENE_MS:           16000,  /* tick do duo pet↔subpet */
   FOCUS_TICK_MS:           1000,  /* atualização visual do relógio Pomodoro */
   BREATH_PHASE_MS:         4000,  /* inspire/segure/expire/segure */
   MOTION_EXIT_MS:           400,  /* fallback de cleanup após transição de saída */
@@ -859,71 +859,71 @@ var CLAWD_SUBPET_SPRITES = {
     }
   },
   dino: {
-    colors: { B: "#3ecfcf", D: "#1f8a8a", K: "#111111", W: "#ffffff", Y: "#b8f0f0" },
+    colors: { B: "#3ecfcf", D: "#1f8a8a", K: "#111111", W: "#ffffff", Y: "#b8f0f0", N: "#1a6e6e" },
     image: { url: 'src/shared/sprites/subpets/dino.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
       [
         '............',
-        '...D.D.D....',
-        '..BBBBBBB...',
-        '.BBBBBBBBB..',
-        'BBBKKBBKKBBB',
-        'BBBBBBBBBBBB',
+        '..D..D..D...',
         '.BBBBBBBBBB.',
-        '..BB....BB..',
-        '..D......D..',
-        '............'
+        '.BBBBBBBBBB.',
+        '.BBKKBBKKBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.BBBBBBBBBB.',
+        '..BBBBBBBB..',
+        '..BB.BB.BB..'
       ],
       [
         '............',
-        '...D.D.D....',
-        '..BBBBBBB...',
-        '.BBBBBBBBB..',
-        'BBBKKBBKKBBB',
-        'BBBBBBBBBBBB',
+        '..D..D..D...',
         '.BBBBBBBBBB.',
-        '..BB....BB..',
-        '..D......D..',
-        '............'
+        '.BBBBBBBBBB.',
+        '.BBKKBBKKBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.BBBBBBBBBB.',
+        '..BBBBBBBB..',
+        '..BB.BB.BB..'
       ]
       ],
       walk: [
       [
         '............',
-        '...D.D.D....',
-        '..BBBBBBB...',
-        '.BBBBBBBBB..',
-        'BBBKKBBKKBBB',
-        'BBBBBBBBBBBB',
+        '..D..D..D...',
         '.BBBBBBBBBB.',
-        '..BB....BB..',
-        '.D........D.',
-        '............'
+        '.BBBBBBBBBB.',
+        '.BBKKBBKKBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.BBBBBBBBBB.',
+        '..BBBBBBBB..',
+        '.BB..BB..BB.'
       ],
       [
         '............',
-        '...D.D.D....',
-        '..BBBBBBB...',
-        '.BBBBBBBBB..',
-        'BBBKKBBKKBBB',
-        'BBBBBBBBBBBB',
+        '..D..D..D...',
         '.BBBBBBBBBB.',
-        '..BB....BB..',
-        '..D......D..',
-        '............'
+        '.BBBBBBBBBB.',
+        '.BBKKBBKKBB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.BBBBBBBBBB.',
+        '..BBBBBBBB..',
+        '..BB.BB.BB..'
       ]
       ],
       sleep: [
       [
         '............',
-        '...D.D.D....',
-        '..BBBBBBB...',
-        '.BBBBBBBBB..',
-        'BB........BB',
-        'BBBBBBBBBBBB',
+        '..D..D..D...',
         '.BBBBBBBBBB.',
-        '............',
+        '.BBBBBBBBBB.',
+        '.BB......BB.',
+        '.BBBBBNBBBB.',
+        '.BBBBBBBBBB.',
+        '.BBBBBBBBBB.',
         '............',
         '............'
       ]
@@ -1225,227 +1225,227 @@ var CLAWD_SUBPET_SPRITES = {
     }
   },
   fox: {
-    colors: { B: "#e77d34", D: "#9f4624", K: "#111111", W: "#fff2de", P: "#f6b08a", Y: "#ffd166" },
+    colors: { B: "#ff9a3c", D: "#d45a18", K: "#111111", N: "#1a1a1a", W: "#fffaf2", P: "#ff9ac8", Y: "#ffe066" },
     image: { url: 'src/shared/sprites/subpets/fox.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
       [
         '............',
-        '.D......D...',
-        '.DBBBBBBBBD.',
-        'BBBBBBBBBBBB',
-        'BBBKKBBKKBBB',
-        'BBBBBKKBBBBB',
-        '.BBBBPPBBBBD',
-        '.BB......BBD',
-        '..D......D..',
+        '.D.P....P.D.',
+        '.DPPBBBBPPD.',
+        '..BBBBBBBB..',
+        '.BBKKBBKKBB.',
+        '..BBBNBBB.D.',
+        '..BWWWBBBDD.',
+        '...BPPBB.DD.',
+        '....D..D.D..',
         '............'
       ],
       [
         '............',
-        '.D......D...',
-        '.DBBBBBBBBD.',
-        'BBBBBBBBBBBB',
-        'BBBKKBBKKBBB',
-        'BBBBBKKBBBBB',
-        '.BBBBPPBBBBD',
-        '.BB......BBD',
-        '..D......D..',
+        '.D.P....P.D.',
+        '.DPPBBBBPPD.',
+        '..BBBBBBBB..',
+        '.BBKKBBKKBB.',
+        '..BBBNBBB.D.',
+        '..BWWWBBBDD.',
+        '...BPPBB.DD.',
+        '...D....D.D.',
         '............'
       ]
       ],
       walk: [
       [
         '............',
-        '.D......D...',
-        '.DBBBBBBBBD.',
-        'BBBBBBBBBBBB',
-        'BBBKKBBKKBBB',
-        'BBBBBKKBBBBB',
-        'DBBBBPPBBBB.',
-        'DBB......BB.',
-        '.D........D.',
+        '.D.P....P.D.',
+        '.DPPBBBBPPD.',
+        '..BBBBBBBB..',
+        '.BBKKBBKKBB.',
+        '.DBBBNBBB.D.',
+        '.D.BWWWBBDD.',
+        '....BPPBB.D.',
+        '...D....D.D.',
         '............'
       ],
       [
         '............',
-        '.D......D...',
-        '.DBBBBBBBBD.',
-        'BBBBBBBBBBBB',
-        'BBBKKBBKKBBB',
-        'BBBBBKKBBBBB',
-        '.BBBBPPBBBBD',
-        '.BB......BBD',
-        '..D......D..',
+        '.D.P....P.D.',
+        '.DPPBBBBPPD.',
+        '..BBBBBBBB..',
+        '.BBKKBBKKBB.',
+        '..BBBNBBB.D.',
+        '..BWWWBBBDD.',
+        '...BPPBB.DD.',
+        '....D..D.D..',
         '............'
       ]
       ],
       sleep: [
       [
         '............',
-        '.D......D...',
-        '.DBBBBBBBBD.',
-        'BBBBBBBBBBBB',
-        'BB........BB',
-        'BBBBBKKBBBBB',
-        '.BBBBPPBBBBD',
-        '............',
-        '............',
+        '.D.P....P.D.',
+        '.DPPBBBBPPD.',
+        '..BBBBBBBB..',
+        '.BB......BB.',
+        '..BBBNBBB.D.',
+        '..BWWWBBBDD.',
+        '.........DD.',
+        '..........D.',
         '............'
       ]
       ],
       special: [
       [
-        '.....Y......',
-        '.D......D...',
-        '.DBBBBBBBBD.',
-        'BBBBBBBBBBBB',
-        'BBBYYBBYYBBB',
-        'BBBBBKKBBBBB',
-        '.BBBBPPBBBBD',
-        '.BB......BBD',
-        '..D......D..',
-        '..........Y.'
+        'Y...........',
+        '.D.P....P.D.',
+        '.DPPBBBBPPD.',
+        '..BBYBBYBB..',
+        '.BBKKBBKKBB.',
+        '..BBBNBBB.D.',
+        '..BWWWBBBDD.',
+        'Y..BPPBB.DD.',
+        '....D..D.D.Y',
+        '............'
       ],
       [
         '............',
-        '.D......D...',
-        '.DBBBBBBBBD.',
-        'BBBBBBBBBBBB',
-        'BBBKKBBKKBBB',
-        'BBBBBKKBBBBB',
-        '.BBBBPPBBBBD',
-        '.BB......BBD',
-        '..D......D..',
+        '.D.P....P.D.',
+        '.DPPBBBBPPD.',
+        '..BBBBBBBB..',
+        '.BBKKBBKKBB.',
+        '..BBBNBBB.D.',
+        '..BWWWBBBDD.',
+        '...BPPBB.DD.',
+        '....D..D.D..',
         '............'
       ]
       ]
     }
   },
   capybara: {
-    colors: { B: "#9b6b43", D: "#68452d", K: "#111111", N: "#4a3022", T: "#f8ead7", L: "#79b86b" },
+    colors: { B: "#d4a06c", D: "#9a6540", K: "#111111", N: "#3d2818", T: "#fff6e4", L: "#8ed96a" },
     image: { url: 'src/shared/sprites/subpets/capybara.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
       [
         '............',
+        '...D....D...',
+        '.BBBBBBBBBB.',
+        'BKKBBBBBBKKB',
+        'BBBBBNNBBBBB',
+        'BBTTTTTTTTBB',
+        '.BBBBBBBBBB.',
+        '.BBB....BBB.',
         '..D......D..',
-        '..BBBBBBBB..',
-        '.BBBBBBBBBB.',
-        'BBBKKBBKKBBB',
-        'BBBBBNBBBBBB',
-        'BBBTTTTBBBBB',
-        '.BBBBBBBBBB.',
-        '..DD....DD..',
         '............'
       ],
       [
         '............',
-        '..D......D..',
-        '..BBBBBBBB..',
+        '...D....D...',
         '.BBBBBBBBBB.',
-        'BBBKKBBKKBBB',
-        'BBBBBNBBBBBB',
-        'BBBTTTTBBBBB',
+        'BKKBBBBBBKKB',
+        'BBBBBNNBBBBB',
+        'BBTTTTTTTTBB',
         '.BBBBBBBBBB.',
-        '..DD....DD..',
+        '..BB....BB..',
+        '...D....D...',
         '............'
       ]
       ],
       walk: [
       [
         '............',
-        '..D......D..',
-        '..BBBBBBBB..',
+        '...D....D...',
         '.BBBBBBBBBB.',
-        'BBBKKBBKKBBB',
-        'BBBBBNBBBBBB',
-        'BBBTTTTBBBBB',
+        'BKKBBBBBBKKB',
+        'BBBBBNNBBBBB',
+        'BBTTTTTTTTBB',
         '.BBBBBBBBBB.',
-        '.DD......DD.',
+        '.BBB....BBB.',
+        '.D........D.',
         '............'
       ],
       [
         '............',
+        '...D....D...',
+        '.BBBBBBBBBB.',
+        'BKKBBBBBBKKB',
+        'BBBBBNNBBBBB',
+        'BBTTTTTTTTBB',
+        '.BBBBBBBBBB.',
+        '.BBB....BBB.',
         '..D......D..',
-        '..BBBBBBBB..',
-        '.BBBBBBBBBB.',
-        'BBBKKBBKKBBB',
-        'BBBBBNBBBBBB',
-        'BBBTTTTBBBBB',
-        '.BBBBBBBBBB.',
-        '..DD....DD..',
         '............'
       ]
       ],
       sleep: [
       [
         '............',
-        '..D......D..',
-        '..BBBBBBBB..',
+        '...D....D...',
         '.BBBBBBBBBB.',
-        'BBB......BBB',
-        'BBBBBNBBBBBB',
-        'BBBTTTTBBBBB',
+        'B..........B',
+        'BBBBBNNBBBBB',
+        'BBTTTTTTTTBB',
         '.BBBBBBBBBB.',
+        '............',
         '............',
         '............'
       ]
       ],
       special: [
       [
-        '............',
-        '..D......D..',
-        '..BBBBBBBB..',
+        '..L......L..',
+        '...D....D...',
         '.BBBBBBBBBB.',
-        'BBBKKBBKKBBB',
-        'BBBBBNBBBBBB',
-        'BBBTTTTBBBBB',
+        'BKKBBBBBBKKB',
+        'BBBBBNNBBBBB',
+        'BBTTTTTTTTBB',
         '.BBBBBBBBBB.',
-        '.LDD....DDL.',
-        'L..........L'
+        '.LBB....BBL.',
+        'L.D......D.L',
+        '............'
       ],
       [
         '............',
+        '...D....D...',
+        '.BBBBBBBBBB.',
+        'BKKBBBBBBKKB',
+        'BBBBBNNBBBBB',
+        'BBTTTTTTTTBB',
+        '.BBBBBBBBBB.',
+        '.BBB....BBB.',
         '..D......D..',
-        '..BBBBBBBB..',
-        '.BBBBBBBBBB.',
-        'BBBKKBBKKBBB',
-        'BBBBBNBBBBBB',
-        'BBBTTTTBBBBB',
-        '.BBBBBBBBBB.',
-        '..DD....DD..',
         '............'
       ]
       ]
     }
   },
   axolotl: {
-    colors: { B: "#f18da6", G: "#d65a7a", K: "#111111", P: "#ffd1dc", A: "#77d9e8", W: "#ffffff" },
+    colors: { B: "#ff9bc4", G: "#e84888", K: "#111111", P: "#ffd0e4", A: "#5adcff", W: "#ffffff", Y: "#fff5a8" },
     image: { url: 'src/shared/sprites/subpets/axolotl.png', width: 48, height: 40, gridW: 12, gridH: 10 },
     frames: {
       idle: [
       [
         '............',
-        'G.G......G.G',
-        '.GG.BBBB.GG.',
+        '.A.G....G.A.',
+        'A.GBBBBBG.A.',
+        'G.BBBBBBBB.G',
+        '.BBKKBBKKBB.',
+        '.BBBWPPWBBB.',
         '..BBBBBBBB..',
-        '.BBBKKBBKKBB',
-        '.BBBBPPBBBB.',
-        '..BBBBBBBB..',
-        '...BB..BB...',
-        '..A......A..',
+        '..A.BBBB.A..',
+        '...A....A...',
         '............'
       ],
       [
         '............',
-        'G.G......G.G',
-        '.GG.BBBB.GG.',
+        'A.G......G.A',
+        '.AGBBBBBG.A.',
+        'G.BBBBBBBB.G',
+        '.BBKKBBKKBB.',
+        '.BBBWPPWBBB.',
         '..BBBBBBBB..',
-        '.BBBKKBBKKBB',
-        '.BBBBPPBBBB.',
-        '..BBBBBBBB..',
-        '...BB..BB...',
+        '..A.BBBB.A..',
         '..A......A..',
         '............'
       ]
@@ -1453,37 +1453,37 @@ var CLAWD_SUBPET_SPRITES = {
       walk: [
       [
         '............',
-        'G.G......G.G',
-        '.GG.BBBB.GG.',
+        '.A.G....G.A.',
+        'A.GBBBBBG.A.',
+        'G.BBBBBBBB.G',
+        '.BBKKBBKKBB.',
+        '.BBBWPPWBBB.',
         '..BBBBBBBB..',
-        '.BBBKKBBKKBB',
-        '.BBBBPPBBBB.',
-        '..BBBBBBBB..',
-        '..BB....BB..',
-        '.A........A.',
+        '.A..BBBB..A.',
+        'A..........A',
         '............'
       ],
       [
         '............',
-        'G.G......G.G',
-        '.GG.BBBB.GG.',
+        '.A.G....G.A.',
+        'A.GBBBBBG.A.',
+        'G.BBBBBBBB.G',
+        '.BBKKBBKKBB.',
+        '.BBBWPPWBBB.',
         '..BBBBBBBB..',
-        '.BBBKKBBKKBB',
-        '.BBBBPPBBBB.',
-        '..BBBBBBBB..',
-        '...BB..BB...',
-        '..A......A..',
+        '..A.BBBB.A..',
+        '...A....A...',
         '............'
       ]
       ],
       sleep: [
       [
         '............',
-        'G.G......G.G',
-        '.GG.BBBB.GG.',
-        '..BBBBBBBB..',
+        '.A.G....G.A.',
+        'A.GBBBBBG.A.',
+        'G.BBBBBBBB.G',
         '.BB......BB.',
-        '.BBBBPPBBBB.',
+        '.BBBWPPWBBB.',
         '..BBBBBBBB..',
         '............',
         '............',
@@ -1492,27 +1492,27 @@ var CLAWD_SUBPET_SPRITES = {
       ],
       special: [
       [
-        'A.G......G.A',
-        'G.G......G.G',
-        '.GG.BBBB.GG.',
-        '..BBBBBBBB..',
-        '.BBBKKBBKKBB',
-        '.BBBBPPBBBB.',
+        'Y...........',
+        '.A.G.YY.G.A.',
+        'A.GBBBBBG.A.',
+        'G.BBBBBBBB.G',
+        '.BBKKBBKKBB.',
+        '.BBBWPPWBBB.',
         'A.BBBBBBBB.A',
-        '...BB..BB...',
-        '..A......A..',
-        'A..........A'
+        '..A.BBBB.A..',
+        'Y..A....A..Y',
+        '............'
       ],
       [
         '............',
-        'G.G......G.G',
-        '.GG.BBBB.GG.',
+        '.A.G....G.A.',
+        'A.GBBBBBG.A.',
+        'G.BBBBBBBB.G',
+        '.BBKKBBKKBB.',
+        '.BBBWPPWBBB.',
         '..BBBBBBBB..',
-        '.BBBKKBBKKBB',
-        '.BBBBPPBBBB.',
-        '..BBBBBBBB..',
-        '...BB..BB...',
-        '..A......A..',
+        '..A.BBBB.A..',
+        '...A....A...',
         '............'
       ]
       ]
@@ -1523,14 +1523,14 @@ var CLAWD_SUBPET_SPRITES = {
 function clawdShadePixelColor(color, factor = 0.7) {
   const hex = String(color || '').match(/^#([\da-f]{6})$/i);
   if (hex) {
-    const rgb = hex[1].match(/[\da-f]{2}/gi).map(part => Math.round(parseInt(part, 16) * factor));
+    const rgb = hex[1].match(/[\da-f]{2}/gi).map(part => Math.min(255, Math.max(0, Math.round(parseInt(part, 16) * factor))));
     return `#${rgb.map(part => part.toString(16).padStart(2, '0')).join('')}`;
   }
   const rgba = String(color || '').match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
   if (rgba) {
-    const r = Math.round(Number(rgba[1]) * factor);
-    const g = Math.round(Number(rgba[2]) * factor);
-    const b = Math.round(Number(rgba[3]) * factor);
+    const r = Math.min(255, Math.max(0, Math.round(Number(rgba[1]) * factor)));
+    const g = Math.min(255, Math.max(0, Math.round(Number(rgba[2]) * factor)));
+    const b = Math.min(255, Math.max(0, Math.round(Number(rgba[3]) * factor)));
     const a = rgba[4] !== undefined ? Number(rgba[4]) : 1;
     return `rgba(${r}, ${g}, ${b}, ${a})`;
   }
@@ -1548,19 +1548,156 @@ function clawdBuildPixelShadow(frame, colors, cell = CLAWD_SUBPET_CELL) {
   return out.join(',');
 }
 
+function clawdNormalizeHexColor(value) {
+  return /^#[\da-f]{6}$/i.test(value || '') ? String(value).toLowerCase() : null;
+}
+
+/** True só quando a cor salva DIFERE da paleta natural do sprite.
+ *  Cor/olho iguais ao default não devem derrubar o PNG literal. */
+function clawdSubPetHasCustomPalette(sprite, customColor, customEyeColor) {
+  const base = sprite?.colors || {};
+  const body = clawdNormalizeHexColor(customColor);
+  const eye = clawdNormalizeHexColor(customEyeColor);
+  const baseB = clawdNormalizeHexColor(base.B);
+  const baseK = clawdNormalizeHexColor(base.K) || '#111111';
+  return (!!body && body !== baseB) || (!!eye && eye !== baseK);
+}
+
 function clawdSubPetPalette(sprite, customColor, customEyeColor) {
   const base = sprite?.colors || {};
-  const primary = /^#[\da-f]{6}$/i.test(customColor || '') ? customColor : base.B;
-  const eyes = /^#[\da-f]{6}$/i.test(customEyeColor || '') ? customEyeColor : (base.K || '#111111');
-  const shaded = /^#[\da-f]{6}$/i.test(customColor || '')
+  const bodyCustom = clawdNormalizeHexColor(customColor);
+  const eyeCustom = clawdNormalizeHexColor(customEyeColor);
+  const baseB = clawdNormalizeHexColor(base.B);
+  const baseK = clawdNormalizeHexColor(base.K) || '#111111';
+  const primary = (bodyCustom && bodyCustom !== baseB) ? bodyCustom : (base.B || '#888888');
+  const eyes = (eyeCustom && eyeCustom !== baseK) ? eyeCustom : (base.K || '#111111');
+  const shaded = (bodyCustom && bodyCustom !== baseB)
     ? clawdShadePixelColor(primary, 0.68)
     : (base.D || clawdShadePixelColor(primary, 0.68));
-  return {
+  const out = {
     ...base,
     B: primary,
     D: shaded,
     K: eyes
   };
+  /* Segundas pelagens (guelras G, tons C/Y/N) acompanham a cor do corpo. */
+  if (bodyCustom && bodyCustom !== baseB) {
+    if (base.G) out.G = clawdShadePixelColor(primary, 0.82);
+    if (base.C) out.C = clawdShadePixelColor(primary, 1.08);
+    if (base.P) out.P = clawdShadePixelColor(primary, 1.22);
+    if (base.Y) out.Y = clawdShadePixelColor(primary, 1.35);
+    if (base.N) out.N = clawdShadePixelColor(primary, 0.55);
+  }
+  return out;
+}
+
+/**
+ * Rasteriza um frame letter-code → PNG data-URL (browser). Fallback raro.
+ */
+function clawdSubPetFrameToDataUrl(frame, colors, scale = 8) {
+  if (typeof document === 'undefined' || !frame?.length) return '';
+  const cols = Math.max(1, ...frame.map((row) => row.length));
+  const rows = frame.length;
+  const canvas = document.createElement('canvas');
+  canvas.width = cols * scale;
+  canvas.height = rows * scale;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let y = 0; y < rows; y++) {
+    const row = frame[y] || '';
+    for (let x = 0; x < row.length; x++) {
+      const hex = colors?.[row[x]];
+      if (!hex) continue;
+      ctx.fillStyle = hex;
+      ctx.fillRect(x * scale, y * scale, scale, scale);
+    }
+  }
+  try {
+    return canvas.toDataURL('image/png');
+  } catch (_) {
+    return '';
+  }
+}
+
+function clawdParseRgbChannels(hex) {
+  const h = clawdNormalizeHexColor(hex);
+  if (!h) return null;
+  return [
+    parseInt(h.slice(1, 3), 16),
+    parseInt(h.slice(3, 5), 16),
+    parseInt(h.slice(5, 7), 16)
+  ];
+}
+
+/**
+ * Recolore o PNG canônico (silhueta do sheet) mapeando cada cor natural → paleta tingida.
+ * Promise → data-URL ('' se falhar / sem DOM).
+ */
+function clawdTintSubPetImage(imageUrl, naturalColors, tintedColors) {
+  return new Promise((resolve) => {
+    if (typeof Image === 'undefined' || !imageUrl) {
+      resolve('');
+      return;
+    }
+    const entries = Object.keys(naturalColors || {}).map((key) => {
+      const nat = clawdParseRgbChannels(naturalColors[key]);
+      const tint = clawdParseRgbChannels((tintedColors && tintedColors[key]) || naturalColors[key]);
+      if (!nat || !tint) return null;
+      return { nat, tint };
+    }).filter(Boolean);
+    if (!entries.length) {
+      resolve('');
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        if (!w || !h) { resolve(''); return; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) { resolve(''); return; }
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const px = imageData.data;
+        const maxDist = 58 * 58;
+        for (let i = 0; i < px.length; i += 4) {
+          if (px[i + 3] < 10) continue;
+          let best = null;
+          let bestD = maxDist;
+          for (let e = 0; e < entries.length; e++) {
+            const nat = entries[e].nat;
+            const dr = px[i] - nat[0];
+            const dg = px[i + 1] - nat[1];
+            const db = px[i + 2] - nat[2];
+            const d = dr * dr + dg * dg + db * db;
+            if (d < bestD) {
+              bestD = d;
+              best = entries[e];
+            }
+          }
+          if (!best) continue;
+          px[i] = best.tint[0];
+          px[i + 1] = best.tint[1];
+          px[i + 2] = best.tint[2];
+        }
+        ctx.putImageData(imageData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } catch (_) {
+        resolve('');
+      }
+    };
+    img.onerror = () => resolve('');
+    try {
+      img.src = imageUrl;
+    } catch (_) {
+      resolve('');
+    }
+  });
 }
 
 function clawdSubPetFrame(sprite, pose = 'idle', index = 0) {
@@ -2374,12 +2511,50 @@ function clawdSanitizeSubpetsBlock(rawSubpets, defSubpets, xp) {
     subpets.names[id] = clawdSanitizePlainText(subpets.names[id], 24);
   });
   Object.keys(subpets.colors).forEach((id) => {
-    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(subpets.colors[id])) delete subpets.colors[id];
-    else subpets.colors[id] = subpets.colors[id].toLowerCase();
+    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(subpets.colors[id])) {
+      delete subpets.colors[id];
+      return;
+    }
+    const hex = subpets.colors[id].toLowerCase();
+    const natural = clawdNormalizeHexColor(CLAWD_SUBPET_SPRITES[id]?.colors?.B);
+    /* Cor = natural → sem custom (PNG literal). #111111 em espécie clara = vazamento do olho. */
+    if (natural && hex === natural) {
+      delete subpets.colors[id];
+      return;
+    }
+    if (hex === '#111111' && natural && natural !== '#111111') {
+      const r = parseInt(natural.slice(1, 3), 16);
+      const g = parseInt(natural.slice(3, 5), 16);
+      const b = parseInt(natural.slice(5, 7), 16);
+      if ((r + g + b) / 3 > 60) {
+        delete subpets.colors[id];
+        return;
+      }
+    }
+    /* Cor quase preta em espécie clara = custom quebrado (silhueta blob). */
+    if (natural && natural !== '#111111') {
+      const nr = parseInt(natural.slice(1, 3), 16);
+      const ng = parseInt(natural.slice(3, 5), 16);
+      const nb = parseInt(natural.slice(5, 7), 16);
+      const cr = parseInt(hex.slice(1, 3), 16);
+      const cg = parseInt(hex.slice(3, 5), 16);
+      const cb = parseInt(hex.slice(5, 7), 16);
+      if ((nr + ng + nb) / 3 > 80 && (cr + cg + cb) / 3 < 45) {
+        delete subpets.colors[id];
+        return;
+      }
+    }
+    subpets.colors[id] = hex;
   });
   Object.keys(subpets.eyeColors).forEach((id) => {
-    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(subpets.eyeColors[id])) delete subpets.eyeColors[id];
-    else subpets.eyeColors[id] = subpets.eyeColors[id].toLowerCase();
+    if (!CLAWD_SUBPETS[id] || !clawdIsHexColor(subpets.eyeColors[id])) {
+      delete subpets.eyeColors[id];
+      return;
+    }
+    const hex = subpets.eyeColors[id].toLowerCase();
+    const natural = clawdNormalizeHexColor(CLAWD_SUBPET_SPRITES[id]?.colors?.K) || '#111111';
+    if (hex === natural) delete subpets.eyeColors[id];
+    else subpets.eyeColors[id] = hex;
   });
   const levelNow = clawdLevelFromXp(xp || 0).level;
   const levelUnlocks = Object.entries(CLAWD_SUBPETS)
@@ -2781,7 +2956,11 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_SUBPET_SPRITES,
     clawdShadePixelColor,
     clawdBuildPixelShadow,
+    clawdNormalizeHexColor,
+    clawdSubPetHasCustomPalette,
     clawdSubPetPalette,
+    clawdSubPetFrameToDataUrl,
+    clawdTintSubPetImage,
     clawdSubPetFrame,
     clawdSubPetBounds,
     clawdSubPetImageUrl,

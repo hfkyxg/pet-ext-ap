@@ -38,7 +38,7 @@
 <script src="../src/shared/catalog.js"></script>
 <script src="../src/content/content.js"></script>
 <script>
-window.__forceVisible = () => { const p=window.__clawd; if(!p)return; p.isVisible=true; p._crossTabHidden=false; p._hidden=false; p.node.style.display=''; if(p.S)p.S.settings.crossTab=false; };
+window.__forceVisible = () => { const p=window.__clawd; if(!p)return; p.isVisible=true; p._crossTabHidden=false; p._hidden=false; p.node?.classList.remove('aic-presence-hidden'); p.node.style.display=''; p.subpet?.node?.classList.remove('aic-presence-hidden'); if(p.S)p.S.settings.crossTab=false; };
 setTimeout(()=>window.__forceVisible(), 300);
 </script>
 </body>

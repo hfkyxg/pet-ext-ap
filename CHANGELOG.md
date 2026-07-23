@@ -6,7 +6,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 ## [4.0.0] — Foco & Bem-estar
 
 Marco maior: o Claw'd deixa de ser só um mascote e vira um **companheiro de foco e bem-estar**.
-Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **250/250**.
+Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **253/253**.
 
 ### Adicionado
 
@@ -19,10 +19,11 @@ Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **250/250**.
 ### Alterado
 
 - **Schema v6** — novos blocos `focus`/`wellbeing`/`screenTime` + settings de Pomodoro, guarda e bem-estar em `catalog.js` (SSOT), com sanitizers dedicados e migração `if (v < 6)`
-- **Banner/README/showcase** — versão **v4.0** e badge **250/250**; docs sincronizadas ao catálogo
+- **Banner/README/showcase** — versão **v4.0** e badge **253/253**; docs sincronizadas ao catálogo
 - **Interação pet/subpet** — long press consistente em mouse e toque (abraço/habilidade especial), `Shift+Enter`, foco visível, instruções acessíveis e subpet que acompanha o ponteiro
 - **Sistema de movimento** — tokens de duração/easing equivalentes no runtime, popup e showcase; transições restritas às propriedades necessárias; documentação canônica em `docs/MOTION.md`
 - **Acessibilidade do popup** — tabs ARIA com ←/→/Home/End; Pomodoro e humor sincronizam `disabled`/`aria-pressed`; onboarding e overlays preservam o foco
+- **Sprites Raposa/Capivara/Axolote** — silhuetas mais legíveis e cores vivas; hover/especial/duo com personalidade (estrelas, pausa calma, bolhas); bob idle por espécie
 
 ### Corrigido
 
@@ -33,6 +34,10 @@ Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **250/250**.
 - **Ações autônomas × interação explícita** — fala, idle, subpet, passeio, profissão, dwell e cenas em dupla respeitam `AUTONOMY_GRACE_MS`; nenhuma reação automática atropela a ação pedida pelo usuário nem deixa partículas tardias
 - **Balões sobrepostos** — o layout mede o conteúdo após o render, escolhe entre quatro posições, evita pet/subpet/etiqueta e limita os dois balões à viewport. O olhar 3D foi isolado no personagem para não deformar fala ou controles
 - **Long press duplicado** — segurar não dispara mais o abraço e um carinho adicional no `mouseup`; toque e mouse compartilham a mesma intenção
+- **Um pet no navegador** — `broadcastOwnership` unifica `assignHost`/`completeTravel`; `sendPresence` faz `forceHidePet` se hide/despawn falhar; hide-before-paint no construtor; disconnect sempre esconde (mesmo bfcache); `respawnAnywhere`/`onActivated` usam `lastFocusedWindow`
+- **Hide cross-tab efetiva** — classe `.aic-presence-hidden` com `display: none !important` (pet + subpet); `style.display='none'` sozinho perdia para `display: block !important` do host e deixava clones em várias janelas/abas
+- **Dinossauro na página** — removida faixa clara do crop (parecia costura); sprite cheio com 3 espinhos; `filter` de sombra no `.subpet-motion` (não no ink) para não clipar box-shadow/custom
+- **Preview de subpets no popup** — host **72×60**; grid sempre PNG bitmap; tint sem swatch preto no canto
 
 ## [Não lançado]
 
@@ -56,16 +61,18 @@ Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **250/250**.
 - **Subpet fluido** — follow spring com `dt` normalizado a 60 fps (cap 3×); keyframes idle/hop/cuddle/wake/spin/celebrate mais suaves; hover/press squash; `will-change` em stack/subpet
 - **Dev tooling** — `npm run check` inclui `i18n-entities.js`; ESLint com globals `clawdEntityT` / `CLAWD_I18N_ENTITY` e bloco dedicado ao arquivo
 - **Banner/README sincronizados à fonte da verdade** — `pet-banner.svg` atualizado (v3.8, **9 rostos**, **31 acessórios**) e números obsoletos do README corrigidos (197 testes, 31 acessórios, v3.8). Novo **guarda de deriva** trava os selos do banner às contagens reais do catálogo (modelos/rostos/acessórios) e à versão do manifest — nunca mais ficam obsoletos silenciosamente
-- **Vida contínua** — cadência das variações idle mais viva (menos tempo-morto enquanto se navega): pet `max(6500, 15000 − playful·900)`, subpet `max(5500, 12000 − playful·700)`; ainda self-reschedule e throttled por `cooldownMs`/estado
+- **Vida contínua** — cadência das variações idle mais viva (menos tempo-morto enquanto se navega): pet `max(4500, 15000 − playful·900)`, subpet `max(4500, 12000 − playful·700)`; ainda self-reschedule e throttled por `cooldownMs`/estado
+- **Cadência de navegação** — `CLAWD_TIMINGS` apertados (`RANDOM_ACTION_MS` 8s, `DUO_SCENE_MS` 16s, `SUBPET_INTERACTION_MS` 9s); auto-walk 12s; fala aleatória 28s; subpet com `_nextLightSubAction` enquanto o dono anda/reage; scroll/clique/SPA/digitar/vídeo com cooldowns menores e eco ocasional do companheiro
 - **Docs** — VALIDACAO, README, MANUAL, MELHORIAS, ARCHITECTURE e showcase alinhados ao marco **197/197** (popup boot + fluidez subpet)
 
 ### Corrigido
 
 - **Modo liso nítido** — removido `filter: drop-shadow` do `.pet-body` (com `scale(1.5)`) e do `.sprite-stack` no liso; contorno usa `box-shadow` nos sólidos; keyframes (pose/meditar/elétrico/arco-íris/sleep/excited) sem sombra no body; name-tag mais baixo no liso; contratos em `catalog`/`validation-complete`/`quality-fluid`
 - **Load unpacked MV3** — harness de smoke local movido de `_harness.html` (nome reservado pelo Chromium) para `tests/harness.html`; contrato em `extension.test.js` rejeita arquivos/pastas com `_` no pacote (exceto `_locales`/`_metadata`)
-- **Badge da suíte** — showcase/docs alinhados a **250/250** contratos
+- **Badge da suíte** — showcase/docs alinhados a **253/253** contratos
+- **Personalização de subpets** — picker usa a cor natural do sprite (não `CLAWD_COLORS[index]`); cor/olho iguais ao default não derrubam o PNG; dino = crop literal do sheet (3 espinhos); grid do popup **sempre PNG** e **sem swatch de tint** (o 10×10 no canto virava quadrado preto); preview host **72×60** + tinta `.subpet-pixel-ink`; botão “Restaurar cores”; sanitize remove `#111111`/quase-preto no corpo de espécies claras
 - **Animações** — idle `!important` limpo no `setState`; `doDance` com `_danceTimers`; digitar sustentado; hug do subpet não cancela ação do dono; timers de FX/scroll/summon/poof rastreados no `destroy`; filtro energetic idle (`≤1100ms`); popup `prefers-reduced-motion` amplo
-- **Cross-tab / SFX** — aba não-host silenciosa (`_isActiveHost` / `_crossTabHidden` em loops, beep, fala e partículas); race `despawnPet`×`spawnPet` (`_despawnTimer` + `_travelGen`); subpet dblclick sem `special` duplo; wake sem chime eco; saudade longa sem `celebrate` duplicado após `doCheer`
+- **Cross-tab / SFX** — aba não-host silenciosa (`_isActiveHost` / `_crossTabHidden` + `.aic-presence-hidden`); race `despawnPet`×`spawnPet` (`_despawnTimer` + `_travelGen`); subpet dblclick sem `special` duplo; wake sem chime eco; saudade longa sem `celebrate` duplicado após `doCheer`
 - **Locale do browser** — `clawdNormalizeLocale` mapeia `en-US`→`en`, `pt`→`pt-BR`, `zh-*`→`zh-CN`, etc.
 
 ## [3.8.0] — 2026-07-21

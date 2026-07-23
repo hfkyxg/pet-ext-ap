@@ -9,6 +9,8 @@ Obrigado por contribuir! Esta extensão é **Chrome MV3**, vanilla JS, **sem bun
 3. Abra `chrome://extensions` → **Modo do desenvolvedor** → **Carregar sem compactação** → pasta raiz do repo
 4. Após editar `content.js` / CSS / `catalog.js` / `i18n.js`: **Recarregar** a extensão **e** a aba de teste
 
+> Cross-tab: hide visual usa a classe `.aic-presence-hidden` — ao mexer em display do pet/subpet, preserve `display: none !important` nessa classe (`style.display` sozinho perde para `display: block !important`).
+
 ## Scripts
 
 | Comando | Função |
@@ -40,7 +42,7 @@ Obrigado por contribuir! Esta extensão é **Chrome MV3**, vanilla JS, **sem bun
 - Popup: `src/popup/*`
 - Service worker: `src/background/background.js` (presença cross-tab + Trello API)
 - Schema: v6 (`focus`, `wellbeing`, `screenTime`, regras por site e settings de foco; preserva os campos v5)
-- Gate atual: **250/250** contratos (`npm test`)
+- Gate atual: **253/253** contratos (`npm test`)
 - Não versionar arquivos/pastas com nome começando em `_` na raiz do pacote (exceto `_locales` / `_metadata`) — o Chromium recusa o load unpacked
 
 ## Feedback / Trello
