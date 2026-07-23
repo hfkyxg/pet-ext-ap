@@ -92,7 +92,19 @@ const clawdCatalogGlobals = {
   clawdMergeUnlockedSubpets: 'readonly',
   clawdPageContextFromHost: 'readonly',
   clawdHasSavedPosition: 'readonly',
-  clawdDefaultPositionCoords: 'readonly'
+  clawdDefaultPositionCoords: 'readonly',
+  /* v6 — Foco & Bem-estar */
+  clawdClassifyTimeSink: 'readonly',
+  clawdSiteRuleFor: 'readonly',
+  clawdBlockedFromRules: 'readonly',
+  clawdEscalationLevel: 'readonly',
+  clawdPomodoroNextPhase: 'readonly',
+  clawdScreenTimeAdd: 'readonly',
+  clawdClampInt: 'readonly',
+  clawdSanitizeSiteRules: 'readonly',
+  clawdSanitizeFocusBlock: 'readonly',
+  clawdSanitizeWellbeingBlock: 'readonly',
+  clawdSanitizeScreenTimeBlock: 'readonly'
 };
 export default [
   {

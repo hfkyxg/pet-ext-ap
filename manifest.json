@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Claw'd: Companheiro de Navegação",
-  "version": "3.8.0",
-  "description": "Mascote pixel-art interativo, personalizável e fluido para acompanhar sua navegação.",
+  "version": "4.0.0",
+  "description": "Mascote pixel-art que vira companheiro de foco e bem-estar: Pomodoro, guarda anti-rolagem, tempo de tela e lembretes saudáveis.",
   "permissions": [
     "storage",
     "activeTab",

@@ -369,6 +369,20 @@
       const button = event.target.closest('button[data-step]');
       if (button) chooseStep(Number(button.dataset.step));
     });
+    nav.addEventListener('keydown', event => {
+      const button = event.target.closest('button[data-step]');
+      if (!button) return;
+      const index = Number(button.dataset.step);
+      let next = index;
+      if (event.key === 'ArrowRight') next = (index + 1) % DEMO_STEPS.length;
+      else if (event.key === 'ArrowLeft') next = (index - 1 + DEMO_STEPS.length) % DEMO_STEPS.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = DEMO_STEPS.length - 1;
+      else return;
+      event.preventDefault();
+      chooseStep(next);
+      nav.querySelector(`button[data-step="${currentIndex}"]`)?.focus();
+    });
     stage.addEventListener('keydown', event => {
       if (event.key === 'ArrowLeft') chooseStep(currentIndex - 1);
       else if (event.key === 'ArrowRight') chooseStep(currentIndex + 1);
@@ -627,8 +641,16 @@
       }, 2100);
     });
 
-    if (window.__clawdShowcaseSubpetAnim) clearInterval(window.__clawdShowcaseSubpetAnim);
-    window.__clawdShowcaseSubpetAnim = setInterval(() => {
+    if (window.__clawdShowcaseSubpetAnim) {
+      cancelAnimationFrame(window.__clawdShowcaseSubpetAnim);
+      clearInterval(window.__clawdShowcaseSubpetAnim);
+    }
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let lastFrameAt = performance.now();
+    const animateSubpet = (now) => {
+      window.__clawdShowcaseSubpetAnim = requestAnimationFrame(animateSubpet);
+      if (document.hidden || motionQuery.matches || now - lastFrameAt < 240) return;
+      lastFrameAt = now;
       const species = select.value;
       const sprite = subpetCatalog[species];
       if (!sprite || preview.className.includes('is-')) return;
@@ -640,7 +662,8 @@
       const next = (Number(preview.dataset.frame || 0) + 1) % set.length;
       preview.dataset.frame = String(next);
       paintSubpet(species, pose, next);
-    }, 240);
+    };
+    window.__clawdShowcaseSubpetAnim = requestAnimationFrame(animateSubpet);
 
     selectSpecies('dog');
   }
@@ -682,7 +705,7 @@
       if (counts[index]) node.textContent = counts[index];
     });
     $('evidence-catalog-counts').textContent = `${counts[2]} profissões · ${counts[1]} acessórios · ${counts[0]} ações · ${achCount} conquistas`;
-    $('evidence-subpet-counts').textContent = `${counts[3]} subpets · ${counts[4]} ações · Schema v5`;
+    $('evidence-subpet-counts').textContent = `${counts[3]} subpets · ${counts[4]} ações · Schema v6`;
   }
 
   renderCapabilities();

@@ -11,6 +11,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const content = fs.readFileSync(path.join(root, 'src/content/content.js'), 'utf8');
+const style = fs.readFileSync(path.join(root, 'src/content/style.css'), 'utf8');
 
 test('digitar: _bindTypingCompanion é registrado e ligado ao AbortSignal', () => {
   assert.match(content, /this\._bindTypingCompanion\(signal\);/);
@@ -108,6 +109,7 @@ test('navegar SPA: _onBrowseNavigate anima, acorda e reavalia contexto', () => {
   assert.match(slice, /_lastNavReactAt/);
   assert.match(slice, /setStateFor\('curious'/);
   assert.match(slice, /setStateFor\('waving'/);
+  assert.match(slice, /_pulsePageReaction\('page-navigating'/);
   assert.match(slice, /_handleAction\('lookAround'\)/);
   assert.match(slice, /_detectPageContext\(\)/);
   assert.match(slice, /subpet\.interact\('explore'/);
@@ -119,7 +121,7 @@ test('scroll de leitura: micro-reação além do scroll rápido', () => {
   assert.match(slice, /speed > 1200/);
   assert.match(slice, /speed > 380/);
   assert.match(slice, /_scrollSoftReacting/);
-  assert.match(slice, /_pulseAnimClass\('page-peeking'/);
+  assert.match(slice, /_pulsePageReaction\('page-scrolling'/);
 });
 
 test('clique em link/botão: reação mais frequente e variada', () => {
@@ -129,4 +131,29 @@ test('clique em link/botão: reação mais frequente e variada', () => {
   assert.match(slice, /interactive \? 0\.34 : 0\.14/);
   assert.match(slice, /setStateFor\('curious'/);
   assert.match(slice, /setStateFor\('excited'/);
+
+  assert.match(content, /this\._bindPageIntentReactions\(signal\);/);
+  const start = content.indexOf('_bindPageIntentReactions(signal) {');
+  const end = content.indexOf('_bindTypingCompanion(signal) {', start);
+  const intentSlice = content.slice(start, end);
+  const classes = [
+    'page-reading', 'page-copying', 'page-submitting', 'page-error',
+    'page-downloading', 'page-typing', 'page-watching',
+    'page-discovering', 'page-catching', 'page-scrolling'
+  ];
+
+  for (const eventName of [
+    'copy', 'submit', 'invalid', 'click', 'pointerover', 'pointerout', 'dragenter', 'drop'
+  ]) {
+    assert.match(intentSlice, new RegExp(`addEventListener\\('${eventName}'`));
+  }
+  assert.doesNotMatch(intentSlice, /preventDefault|stopPropagation/);
+  for (const className of classes) {
+    assert.match(content, new RegExp(`_pulsePageReaction\\('${className}'`));
+    assert.match(style, new RegExp(`#aic-clawd-node\\.${className} \\.pet-body`));
+    assert.match(style, new RegExp(`\\.aic-subpet\\.${className} \\.subpet-sprite`));
+  }
+  assert.match(style, /@keyframes clawd-page-navigate\b/);
+  assert.match(style, /@keyframes clawd-subpet-page-navigate\b/);
+  assert.match(style, /prefers-reduced-motion:\s*reduce[\s\S]*page-scrolling \.subpet-sprite/);
 });

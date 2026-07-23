@@ -436,6 +436,156 @@ const slimeSpecial = frame(
   '............'
 );
 
+/* ---- RAPOSA (laranja, orelhas e cauda escuras, brilho de estrela) ---- */
+const foxStand = frame(
+  '............',
+  '.D......D...',
+  '.DBBBBBBBBD.',
+  'BBBBBBBBBBBB',
+  'BBBKKBBKKBBB',
+  'BBBBBKKBBBBB',
+  '.BBBBPPBBBBD',
+  '.BB......BBD',
+  '..D......D..',
+  '............'
+);
+const foxWalk = frame(
+  '............',
+  '.D......D...',
+  '.DBBBBBBBBD.',
+  'BBBBBBBBBBBB',
+  'BBBKKBBKKBBB',
+  'BBBBBKKBBBBB',
+  'DBBBBPPBBBB.',
+  'DBB......BB.',
+  '.D........D.',
+  '............'
+);
+const foxSleep = frame(
+  '............',
+  '.D......D...',
+  '.DBBBBBBBBD.',
+  'BBBBBBBBBBBB',
+  'BB........BB',
+  'BBBBBKKBBBBB',
+  '.BBBBPPBBBBD',
+  '............',
+  '............',
+  '............'
+);
+const foxSpecial = frame(
+  '.....Y......',
+  '.D......D...',
+  '.DBBBBBBBBD.',
+  'BBBBBBBBBBBB',
+  'BBBYYBBYYBBB',
+  'BBBBBKKBBBBB',
+  '.BBBBPPBBBBD',
+  '.BB......BBD',
+  '..D......D..',
+  '..........Y.'
+);
+
+/* ---- CAPIVARA (marrom quente, focinho largo e pausa aconchegante) ---- */
+const capybaraStand = frame(
+  '............',
+  '..D......D..',
+  '..BBBBBBBB..',
+  '.BBBBBBBBBB.',
+  'BBBKKBBKKBBB',
+  'BBBBBNBBBBBB',
+  'BBBTTTTBBBBB',
+  '.BBBBBBBBBB.',
+  '..DD....DD..',
+  '............'
+);
+const capybaraWalk = frame(
+  '............',
+  '..D......D..',
+  '..BBBBBBBB..',
+  '.BBBBBBBBBB.',
+  'BBBKKBBKKBBB',
+  'BBBBBNBBBBBB',
+  'BBBTTTTBBBBB',
+  '.BBBBBBBBBB.',
+  '.DD......DD.',
+  '............'
+);
+const capybaraSleep = frame(
+  '............',
+  '..D......D..',
+  '..BBBBBBBB..',
+  '.BBBBBBBBBB.',
+  'BBB......BBB',
+  'BBBBBNBBBBBB',
+  'BBBTTTTBBBBB',
+  '.BBBBBBBBBB.',
+  '............',
+  '............'
+);
+const capybaraSpecial = frame(
+  '............',
+  '..D......D..',
+  '..BBBBBBBB..',
+  '.BBBBBBBBBB.',
+  'BBBKKBBKKBBB',
+  'BBBBBNBBBBBB',
+  'BBBTTTTBBBBB',
+  '.BBBBBBBBBB.',
+  '.LDD....DDL.',
+  'L..........L'
+);
+
+/* ---- AXOLOTE (rosa-coral, brânquias externas e bolhas) ---- */
+const axolotlStand = frame(
+  '............',
+  'G.G......G.G',
+  '.GG.BBBB.GG.',
+  '..BBBBBBBB..',
+  '.BBBKKBBKKBB',
+  '.BBBBPPBBBB.',
+  '..BBBBBBBB..',
+  '...BB..BB...',
+  '..A......A..',
+  '............'
+);
+const axolotlWalk = frame(
+  '............',
+  'G.G......G.G',
+  '.GG.BBBB.GG.',
+  '..BBBBBBBB..',
+  '.BBBKKBBKKBB',
+  '.BBBBPPBBBB.',
+  '..BBBBBBBB..',
+  '..BB....BB..',
+  '.A........A.',
+  '............'
+);
+const axolotlSleep = frame(
+  '............',
+  'G.G......G.G',
+  '.GG.BBBB.GG.',
+  '..BBBBBBBB..',
+  '.BB......BB.',
+  '.BBBBPPBBBB.',
+  '..BBBBBBBB..',
+  '............',
+  '............',
+  '............'
+);
+const axolotlSpecial = frame(
+  'A.G......G.A',
+  'G.G......G.G',
+  '.GG.BBBB.GG.',
+  '..BBBBBBBB..',
+  '.BBBKKBBKKBB',
+  '.BBBBPPBBBB.',
+  'A.BBBBBBBB.A',
+  '...BB..BB...',
+  '..A......A..',
+  'A..........A'
+);
+
 const CLAWD_SUBPET_SPRITES = {
   dog: {
     colors: {
@@ -527,6 +677,42 @@ const CLAWD_SUBPET_SPRITES = {
       walk: bob(slimeWalk, slimeIdle0),
       sleep: [slimeSleep],
       special: [slimeSpecial]
+    }
+  },
+  fox: {
+    colors: {
+      B: '#e77d34', D: '#9f4624', K: '#111111',
+      W: '#fff2de', P: '#f6b08a', Y: '#ffd166'
+    },
+    frames: {
+      idle: bob(foxStand, foxStand),
+      walk: bob(foxWalk, foxStand),
+      sleep: [foxSleep],
+      special: bob(foxSpecial, foxStand)
+    }
+  },
+  capybara: {
+    colors: {
+      B: '#9b6b43', D: '#68452d', K: '#111111',
+      N: '#4a3022', T: '#f8ead7', L: '#79b86b'
+    },
+    frames: {
+      idle: bob(capybaraStand, capybaraStand),
+      walk: bob(capybaraWalk, capybaraStand),
+      sleep: [capybaraSleep],
+      special: bob(capybaraSpecial, capybaraStand)
+    }
+  },
+  axolotl: {
+    colors: {
+      B: '#f18da6', G: '#d65a7a', K: '#111111',
+      P: '#ffd1dc', A: '#77d9e8', W: '#ffffff'
+    },
+    frames: {
+      idle: bob(axolotlStand, axolotlStand),
+      walk: bob(axolotlWalk, axolotlStand),
+      sleep: [axolotlSleep],
+      special: bob(axolotlSpecial, axolotlStand)
     }
   }
 };
@@ -648,18 +834,21 @@ const outDir = path.join(testsDir, 'sprite-out');
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'all.png'), renderSheet(CLAWD_SUBPET_SPRITES));
 
-// Preview em sprite-out sempre; pacote só com WRITE_PKG_SPRITES=1
+// Preview em sprite-out sempre; pacote só com WRITE_PKG_SPRITES=1.
+// WRITE_PKG_SPRITES=missing adiciona apenas espécies ainda sem PNG canônico.
 const WRITE_PKG_SPRITES = process.env.WRITE_PKG_SPRITES === '1';
+const WRITE_MISSING_PKG_SPRITES = process.env.WRITE_PKG_SPRITES === 'missing';
 const pkgDir = path.join(root, 'src/shared/sprites/subpets');
 for (const [id, sp] of Object.entries(CLAWD_SUBPET_SPRITES)) {
   const png = renderTransparent(id, sp, 8);
   fs.writeFileSync(path.join(outDir, `${id}.png`), png);
-  if (WRITE_PKG_SPRITES) {
+  const packageTarget = path.join(pkgDir, `${id}.png`);
+  if (WRITE_PKG_SPRITES || (WRITE_MISSING_PKG_SPRITES && !fs.existsSync(packageTarget))) {
     fs.mkdirSync(pkgDir, { recursive: true });
-    fs.writeFileSync(path.join(pkgDir, `${id}.png`), png);
+    fs.writeFileSync(packageTarget, png);
   }
 }
-if (!WRITE_PKG_SPRITES) {
+if (!WRITE_PKG_SPRITES && !WRITE_MISSING_PKG_SPRITES) {
   console.log('skip package PNGs (canonical = crop-literal-sprites.mjs from Subpets-selection.png)');
   console.log('set WRITE_PKG_SPRITES=1 only if you intentionally want to overwrite sheet crops');
 }
@@ -675,7 +864,7 @@ const markers = [
 ].filter((i) => i >= 0);
 const injectFrom = markers.length ? Math.min(...markers) : start;
 const comment = `/* ---- Sub-pet pixel art (shared: content + popup + docs)
-   Grade ${W}×${H} @${CELL}px. Referência "Subpets — 8 companheiros":
+   Grade ${W}×${H} @${CELL}px. Referência "Subpets — 11 companheiros":
    corpo chapado, olhos em linha (KK), patas soltas, lineless igual ao Claw'd.
    B=corpo, D=sombra/orelha, K=olho, P=rosa, Y=amarelo, R=bico/pé, E=olho slime, +extras. */
 var CLAWD_SUBPET_CELL = ${CELL};\n\n`;

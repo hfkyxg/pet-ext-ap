@@ -1,4 +1,4 @@
-# Projeto Claw'd v3.8 — Visão Arquitetural e Funcional
+# Projeto Claw'd v4.0 — Visão Arquitetural e Funcional
 
 > Documento executivo atualizado em julho/2026. Conheça o sistema na [Documentação Interativa](../index.html), consulte a implementação em [DOCUMENTACAO.md](./DOCUMENTACAO.md) e o uso diário em [MANUAL.md](./MANUAL.md).
 
@@ -53,10 +53,12 @@ O projeto não usa IA remota nem lê o conteúdo de formulários. As reações c
 
 ## 6. Qualidade e evolução
 
-A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, modo liso, sub-pets, documentação, pesca, manifest, popup, reload seguro, bfcache, áudio pós-gesto, allowlists, save coalesce, gamificação e harmonia da fase (contexto/weekly/personalidade). Em 22/07/2026, **197/197 contratos** passaram; o catálogo vivo registra **30** ações no popup (+ kick/keepy/superdance), **31** acessórios, **12** profissões, **9** rostos (incl. Babão), **7** skins, **34** conquistas, **14** quests e **12** desafios semanais; **v3.8.0** inclui i18n (11 locales, chrome do popup + onboarding com idioma/canto), popup boot com CSS do content injetado pós-parse (sem menu vazio no MV3), posições de toast/balão/badge, Trello ([board pet](https://trello.com/b/8wGr5tiQ/pet)), layering pet/subpet, animações contagiosas, subpet fluido (`dt` + off-screen) e polish de ownership cross-tab/SFX; o smoke test em Chromium confirma sprites unificados em `CLAWD_SUBPET_SPRITES`, três reloads com uma única instância e zero erros de runtime.
+A suíte local usa `node:test` e verificações de sintaxe para validar estado, migrações, catálogo, acessórios, sprite, emoções, foco/bem-estar, modo liso, sub-pets, documentação, pesca, manifest, popup, reload seguro, bfcache, áudio pós-gesto, allowlists, save coalesce, gamificação, movimento e layout de fala. Em 23/07/2026, **240/240 contratos** passaram; o catálogo vivo registra **30** ações no popup (+ kick/keepy/superdance), **11 subpets**, **31** acessórios, **12** profissões, **9** rostos, **11** skins com destaque e intensidade ajustáveis, **34** conquistas, **14** quests e **12** desafios semanais. A **v4.0.0** acrescenta schema v6, Pomodoro, guarda anti-doomscroll, tempo de tela e bem-estar; a evolução atual inclui Central de Calma, grounding autoguiado, quatro sons curtos e insights locais sem promessa clínica. O polish de movimento separa halo e ações, unifica timings, completa teclado/ARIA, isola o olhar 3D dos controles e posiciona falas simultâneas sem colisão. O smoke test em Chromium confirma sprites unificados, layout desktop/375 px, três reloads com uma única instância e zero erros de runtime.
 
 A vitrine em `docs/index.html` documenta visualmente o produto, carrega os catálogos reais e oferece laboratórios interativos do Claw'd e dos sub-pets. O painel de demonstração executa um roteiro de 45 segundos com 18 capítulos e gera 18 evidências quadro a quadro para presença, estados, profissões, gamificação e personalização. Os controles aceitam mouse, teclado e seleção direta; o layout foi verificado em desktop e 375 px, sem overflow ou logs de erro. Ela não depende de CDN, build ou servidor de aplicação.
 
 ---
 
-*Documentação Arquitetural — Claw'd v3.8 · 2026*
+O contrato detalhado de animações e interações está em [MOTION.md](../MOTION.md).
+
+*Documentação Arquitetural — Claw'd v4.0 · 2026*

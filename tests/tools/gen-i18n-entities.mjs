@@ -48,7 +48,8 @@ const EN = {
   },
   skin: {
     normal: 'Normal', droopy: 'Floppy ears', robot: 'Robot', freckles: 'Freckles',
-    stripes: 'Stripes', spots: 'Spots', glow: 'Neon'
+    stripes: 'Stripes', spots: 'Spots', glow: 'Neon', cosmic: 'Cosmic',
+    crystal: 'Crystal', ember: 'Ember', ocean: 'Ocean'
   },
   acc: {
     cap: 'Cap', tophat: 'Top hat', crown: 'Crown', chefhat: 'Chef hat', ninjaband: 'Ninja band',
@@ -62,7 +63,8 @@ const EN = {
   },
   subpet: {
     dog: 'Dog', cat: 'Cat', bird: 'Bird', rabbit: 'Rabbit',
-    dino: 'Dino', dragon: 'Dragon', ghost: 'Ghost', slime: 'Slime'
+    dino: 'Dino', dragon: 'Dragon', ghost: 'Ghost', slime: 'Slime',
+    fox: 'Fox', capybara: 'Capybara', axolotl: 'Axolotl'
   },
   rarity: { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' },
   daily: {
@@ -107,7 +109,10 @@ const EN = {
     dino: 'Classic heavy steps',
     dragon: 'Rare — breathes fire on challenge',
     ghost: 'Phases through walls, appears at night',
-    slime: 'Sticky — splits when fed'
+    slime: 'Sticky — splits when fed',
+    fox: 'Curious — finds small stars along the way',
+    capybara: 'Calm — invites you to pause without rushing',
+    axolotl: 'Lighthearted — spreads relaxing bubbles across the page'
   }
 };
 

@@ -1,7 +1,24 @@
-# 🚀 Claw'd — Registro de entregas v3.2–v3.8
+# 🚀 Claw'd — Registro de entregas v3.2–v4.0
 
 > Documento histórico das entregas (não é roadmap aberto).
 > Os blocos principais já estão implementados; cada seção preserva objetivo, comportamento, modelo de dados e critérios para manutenção.
+
+---
+
+## v4.0.0 — Foco, bem-estar e harmonia de movimento (2026-07-23)
+
+| Módulo | Entrega | Estado |
+|--------|---------|--------|
+| **Foco** | Pomodoro persistente no service worker, relógio e controles no popup | ✅ |
+| **Bem-estar** | Respiração 4–4–4–4, humor, lembretes e bloqueio suave | ✅ |
+| **Central de Calma** | Reset de 1 minuto, grounding 5-4-3-2-1, quatro sons curtos e insights locais de sete dias | ✅ |
+| **Subpets** | **11 espécies**; Raposa, Capivara e Axolote com sprite, habilidade e SFX próprios | ✅ |
+| **Tempo consciente** | Guarda anti-doomscroll, tempo de tela e regras por site | ✅ |
+| **Movimento** | Tokens comuns, zero `transition: all`, halo independente, saída por `transitionend` e graça anti-sobreposição autônoma | ✅ |
+| **Fala/gestos** | Balões em quatro direções sem colisão; olhar 3D isolado; long press mouse/touch; `Shift+Enter`; foco visível | ✅ |
+| **A11y** | Diálogos modais com trap/Escape/restauração; tabs ARIA com teclado; estados assistivos | ✅ |
+| **Performance** | Showcase subpet em rAF; pause hidden/reduced; cleanup rastreado | ✅ |
+| **Tests/Docs** | **240/240**; `MOTION.md`, README, manual, arquitetura, validação e vitrine alinhados | ✅ |
 
 ---
 
@@ -72,7 +89,7 @@
 | Fase | Cobertura | Estado |
 |------|-----------|--------|
 | **Estático (156)** | duo CSS, subpet walk/run sync, `_playDuoScene`, destroy timers, matriz 8×7, anti-bloom name-tag | ✅ |
-| **Smoke skins** | 7× `CLAWD_SKINS` → `dataset.skin` + `.skin-mod` | ✅ |
+| **Smoke skins** | 11× `CLAWD_SKINS` → `dataset.skin` + `.skin-mod` | ✅ |
 | **Smoke duo** | petting-subpet + being-petted; play→duo-play; feed/sleep/wake sync | ✅ |
 | **Smoke partículas** | cheer → `.aic-particle`; cleanup; `noParticles` bloqueia | ✅ |
 | **Smoke multi-clique** | 2=somersault · 3=superdance · 5=tantrum | ✅ |
@@ -133,7 +150,7 @@
 
 ### Resumo técnico
 
-- **Magic numbers eliminados**: timings centralizados em `CLAWD_TIMINGS.*` (`SUBPET_INTERACTION_MS: 20000`, `RANDOM_ACTION_MS: 18000`, `DUO_SCENE_MS: 22000`, etc.)
+- **Magic numbers eliminados**: timings centralizados em `CLAWD_TIMINGS.*` (valores atuais: `SUBPET_INTERACTION_MS: 14000`, `RANDOM_ACTION_MS: 12000`, `DUO_SCENE_MS: 22000`; na v4 também `FOCUS_TICK_MS`, `BREATH_PHASE_MS`, `MOTION_EXIT_MS` e `AUTONOMY_GRACE_MS`).
 - **Props animator**: engineer + footballer sem props visuais agora têm keyframes dedicados; chef pan stir soma ao steam existente
 - **Hover glow**: `drop-shadow(0 0 5px --clawd-glow)` + `brightness(1.06)` no `.smooth:hover` — derivado de hex color `+70` (44% alpha)
 - **RAF orphan guard**: `cancelAnimationFrame + return` se `!document.body.contains(node)` no tick do SubPet

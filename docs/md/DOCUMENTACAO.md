@@ -195,6 +195,9 @@ chrome.runtime.onMessage — ações aceitas pelo content script:
 { action: 'setSubpetColor', species, value: '#rrggbb' }
 { action: 'setSubpetEyeColor', species, value: '#rrggbb' }
 { action: 'triggerSubpetAction', value: 'cuddle'|'play'|'explore'|'spin'|'celebrate'|'special' }
+{ action: 'startBreathing' }                        // reset respiratório de um minuto
+{ action: 'startGrounding' }                        // abre grounding autoguiado 5-4-3-2-1
+{ action: 'playCalmSound', kind: 'rain'|'waves'|'forest'|'purr' }
 { action: 'getStatus' }                              // stats, jogo, missão e subpet atual
 ```
 
@@ -206,7 +209,7 @@ Tudo vive numa única chave `clawdState`:
 
 ```javascript
 {
-  schemaVersion: 5,         // migrador incremental atual (v1/v2/v4 → v5)
+  schemaVersion: 6,         // migrador incremental atual (v1/v2/v4/v5 → v6)
   name: "Claw'd",          // nome exibido no name-tag
   color: '#c71515',        // cor principal (--agent-color)
   eyeColor: '#08080b',     // cor independente dos olhos
@@ -247,6 +250,14 @@ Tudo vive numa única chave `clawdState`:
     colors: {},            // cor do corpo por espécie
     eyeColors: {}          // cor dos olhos por espécie
   },
+  wellbeing: {
+    moodLog: [],           // até 90 check-ins diários { day, mood }
+    breathingCount: 0,
+    groundingCount: 0,
+    calmSoundCount: 0,
+    practiceLog: [],       // até 180 práticas locais { day, kind }
+    healthyStreak: { days: 0, lastDay: '' }
+  },
   // Contadores de gamificação
   counters: {
     feeds: 0, dances: 0, pets: 0, goals: 0, keepyRecord: 0,
@@ -259,7 +270,7 @@ Tudo vive numa única chave `clawdState`:
 
 O estado inicial mantém o sprite compacto vermelho de referência (`color: #c71515`, `eyeColor: #08080b`, `model: classic`, `faceStyle: classic`, `skin: normal`, `smooth: false`, `accessoryHead/Face/Body: none`). O sistema não fixa 60 FPS: animações CSS e `requestAnimationFrame` acompanham a cadência do navegador.
 
-Escrita incremental via `save()`/`persist()` (read-modify-write). O schema v5 inclui todos os campos v4 mais: `accessoryBody`, `personality`, `customSpeech`, `particleColor`, `soundVolumeActions`, `soundVolumeAmbient`, `weekly`, `counters.streakDays`; o migrador normaliza saves v1/v2/v4 → v5 sem perder progresso. A missão diária é derivada da data; o desafio semanal é derivado via `clawdISOWeek()` (hash determinístico, reproduzível).
+Escrita incremental via `save()`/`persist()` (read-modify-write). O schema v6 preserva os campos v5 (`accessoryBody`, `personality`, `customSpeech`, volumes, weekly e counters) e acrescenta `focus`, `wellbeing`, `screenTime` e `settings.siteRules`; o migrador normaliza saves v1/v2/v4/v5 → v6 sem perder progresso e converte `blockedSites` legado em regras `block`. A missão diária é derivada da data; o desafio semanal é derivado via `clawdISOWeek()` (hash determinístico, reproduzível).
 
 **Runtime actions (v3.3+ / v3.6):**
 ```javascript
@@ -271,11 +282,11 @@ Escrita incremental via `save()`/`persist()` (read-modify-write). O schema v5 in
 { action: 'closeStudio' }            // fecha o studio
 ```
 
-Sub-pets têm `subpets.names`, `subpets.colors` e `subpets.eyeColors` indexados pela espécie. Cada entrada em `CLAWD_SUBPET_SPRITES` inclui frames pixel (`idle`/`walk`/`sleep`/…) e metadados `image: { url, width, height, gridW, gridH }` apontando para `src/shared/sprites/subpets/<id>.png` (crops literais do sheet). Helpers compartilhados: `clawdSubPetImageUrl`, `clawdSubPetBounds`, `clawdSubPetPalette`, `clawdBuildPixelShadow`. Em runtime, `SubPet._paint()` usa o PNG quando não há paleta custom; caso contrário (ou na piscada) cai no `box-shadow`. Regeneração canônica dos PNGs do pacote: `node tests/tools/crop-literal-sprites.mjs`. `node tests/tools/make-sprites.mjs` atualiza frames/preview e o catálogo, mas só sobrescreve os PNGs empacotados com `WRITE_PKG_SPRITES=1`. O popup envia `setSubpetColor` e `setSubpetEyeColor` para atualização ao vivo; cards bloqueados mantêm a arte full-color (sem greyscale); saves antigos recebem `eyeColors: {}` pela migração sem perder os demais dados.
+Sub-pets têm `subpets.names`, `subpets.colors` e `subpets.eyeColors` indexados pela espécie. O catálogo vivo reúne **11 espécies**; Raposa, Capivara e Axolote complementam os oito companheiros originais. Cada entrada em `CLAWD_SUBPET_SPRITES` inclui frames pixel (`idle`/`walk`/`sleep`/`special`) e metadados `image: { url, width, height, gridW, gridH }` apontando para `src/shared/sprites/subpets/<id>.png`. Helpers compartilhados: `clawdSubPetImageUrl`, `clawdSubPetBounds`, `clawdSubPetPalette`, `clawdBuildPixelShadow`. Em runtime, `SubPet._paint()` usa o PNG quando não há paleta custom; caso contrário (ou na piscada) cai no `box-shadow`. Regeneração dos oito crops do sheet: `node tests/tools/crop-literal-sprites.mjs`; espécies novas são geradas pela fonte procedural versionada em `tests/tools/make-sprites.mjs`. Esse script atualiza frames/preview e o catálogo, não sobrescreve PNGs existentes por padrão e aceita `WRITE_PKG_SPRITES=missing` para criar apenas assets ausentes. O popup envia `setSubpetColor` e `setSubpetEyeColor` para atualização ao vivo; cards bloqueados mantêm a arte full-color; saves antigos recebem `eyeColors: {}` pela migração sem perder os demais dados.
 
 O ciclo do sub-pet usa estados explícitos: `following`, `sleeping`, `waking`, `playing`, `cuddling`, `racing`, `exploring`, `spinning`, `celebrating`, `special`, `vanishing`, `splitting` e `fire`. O estado atual também fica em `data-state`, uma fronteira pública de diagnóstico que não expõe o objeto do content script ao mundo JavaScript da página. `sleep()` e `wakeUp()` cancelam timers opostos; clique/teclado e qualquer uma das **sete** ações manuais despertam o subpet antes de interagir. Timers de ação ficam registrados e são cancelados por `destroy()`.
 
-Cada espécie implementa `special`: cachorro late/busca, gato pode ignorar, pássaro rodopia, coelho salta, dinossauro corre, dragão solta fogo, fantasma desaparece e slime se divide. As animações preservam o flip horizontal por variável CSS e respeitam `prefers-reduced-motion`.
+Cada espécie implementa `special`: cachorro late/busca, gato pode ignorar, pássaro rodopia, coelho salta, dinossauro corre, dragão solta fogo, fantasma desaparece, slime se divide, raposa encontra estrelas, capivara convida para uma pausa e axolote espalha bolhas. As assinaturas sonoras são procedurais, curtas, locais e respeitam volume, silêncio, host ativo e a política de áudio pós-gesto. As animações preservam o flip horizontal por variável CSS e respeitam `prefers-reduced-motion`.
 
 No modo liso, `pixel-sprite` e `pixel-legs` ficam ocultos e sem `box-shadow`; o `smooth-sprite` assume uma variante contínua de cada um dos quatro modelos, com cabeça, braços, base e quatro pernas retas. Não há `background-image`, células internas, blur, cantos arredondados de slime ou textura de grade. Olhos, piscadas e a boca ficam em uma camada independente: o sorriso usa apenas traço curvo transparente e um detalhe mínimo de língua, sem os antigos blocos branco/preto; `showMouth: false` oculta essa camada sem afetar as demais emoções. Os **31** acessórios e as skins especiais também têm variantes contínuas. Os chapéus usam artes, reflexos e volumes próprios, e acompanham o passo apenas durante deslocamento. A `sprite-stack` mantém contenção de layout/estilo, mas não de pintura: isso permite que cartolas, coroas, toucas, hélices, abas e mochilas ultrapassem a caixa de 44×36px sem recorte. Fones usam uma camada atrás do chapéu, e a faixa ninja fica na testa sem cobrir os olhos.
 
@@ -310,9 +321,12 @@ No modo liso, `pixel-sprite` e `pixel-legs` ficam ocultos e sem `box-shadow`; o 
 ## 7. Privacidade e Segurança
 
 - **Nenhum dado sai do navegador** — não há servidor, telemetria ou requests externos;
+- Check-ins de humor, histórico de práticas e sequência saudável ficam dentro de `chrome.storage.local`; os insights de sete dias são calculados no popup e não são enviados a terceiros;
 - A detecção de contexto lê apenas o `hostname` da página, nunca o conteúdo;
 - Permissões mínimas: `storage`, `activeTab`, `scripting`;
 - O content script não intercepta formulários, teclado ou dados da página.
+
+A Central de Calma é uma ferramenta de apoio: pode ajudar a desacelerar e se orientar no presente, mas **não substitui avaliação, diagnóstico, tratamento ou cuidado profissional**. O produto não faz promessa clínica nem interpreta o humor como diagnóstico.
 
 ---
 
@@ -369,7 +383,7 @@ node --test tests/*.test.js
 node tests/runtime-smoke.mjs
 ```
 
-Os **197 testes** cobrem estado padrão, schema v5 e migração de saves (sem XSS de missão/streak, sem poluição de protótipo), quatro modelos, **nove rostos**, sete skins, cor independente dos olhos, curva de nível, missão diária (14 tipos, incl. balões/keepy), catálogo/CSS dos acessórios, chapéus sem recorte, composição das camadas, trajes profissionais temporários, corpo estático e pernas isoladas, modo liso, boca opcional/emoções, pesca, sub-pets (follow `dt` + off-screen), documentação interativa, referências do popup (studio/status×4/summon/minimal), manifest, isolamento de keyframes, invalidação do contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlist de mensagens, sites bloqueados seguros, save coalesce, extras kick/keepy/superdance, **100% das ações no `_handleAction`**, ownership da bola no pé direito, babinha/escala do balão, **`petVisible`/`clawdHasSavedPosition`**, harmonia/qualidade-fluida, validação-completa (combo/focusin/skins), pixel-fx e name-tag, e reconciliação de reload. O contrato da vitrine exige 18 etapas, todos os IDs consumidos pelo JavaScript, integração com os catálogos e ausência de dependências remotas. O smoke test executa o Edge/Chromium em perfil isolado e valida 4/4 modelos, 8/8 rostos, acessórios, estúdio pixel/liso, boca, 12 profissões, ações do catálogo (**30**), pesca, popup, subpet com **7** interações e três reloads sem erros ou duplicação. Gate estático: `node tests/tools/validate-ecosystem.mjs`. A validação manual complementar deve incluir gestos físicos de touch, export/import e viagem cross-tab entre janelas reais.
+Os **240 testes** cobrem estado padrão, schema v6 e migração de saves (sem XSS/poluição de protótipo), foco/bem-estar, Central de Calma, histórico local, quatro modelos, **nove rostos**, 11 skins com destaque e intensidade ajustáveis, missão diária, acessórios, camadas, modo liso, emoções, pesca, **11 subpets** (`dt` + off-screen), layout de fala sem colisão, long press mouse/touch, atalhos assistivos, documentação interativa, popup, manifest, contexto MV3, bfcache/`lastError`, AudioContext pós-gesto, allowlists, save coalesce, todas as ações e reconciliação de reload. `motion-harmony.test.js` trava tokens, ausência de `transition: all`, reduced-motion, halo independente, timing SSOT, lifecycle dos overlays, tabs ARIA e rAF do showcase; `interaction-layout.test.js` cobre geometria, fala dupla, viewport, olhar isolado, gestos, a11y e cleanup; `wellbeing-value.test.js` cobre as novas espécies, grounding, sons, streak, privacidade e alvos de toque. O contrato da vitrine exige 18 etapas, IDs íntegros, catálogos reais e ausência de dependências remotas. O smoke test executa Edge/Chromium em perfil isolado e valida modelos, acessórios, estúdio, boca, profissões, ações, pesca, popup, subpet, fala nos cantos em desktop/375 px e três reloads sem erros ou duplicação. Gate estático: `node tests/tools/validate-ecosystem.mjs`. A validação manual complementar deve incluir touch, reduced-motion, export/import e viagem cross-tab entre janelas reais.
 
 ### Segurança (resumo)
 
@@ -387,7 +401,7 @@ Os **197 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 
 | Feature | Detalhe técnico |
 |---------|----------------|
-| **CLAWD_TIMINGS** | Objeto em `catalog.js` com 8 constantes (`SUBPET_INTERACTION_MS: 20000`, `STAT_DECAY_MS`, `STORAGE_DEBOUNCE_MS`, `PARTICLE_MAX: 18`, `SETTLE_EPS_PX: 0.5`, `DOUBLE_CLICK_WINDOW_MS: 220`, `RANDOM_ACTION_MS: 18000`, `DUO_SCENE_MS: 22000`). Elimina magic numbers em `content.js` e `popup.js`. |
+| **CLAWD_TIMINGS** | Objeto em `catalog.js` com 12 constantes: `SUBPET_INTERACTION_MS: 14000`, `STAT_DECAY_MS`, `STORAGE_DEBOUNCE_MS`, `PARTICLE_MAX: 18`, `SETTLE_EPS_PX: 0.5`, `DOUBLE_CLICK_WINDOW_MS: 220`, `RANDOM_ACTION_MS: 12000`, `DUO_SCENE_MS: 22000`, `FOCUS_TICK_MS: 1000`, `BREATH_PHASE_MS: 4000`, `MOTION_EXIT_MS: 400` e `AUTONOMY_GRACE_MS: 5000`. Elimina magic numbers e sincroniza relógio, respiração, saída dos overlays e prioridade das interações explícitas. |
 | **Props animados (12)** | Cada profissão tem um `<div class="profession-prop ...">` no template. Keyframes: `clawd-chef-stir`, `clawd-cursor-blink`, `clawd-boot-tap`, `clawd-bobber`, `clawd-note-float`, `clawd-glint`, `clawd-smoke-puff`, `clawd-steam`. Opacidade 0 por padrão; ativados via `.cooking`, `.typing`, `.keepy-uppy`, etc. |
 | **Studio in-page** | `openStudio()` injeta painel flutuante arrastável; `?detached=1` abre em janela popup separada. |
 | **Personalidade adaptativa** | `S.personality.playful/lazy/bold` lidos em `_scheduleInteraction()` e `_decayStats()` para ajustar intervalo e velocidade de decay. |
@@ -410,9 +424,24 @@ Os **197 testes** cobrem estado padrão, schema v5 e migração de saves (sem XS
 | **Ambient FX (movimento)** | `_spawnAccessoryMotionFx()` dispara faíscas curtas ao **andar/correr/planar/dançar** ou equipar acessório — não há timer de loop idle; `noAmbientSparks` desliga faíscas de movimento. |
 | **Bola pé direito** | `.pet-ball { left: 48px }` + chuteira `left: 42px`; kick/roll/doPlay para a direita; sem `drop-shadow` blur; contador `.aic-juggle-count` à direita. |
 | **v3.7.3 UX** | `petVisible` no estado; `summonPetToTab` no SW; `minimalMode` → `.aic-minimal`; `clawdHasSavedPosition()` rejeita `{0,0}`; spawn usa `clawdDefaultPositionCoords(startCorner)`. |
-| **Validação** | Suíte **197/197** · v3.8.0 (i18n chrome + onboarding, popup boot async CSS, Trello, layering, fluidez subpet dt/off-screen, polish cross-tab/SFX/animações). |
+| **Validação** | Suíte **240/240** · v4.0.0 (schema v6, Central de Calma, foco/bem-estar, movimento harmonizado, fala sem colisão, gestos acessíveis, 11 subpets com dt/off-screen). |
 | **Fluidez pet↔subpet** | `clawdEaseInOutCubic` em walk/run; `_pulseReact` ecoa jump/dance/bath/happy; micro-idle do subpet; walk CSS `ease-in-out`; anticipação de pulo; duo ~72% chance; timings mais vivos; keyframes/hover/press suaves. |
 | **Cross-tab / SFX** | `_isActiveHost` + `_crossTabHidden`; despawn cancelável; beep/fala/partículas só no host; sem eco wake/cheer/dblclick. |
+
+---
+
+## 11. v4.0 — Foco, acessibilidade e movimento harmônico
+
+| Área | Contrato técnico |
+|------|------------------|
+| **Tokens de movimento** | `style.css`, `popup.css` e `showcase.css` compartilham durações e easings sem `transition: all`; propriedades são declaradas explicitamente. |
+| **Foco sem conflito** | O halo do Pomodoro anima uma camada `::after` independente e não sobrescreve `transform`/`animation` do corpo ou sprite do pet. |
+| **Overlays** | Respiração, grounding e proteção de tempo têm `role="dialog"`, foco inicial, contenção de `Tab`, fechamento por `Escape`, restauração de foco e remoção após `transitionend`/`transitioncancel`. |
+| **Central de Calma** | `startBreathing`, `startGrounding` e `playCalmSound` passam pela allowlist; práticas atualizam contadores, histórico limitado e streak local. Sons nunca buscam mídia externa. |
+| **Popup** | Abas seguem o padrão ARIA, aceitam setas/Home/End e mantêm painel, seleção e `tabindex` sincronizados; timers param quando o popup fica oculto. |
+| **Reduced motion** | CSS desativa animações/transições; previews JS do popup e da vitrine pausam por `prefers-reduced-motion` e `visibilitychange`. |
+| **Prioridade do usuário** | Fala, idle, passeio, subpet, profissão, dwell e cena em dupla aguardam `AUTONOMY_GRACE_MS` depois de uma interação, evitando sobreposição e partículas tardias. |
+| **Fonte canônica** | Decisões, vocabulário e checklist estão em [`../MOTION.md`](../MOTION.md). O contrato automático está em `tests/motion-harmony.test.js`. |
 
 ---
 

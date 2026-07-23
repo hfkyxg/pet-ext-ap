@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claw'd Harness</title>
+<link rel="stylesheet" href="../src/content/style.css">
+<style>
+  html,body{margin:0;height:100%;background:#f6f8fb;color:#111;font-family:system-ui,sans-serif}
+  #stage{position:relative;height:100vh;overflow:hidden;background:#f6f8fb}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+(function(){
+  const store = { clawdState: undefined };
+  const changeListeners = [], msgListeners = [];
+  const clone = o => o===undefined?undefined:JSON.parse(JSON.stringify(o));
+  window.__harnessMsgListeners = msgListeners;
+  window.chrome = {
+    runtime: { id:'harness', lastError:undefined, getURL:p=>p,
+      onMessage:{ addListener:f=>msgListeners.push(f), removeListener(){} },
+      connect:()=>({name:'p',postMessage(){},disconnect(){},onMessage:{addListener(){},removeListener(){}},onDisconnect:{addListener(){},removeListener(){}}}),
+      sendMessage(){} },
+    storage: {
+      local: {
+        get(keys,cb){ const out={}; (Array.isArray(keys)?keys:typeof keys==='string'?[keys]:Object.keys(store)).forEach(k=>out[k]=clone(store[k])); if(cb){cb(out);return;} return Promise.resolve(out); },
+        set(obj,cb){ const ch={}; Object.keys(obj).forEach(k=>{ch[k]={oldValue:clone(store[k]),newValue:clone(obj[k])};store[k]=clone(obj[k]);}); changeListeners.forEach(f=>{try{f(ch,'local')}catch(e){}}); if(cb)cb(); return Promise.resolve(); },
+        remove(keys,cb){ (Array.isArray(keys)?keys:[keys]).forEach(k=>delete store[k]); if(cb)cb(); return Promise.resolve(); }
+      },
+      onChanged:{ addListener:f=>changeListeners.push(f), removeListener(){} }
+    }
+  };
+})();
+</script>
+<script src="../src/shared/i18n.js"></script>
+<script src="../src/shared/catalog.js"></script>
+<script src="../src/content/content.js"></script>
+<script>
+window.__forceVisible = () => { const p=window.__clawd; if(!p)return; p.isVisible=true; p._crossTabHidden=false; p._hidden=false; p.node.style.display=''; if(p.S)p.S.settings.crossTab=false; };
+setTimeout(()=>window.__forceVisible(), 300);
+</script>
+</body>
+</html>

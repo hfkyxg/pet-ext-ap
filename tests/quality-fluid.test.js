@@ -110,8 +110,9 @@ test('qualidade: sprites pet — ações vencem breathe; idle variations !import
 
 test('qualidade: subpet — sync spawn, FX release, settle wake, vanish', () => {
   assert.match(content, /new SubPet\(this,\s*want\);\s*\n\s*this\.subpet\.onOwnerState\(this\.state\)/);
-  /* Subpet não pode ficar atrás do name-tag/balão do pet (z-index >= nó do pet) */
-  assert.match(style, /\.aic-subpet \{[\s\S]{0,400}z-index:\s*2147483647/);
+  /* O balão/controle principal vence o stacking; o motor impede colisão com o subpet. */
+  assert.match(style, /\.aic-subpet \{[\s\S]{0,500}z-index:\s*2147483646/);
+  assert.match(content, /_layoutBubble\(\)/);
   assert.match(content, /rect\.bottom\s*-\s*this\.bounds\.height\s*\*\s*0\.72/);
   assert.match(content, /_fxPending/);
   assert.match(content, /_armSettleWake\(/);
@@ -179,7 +180,8 @@ test('qualidade: subpet IntersectionObserver pausa off-screen', () => {
 
 test('qualidade: pet é focável, tem aria-label e balão/bola com título', () => {
   assert.match(content, /tabIndex\s*=\s*0/);
-  assert.match(content, /role',\s*'img'/);
+  assert.match(content, /role',\s*'button'/);
+  assert.match(content, /aria-keyshortcuts/);
   assert.match(content, /aria-label.*Claw/);
   assert.match(content, /title="Clique para estourar o balão!|title=.*estourar o balão/);
   assert.match(content, /title="Toque para embaixadinhas/);
@@ -377,6 +379,18 @@ test('qualidade: ações antes mudas têm SFX; pó/clima respeitam reduced-motio
   assert.match(popupJs, /previewVolumeChirp\(v,\s*'actions'\)/);
   assert.match(popupJs, /previewVolumeChirp\(v,\s*'ambient'\)/);
   assert.match(content, /master <= 0\) return/);
+  /* SFX contextuais usam presets locais, pitch sweep e timers rastreados. */
+  assert.match(content, /const CLAWD_SFX_PRESETS = Object\.freeze/);
+  for (const effect of [
+    'pageNavigate', 'pageRead', 'copy', 'submit', 'error', 'download', 'typing',
+    'watch', 'land', 'bite', 'highfive', 'roar', 'clap', 'wink', 'sneak',
+    'balloonPop', 'hug'
+  ]) {
+    assert.match(content, new RegExp(`\\b${effect}: \\[\\[`), `preset SFX ausente: ${effect}`);
+    assert.match(content, new RegExp(`playSoundEffect\\('${effect}'`), `SFX sem uso real: ${effect}`);
+  }
+  assert.match(content, /exponentialRampToValueAtTime\(endHz/);
+  assert.match(content, /_sfxTimers\.forEach\(clearTimeout\)/);
 });
 
 test('qualidade: nome na etiqueta sem race; rostos/skins/idle novos', () => {
@@ -394,7 +408,20 @@ test('qualidade: nome na etiqueta sem race; rostos/skins/idle novos', () => {
   assert.match(style, /data-face-style="drool"/);
   assert.match(style, /data-skin="freckles"/);
   assert.match(style, /data-skin="stripes"/);
+  assert.match(style, /data-skin="cosmic"/);
+  assert.match(style, /data-skin="crystal"/);
+  assert.match(style, /data-skin="ember"/);
+  assert.match(style, /data-skin="ocean"/);
   assert.match(style, /clawd-skin-freckle-twinkle|clawd-skin-stripe-shift/);
+  assert.match(style, /--skin-accent/);
+  assert.match(style, /--skin-intensity/);
+  assert.match(popupHtml, /id="input-skin-accent"/);
+  assert.match(popupHtml, /id="range-skin-intensity"/);
+  assert.match(popupCss, /#input-skin-accent\s*\{[\s\S]{0,100}height:\s*44px/);
+  assert.match(popupCss, /#range-skin-intensity\s*\{[\s\S]{0,100}min-height:\s*44px/);
+  assert.match(popupCss, /#range-skin-intensity:focus-visible/);
+  assert.match(content, /data-studio-skin-accent/);
+  assert.match(content, /data-studio-skin-intensity/);
   assert.match(style, /@keyframes clawd-idle-sway/);
   assert.match(style, /@keyframes clawd-idle-nudge/);
   assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'sway'));
@@ -502,10 +529,16 @@ test('qualidade: curious vence breathe; shiny nofx; rostos/skins/idle expandidos
   assert.match(style, /data-face-style="heart"/);
   assert.match(style, /data-skin="spots"/);
   assert.match(style, /data-skin="glow"/);
+  assert.match(style, /@keyframes clawd-skin-cosmic-drift/);
+  assert.match(style, /@keyframes clawd-skin-crystal-shimmer/);
+  assert.match(style, /@keyframes clawd-skin-ember-flicker/);
+  assert.match(style, /@keyframes clawd-skin-ocean-tide/);
   assert.match(style, /@keyframes clawd-idle-hop/);
   assert.match(style, /@keyframes clawd-idle-shimmy/);
   assert.ok(catalog.CLAWD_FACE_STYLES.angry && catalog.CLAWD_FACE_STYLES.heart);
   assert.ok(catalog.CLAWD_SKINS.spots && catalog.CLAWD_SKINS.glow);
+  assert.ok(catalog.CLAWD_SKINS.cosmic && catalog.CLAWD_SKINS.crystal);
+  assert.ok(catalog.CLAWD_SKINS.ember && catalog.CLAWD_SKINS.ocean);
   assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'hop'));
   assert.ok(catalog.CLAWD_IDLE_VARIATIONS.some((v) => v.id === 'shimmy'));
 });

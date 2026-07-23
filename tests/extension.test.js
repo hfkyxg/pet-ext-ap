@@ -18,7 +18,7 @@ const showcaseJs = read('docs/showcase.js');
 
 test('manifest v3.2 referencia apenas arquivos existentes', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.ok(['3.2.0', '3.3.0', '3.3.1', '3.7.0', '3.7.1', '3.7.2', '3.7.3', '3.8.0'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
+  assert.ok(['3.2.0', '3.3.0', '3.3.1', '3.7.0', '3.7.1', '3.7.2', '3.7.3', '3.8.0', '4.0.0'].includes(manifest.version), `versão inesperada: ${manifest.version}`);
 
   const files = [
     manifest.background.service_worker,
@@ -30,6 +30,38 @@ test('manifest v3.2 referencia apenas arquivos existentes', () => {
   for (const file of files) {
     assert.ok(fs.existsSync(path.join(root, file)), `${file} precisa existir`);
   }
+});
+
+test('pacote MV3 não usa nomes com _ (reservados pelo Chromium)', () => {
+  // Chromium rejeita load unpacked se qualquer arquivo/pasta começar com "_"
+  // (exceto _locales e _metadata). Ver: "Filenames starting with _ are reserved".
+  const allowed = new Set(['_locales', '_metadata']);
+  const skipDirs = new Set(['.git', 'node_modules', '.edge-profile', '.tmp', 'tmp']);
+  const reserved = [];
+
+  function walk(dir) {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const name = entry.name;
+      if (skipDirs.has(name) || name.startsWith('.edge-profile')) continue;
+      if (name.startsWith('_') && !allowed.has(name)) {
+        reserved.push(path.relative(root, path.join(dir, name)).replace(/\\/g, '/'));
+      }
+      if (entry.isDirectory() && !name.startsWith('.')) {
+        walk(path.join(dir, name));
+      }
+    }
+  }
+
+  walk(root);
+  assert.deepEqual(reserved, [], `Chromium não carrega extensão com: ${reserved.join(', ')}`);
+  assert.ok(fs.existsSync(path.join(root, 'tests', 'harness.html')), 'harness de smoke local deve viver em tests/harness.html');
+  assert.ok(!fs.existsSync(path.join(root, '_harness.html')), '_harness.html na raiz bloqueia o load unpacked');
 });
 
 test('manifest declara ícones PNG do Claw’d (16/48/128)', () => {
@@ -121,11 +153,11 @@ test('README e documentação identificam a versão e o ano atuais', () => {
   const docs = `${read('docs/md/DOCUMENTACAO.md')}\n${read('docs/md/MANUAL.md')}`;
   const banner = read('src/assets/pet-banner.svg');
   const modelGallery = read('src/assets/pet-states.svg');
-  assert.match(readme, /version-3\.[2-9]/);
+  assert.match(readme, /version-[34]\.\d/);
   assert.match(readme, /MIT © 2026/);
   assert.ok(fs.existsSync(path.join(root, 'LICENSE')));
   assert.match(docs, /2026/);
-  assert.match(banner, /ESTÚDIO VISUAL v3\.[2-9]/);
+  assert.match(banner, /ESTÚDIO VISUAL v[34]\.\d/);
   assert.match(banner, /id="pet-classic"/);
   assert.match(modelGallery, /id="classic"/);
   assert.match(modelGallery, /id="mini"/);
@@ -206,11 +238,11 @@ test('showcase e schema batem com o catálogo vivo', () => {
   const subpetCount = Object.keys(catalog.CLAWD_SUBPETS).length;
   assert.ok(actionCount >= 24, `esperado ≥ 24 ações, encontrado ${actionCount}`);
   assert.equal(subpetActionCount, 7);
-  assert.equal(subpetCount, 8);
-  assert.match(catalogSource, /var CLAWD_SCHEMA_VERSION = [45]/);
+  assert.equal(subpetCount, 11);
+  assert.match(catalogSource, /var CLAWD_SCHEMA_VERSION = [456]/);
   assert.match(showcaseHtml, new RegExp(`data-count="${actionCount}"[^>]*>${actionCount}</strong><span>ações do pet</span>`));
   assert.match(showcaseHtml, new RegExp(`data-count="${subpetActionCount}"[^>]*>${subpetActionCount}</strong><span>ações do subpet</span>`));
-  assert.match(showcaseHtml, /Schema v[45]/);
+  assert.match(showcaseHtml, /Schema v[456]/);
   assert.doesNotMatch(showcaseHtml, /Schema v3/);
 });
 

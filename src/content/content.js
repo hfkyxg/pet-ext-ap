@@ -12,6 +12,28 @@ function clawdEaseInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+/* Biblioteca de SFX sintetizados: [Hz inicial, duração, onda, atraso ms, Hz final].
+   Curvas curtas dão identidade às ações sem carregar arquivos de áudio externos. */
+const CLAWD_SFX_PRESETS = Object.freeze({
+  pageNavigate: [[420, 0.08, 'triangle', 0, 680], [820, 0.04, 'square', 80, 820]],
+  pageRead: [[560, 0.05, 'sine', 0, 620], [700, 0.04, 'triangle', 90, 650]],
+  copy: [[760, 0.05, 'square', 0, 1040], [1240, 0.06, 'triangle', 70, 1320]],
+  submit: [[520, 0.05, 'square', 0, 560], [700, 0.06, 'triangle', 75, 760], [980, 0.08, 'square', 150, 1080]],
+  error: [[320, 0.12, 'sawtooth', 0, 190], [180, 0.07, 'square', 100, 180]],
+  download: [[980, 0.1, 'triangle', 0, 520], [620, 0.04, 'square', 105, 620], [820, 0.06, 'triangle', 170, 860]],
+  typing: [[640, 0.025, 'square', 0, 640], [760, 0.025, 'square', 55, 760]],
+  watch: [[330, 0.13, 'sine', 0, 440], [520, 0.06, 'triangle', 110, 520]],
+  land: [[220, 0.07, 'triangle', 0, 110], [420, 0.035, 'square', 55, 420]],
+  bite: [[420, 0.045, 'square', 0, 300], [520, 0.035, 'triangle', 80, 520]],
+  highfive: [[650, 0.07, 'square', 0, 1050], [1250, 0.045, 'triangle', 75, 1320]],
+  roar: [[210, 0.18, 'sawtooth', 0, 90], [130, 0.1, 'square', 110, 80]],
+  clap: [[430, 0.04, 'square', 0, 360], [430, 0.04, 'square', 105, 360], [650, 0.055, 'triangle', 215, 760]],
+  wink: [[880, 0.06, 'triangle', 0, 1180]],
+  sneak: [[300, 0.13, 'sine', 0, 190], [480, 0.025, 'triangle', 135, 480]],
+  balloonPop: [[220, 0.055, 'sawtooth', 0, 90], [110, 0.08, 'square', 45, 60], [880, 0.035, 'square', 135, 1180]],
+  hug: [[440, 0.07, 'sine', 0, 520], [620, 0.08, 'triangle', 85, 700], [780, 0.11, 'sine', 175, 820]]
+});
+
 /* Global error handler — graceful degradation, no pet crash */
 try {
   window.addEventListener('error', (event) => {
@@ -68,6 +90,10 @@ class SubPet {
     this._idleVarTimer = null;
     this._idleVarClearTimer = null;
     this._idleVarLastTime = null;
+    this._bubbleLayoutRaf = null;
+    this._longPressTimer = null;
+    this._longPressTriggered = false;
+    this._pressStart = null;
     this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.node = null;
     this.create();
@@ -90,9 +116,11 @@ class SubPet {
     this.node.dataset.state = this.state;
     this.node.setAttribute('role', 'button');
     this.node.setAttribute('tabindex', '0');
+    this.node.setAttribute('aria-keyshortcuts', 'Enter Shift+Enter Space Shift+Space');
     this.node.setAttribute('aria-label', `${this.owner.S.subpets.names?.[this.species] || this.def.label}, sub-pet interativo`);
+    this.node.title = 'Clique: carinho • duplo clique ou segure: habilidade especial';
     this.node.innerHTML = `
-      <div class="subpet-bubble"></div>
+      <div class="subpet-bubble" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true"></div>
       <div class="subpet-motion">
         <div class="subpet-sprite"></div>
       </div>`;
@@ -117,6 +145,11 @@ class SubPet {
     this._startBlink();
     this.node.addEventListener('click', (event) => {
       event.stopPropagation();
+      if (this._longPressTriggered) {
+        this._longPressTriggered = false;
+        event.preventDefault();
+        return;
+      }
       this._pulseTap();
       if (this._clickTimer) {
         /* Segundo clique: cancela o cuddle agendado; o dblclick cuida do special (evita SFX duplo). */
@@ -143,6 +176,44 @@ class SubPet {
       else this.interact('special', { force: true });
       this.owner.registerDaily?.('subpet');
     });
+    const cancelLongPress = () => {
+      clearTimeout(this._longPressTimer);
+      this._longPressTimer = null;
+      this._pressStart = null;
+      this.node?.classList.remove('pressing');
+    };
+    this.node.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || this.state === 'sleeping') return;
+      this._longPressTriggered = false;
+      this._pressStart = { x: event.clientX, y: event.clientY };
+      this.node?.classList.add('pressing');
+      clearTimeout(this._longPressTimer);
+      this._longPressTimer = setTimeout(() => {
+        this._longPressTimer = null;
+        if (!this.node || !this._pressStart) return;
+        this._longPressTriggered = true;
+        this.node.classList.remove('pressing');
+        this.node.classList.add('long-pressed');
+        this._later(() => this.node?.classList.remove('long-pressed'), 650);
+        this._pulseTap();
+        this.interact('special', { force: true });
+        this.owner.registerDaily?.('subpet');
+      }, 650);
+    });
+    this.node.addEventListener('pointermove', (event) => {
+      if (this._pressStart
+          && Math.hypot(event.clientX - this._pressStart.x, event.clientY - this._pressStart.y) > 8) {
+        cancelLongPress();
+      }
+      const rect = this.node?.getBoundingClientRect();
+      if (!rect) return;
+      const lookX = Math.max(-2, Math.min(2, ((event.clientX - rect.left) / Math.max(1, rect.width) - 0.5) * 4));
+      const lookY = Math.max(-1.5, Math.min(1.5, ((event.clientY - rect.top) / Math.max(1, rect.height) - 0.5) * 3));
+      this.node.style.setProperty('--subpet-look-x', `${lookX.toFixed(2)}px`);
+      this.node.style.setProperty('--subpet-look-y', `${lookY.toFixed(2)}px`);
+    });
+    this.node.addEventListener('pointerup', cancelLongPress);
+    this.node.addEventListener('pointercancel', cancelLongPress);
     this.node.addEventListener('mouseenter', () => {
       if (!this.node || this.state === 'sleeping') return;
       this.node.classList.add('hovering');
@@ -162,6 +233,8 @@ class SubPet {
     this.node.addEventListener('mouseleave', () => {
       this._petMoves = 0;
       this.node?.classList.remove('hovering');
+      this.node?.style.removeProperty('--subpet-look-x');
+      this.node?.style.removeProperty('--subpet-look-y');
       if (!this._interactionBusy) this.node?.classList.remove('wagging');
     });
     this.node.addEventListener('keydown', (event) => {
@@ -169,7 +242,7 @@ class SubPet {
         event.preventDefault();
         this._pulseTap();
         if (this.state === 'sleeping') this.wakeUp('Acordei! ✨');
-        else this.interact('cuddle');
+        else this.interact(event.shiftKey ? 'special' : 'cuddle', { force: event.shiftKey });
         this.owner.registerDaily?.('subpet');
       }
     });
@@ -248,6 +321,9 @@ class SubPet {
       fire: () => { o.beep(180, 0.08, 'sawtooth'); setTimeout(() => o.beep(320, 0.06, 'sawtooth'), 70); },
       phase: () => o.beep(380, 0.12, 'triangle'),
       split: () => o.chime([[500, 0.05], [500, 0.05], [360, 0.1]]),
+      rustle: () => o.chime([[980, 0.03], [760, 0.04], [1120, 0.05]], 'ambient'),
+      cozy: () => o.chime([[260, 0.1], [330, 0.12]], 'ambient'),
+      bubble: () => o.chime([[520, 0.04], [680, 0.05], [860, 0.07]], 'ambient'),
       explore: () => o.beep(480, 0.05, 'triangle'),
       spin: () => o.chime([[600, 0.04], [800, 0.05]]),
       celebrate: () => o.chime([[520, 0.05], [660, 0.05], [880, 0.08]]),
@@ -371,10 +447,89 @@ class SubPet {
   say(text, dur = 2200) {
     this.bubbleNode.textContent = text;
     this.bubbleNode.classList.add('visible');
+    this.bubbleNode.setAttribute('aria-hidden', 'false');
+    this.owner._trackNotificationMotion?.(dur > 0 ? Math.min(5000, Math.max(450, dur)) : 1800);
+    this._scheduleBubbleLayout();
+    this.owner._scheduleSpeechLayout?.();
+    this.owner._syncDuoSpeaking?.();
     clearTimeout(this._sayTimer);
     this._sayTimer = dur > 0
-      ? setTimeout(() => this.bubbleNode?.classList.remove('visible'), dur)
+      ? setTimeout(() => {
+          this.bubbleNode?.classList.remove('visible');
+          this.bubbleNode?.setAttribute('aria-hidden', 'true');
+          this.owner._syncDuoSpeaking?.();
+        }, dur)
       : null;
+  }
+
+  _scheduleBubbleLayout() {
+    if (!this.node || !this.bubbleNode?.classList.contains('visible')) return;
+    if (this._bubbleLayoutRaf != null) cancelAnimationFrame(this._bubbleLayoutRaf);
+    this._bubbleLayoutRaf = requestAnimationFrame(() => {
+      this._bubbleLayoutRaf = null;
+      this._layoutBubble();
+      if (performance.now() < (this.owner?._notificationLayoutUntil || 0)
+          && this.bubbleNode?.classList.contains('visible')) {
+        this._scheduleBubbleLayout();
+      }
+    });
+  }
+
+  _layoutBubble() {
+    const bubble = this.bubbleNode;
+    const node = this.node;
+    if (!node || !bubble?.classList.contains('visible')) return;
+    const nodeRect = node.getBoundingClientRect();
+    const bodyRect = this.motionNode?.getBoundingClientRect() || nodeRect;
+    const width = Math.max(1, bubble.offsetWidth);
+    const height = Math.max(1, bubble.offsetHeight);
+    const pad = 8;
+    const gap = 10;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+    const ownerSpeech = this.owner.speechNode;
+    const ownerRect = this.owner.node?.getBoundingClientRect();
+    const obstacles = [
+      this.owner.stackNode?.getBoundingClientRect(),
+      this.owner.nameNode?.getBoundingClientRect()
+    ].filter(Boolean);
+    if (ownerSpeech?.classList.contains('visible') && ownerRect) {
+      obstacles.push({
+        left: ownerRect.left + ownerSpeech.offsetLeft,
+        top: ownerRect.top + ownerSpeech.offsetTop,
+        right: ownerRect.left + ownerSpeech.offsetLeft + ownerSpeech.offsetWidth,
+        bottom: ownerRect.top + ownerSpeech.offsetTop + ownerSpeech.offsetHeight
+      });
+    }
+    const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
+    const intersection = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+      * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    const belowY = Math.max(
+      bodyRect.bottom,
+      this.owner.stackNode?.getBoundingClientRect().bottom || bodyRect.bottom,
+      this.owner.nameNode?.getBoundingClientRect().bottom || bodyRect.bottom
+    ) + gap;
+    const candidates = [
+      { placement: 'above', x: bodyRect.left + bodyRect.width / 2 - width / 2, y: bodyRect.top - height - gap },
+      { placement: 'left', x: bodyRect.left - width - gap, y: bodyRect.top + bodyRect.height / 2 - height / 2 },
+      { placement: 'right', x: bodyRect.right + gap, y: bodyRect.top + bodyRect.height / 2 - height / 2 },
+      { placement: 'below', x: bodyRect.left + bodyRect.width / 2 - width / 2, y: belowY }
+    ].map((candidate, index) => {
+      const x = clamp(candidate.x, pad, Math.max(pad, viewportW - width - pad));
+      const y = clamp(candidate.y, pad, Math.max(pad, viewportH - height - pad));
+      const rect = { left: x, top: y, right: x + width, bottom: y + height };
+      const overflow = Math.abs(candidate.x - x) + Math.abs(candidate.y - y);
+      const collision = obstacles.reduce((sum, obstacle) => sum + intersection(rect, obstacle), 0);
+      return { ...candidate, x, y, score: collision * 10000 + overflow * 1000 + index };
+    });
+    const chosen = candidates.reduce((best, candidate) => candidate.score < best.score ? candidate : best);
+    bubble.style.left = `${chosen.x - nodeRect.left}px`;
+    bubble.style.top = `${chosen.y - nodeRect.top}px`;
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+    bubble.dataset.placement = chosen.placement;
+    bubble.classList.remove('bubble-placement-above', 'bubble-placement-left', 'bubble-placement-right', 'bubble-placement-below');
+    bubble.classList.add(`bubble-placement-${chosen.placement}`);
   }
 
   setColor(color) {
@@ -414,7 +569,10 @@ class SubPet {
       'flying', 'summoning', 'wagging', 'double-hop', 'heavy-stomp', 'phasing', 'singing',
       'watching-balloon', 'startled', 'tapped', 'settling', 'sleep-settle',
       'react-jump', 'react-dance', 'react-splash', 'react-cheer', 'react-stretch',
-      'subpet-idle-look', 'subpet-idle-hop', 'subpet-idle-wiggle', 'subpet-idle-stretch'
+      'subpet-idle-look', 'subpet-idle-hop', 'subpet-idle-wiggle', 'subpet-idle-stretch',
+      'page-navigating', 'page-reading', 'page-copying', 'page-submitting',
+      'page-error', 'page-downloading', 'page-typing', 'page-watching',
+      'page-discovering', 'page-catching', 'page-scrolling'
       /* duo-hug / being-petted / duo-play / nap-sync: preservados — _beginInteraction não apaga a coreografia */
     );
     this._perch = false;
@@ -442,6 +600,7 @@ class SubPet {
     try {
       if (!this.node || document.hidden || this._reducedMotion) return;
       if (this.owner?.S?.settings?.noIdleVariations || this.owner?.S?.settings?.performanceMode) return;
+      if (this.owner?._autonomyReady?.() === false) return;
       if (this.state !== 'following' || this._interactionBusy) return;
       if (this.owner?.state !== 'idle' || this.owner?.isQuiet?.()) return;
       const pool = [
@@ -488,7 +647,10 @@ class SubPet {
       ghost:  this._isNight()
         ? ['special', 'explore', 'vanish', 'special', 'spin', 'mischief']
         : ['nap', 'explore', 'cuddle', 'nap'],
-      slime:  ['play', 'cuddle', 'special', 'explore', 'hug', 'special', 'mischief']
+      slime:  ['play', 'cuddle', 'special', 'explore', 'hug', 'special', 'mischief'],
+      fox:    ['explore', 'explore', 'special', 'spin', 'play', 'mischief', 'cuddle'],
+      capybara: ['cuddle', 'nap', 'special', 'hug', 'explore', 'cuddle'],
+      axolotl: ['special', 'play', 'spin', 'special', 'cuddle', 'explore']
     };
     return pools[this.species] || pools.dog;
   }
@@ -744,6 +906,8 @@ class SubPet {
     this._domTop = top;
     this.node.style.left = `${left}px`;
     this.node.style.top = `${top}px`;
+    if (this.bubbleNode?.classList.contains('visible')) this._scheduleBubbleLayout();
+    if (this.owner.speechNode?.classList.contains('visible')) this.owner._scheduleSpeechLayout?.();
     return true;
   }
 
@@ -872,6 +1036,7 @@ class SubPet {
     this._interactTimer = setInterval(() => {
       if (document.hidden) return;
       if (!this.owner.isVisible || this.owner.isQuiet() || this.owner._crossTabHidden) return;
+      if (!this.owner._autonomyReady()) return;
       if (this.owner.state === 'sleeping') {
         this.sleep();
         return;
@@ -1168,6 +1333,35 @@ class SubPet {
         this._burst(['🫧', '💚', '✨'], 6);
         this._sfx('split');
         this._finishInteractionAfter(1800);
+      },
+      fox: () => {
+        this._beginInteraction('exploring', 'exploring');
+        this._paint(true);
+        this.say('Achei um brilho! ⭐');
+        this._burst(['🍂', '⭐', '✨'], 7);
+        this._sfx('rustle');
+        this.owner.spawnParticles(['⭐', '🍂', '✨'], 4);
+        this.owner.showSpeech('Curiosidade também abre caminhos. 🦊', 2400);
+        this._finishInteractionAfter(2600);
+      },
+      capybara: () => {
+        this._beginInteraction('cuddling', 'cuddling');
+        this._paint(true);
+        this.say('Sem pressa. Respira. 🌿');
+        this._burst(['🌿', '💛', '✨'], 6);
+        this._sfx('cozy');
+        this.owner.showSpeech('Uma pausa pequena já conta. 🌱', 2600);
+        this._finishInteractionAfter(3000);
+      },
+      axolotl: () => {
+        this._beginInteraction('splitting', 'split');
+        this._paint(true);
+        this.say('Bolhas leves! 🫧');
+        this._burst(['🫧', '💧', '✨'], 8);
+        this._sfx('bubble');
+        this.owner.spawnParticles(['🫧', '💧'], 5);
+        this.owner.showSpeech('Solta os ombros por um instante. 🫧', 2400);
+        this._finishInteractionAfter(2500);
       }
     };
     (map[this.species] || map.dog)();
@@ -1183,12 +1377,16 @@ class SubPet {
   destroy() {
     this._pauseRaf();
     this._clearSettleWake();
+    cancelAnimationFrame(this._bubbleLayoutRaf);
+    this._bubbleLayoutRaf = null;
     clearInterval(this._interactTimer);
     clearInterval(this._blinkTimer);
     clearTimeout(this._sayTimer);
     clearTimeout(this._sleepTimer);
     clearTimeout(this._wakeTimer);
     clearTimeout(this._clickTimer);
+    clearTimeout(this._longPressTimer);
+    this._longPressTimer = null;
     clearTimeout(this._idleVarTimer);
     clearTimeout(this._idleVarClearTimer);
     this._actionTimers.forEach(clearTimeout);
@@ -1244,6 +1442,8 @@ class ClawdCompanion {
     this.isAutoWalking = false;
     this.subpet = null;
     this._speechTimer = null;
+    this._speechLayoutRaf = null;
+    this._notificationLayoutUntil = 0;
     this._stateTimer = null;
     this._timers = [];
     this._activeParticles = 0;
@@ -1263,6 +1463,7 @@ class ClawdCompanion {
     this._clickCount = 0;
     this._clickTimer = null;
     this._holdTimer = null;
+    this._holdTriggered = false;
     this._wakeStretchTimer = null;
     this._fishing = false;
     this._lakeEl = null;
@@ -1307,6 +1508,26 @@ class ClawdCompanion {
     this._saveInFlight = false;
     this._saveDirty = false;
     this._particleTimers = new Set();
+    this._sfxTimers = new Set();
+    this._motionExitTimers = new Set();
+
+    /* v6: Foco & Bem-estar */
+    this._focus = null;                 // último estado do Pomodoro recebido do SW
+    this._focusPrevPhase = 'idle';
+    this._breatheEl = null;
+    this._groundingEl = null;
+    this._softBlockEl = null;
+    this._breathePrevFocus = null;
+    this._groundingPrevFocus = null;
+    this._softBlockPrevFocus = null;
+    this._groundingKeydown = null;
+    this._softBlockKeydown = null;
+    this._calmSoundTimers = new Set();
+    this._focusBreakTimer = null;
+    this._timesink = { category: null, engagedSec: 0, lastLevel: -1, snoozeUntil: 0 };
+    this._screenTickAt = Date.now();
+    this._wbLast = { eye: 0, water: 0, posture: 0, affirm: 0 };
+    this._wbStart = Date.now();
 
     this.messages = (typeof clawdSpeechMessages === 'function')
       ? clawdSpeechMessages('pt-BR')
@@ -1393,6 +1614,7 @@ class ClawdCompanion {
     this.refreshSubpet();
     this._setupScrollReaction();
     this._setupVisibilityReaction();
+    this._initFocusModule();
     setTimeout(() => {
       if (!this._destroyed && this.isVisible && !this._crossTabHidden && !this.isQuiet() && !this.S.settings?.minimalMode) {
         this.showSpeech(this.getRandom('idle'));
@@ -1455,6 +1677,10 @@ class ClawdCompanion {
     this._activeParticles = Math.max(0, (this._activeParticles || 0) - count);
   }
 
+  _autonomyReady() {
+    return Date.now() - (this.lastActivity || 0) >= CLAWD_TIMINGS.AUTONOMY_GRACE_MS;
+  }
+
   _trackParticle(el, ttl, reserved = false) {
     if (!reserved) {
       if (!this._reserveFx(1)) {
@@ -1476,13 +1702,16 @@ class ClawdCompanion {
     this.node.id = 'aic-clawd-node';
     this.node.dataset.clawdOwned = 'true';
     this.node.tabIndex = 0;
-    this.node.setAttribute('role', 'img');
+    this.node.setAttribute('role', 'button');
+    this.node.setAttribute('aria-keyshortcuts', 'Enter Shift+Enter Space Shift+Space');
     this.node.setAttribute('aria-label', "Claw'd, pet virtual interativo");
+    this.node.title = 'Clique: carinho • duplo clique: cambalhota • segure: abraço • arraste: mover';
     this.node.innerHTML = `
-      <div class="speech-bubble" id="aic-speech"></div>
+      <div class="speech-bubble" id="aic-speech" aria-hidden="true"></div>
       <div class="emotion-badge" id="aic-emotion"></div>
       <div id="aic-sr-status" role="status" aria-live="polite" aria-atomic="true" class="clawd-sr-only"></div>
-      <div class="pet-body" id="aic-pet-body">
+      <div class="pet-look-layer" id="aic-look-layer">
+       <div class="pet-body" id="aic-pet-body">
         <div class="sprite-stack" id="aic-stack">
           <div class="pixel-sprite" id="aic-sprite"></div>
           <div class="pixel-legs" id="aic-pixel-legs" aria-hidden="true"></div>
@@ -1520,10 +1749,11 @@ class ClawdCompanion {
           <div class="profession-prop prop-footballer-boot" aria-hidden="true"></div>
           <div class="profession-prop prop-fisher-bobber" aria-hidden="true"></div>
         </div>
-        <div class="name-tag" id="aic-name-tag">
-          <span class="name-title" id="aic-name-title"></span>
-          <span class="name-label" id="aic-name-label"></span>
-        </div>
+       </div>
+      </div>
+      <div class="name-tag" id="aic-name-tag">
+        <span class="name-title" id="aic-name-title"></span>
+        <span class="name-label" id="aic-name-label"></span>
       </div>
       <div class="pet-ball" id="aic-ball" title="Toque para embaixadinhas • duplo-clique para chutar a gol"></div>
       <div class="ground-shadow" id="aic-shadow"></div>
@@ -1542,6 +1772,7 @@ class ClawdCompanion {
     this.srStatusNode = this.node.querySelector('#aic-sr-status');
     this.balloonNode = this.node.querySelector('#aic-balloon');
     this.stackNode   = this.node.querySelector('#aic-stack');
+    this.lookLayer   = this.node.querySelector('#aic-look-layer');
     /* Entrada real é clawd-summon-drop no .pet-body — #aic-clawd-node força animation:none !important */
     this.applyStartCorner();
     if (!this.isVisible) this.node.style.display = 'none';
@@ -1592,6 +1823,8 @@ class ClawdCompanion {
       this.node.style.setProperty('--clawd-accent', S.color);
     }
     if (clawdIsHexColor(S.eyeColor)) this.node.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+    if (clawdIsHexColor(S.skinAccent)) this.node.style.setProperty('--skin-accent', S.skinAccent);
+    this.node.style.setProperty('--skin-intensity', String(Math.max(0.25, Math.min(1, Number(S.skinIntensity) || 1))));
     this.node.style.setProperty('--agent-scale', parseFloat(S.scale));
     if (clawdIsHexColor(S.jerseyColor)) this.node.style.setProperty('--jersey-color', S.jerseyColor);
     this.node.style.setProperty('--clawd-step-duration', `${(0.42 / animationSpeed).toFixed(3)}s`);
@@ -1628,6 +1861,7 @@ class ClawdCompanion {
     if (this.node) {
       this.node.setAttribute('data-speech-anchor', speech);
       this.node.setAttribute('data-emotion-side', emotion);
+      if (this.speechNode?.classList.contains('visible')) this._scheduleSpeechLayout();
     }
   }
 
@@ -1750,7 +1984,7 @@ class ClawdCompanion {
       const visualKeys = [
         'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
         'smooth', 'outline', 'showMouth', 'showSpeech', 'autoWalk', 'sleepEnabled',
-        'skin', 'tagTheme', 'jerseyColor', 'ballSkin', 'accessoryHead',
+        'skin', 'skinAccent', 'skinIntensity', 'tagTheme', 'jerseyColor', 'ballSkin', 'accessoryHead',
         'accessoryFace', 'accessoryBody', 'profession', 'particleColor',
         'personality', 'customSpeech'
       ];
@@ -1763,6 +1997,8 @@ class ClawdCompanion {
         this.node.style.setProperty('--clawd-glow', fresh.color + '70');
       }
       if (clawdIsHexColor(fresh.eyeColor)) this.node.style.setProperty('--agent-eye-color', fresh.eyeColor);
+      if (clawdIsHexColor(fresh.skinAccent)) this.node.style.setProperty('--skin-accent', fresh.skinAccent);
+      this.node.style.setProperty('--skin-intensity', String(Math.max(0.25, Math.min(1, Number(fresh.skinIntensity) || 1))));
       this.node.style.setProperty('--agent-scale', parseFloat(fresh.scale) || 1.5);
       if (clawdIsHexColor(fresh.jerseyColor)) this.node.style.setProperty('--jersey-color', fresh.jerseyColor);
       this.node.style.setProperty('--clawd-step-duration', `${(0.42 / animationSpeed).toFixed(3)}s`);
@@ -1812,6 +2048,21 @@ class ClawdCompanion {
         }
         break;
       case 'eyeColor': if (clawdIsHexColor(value)) this.node.style.setProperty('--agent-eye-color', value); break;
+      case 'skinAccent':
+        if (clawdIsHexColor(value)) {
+          this.node.style.setProperty('--skin-accent', value);
+          const accentInput = this._studioEl?.querySelector('[data-studio-skin-accent]');
+          if (accentInput) accentInput.value = value;
+        }
+        break;
+      case 'skinIntensity':
+        {
+          const intensity = Math.max(0.25, Math.min(1, Number(value) || 1));
+          this.node.style.setProperty('--skin-intensity', String(intensity));
+          const intensityInput = this._studioEl?.querySelector('[data-studio-skin-intensity]');
+          if (intensityInput) intensityInput.value = String(intensity);
+        }
+        break;
       case 'model': this.node.setAttribute('data-model', value); break;
       case 'faceStyle': this.node.setAttribute('data-face-style', value); break;
       case 'scale':
@@ -1833,6 +2084,9 @@ class ClawdCompanion {
           clearTimeout(this._speechTimer);
           this._speechTimer = null;
           this.speechNode.classList.remove('visible', 'interactive');
+          this.speechNode.setAttribute('aria-hidden', 'true');
+          this.node.classList.remove('talking');
+          this._syncDuoSpeaking();
         }
         break;
       case 'autoWalk':
@@ -1980,6 +2234,7 @@ class ClawdCompanion {
     try {
       if (this._destroyed || this._crossTabHidden || this.state !== 'idle' || !this.node || this._reducedMotion) return;
       if (this.S?.settings?.noIdleVariations || this.S?.settings?.performanceMode) return;
+      if (!this._autonomyReady()) return;
       if (!Array.isArray(CLAWD_IDLE_VARIATIONS) || !CLAWD_IDLE_VARIATIONS.length) return;
       const now = Date.now();
       const playful = (this.S.personality?.playful ?? 5);
@@ -2060,7 +2315,7 @@ class ClawdCompanion {
       if (speed > 380 && !this._scrollSoftReacting && !this._scrollReacting &&
           this.state === 'idle' && this.isVisible && !this.isQuiet() && !this._crossTabHidden) {
         this._scrollSoftReacting = true;
-        this._pulseAnimClass('page-peeking', 900);
+        this._pulsePageReaction('page-scrolling', 1000);
         if ((this.S.personality?.curious ?? 5) >= 6 && Math.random() < 0.35) {
           this.setStateFor('curious', 1100);
         }
@@ -2245,6 +2500,8 @@ class ClawdCompanion {
       this.node.style.bottom = 'auto';
       this._posSidesCleared = true;
     }
+    if (this.speechNode?.classList.contains('visible')) this._scheduleSpeechLayout();
+    if (this.subpet?.bubbleNode?.classList.contains('visible')) this.subpet._scheduleBubbleLayout();
   }
 
   cancelGlide() {
@@ -2339,6 +2596,7 @@ class ClawdCompanion {
     this.node.dataset.state = newState;
     if (newState !== 'idle') this.node.classList.add(newState);
     this._syncMovingHint();
+    if (newState !== 'idle') this._trackNotificationMotion(5000);
     const stateEmoji = {
       happy: '🥰', excited: '🤩', sleeping: '😴', waving: '👋', eating: '😋',
       celebrate: '🎉', yawning: '🥱', shy: '🙈', tantrum: '😤', bathing: '🫧',
@@ -2406,7 +2664,8 @@ class ClawdCompanion {
     this.node.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        this.giveAffection();
+        if (event.shiftKey) this.doHug();
+        else this.giveAffection();
       }
     }, { signal });
 
@@ -2447,13 +2706,35 @@ class ClawdCompanion {
       }, { signal });
     }
 
+    /* Necessidade acionável: o balão de emoção vira botão de cuidado (feed/nap/bath).
+       Só intercepta quando está no modo acionável; caso contrário, o clique atravessa
+       para o pet (pointer-events:none na base) e vira carinho normal. */
+    if (this.emotionNode) {
+      const careArmed = () => this.emotionNode.classList.contains('care-actionable');
+      this.emotionNode.addEventListener('mousedown', (e) => { if (careArmed()) e.stopPropagation(); }, { signal });
+      this.emotionNode.addEventListener('click', (e) => {
+        if (!careArmed()) return;
+        e.stopPropagation();
+        this._triggerCareFromBadge();
+      }, { signal });
+      this.emotionNode.addEventListener('keydown', (e) => {
+        if (!careArmed()) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          this._triggerCareFromBadge();
+        }
+      }, { signal });
+    }
+
     this.node.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
       if (e.target.closest('.challenge-opt')) return;
       this.cancelMovement();
       this.isDragging = true;
+      this._holdTriggered = false;
       this.node.classList.add('pressing');
-      this.node.style.transform = '';
+      if (this.lookLayer) this.lookLayer.style.transform = '';
       this._lookRx = 0;
       this._lookRy = 0;
       this._lookWriteRx = null;
@@ -2472,14 +2753,14 @@ class ClawdCompanion {
       this._dragVelocityX = 0;
       this._dragVelocityY = 0;
 
-      // Segurar por 2s → pose especial
+      // Segurar é um abraço; o flag evita também disparar carinho no mouseup.
       this._holdTimer = setTimeout(() => {
         if (this.isDragging && Math.abs(this._lastMX - this.startX) < 5 && Math.abs(this._lastMY - this.startY) < 5) {
-          this.doPose();
-          this.showSpeech('📸 Segurando!', 2000);
-          this.addXp(3);
+          this._holdTriggered = true;
+          this.node.classList.remove('pressing');
+          this.doHug();
         }
-      }, 2000);
+      }, 750);
     }, { signal });
 
     // Click sem ponteiro (ex.: element.click()) continua acessível. Cliques físicos
@@ -2549,7 +2830,7 @@ class ClawdCompanion {
       this._syncMovingHint();
       const diffX = Math.abs(e.clientX - this.startX);
       const diffY = Math.abs(e.clientY - this.startY);
-      if (diffX < 5 && diffY < 5) {
+      if (diffX < 5 && diffY < 5 && !this._holdTriggered) {
         this._queuePetClick();
       } else {
         this.startGlide(this._dragVelocityX || 0, this._dragVelocityY || 0);
@@ -2557,6 +2838,7 @@ class ClawdCompanion {
         this.S.position = { x: rect.left, y: rect.top };
         this.save();
       }
+      this._holdTriggered = false;
     }, { signal });
 
     // Touch
@@ -2564,8 +2846,9 @@ class ClawdCompanion {
       const t = e.touches[0];
       this.cancelMovement();
       this.isDragging = true;
+      this._holdTriggered = false;
       this.node.classList.add('pressing');
-      this.node.style.transform = '';
+      if (this.lookLayer) this.lookLayer.style.transform = '';
       this._lookRx = 0;
       this._lookRy = 0;
       this._lookWriteRx = null;
@@ -2580,6 +2863,14 @@ class ClawdCompanion {
       this._dragVelocityX = 0;
       this._dragVelocityY = 0;
       if (this.state === 'sleeping') this.wakeUp();
+      clearTimeout(this._holdTimer);
+      this._holdTimer = setTimeout(() => {
+        if (this.isDragging && Math.abs(this._lastMX - this.startX) < 10 && Math.abs(this._lastMY - this.startY) < 10) {
+          this._holdTriggered = true;
+          this.node.classList.remove('pressing');
+          this.doHug();
+        }
+      }, 750);
       e.preventDefault();
     }, { passive: false, signal });
 
@@ -2593,6 +2884,10 @@ class ClawdCompanion {
       this._lastDragAt = now;
       this._lastMX = t.clientX;
       this._lastMY = t.clientY;
+      if (Math.abs(t.clientX - this.startX) >= 10 || Math.abs(t.clientY - this.startY) >= 10) {
+        clearTimeout(this._holdTimer);
+        this._holdTimer = null;
+      }
       this.stackNode.style.transform = this._dragVelocityX < -0.2 ? 'scaleX(-1)' : '';
       if (this.state !== 'walking' && this.state !== 'running') this.setState('walking');
       this.node.classList.add('dragging');
@@ -2602,17 +2897,27 @@ class ClawdCompanion {
     }, { passive: true, signal });
 
     document.addEventListener('touchend', (e) => {
+      clearTimeout(this._holdTimer);
+      this._holdTimer = null;
       if (!this.isDragging) return;
       this.isDragging = false;
       this.node.classList.remove('pressing', 'dragging');
       this._syncMovingHint();
       const t = e.changedTouches[0];
-      if (Math.abs(t.clientX - this.startX) < 10 && Math.abs(t.clientY - this.startY) < 10) {
+      if (Math.abs(t.clientX - this.startX) < 10 && Math.abs(t.clientY - this.startY) < 10 && !this._holdTriggered) {
         this._queuePetClick();
       } else {
         this.startGlide(this._dragVelocityX || 0, this._dragVelocityY || 0);
       }
+      this._holdTriggered = false;
     }, { signal });
+
+    window.addEventListener('resize', () => {
+      const rect = this.node?.getBoundingClientRect();
+      if (rect) this.updatePosition(rect.left, rect.top);
+      this._scheduleSpeechLayout();
+      this.subpet?._scheduleBubbleLayout();
+    }, { passive: true, signal });
 
     // Scroll leve: só marca atividade (reação visual fica no handler por velocidade)
     document.addEventListener('scroll', () => {
@@ -2670,6 +2975,7 @@ class ClawdCompanion {
     }, { passive: true, signal });
 
     this._bindPagePlayfulness(signal);
+    this._bindPageIntentReactions(signal);
     this._bindBrowseNavigation(signal);
     this._bindTypingCompanion(signal);
     this._bindMediaWatching(signal);
@@ -2729,11 +3035,11 @@ class ClawdCompanion {
     this._lastNavReactAt = Date.now();
 
     if (this.state === 'idle' || this.state === 'walking' || this.state === 'curious') {
+      this._pulsePageReaction('page-navigating', 1250);
       const roll = Math.random();
       if (roll < 0.4) {
         this.setStateFor('curious', 1600);
         this.showSpeech(Math.random() < 0.5 ? 'Nova página! 👀' : 'Pra onde vamos? 🗺️', 1800);
-        this.beep(620, 0.04, 'triangle', 'ambient');
       } else if (roll < 0.7) {
         this._pulseAnimClass('page-peeking', 1400);
         this.setStateFor('waving', 1200);
@@ -2741,6 +3047,7 @@ class ClawdCompanion {
       } else {
         this._handleAction('lookAround');
       }
+      if (roll < 0.7) this.playSoundEffect('pageNavigate', 'ambient');
       if (this.subpet && !this.subpet._interactionBusy && Math.random() < 0.5) {
         this.subpet.interact('explore', { force: true, silent: true });
       }
@@ -2760,10 +3067,11 @@ class ClawdCompanion {
       if (text.length < 12) return;
       if (Date.now() - (this._lastSelectionReact || 0) < 14000) return;
       this._lastSelectionReact = Date.now();
+      this._pulsePageReaction('page-reading', 1500);
       this.setStateFor('curious', 1800);
       this.showSpeech(this.getRandom('curious'), 2000);
       this.addXp(1);
-      this.beep(710, 0.05, 'triangle');
+      this.playSoundEffect('pageRead', 'ambient');
     }, { signal });
 
     // Foco em campos → Dev digita; demais só comentam
@@ -2778,11 +3086,11 @@ class ClawdCompanion {
       if (this.S.profession === 'engineer') {
         this.setStateFor('typing', 2600);
         this.showSpeech('Boa sorte digitando! ⌨️', 2200);
-        this.chime([[480, 0.04], [600, 0.05], [720, 0.04]], 'actions');
+        this.playSoundEffect('typing', 'actions');
       } else {
         this.setStateFor('curious', 1400);
         this.showSpeech(this.getRandom('curious') || 'Hmm… ✍️', 1600);
-        this.beep(560, 0.04, 'triangle', 'actions');
+        this.playSoundEffect('pageRead', 'actions');
       }
     }, { signal });
 
@@ -2847,6 +3155,125 @@ class ClawdCompanion {
     }, { signal });
   }
 
+  /* Ações reais da página — reage sem capturar, bloquear ou alterar o evento.
+     O pet e o subpet recebem a mesma intenção com coreografias próprias no CSS. */
+  _bindPageIntentReactions(signal) {
+    const canReact = () => {
+      if (this._destroyed || !this._isActiveHost()) return false;
+      if (!this.isVisible || this.isQuiet() || this._crossTabHidden) return false;
+      if (this.S.settings.performanceMode || this._reducedMotion) return false;
+      return ['idle', 'curious', 'typing', 'happy'].includes(this.state);
+    };
+    const selectionLength = () => {
+      const pageSelection = (window.getSelection?.()?.toString() || '').trim();
+      if (pageSelection) return pageSelection.length;
+      const active = document.activeElement;
+      if (!(active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement)) return 0;
+      if (active instanceof HTMLInputElement && active.type === 'password') return 0;
+      const start = Number(active.selectionStart);
+      const end = Number(active.selectionEnd);
+      return Number.isFinite(start) && Number.isFinite(end) ? Math.max(0, end - start) : 0;
+    };
+
+    document.addEventListener('copy', (e) => {
+      if (e.target?.closest?.('#aic-clawd-node, .aic-subpet')) return;
+      if (!canReact() || selectionLength() < 1) return;
+      if (Date.now() - (this._lastCopyReact || 0) < 8000) return;
+      this._lastCopyReact = Date.now();
+      this.lastActivity = Date.now();
+      this._pulsePageReaction('page-copying', 850);
+      this.setStateFor('happy', 950);
+      this.showSpeech(Math.random() < 0.5 ? 'Copiado! 📋' : 'Guardei com você! ✨', 1500);
+      if (this._canSpawnFx(2)) this.spawnPixelSparks(['#74b9ff', '#ffffff', '#ffeaa7'], { count: 2 });
+      this.playSoundEffect('copy', 'ambient');
+    }, { capture: true, signal });
+
+    document.addEventListener('submit', (e) => {
+      if (!canReact() || !(e.target instanceof HTMLFormElement)) return;
+      if (Date.now() - (this._lastSubmitReact || 0) < 6500) return;
+      this._lastSubmitReact = Date.now();
+      this.lastActivity = Date.now();
+      this._pulsePageReaction('page-submitting', 1050);
+      this.setStateFor('happy', 1150);
+      this.showSpeech(Math.random() < 0.5 ? 'Vamos enviar! 🚀' : 'Boa! Tudo pronto. ✅', 1600);
+      if (this._canSpawnFx(3)) this.spawnPixelSparks(['#55efc4', '#ffeaa7', '#ffffff'], { count: 3 });
+      this.playSoundEffect('submit', 'ambient');
+    }, { capture: true, signal });
+
+    /* invalid não borbulha: captura permite reagir sem tocar na validação nativa. */
+    document.addEventListener('invalid', (e) => {
+      if (!canReact() || e.target?.closest?.('#aic-clawd-node')) return;
+      if (Date.now() - (this._lastInvalidReact || 0) < 9000) return;
+      this._lastInvalidReact = Date.now();
+      this._pulsePageReaction('page-error', 700);
+      this.setStateFor('shy', 1000);
+      this.showSpeech('Ops, faltou um detalhe 👀', 1700);
+      this.playSoundEffect('error', 'ambient');
+    }, { capture: true, signal });
+
+    document.addEventListener('click', (e) => {
+      if (!canReact()) return;
+      const download = e.target?.closest?.('a[download]');
+      if (!download || download.closest('#aic-clawd-node, .aic-subpet')) return;
+      if (Date.now() - (this._lastDownloadReact || 0) < 8000) return;
+      this._lastDownloadReact = Date.now();
+      this.lastActivity = Date.now();
+      this._pulsePageReaction('page-downloading', 1050);
+      this.setStateFor('excited', 1050);
+      this.showSpeech(Math.random() < 0.5 ? 'Pegando o arquivo! 📦' : 'Download a caminho! ⬇️', 1600);
+      this.playSoundEffect('download', 'ambient');
+    }, { capture: true, passive: true, signal });
+
+    /* Permanecer sobre uma ação revela curiosidade sem interromper a navegação. */
+    document.addEventListener('pointerover', (e) => {
+      const target = e.target?.closest?.('a[href], button, [role="button"], summary');
+      if (!target || target.closest('#aic-clawd-node, .aic-subpet')) return;
+      if (target === this._pageHoverTarget) return;
+      clearTimeout(this._pageHoverTimer);
+      this._pageHoverTarget = target;
+      this._pageHoverTimer = setTimeout(() => {
+        this._pageHoverTimer = null;
+        if (!target.isConnected || this._pageHoverTarget !== target || !canReact()) return;
+        if (Date.now() - (this._lastPageHoverReact || 0) < 12000) return;
+        this._lastPageHoverReact = Date.now();
+        this.lastActivity = Date.now();
+        this._pulsePageReaction('page-discovering', 1100);
+        this.setStateFor('curious', 1150);
+      }, 700);
+    }, { capture: true, passive: true, signal });
+
+    document.addEventListener('pointerout', (e) => {
+      if (!this._pageHoverTarget) return;
+      const leaving = e.target?.closest?.('a[href], button, [role="button"], summary');
+      if (leaving !== this._pageHoverTarget) return;
+      if (e.relatedTarget instanceof Node && leaving.contains(e.relatedTarget)) return;
+      clearTimeout(this._pageHoverTimer);
+      this._pageHoverTimer = null;
+      this._pageHoverTarget = null;
+    }, { capture: true, passive: true, signal });
+
+    const carriesFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files');
+    document.addEventListener('dragenter', (e) => {
+      if (!carriesFiles(e) || !canReact()) return;
+      if (Date.now() - (this._lastFileDragReact || 0) < 6000) return;
+      this._lastFileDragReact = Date.now();
+      this.lastActivity = Date.now();
+      this._pulsePageReaction('page-catching', 1200);
+      this.setStateFor('curious', 1250);
+      this.showSpeech('Eu seguro! 📦', 1400);
+    }, { capture: true, passive: true, signal });
+
+    document.addEventListener('drop', (e) => {
+      if (!carriesFiles(e) || !canReact()) return;
+      if (Date.now() - (this._lastFileDropReact || 0) < 3000) return;
+      this._lastFileDropReact = Date.now();
+      this.lastActivity = Date.now();
+      this._pulsePageReaction('page-catching', 1050);
+      this.setStateFor('happy', 1100);
+      this.showSpeech('Peguei! ✨', 1300);
+    }, { capture: true, passive: true, signal });
+  }
+
   /* Digitar (sustentado) — o pet "escreve junto" enquanto o usuário digita.
      Reage em rajadas espaçadas (não a cada tecla) e volta à calma quando para. */
   _bindTypingCompanion(signal) {
@@ -2883,10 +3310,11 @@ class ClawdCompanion {
         return;
       }
       this._lastTypingBurst = now;
+      if (firstOfSession) this._pulsePageReaction('page-typing', 1200);
       if (this.S.profession === 'engineer') {
         if (this.state !== 'typing') this.setState('typing');
         if (firstOfSession) this.showSpeech('Bora codar! ⌨️', 1600);
-        this.chime([[520, 0.03], [640, 0.03]], 'actions');
+        this.playSoundEffect('typing', 'actions');
       } else {
         if (this.state !== 'curious') this.setState('curious');
         if (firstOfSession) {
@@ -2895,7 +3323,7 @@ class ClawdCompanion {
         if (!this._reducedMotion && this._canSpawnFx(2)) {
           this.spawnPixelSparks(['#74b9ff', '#ffffff', '#ffeaa7'], { count: 2 });
         }
-        this.beep(560, 0.03, 'triangle', 'ambient');
+        this.playSoundEffect('typing', 'ambient');
       }
     }, { capture: true, passive: true, signal });
   }
@@ -2921,10 +3349,11 @@ class ClawdCompanion {
       this._watchedVideo = video;
       this._lastWatchStart = Date.now();
       if (this.state !== 'idle' && this.state !== 'curious') this.setState('idle');
+      this._pulsePageReaction('page-watching', 1350);
       this.setStateFor('curious', 2000);
       this.showSpeech(Math.random() < 0.5 ? 'Filme? 🍿' : 'Bora assistir! 👀', 2200);
       if (!this._reducedMotion && this._canSpawnFx(2)) this.spawnParticles(['🍿', '👀'], { count: 2 });
-      this.beep(500, 0.05, 'triangle', 'ambient');
+      this.playSoundEffect('watch', 'ambient');
       clearInterval(this._watchTimer);
       this._watchTimer = setInterval(() => this._tickWatch(), 13000);
     };
@@ -3027,7 +3456,7 @@ class ClawdCompanion {
         if (this._lookWriteRx !== '0.00' || this._lookWriteRy !== '0.00') {
           this._lookWriteRx = '0.00';
           this._lookWriteRy = '0.00';
-          this.node.style.transform = '';
+          if (this.lookLayer) this.lookLayer.style.transform = '';
         }
         return;
       }
@@ -3044,7 +3473,10 @@ class ClawdCompanion {
     if (rx === this._lookWriteRx && ry === this._lookWriteRy) return;
     this._lookWriteRx = rx;
     this._lookWriteRy = ry;
-    this.node.style.transform = `perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    if (this.lookLayer) {
+      this.lookLayer.style.transform = `perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    }
+    this._trackNotificationMotion(260);
   }
 
   _syncMovingHint() {
@@ -3125,7 +3557,7 @@ class ClawdCompanion {
     }
   }
 
-  beep(freq = 660, dur = 0.07, type = 'square', channel = 'actions') {
+  beep(freq = 660, dur = 0.07, type = 'square', channel = 'actions', endFreq = freq) {
     if (!this.S.settings.sounds || this.isQuiet() || !this._audioAllowed || this._crossTabHidden) return;
     try {
       /* Nunca cria/resume aqui — só toca se o ctx já estiver running pós-gesto */
@@ -3139,22 +3571,52 @@ class ClawdCompanion {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = type;
-      osc.frequency.value = freq;
       const chKey = channel === 'ambient' ? 'soundVolumeAmbient' : 'soundVolumeActions';
       const chVol = Math.max(0, Math.min(1, this.S.settings[chKey] ?? (channel === 'ambient' ? 0.6 : 1)));
       if (chVol <= 0) return;
       const vol = Math.max(0.0001, master * chVol * 0.14);
+      const startHz = Math.max(30, Math.min(16000, Number(freq) || 660));
+      const endHz = Math.max(30, Math.min(16000, Number(endFreq) || startHz));
+      const duration = Math.max(0.03, Number(dur) || 0.07);
       gain.gain.setValueAtTime(vol, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + Math.max(0.03, dur));
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      osc.frequency.setValueAtTime(startHz, ctx.currentTime);
+      if (endHz !== startHz) {
+        osc.frequency.exponentialRampToValueAtTime(endHz, ctx.currentTime + duration);
+      }
       osc.connect(gain).connect(ctx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + Math.max(0.03, dur) + 0.02);
+      osc.stop(ctx.currentTime + duration + 0.02);
     } catch (_) { /* autoplay / AudioContext policy */ }
+  }
+
+  _queueSfxTone(note, channel = 'actions') {
+    const [freq, duration, type = 'square', delay = 0, endFreq = freq] = note;
+    const play = () => {
+      if (!this._destroyed) this.beep(freq, duration, type, channel, endFreq);
+    };
+    if (!delay) {
+      play();
+      return;
+    }
+    if (!this._sfxTimers) this._sfxTimers = new Set();
+    const timer = setTimeout(() => {
+      this._sfxTimers.delete(timer);
+      play();
+    }, delay);
+    this._sfxTimers.add(timer);
+  }
+
+  playSoundEffect(name, channel = 'actions') {
+    const notes = CLAWD_SFX_PRESETS[name];
+    if (!notes || this._destroyed || !this.S.settings.sounds || this.isQuiet()) return;
+    if (!this._audioAllowed || this._crossTabHidden) return;
+    notes.forEach((note) => this._queueSfxTone(note, channel));
   }
 
   chime(notes = [[660, 0.06], [880, 0.08]], channel = 'actions') {
     notes.forEach(([f, d], i) => {
-      setTimeout(() => this.beep(f, d, i % 2 ? 'triangle' : 'square', channel), i * 70);
+      this._queueSfxTone([f, d, i % 2 ? 'triangle' : 'square', i * 70, f], channel);
     });
   }
 
@@ -3167,7 +3629,7 @@ class ClawdCompanion {
       legendary: [[440,0.06],[550,0.06],[660,0.06],[880,0.06],[1100,0.18]]
     };
     const seq = seqs[rarity] || seqs.common;
-    seq.forEach(([f, d], i) => setTimeout(() => this.beep(f, d, 'square'), i * 90));
+    seq.forEach(([f, d], i) => this._queueSfxTone([f, d, 'square', i * 90, f], 'actions'));
   }
 
   /* ---------- GAMIFICAÇÃO ---------- */
@@ -3421,6 +3883,7 @@ class ClawdCompanion {
     };
     this.emotionNode.textContent = badges[this.emotion] || '🙂';
     this.node.setAttribute('data-emotion', this.emotion);
+    this._syncCareBadge();
     if (!silent && prev !== this.emotion && /joyful|ecstatic|peppy/.test(this.emotion)) {
       this.node.classList.add('emotion-glow');
       clearTimeout(this._emotionGlowTimer);
@@ -3470,6 +3933,47 @@ class ClawdCompanion {
     requestAnimationFrame(() => this.emotionNode && this.emotionNode.classList.add('visible'));
     clearTimeout(this._emotionTimer);
     this._emotionTimer = setTimeout(() => this.emotionNode && this.emotionNode.classList.remove('visible'), duration);
+  }
+
+  /* ---------- NECESSIDADES ACIONÁVEIS ----------
+     Quando o pet tem uma necessidade não atendida (fome/sono/sujeira), o próprio
+     balão de emoção vira um botão de cuidado: um toque resolve a necessidade ali
+     na página, sem abrir o popup. Torna o tamagotchi legível e responsivo. */
+  _careForEmotion(emotion) {
+    return { hungry: 'feed', sleepy: 'nap', grubby: 'bath' }[emotion] || null;
+  }
+
+  _syncCareBadge() {
+    const node = this.emotionNode;
+    if (!node) return;
+    const care = this._careForEmotion(this.emotion);
+    const actionable = !!care && !this.isQuiet() && !this.S.settings?.minimalMode;
+    if (actionable) {
+      const labels = { feed: 'Alimentar', nap: 'Fazer descansar', bath: 'Dar banho' };
+      node.classList.add('care-actionable');
+      node.dataset.care = care;
+      node.setAttribute('role', 'button');
+      node.setAttribute('tabindex', '0');
+      node.setAttribute('aria-label', `${labels[care]} o Claw'd`);
+      node.title = `Clique para ${labels[care].toLowerCase()}`;
+    } else if (node.classList.contains('care-actionable')) {
+      node.classList.remove('care-actionable', 'care-pop');
+      delete node.dataset.care;
+      node.removeAttribute('role');
+      node.removeAttribute('tabindex');
+      node.removeAttribute('aria-label');
+      node.removeAttribute('title');
+    }
+  }
+
+  _triggerCareFromBadge() {
+    const care = this.emotionNode?.dataset.care;
+    if (!care) return;
+    this.lastActivity = Date.now();
+    this.emotionNode.classList.add('care-pop');
+    clearTimeout(this._carePopTimer);
+    this._carePopTimer = setTimeout(() => this.emotionNode?.classList.remove('care-pop'), 460);
+    this._handleAction(care);
   }
 
   /* ---------- FAVORITOS: sorteio ponderado ---------- */
@@ -3683,28 +4187,124 @@ class ClawdCompanion {
       this.speechNode.classList.remove('interactive');
     }
     this.speechNode.classList.add('visible');
+    this.speechNode.setAttribute('aria-hidden', 'false');
     this.node.classList.add('talking');
-    this._clampSpeechBubble();
+    if (!interactive && typeof text === 'string' && this.srStatusNode) {
+      this.srStatusNode.textContent = `Claw'd: ${text}`;
+    }
+    this._trackNotificationMotion(duration > 0 ? Math.min(5000, Math.max(450, duration)) : 1800);
+    this._scheduleSpeechLayout();
+    this.subpet?._scheduleBubbleLayout();
+    this._syncDuoSpeaking();
     clearTimeout(this._speechTimer);
     if (duration > 0) {
       this._speechTimer = setTimeout(() => {
         this.speechNode.classList.remove('visible', 'interactive', 'flip-left', 'below');
+        this.speechNode.setAttribute('aria-hidden', 'true');
         this.node.classList.remove('talking');
+        this._syncDuoSpeaking();
       }, duration);
     }
   }
 
-  /* Mantém o balão na viewport: flip na borda esquerda; below se estoura o topo.
-     Com speechAnchor ≠ auto, CSS fixo assume o posicionamento. */
-  _clampSpeechBubble() {
+  _scheduleSpeechLayout() {
+    if (!this.speechNode?.classList.contains('visible')) return;
+    if (this._speechLayoutRaf != null) cancelAnimationFrame(this._speechLayoutRaf);
+    this._speechLayoutRaf = requestAnimationFrame((timestamp) => {
+      this._speechLayoutRaf = null;
+      this._layoutSpeechBubble();
+      // A segunda voz usa a posição final da primeira como obstáculo.
+      this.subpet?._scheduleBubbleLayout();
+      if (timestamp < this._notificationLayoutUntil
+          && this.speechNode?.classList.contains('visible')) {
+        this._scheduleSpeechLayout();
+      }
+    });
+  }
+
+  _trackNotificationMotion(duration = 1200) {
+    const now = performance.now();
+    const safeDuration = Math.max(0, Math.min(5000, Number(duration) || 0));
+    this._notificationLayoutUntil = Math.max(this._notificationLayoutUntil || 0, now + safeDuration);
+    if (this.speechNode?.classList.contains('visible')) this._scheduleSpeechLayout();
+    if (this.subpet?.bubbleNode?.classList.contains('visible')) this.subpet._scheduleBubbleLayout();
+  }
+
+  _layoutSpeechBubble() {
     const bubble = this.speechNode;
-    if (!bubble) return;
-    bubble.classList.remove('flip-left', 'below');
+    if (!this.node || !bubble?.classList.contains('visible')) return;
+    const rootRect = this.node.getBoundingClientRect();
+    const spriteRect = this.stackNode?.getBoundingClientRect() || rootRect;
+    const nameRect = this.nameNode?.getBoundingClientRect();
+    const emotionRect = this.emotionNode?.classList.contains('visible')
+      ? this.emotionNode.getBoundingClientRect()
+      : null;
+    const width = Math.max(1, bubble.offsetWidth);
+    const height = Math.max(1, bubble.offsetHeight);
+    const pad = 8;
+    const gap = 18;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+    const obstacles = [spriteRect, nameRect, emotionRect].filter(Boolean);
+    const subNode = this.subpet?.node;
+    const subBubble = this.subpet?.bubbleNode;
+    if (subNode) obstacles.push(this.subpet.motionNode?.getBoundingClientRect() || subNode.getBoundingClientRect());
+    if (subNode && subBubble?.classList.contains('visible')) {
+      const subRect = subNode.getBoundingClientRect();
+      obstacles.push({
+        left: subRect.left + subBubble.offsetLeft,
+        top: subRect.top + subBubble.offsetTop,
+        right: subRect.left + subBubble.offsetLeft + subBubble.offsetWidth,
+        bottom: subRect.top + subBubble.offsetTop + subBubble.offsetHeight
+      });
+    }
+    const belowTop = Math.max(spriteRect.bottom, nameRect?.bottom || spriteRect.bottom) + gap;
+    const baseCandidates = {
+      above: { placement: 'above', x: spriteRect.left + spriteRect.width / 2 - width / 2, y: spriteRect.top - height - gap },
+      left: { placement: 'left', x: spriteRect.left - width - gap, y: spriteRect.top + spriteRect.height / 2 - height / 2 },
+      right: { placement: 'right', x: spriteRect.right + gap, y: spriteRect.top + spriteRect.height / 2 - height / 2 },
+      below: { placement: 'below', x: spriteRect.left + spriteRect.width / 2 - width / 2, y: belowTop }
+    };
     const anchor = this.S.settings?.speechAnchor || 'auto';
-    if (anchor !== 'auto') return;
-    const rect = bubble.getBoundingClientRect();
-    if (rect.left < 4) bubble.classList.add('flip-left');
-    if (bubble.getBoundingClientRect().top < 4) bubble.classList.add('below');
+    const orders = {
+      auto: ['above', 'right', 'left', 'below'],
+      above: ['above', 'right', 'left', 'below'],
+      left: ['left', 'above', 'below', 'right'],
+      right: ['right', 'above', 'below', 'left'],
+      below: ['below', 'right', 'left', 'above']
+    };
+    const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
+    const intersection = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+      * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    const candidates = (orders[anchor] || orders.auto).map((key, index) => {
+      const candidate = baseCandidates[key];
+      const x = clamp(candidate.x, pad, Math.max(pad, viewportW - width - pad));
+      const y = clamp(candidate.y, pad, Math.max(pad, viewportH - height - pad));
+      const rect = { left: x, top: y, right: x + width, bottom: y + height };
+      const overflow = Math.abs(candidate.x - x) + Math.abs(candidate.y - y);
+      const collision = obstacles.reduce((sum, obstacle) => sum + intersection(rect, obstacle), 0);
+      return { ...candidate, x, y, score: collision * 10000 + overflow * 1000 + index };
+    });
+    const chosen = candidates.reduce((best, candidate) => candidate.score < best.score ? candidate : best);
+    bubble.style.left = `${chosen.x - rootRect.left}px`;
+    bubble.style.top = `${chosen.y - rootRect.top}px`;
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+    bubble.dataset.placement = chosen.placement;
+    bubble.classList.remove('speech-placement-above', 'speech-placement-left', 'speech-placement-right', 'speech-placement-below');
+    bubble.classList.add(`speech-placement-${chosen.placement}`);
+  }
+
+  _syncDuoSpeaking() {
+    const both = !!(this.speechNode?.classList.contains('visible')
+      && this.subpet?.bubbleNode?.classList.contains('visible'));
+    this.node?.classList.toggle('duo-speaking', both);
+    this.subpet?.node?.classList.toggle('duo-speaking', both);
+  }
+
+  /* Compatibilidade interna: o clamp antigo agora agenda o layout completo. */
+  _clampSpeechBubble() {
+    this._scheduleSpeechLayout();
   }
 
   getRandom(state) {
@@ -3769,7 +4369,7 @@ class ClawdCompanion {
     const xpBase = 3;
     const xpMult = (this.S.profession === 'chef') ? 1.5 : 1;
     this.addXp(Math.round(xpBase * xpMult));
-    this.beep(520);
+    this.playSoundEffect('bite', 'actions');
     this.spawnParticles(mult > 1 ? ['🍖', '🍲', '♨️', '✨'] : ['🍖', '🍪', '✨']);
     this.updateEmotion(true);
     /* v3.3: contadores */
@@ -3822,9 +4422,8 @@ class ClawdCompanion {
     this.spawnParticles(['🫧', '💧', '🧼', '✨'], { count: 4 });
     this.spawnPixelSparks(['#74b9ff', '#81ecec', '#ffffff', '#a29bfe'], { count: 5 });
     this.chime([[480, 0.04], [600, 0.05], [740, 0.06]], 'actions');
-    this.bumpStat('hygiene', isDoctor ? 100 : 100);
-    if (isDoctor) this.bumpStat('hygiene', 3); // bônus de médico
-    this.bumpStat('happiness', 8);
+    this.bumpStat('hygiene', 100); // banho sempre leva a higiene ao máximo
+    this.bumpStat('happiness', isDoctor ? 11 : 8); // médico deixa o banho ainda mais gostoso
     const xpBase = 4;
     const xpMult = isDoctor ? 1.5 : 1;
     this.addXp(Math.round(xpBase * xpMult));
@@ -3973,7 +4572,7 @@ class ClawdCompanion {
     this.spawnPixelSparks(['#e74c3c', '#f1c40f', '#ffffff'], { count: 6 });
     this.bumpStat('happiness', 5);
     this.addXp(3);
-    this.beep(180, 0.2, 'sawtooth', 'actions');
+    this.playSoundEffect('roar', 'actions');
   }
 
   doHighFive() {
@@ -3984,8 +4583,7 @@ class ClawdCompanion {
     this.spawnPixelSparks(['#f1c40f', '#ffffff', '#fd79a8'], { count: 5 });
     this.bumpStat('happiness', 6);
     this.addXp(2);
-    this.beep(750, 0.06);
-    setTimeout(() => this.beep(950, 0.08), 100);
+    this.playSoundEffect('highfive', 'actions');
     if (this.subpet && !this.subpet._interactionBusy) {
       this.subpet._pulseReact?.('react-cheer', 900);
     }
@@ -4026,7 +4624,7 @@ class ClawdCompanion {
     this.spawnPixelSparks(['#fd79a8', '#ffffff', '#ffeaa7'], { count: 3 });
     this.bumpStat('happiness', 3);
     this.addXp(1);
-    this.beep(990, 0.05, 'triangle');
+    this.playSoundEffect('wink', 'actions');
   }
 
   doCheer() {
@@ -4047,7 +4645,7 @@ class ClawdCompanion {
     this.spawnPixelSparks(['#2c3e50', '#636e72', '#b2bec3'], { count: 3 });
     this.bumpStat('energy', -2);
     this.addXp(2);
-    this.beep(220, 0.12, 'triangle', 'ambient');
+    this.playSoundEffect('sneak', 'ambient');
   }
 
   doClap() {
@@ -4058,9 +4656,7 @@ class ClawdCompanion {
     this.spawnPixelSparks(['#ffffff', '#f1c40f', '#fdcb6e'], { count: 4 });
     this.bumpStat('happiness', 5);
     this.addXp(2);
-    this.beep(480, 0.04);
-    setTimeout(() => this.beep(480, 0.04), 110);
-    setTimeout(() => this.beep(640, 0.05), 220);
+    this.playSoundEffect('clap', 'actions');
     if (this.subpet && !this.subpet._interactionBusy) {
       this.subpet._pulseReact?.('react-cheer', 900);
     }
@@ -4138,10 +4734,7 @@ class ClawdCompanion {
   }
 
   beepBalloonPop() {
-    this.beep(220, 0.05, 'sawtooth');
-    setTimeout(() => this.beep(110, 0.07, 'sawtooth'), 45);
-    setTimeout(() => this.beep(55, 0.12, 'triangle'), 95);
-    setTimeout(() => this.beep(880, 0.03, 'square'), 140);
+    this.playSoundEffect('balloonPop', 'actions');
   }
 
   doHug() {
@@ -4151,7 +4744,7 @@ class ClawdCompanion {
     this.spawnParticles(['💖', '💕', '✨', '🫶']);
     this.bumpStat('happiness', 12);
     this.addXp(4);
-    this.chime([[520, 0.06], [620, 0.06], [780, 0.1]]);
+    this.playSoundEffect('hug', 'actions');
     this.updateEmotion(true);
     if (this.subpet) {
       this.subpet.node?.classList.add('duo-hug');
@@ -4612,7 +5205,9 @@ class ClawdCompanion {
       this._fishingLineEl = null;
     }
     this.speechNode.classList.remove('visible', 'interactive', 'flip-left', 'below');
+    this.speechNode.setAttribute('aria-hidden', 'true');
     this.node.classList.remove('talking');
+    this._syncDuoSpeaking();
   }
 
   /* ---------- DESAFIO DO TUTOR ---------- */
@@ -4849,7 +5444,7 @@ class ClawdCompanion {
   }
 
   _ninjaTrick() {
-    if (document.hidden || this._crossTabHidden || this.S.profession !== 'ninja' || this.state !== 'idle' || this.isQuiet()) return;
+    if (document.hidden || this._crossTabHidden || !this._autonomyReady() || this.S.profession !== 'ninja' || this.state !== 'idle' || this.isQuiet()) return;
     if (Math.random() > 0.3) return;
     this._pulseProfessionFx('stealthing', 1400);
     this.spawnParticles(['💨', '🌫️']);
@@ -4964,6 +5559,7 @@ class ClawdCompanion {
     // Fala aleatória — a cada ~40s
     this._timers.push(setInterval(() => {
       if (document.hidden || this._crossTabHidden || !this.isVisible || !this.S.showSpeech || this.isQuiet()) return;
+      if (!this._autonomyReady()) return;
       if (this.state === 'sleeping') return;
       const social = this.S.personality?.social ?? 5;
       const chance = this.emotion === 'sad' ? 0.3 : (social >= 7 ? 0.8 : 0.6);
@@ -4976,6 +5572,7 @@ class ClawdCompanion {
     // Ação aleatória favorita — a cada ~25s
     this._timers.push(setInterval(() => {
       if (document.hidden || this._crossTabHidden) return;
+      if (!this._autonomyReady()) return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
       const baseChance = this.emotion === 'joyful' ? 0.78 : 0.62;
       if (Math.random() > baseChance) return;
@@ -5003,6 +5600,7 @@ class ClawdCompanion {
     // Auto-walk — a cada ~18s
     this._timers.push(setInterval(() => {
       if (document.hidden || this._crossTabHidden || this._videoWatching) return;
+      if (!this._autonomyReady()) return;
       if (this.state !== 'idle' || this.isDragging || !this.S.autoWalk ||
           this.isAutoWalking || !this.isVisible || this.isQuiet()) return;
       const lazy2 = this.S.personality?.lazy ?? 3;
@@ -5023,6 +5621,7 @@ class ClawdCompanion {
     // Pescador: pesca espontânea se idle — ciclos curtos e espaçados
     this._timers.push(setInterval(() => {
       if (document.hidden || this._crossTabHidden) return;
+      if (!this._autonomyReady()) return;
       if (this.S.profession !== 'fisher') return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet()) return;
       if (!this._fishing && Math.random() < 0.4) {
@@ -5034,6 +5633,7 @@ class ClawdCompanion {
     // mesmo fora de um site contextual específico.
     this._timers.push(setInterval(() => {
       if (document.hidden || this._crossTabHidden) return;
+      if (!this._autonomyReady()) return;
       if (this.state !== 'idle' || this.isDragging || !this.isVisible || this.isQuiet() || Math.random() > 0.38) return;
       switch (this.S.profession) {
         case 'footballer': this.startKeepyUppy(); break;
@@ -5170,9 +5770,25 @@ class ClawdCompanion {
     }, ms);
   }
 
+  _pulsePageReaction(className, ms = 900) {
+    if (!this.node || this._destroyed || this._reducedMotion || this.S.settings.performanceMode) return;
+    const classes = [
+      'page-navigating', 'page-reading', 'page-copying', 'page-submitting',
+      'page-error', 'page-downloading', 'page-typing', 'page-watching',
+      'page-discovering', 'page-catching', 'page-scrolling'
+    ];
+    this.node.classList.remove(...classes);
+    this._pulseAnimClass(className, ms);
+
+    const companion = this.subpet;
+    if (!companion?.node || companion._interactionBusy || companion.state === 'sleeping') return;
+    companion.node.classList.remove(...classes);
+    companion._pulseReact(className, ms);
+  }
+
   _softLand() {
     this._pulseAnimClass('soft-landing', 520);
-    this.beep(420, 0.04, 'triangle');
+    this.playSoundEffect('land', 'actions');
   }
 
   doLookAround() {
@@ -5215,6 +5831,7 @@ class ClawdCompanion {
 
   _maybePlayDuoScene() {
     if (document.hidden || this._destroyed || this._crossTabHidden || this._duoBusy || this._dwellBusy) return;
+    if (!this._autonomyReady()) return;
     if (!this.subpet || !this.isVisible || this.isQuiet()) return;
     if (this.S.settings.performanceMode) return;
     if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
@@ -5339,6 +5956,7 @@ class ClawdCompanion {
 
   _tickDwellEngage() {
     if (document.hidden || this._destroyed || this._crossTabHidden || this._dwellBusy || this._duoBusy) return;
+    if (!this._autonomyReady()) return;
     if (this._videoWatching) return; // assistindo → fica por perto, não vai vagar
     if (!this.isVisible || this.isQuiet() || this.S.settings.performanceMode) return;
     if (this.state !== 'idle' || this.isDragging || this.isAutoWalking) return;
@@ -5944,6 +6562,11 @@ class ClawdCompanion {
             || msg.key === 'toastPosition') {
             this._applyNotificationLayout();
           }
+          if (msg.key === 'siteRules' && typeof clawdBlockedFromRules === 'function') {
+            /* mantém espelho legado sincronizado e reavalia a guarda */
+            this.S.settings.blockedSites = clawdBlockedFromRules(msg.value);
+            this._timesink = { category: null, engagedSec: 0, lastLevel: -1, snoozeUntil: 0 };
+          }
           this.save();
           break;
         case 'triggerAction':
@@ -6045,6 +6668,28 @@ class ClawdCompanion {
           this.closeStudio();
           sendResponse({ ok: true });
           return true;
+        /* v6 — Foco & Bem-estar */
+        case 'focusState':
+          this._applyFocusState(msg.focus);
+          break;
+        case 'logMood':
+          this.logMood(msg.mood);
+          sendResponse({ ok: true });
+          return true;
+        case 'startBreathing':
+          this.startBreathing({ reason: 'manual', cycles: 4 });
+          sendResponse({ ok: true });
+          return true;
+        case 'startGrounding':
+          this.startGrounding();
+          sendResponse({ ok: true });
+          return true;
+        case 'playCalmSound':
+          sendResponse({ ok: this.playCalmSound(msg.kind) });
+          return true;
+        case 'wellbeingPing':
+          this._wellbeingPing(msg.kind);
+          break;
       }
       return false;
     });
@@ -6087,6 +6732,17 @@ class ClawdCompanion {
       <div class="aic-studio-section">
         <span class="aic-studio-label">Pele</span>
         <div class="aic-studio-chips" data-studio="skins"></div>
+        <div class="aic-studio-skin-tuning">
+          <label title="Cor dos detalhes da skin">
+            <span>Destaque</span>
+            <input type="color" data-studio-skin-accent aria-label="Cor de destaque da skin">
+          </label>
+          <label title="Intensidade dos detalhes da skin">
+            <span>Intensidade</span>
+            <input type="range" min="0.25" max="1" step="0.25" data-studio-skin-intensity
+              aria-label="Intensidade dos detalhes da skin">
+          </label>
+        </div>
       </div>
       <p class="aic-studio-foot">Menu completo: ícone da extensão · Janela solta no popup</p>
     `;
@@ -6217,6 +6873,18 @@ class ClawdCompanion {
         this._refreshStudio();
       }
     });
+
+    panel.addEventListener('input', (e) => {
+      if (e.target.matches('[data-studio-skin-accent]')) {
+        const safe = clawdSanitizeConfigValue('skinAccent', e.target.value);
+        if (safe !== null) this.applyConfig('skinAccent', safe);
+        return;
+      }
+      if (e.target.matches('[data-studio-skin-intensity]')) {
+        const safe = clawdSanitizeConfigValue('skinIntensity', e.target.value);
+        if (safe !== null) this.applyConfig('skinIntensity', safe);
+      }
+    });
   }
 
   _applyStudioPosition(panel) {
@@ -6267,6 +6935,10 @@ class ClawdCompanion {
           data-studio-skin="${id}" title="${def.label || id}">${(def.label || id).slice(0, 3)}</button>
       `).join('');
     }
+    const skinAccent = this._studioEl.querySelector('[data-studio-skin-accent]');
+    if (skinAccent) skinAccent.value = this.S.skinAccent || '#00cec9';
+    const skinIntensity = this._studioEl.querySelector('[data-studio-skin-intensity]');
+    if (skinIntensity) skinIntensity.value = String(Math.max(0.25, Math.min(1, Number(this.S.skinIntensity) || 1)));
   }
 
   _refreshStudioStats() {
@@ -6556,8 +7228,676 @@ class ClawdCompanion {
     }, 5000);
   }
 
+  /* ===================================================
+     FOCO & BEM-ESTAR (v6)
+     Pomodoro (reflexo do SW), guarda anti-doomscroll,
+     tempo de tela e mecânicas de bem-estar.
+     =================================================== */
+
+  _initFocusModule() {
+    /* Estado inicial do Pomodoro (chave própria, dona do SW). */
+    this._safeChrome(() => chrome.storage.local.get(['clawdFocus'], this._guardChromeCallback((res) => {
+      if (this._destroyed) return;
+      if (res && res.clawdFocus) this._applyFocusState(res.clawdFocus, { silent: true });
+    })));
+
+    /* Tempo de tela — só a aba ativa conta (evita dupla contagem). */
+    this._screenTickAt = Date.now();
+    this._stWasHidden = document.hidden;
+    this._timers.push(setInterval(() => this._screenTimeTick(), 15000));
+
+    /* Guarda anti-doomscroll + laço de bem-estar. */
+    this._timers.push(setInterval(() => this._timesinkTick(), 10000));
+    this._timers.push(setInterval(() => this._wellbeingTick(), 60000));
+  }
+
+  _focusSettings() {
+    return this.S.settings || {};
+  }
+
+  _dayKey() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  /** Reflete um novo estado do Pomodoro vindo do SW. */
+  _applyFocusState(rawFocus, { silent = false } = {}) {
+    const focus = (typeof clawdSanitizeFocusBlock === 'function')
+      ? clawdSanitizeFocusBlock(rawFocus, clawdDefaultState().focus)
+      : rawFocus;
+    const prev = this._focusPrevPhase;
+    const running = focus.enabled && !focus.paused;
+    this._focus = focus;
+
+    if (this.node) {
+      this.node.classList.toggle('clawd-focus-glow', running && focus.phase === 'work');
+      this.node.classList.toggle('clawd-focus-break', running && (focus.phase === 'break' || focus.phase === 'longBreak'));
+    }
+
+    /* Só a aba ativa reage/recompensa (broadcast chega em todas as abas). */
+    const active = !document.hidden && !this._destroyed;
+    if (!silent && active) {
+      const enteredWork = focus.phase === 'work' && prev !== 'work';
+      const finishedWork = prev === 'work' && (focus.phase === 'break' || focus.phase === 'longBreak');
+      if (finishedWork) this._onFocusSessionComplete(focus);
+      else if (enteredWork && focus.enabled) this._onFocusWorkStart(focus);
+      else if (!focus.enabled && prev !== 'idle') this.showSpeech('Foco encerrado. Bom trabalho! 👏', 2600);
+    }
+    this._focusPrevPhase = focus.phase;
+  }
+
+  _onFocusWorkStart(focus) {
+    const min = focus.workMin || 25;
+    this._focusNudge(`Foco por ${min} min! Tô aqui com você. 🎯`);
+    this.spawnParticles(['🎯', '✨'], 3);
+    if (this.subpet && !this._crossTabHidden) this.subpet.onOwnerState?.('happy');
+  }
+
+  _onFocusSessionComplete(focus) {
+    const coins = 6;
+    const xp = 20;
+    this.addXp(xp);
+    this.S.game.coins = (this.S.game.coins || 0) + coins;
+    this.registerDaily?.('focus');
+    if (this.isVisible && !this._crossTabHidden) {
+      this.setStateFor('celebrate', 2200);
+      this.spawnParticles(['🎉', '⭐', '💪'], 5);
+      this.subpet?.interact?.('celebrate', { force: false });
+    }
+    this.chime([[523, 0.06], [659, 0.07], [784, 0.09]]);
+    const isLong = focus.phase === 'longBreak';
+    this.toast('', {
+      rarity: isLong ? 'epic' : 'rare',
+      icon: isLong ? '🏆' : '✅',
+      title: `Ciclo de foco concluído! (${focus.sessionsToday}/dia)`,
+      desc: isLong ? `Pausa longa de ${focus.longBreakMin} min — você merece!` : `Pausa de ${focus.breakMin} min. Respire fundo.`
+    });
+    this.save();
+    clearTimeout(this._focusBreakTimer);
+    this._focusBreakTimer = setTimeout(() => {
+      this._focusBreakTimer = null;
+      if (this._destroyed || document.hidden) return;
+      if (this._focusSettings().breathingOnBreak !== false) {
+        this.startBreathing({ reason: 'break' });
+      } else {
+        this._wellbeingPing('stretch');
+      }
+    }, 1800);
+  }
+
+  /** Fala pelo pet se visível; senão, usa toast (funciona mesmo com pet oculto). */
+  _focusNudge(text, toastOpts = null) {
+    if (this.isVisible && !this._crossTabHidden && !this.isQuiet()) {
+      this.showSpeech(text, 3200);
+    } else if (!this.isQuiet()) {
+      this.toast('', toastOpts || { icon: '🐾', title: text });
+    }
+  }
+
+  /* ---------- Tempo de tela ---------- */
+  _screenTimeTick() {
+    if (this._destroyed) return;
+    const now = Date.now();
+    const dtSec = Math.min(120, Math.max(0, (now - this._screenTickAt) / 1000));
+    this._screenTickAt = now;
+    if (document.hidden) { this._stWasHidden = true; return; }
+    /* Ao voltar do hidden, recarrega o total do storage (aba ativa é serial). */
+    if (this._stWasHidden) {
+      this._stWasHidden = false;
+      this._safeChrome(() => chrome.storage.local.get(['clawdState'], this._guardChromeCallback((res) => {
+        const st = res && res.clawdState && res.clawdState.screenTime;
+        if (st && typeof st === 'object') this.S.screenTime = st;
+      })));
+      return; // pula este tick; retoma no próximo já sincronizado
+    }
+    if (dtSec <= 0 || typeof clawdScreenTimeAdd !== 'function') return;
+    const day = this._dayKey();
+    const category = clawdPageContextFromHost(location.hostname);
+    this.S.screenTime = clawdScreenTimeAdd(this.S.screenTime, category, dtSec, day);
+    if (this._timesink.category) this.S.screenTime = clawdScreenTimeAdd(this.S.screenTime, 'timesink', dtSec, day);
+    if (this._focus && this._focus.enabled && !this._focus.paused && this._focus.phase === 'work') {
+      this.S.screenTime = clawdScreenTimeAdd(this.S.screenTime, 'focus', dtSec, day);
+    }
+    this.save();
+  }
+
+  /* ---------- Guarda anti-doomscroll ---------- */
+  _resolveTimesink() {
+    const s = this._focusSettings();
+    const host = location.hostname.toLowerCase();
+    const rule = (typeof clawdSiteRuleFor === 'function') ? clawdSiteRuleFor(host, s.siteRules) : null;
+    if (rule) {
+      if (rule.level === 'off' || rule.level === 'block') return null;
+      if (rule.level === 'boost') return { boost: true, category: rule.category };
+      /* nudge → gentil; limit → firme */
+      return { category: rule.category || 'social', intervention: rule.level === 'limit' ? 'firm' : 'nudge' };
+    }
+    if (s.timesinkGuard === false) return null;
+    const cat = (typeof clawdClassifyTimeSink === 'function')
+      ? clawdClassifyTimeSink(host, location.pathname) : null;
+    if (!cat) return null;
+    const intervention = (s.timesinkIntervention === 'firm') ? 'firm' : 'nudge';
+    return { category: cat, intervention };
+  }
+
+  _timesinkTick() {
+    if (this._destroyed || document.hidden) return;
+    const info = this._resolveTimesink();
+    if (!info) { this._timesink.category = null; return; }
+    if (info.boost) { this._maybeBoost(); return; }
+
+    const now = Date.now();
+    if (now < this._timesink.snoozeUntil) return;
+    if (this._timesink.category !== info.category) {
+      this._timesink = { category: info.category, engagedSec: 0, lastLevel: -1, snoozeUntil: 0 };
+    }
+    this._timesink.engagedSec += 10;
+
+    const s = this._focusSettings();
+    const limitMin = (typeof clawdClampInt === 'function' ? clawdClampInt(s.timesinkLimitMin, 1, 600) : null) || 15;
+    const level = clawdEscalationLevel(this._timesink.engagedSec, limitMin, info.intervention);
+    if (level <= this._timesink.lastLevel) return; // só escala pra cima
+    this._timesink.lastLevel = level;
+    const mins = Math.round(this._timesink.engagedSec / 60);
+    if (level === 0) {
+      this._focusNudge('Ei, já faz um tempinho por aqui… tudo bem? 👀');
+    } else if (level === 1) {
+      this.toast('', { icon: '⏳', title: `${mins} min rolando aqui`, desc: 'Que tal uma pausa consciente?' });
+      this.spawnParticles(['⏳', '👀'], 3);
+    } else if (level === 2) {
+      this.startBreathing({ reason: 'timesink', mins });
+    } else {
+      this._showSoftBlock(mins);
+    }
+  }
+
+  _maybeBoost() {
+    const now = Date.now();
+    if (now - (this._wbLast.affirm || 0) < 8 * 60000) return;
+    this._wbLast.affirm = now;
+    if (this.isVisible && !this._crossTabHidden && !this.isQuiet()) {
+      this.showSpeech('Boa! Esse tempo é bem investido. 🚀', 2600);
+      this.spawnParticles(['🚀', '⭐'], 3);
+    }
+  }
+
+  /* ---------- Respiração guiada (box breathing 4-4-4-4) ---------- */
+  _trapDialogFocus(event, dialog) {
+    if (event.key !== 'Tab' || !dialog) return;
+    const focusable = [...dialog.querySelectorAll(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )].filter((el) => !el.hidden && el.getAttribute('aria-hidden') !== 'true');
+    if (!focusable.length) { event.preventDefault(); return; }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const outside = !dialog.contains(document.activeElement);
+    if (event.shiftKey && (outside || document.activeElement === first)) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (outside || document.activeElement === last)) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  _removeAfterMotion(el, fallbackMs = CLAWD_TIMINGS.MOTION_EXIT_MS) {
+    if (!el) return;
+    if (this._reducedMotion) { try { el.remove(); } catch (_) {} return; }
+    let timer = null;
+    let onEnd = null;
+    const finish = () => {
+      if (onEnd) {
+        el.removeEventListener('transitionend', onEnd);
+        el.removeEventListener('transitioncancel', onEnd);
+      }
+      if (timer !== null) {
+        clearTimeout(timer);
+        this._motionExitTimers.delete(timer);
+      }
+      try { el.remove(); } catch (_) {}
+    };
+    onEnd = (event) => { if (event.target === el) finish(); };
+    el.addEventListener('transitionend', onEnd);
+    el.addEventListener('transitioncancel', onEnd);
+    timer = setTimeout(finish, Math.max(0, fallbackMs) + 80);
+    this._motionExitTimers.add(timer);
+  }
+
+  _recordWellbeingPractice(kind) {
+    const allowed = ['breathing', 'grounding', 'sound'];
+    if (!allowed.includes(kind)) return;
+    const wb = this.S.wellbeing || (this.S.wellbeing = {
+      moodLog: [], lastMoodDay: '', breathingCount: 0, groundingCount: 0,
+      calmSoundCount: 0, practiceLog: [], healthyStreak: { days: 0, lastDay: '' }
+    });
+    const countKey = { breathing: 'breathingCount', grounding: 'groundingCount', sound: 'calmSoundCount' }[kind];
+    wb[countKey] = Math.max(0, Number(wb[countKey]) || 0) + 1;
+    const day = this._dayKey();
+    if (!Array.isArray(wb.practiceLog)) wb.practiceLog = [];
+    wb.practiceLog.push({ day, kind });
+    wb.practiceLog = wb.practiceLog.slice(-180);
+    const streak = wb.healthyStreak && typeof wb.healthyStreak === 'object'
+      ? wb.healthyStreak
+      : { days: 0, lastDay: '' };
+    if (streak.lastDay !== day) {
+      const date = new Date(`${day}T00:00:00Z`);
+      date.setUTCDate(date.getUTCDate() - 1);
+      const yesterday = date.toISOString().slice(0, 10);
+      streak.days = streak.lastDay === yesterday ? Math.max(0, Number(streak.days) || 0) + 1 : 1;
+      streak.lastDay = day;
+    }
+    wb.healthyStreak = streak;
+    this.save();
+  }
+
+  startBreathing({ reason = 'manual', mins = 0, cycles = 3 } = {}) {
+    if (this._destroyed || this._breatheEl || this._groundingEl) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'clawd-breathe';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'clawd-breathe-title');
+    overlay.setAttribute('aria-describedby', 'clawd-breathe-description');
+    const circle = document.createElement('div');
+    circle.className = 'clawd-breathe-circle';
+    circle.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('div');
+    label.className = 'clawd-breathe-label';
+    label.id = 'clawd-breathe-title';
+    const sub = document.createElement('div');
+    sub.className = 'clawd-breathe-sub';
+    sub.id = 'clawd-breathe-description';
+    sub.textContent = reason === 'timesink'
+      ? `Você está há ${mins} min aqui. Respire comigo.`
+      : (reason === 'break' ? 'Pausa do foco — respire fundo.' : 'Respire comigo por um instante.');
+    const skip = document.createElement('button');
+    skip.type = 'button';
+    skip.className = 'clawd-breathe-skip';
+    skip.textContent = 'Fechar';
+    overlay.append(circle, label, sub, skip);
+    document.body.appendChild(overlay);
+    this._breatheEl = overlay;
+    this._breathePrevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    requestAnimationFrame(() => {
+      if (this._breatheEl !== overlay) return;
+      overlay.classList.add('visible');
+      skip.focus({ preventScroll: true });
+    });
+
+    if (this.isVisible && !this._crossTabHidden) this.doBreathe?.();
+
+    const phaseMs = CLAWD_TIMINGS.BREATH_PHASE_MS;
+    const phases = [
+      { t: 'Inspire…', c: 'inhale', ms: phaseMs },
+      { t: 'Segure', c: 'hold', ms: phaseMs },
+      { t: 'Expire…', c: 'exhale', ms: phaseMs },
+      { t: 'Segure', c: 'hold', ms: phaseMs }
+    ];
+    let step = 0;
+    let cyclesLeft = Math.max(1, cycles);
+    const tick = () => {
+      if (this._destroyed || !this._breatheEl) return;
+      const p = phases[step % 4];
+      label.textContent = p.t;
+      circle.classList.remove('inhale', 'exhale', 'hold');
+      circle.classList.add(p.c);
+      /* escala inline: hold mantém a escala anterior (não reseta pelo CSS base) */
+      if (p.c === 'inhale') circle.style.transform = 'scale(1.85)';
+      else if (p.c === 'exhale') circle.style.transform = 'scale(1)';
+      step++;
+      if (step % 4 === 0) { cyclesLeft--; if (cyclesLeft <= 0) { this._breatheTimer = setTimeout(() => this._closeBreathing(), p.ms); return; } }
+      this._breatheTimer = setTimeout(tick, p.ms);
+    };
+    tick();
+
+    const done = () => this._closeBreathing();
+    skip.addEventListener('click', done, { signal: this._abort.signal });
+    this._breatheEsc = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); done(); }
+      else this._trapDialogFocus(e, overlay);
+    };
+    document.addEventListener('keydown', this._breatheEsc, { signal: this._abort.signal });
+
+    this._recordWellbeingPractice('breathing');
+  }
+
+  _closeBreathing({ silent = false, immediate = false } = {}) {
+    clearTimeout(this._breatheTimer);
+    this._breatheTimer = null;
+    if (this._breatheEsc) { document.removeEventListener('keydown', this._breatheEsc); this._breatheEsc = null; }
+    const el = this._breatheEl;
+    this._breatheEl = null;
+    if (!el) return;
+    el.classList.remove('visible');
+    if (immediate) { try { el.remove(); } catch (_) {} }
+    else this._removeAfterMotion(el);
+    const restore = this._breathePrevFocus;
+    this._breathePrevFocus = null;
+    if (!immediate && restore?.isConnected) restore.focus({ preventScroll: true });
+    if (!silent && this.isVisible && !this._crossTabHidden && !this.isQuiet()) {
+      this.showSpeech('Melhor, né? 😌', 2000);
+    }
+  }
+
+  startGrounding() {
+    if (this._destroyed || this._groundingEl || this._breatheEl) return;
+    const steps = [
+      { count: '5', title: 'coisas que você vê', prompt: 'Olhe ao redor e escolha cinco detalhes, cores ou formas.' },
+      { count: '4', title: 'coisas que você sente', prompt: 'Note quatro sensações de toque: pés no chão, roupa ou temperatura.' },
+      { count: '3', title: 'sons que você percebe', prompt: 'Escute três sons próximos ou distantes, sem precisar julgá-los.' },
+      { count: '2', title: 'aromas que você nota', prompt: 'Perceba dois aromas — ou imagine dois cheiros que lhe fazem bem.' },
+      { count: '1', title: 'coisa boa para lembrar', prompt: 'Escolha algo simples que oferece apoio neste momento.' }
+    ];
+    const overlay = document.createElement('div');
+    overlay.className = 'clawd-grounding';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'clawd-grounding-title');
+    overlay.setAttribute('aria-describedby', 'clawd-grounding-description');
+
+    const card = document.createElement('div');
+    card.className = 'clawd-grounding-card';
+    const progress = document.createElement('div');
+    progress.className = 'clawd-grounding-progress';
+    progress.setAttribute('aria-live', 'polite');
+    const count = document.createElement('div');
+    count.className = 'clawd-grounding-count';
+    count.setAttribute('aria-hidden', 'true');
+    const title = document.createElement('h2');
+    title.id = 'clawd-grounding-title';
+    title.className = 'clawd-grounding-title';
+    const description = document.createElement('p');
+    description.id = 'clawd-grounding-description';
+    description.className = 'clawd-grounding-description';
+    const helper = document.createElement('p');
+    helper.className = 'clawd-grounding-helper';
+    helper.textContent = 'Vá no seu ritmo. Não existe resposta certa.';
+    const actions = document.createElement('div');
+    actions.className = 'clawd-grounding-actions';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'clawd-grounding-btn';
+    close.textContent = 'Fechar';
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'clawd-grounding-btn primary';
+    actions.append(close, next);
+    card.append(progress, count, title, description, helper, actions);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    this._groundingEl = overlay;
+    this._groundingPrevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    let index = 0;
+    const render = () => {
+      const step = steps[index];
+      progress.textContent = `Passo ${index + 1} de ${steps.length}`;
+      count.textContent = step.count;
+      title.textContent = `${step.count} ${step.title}`;
+      description.textContent = step.prompt;
+      next.textContent = index === steps.length - 1 ? 'Concluir' : 'Próximo';
+    };
+    const finish = () => {
+      this._recordWellbeingPractice('grounding');
+      if (this.isVisible && !this._crossTabHidden) {
+        this.showSpeech('Você voltou ao presente. Um passo de cada vez. 🌿', 3000);
+        this.spawnParticles(['🌿', '💛', '✨'], 4);
+        this.doBreathe?.();
+      }
+      this._closeGrounding();
+    };
+    render();
+    requestAnimationFrame(() => {
+      if (this._groundingEl !== overlay) return;
+      overlay.classList.add('visible');
+      next.focus({ preventScroll: true });
+    });
+    close.addEventListener('click', () => this._closeGrounding(), { signal: this._abort.signal });
+    next.addEventListener('click', () => {
+      if (index >= steps.length - 1) { finish(); return; }
+      index++;
+      render();
+      next.focus({ preventScroll: true });
+    }, { signal: this._abort.signal });
+    this._groundingKeydown = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); this._closeGrounding(); }
+      else this._trapDialogFocus(event, overlay);
+    };
+    document.addEventListener('keydown', this._groundingKeydown, { signal: this._abort.signal });
+  }
+
+  _closeGrounding({ immediate = false } = {}) {
+    if (this._groundingKeydown) {
+      document.removeEventListener('keydown', this._groundingKeydown);
+      this._groundingKeydown = null;
+    }
+    const el = this._groundingEl;
+    this._groundingEl = null;
+    if (!el) return;
+    el.classList.remove('visible');
+    if (immediate) { try { el.remove(); } catch (_) {} }
+    else this._removeAfterMotion(el);
+    const restore = this._groundingPrevFocus;
+    this._groundingPrevFocus = null;
+    if (!immediate && restore?.isConnected) restore.focus({ preventScroll: true });
+  }
+
+  playCalmSound(kind) {
+    if (this._destroyed || this.isQuiet() || this._crossTabHidden || !this.S?.settings?.sounds || !this._audioAllowed) return false;
+    const masterVolume = Number.isFinite(Number(this.S.settings.soundVolume)) ? Number(this.S.settings.soundVolume) : 0.45;
+    const ambientVolume = Number.isFinite(Number(this.S.settings.soundVolumeAmbient)) ? Number(this.S.settings.soundVolumeAmbient) : 0.6;
+    if (masterVolume <= 0 || ambientVolume <= 0) return false;
+    const ctx = this._ensureAudioCtx({ fromGesture: false });
+    if (!ctx || ctx.state !== 'running') return false;
+    const patterns = {
+      rain: {
+        label: 'Chuva leve', icon: '🌧️',
+        tones: [[1180, .025, 'sine', 0], [920, .03, 'triangle', 130], [1320, .02, 'sine', 270], [1040, .03, 'triangle', 420], [1240, .025, 'sine', 590]]
+      },
+      waves: {
+        label: 'Ondas suaves', icon: '🌊',
+        tones: [[220, .16, 'sine', 0], [280, .18, 'sine', 260], [240, .2, 'sine', 560], [310, .18, 'sine', 880]]
+      },
+      forest: {
+        label: 'Floresta', icon: '🌲',
+        tones: [[740, .05, 'sine', 0], [980, .04, 'triangle', 210], [820, .06, 'sine', 460], [1120, .04, 'triangle', 730]]
+      },
+      purr: {
+        label: 'Ronronar', icon: '🐈',
+        tones: [[120, .12, 'triangle', 0], [132, .12, 'triangle', 190], [120, .14, 'triangle', 390], [136, .14, 'triangle', 610], [124, .16, 'triangle', 850]]
+      }
+    };
+    const pattern = patterns[kind];
+    if (!pattern) return false;
+    this._calmSoundTimers.forEach(clearTimeout);
+    this._calmSoundTimers.clear();
+    pattern.tones.forEach(([freq, duration, type, delay]) => {
+      if (!delay) { this.beep(freq, duration, type, 'ambient'); return; }
+      let timer = null;
+      timer = setTimeout(() => {
+        this._calmSoundTimers.delete(timer);
+        if (!this._destroyed) this.beep(freq, duration, type, 'ambient');
+      }, delay);
+      this._calmSoundTimers.add(timer);
+    });
+    this._recordWellbeingPractice('sound');
+    if (this.isVisible && !this._crossTabHidden) {
+      this.showSpeech(`${pattern.icon} ${pattern.label}: uma pequena pausa sonora.`, 2400);
+      if (!this.S.settings.performanceMode && !this.S.settings.noParticles) this.spawnParticles([pattern.icon, '✨'], 3);
+    }
+    return true;
+  }
+
+  /* ---------- Bloqueio suave (sempre com escape) ---------- */
+  _showSoftBlock(mins) {
+    if (this._destroyed || this._softBlockEl) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'clawd-softblock';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'clawd-softblock-title');
+    overlay.setAttribute('aria-describedby', 'clawd-softblock-description');
+    const card = document.createElement('div');
+    card.className = 'clawd-softblock-card';
+    const h = document.createElement('div');
+    h.className = 'clawd-softblock-title';
+    h.id = 'clawd-softblock-title';
+    h.textContent = `⏸️ ${mins} min por aqui`;
+    const p = document.createElement('div');
+    p.className = 'clawd-softblock-text';
+    p.id = 'clawd-softblock-description';
+    p.textContent = 'Que tal um respiro? Seu tempo vale ouro. 🐾';
+    const row = document.createElement('div');
+    row.className = 'clawd-softblock-actions';
+    const pause = document.createElement('button');
+    pause.type = 'button';
+    pause.className = 'clawd-softblock-btn primary';
+    pause.textContent = 'Fazer uma pausa 🧘';
+    const cont = document.createElement('button');
+    cont.type = 'button';
+    cont.className = 'clawd-softblock-btn';
+    cont.textContent = 'Continuar +5 min';
+    row.append(pause, cont);
+    card.append(h, p, row);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    this._softBlockEl = overlay;
+    this._softBlockPrevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    requestAnimationFrame(() => {
+      if (this._softBlockEl !== overlay) return;
+      overlay.classList.add('visible');
+      pause.focus({ preventScroll: true });
+    });
+
+    const close = () => this._closeSoftBlock();
+    this._softBlockKeydown = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); close(); }
+      else this._trapDialogFocus(event, overlay);
+    };
+    document.addEventListener('keydown', this._softBlockKeydown, { signal: this._abort.signal });
+    pause.addEventListener('click', () => { close(); this.startBreathing({ reason: 'timesink', mins, cycles: 4 }); }, { signal: this._abort.signal });
+    cont.addEventListener('click', () => {
+      close();
+      this._timesink.snoozeUntil = Date.now() + 5 * 60000;
+      this._timesink.lastLevel = -1;
+      this._timesink.engagedSec = 0;
+    }, { signal: this._abort.signal });
+  }
+
+  _closeSoftBlock({ immediate = false } = {}) {
+    if (this._softBlockKeydown) {
+      document.removeEventListener('keydown', this._softBlockKeydown);
+      this._softBlockKeydown = null;
+    }
+    const el = this._softBlockEl;
+    this._softBlockEl = null;
+    if (!el) return;
+    el.classList.remove('visible');
+    if (immediate) { try { el.remove(); } catch (_) {} }
+    else this._removeAfterMotion(el);
+    const restore = this._softBlockPrevFocus;
+    this._softBlockPrevFocus = null;
+    if (!immediate && restore?.isConnected) restore.focus({ preventScroll: true });
+  }
+
+  /* ---------- Bem-estar: lembretes e humor ---------- */
+  _wellbeingTick() {
+    if (this._destroyed || document.hidden) return;
+    const s = this._focusSettings();
+    if (s.wellbeingReminders === false || this.isQuiet()) return;
+    /* Não interrompe durante foco ativo (trabalho). */
+    if (this._focus && this._focus.enabled && !this._focus.paused && this._focus.phase === 'work') return;
+    const now = Date.now();
+    const mins = (t) => (now - (this._wbLast[t] || this._wbStart)) / 60000;
+    if (s.eyeRest2020 !== false && mins('eye') >= 20) { this._wbLast.eye = now; this._wellbeingPing('eyeRest'); return; }
+    if (s.postureReminder !== false && mins('posture') >= 40) { this._wbLast.posture = now; this._wellbeingPing('posture'); return; }
+    if (s.waterReminder !== false && mins('water') >= 50) { this._wbLast.water = now; this._wellbeingPing('water'); return; }
+    if (s.affirmations !== false && mins('affirm') >= 35 && Math.random() < 0.4) {
+      this._wbLast.affirm = now; this._wellbeingPing('affirm');
+    }
+  }
+
+  _wellbeingPing(kind) {
+    if (this._destroyed || this.isQuiet()) return;
+    const msg = {
+      water:   ['💧 Bora um gole de água?', '💧 Hidrata! Seu cérebro agradece.'],
+      posture: ['🪑 Ajeita a postura, campeão!', '🧍 Costas retas, ombros pra trás.'],
+      eyeRest: ['👀 Regra 20-20-20: olhe 20s pra longe.', '👀 Descanse os olhos um instante.'],
+      stretch: ['🧘 Que tal um alongamento rápido?', '🙆 Estica esses braços!'],
+      breathe: ['🌬️ Vamos respirar juntos?'],
+      affirm:  ['✨ Você está indo bem. De verdade.', '💪 Um passo de cada vez. Você consegue.',
+                '🌱 Progresso > perfeição.', '☀️ Respira. Você não precisa resolver tudo agora.']
+    }[kind] || ['🐾'];
+    const text = msg[Math.floor(Math.random() * msg.length)];
+    if (kind === 'breathe') { this.startBreathing({ reason: 'manual' }); return; }
+    this._focusNudge(text, { icon: '🐾', title: text });
+    if (this.isVisible && !this._crossTabHidden) {
+      if (kind === 'stretch') this.doStretchBreak?.();
+      else if (kind === 'water') this.spawnParticles(['💧'], 3);
+      else if (kind === 'affirm') this.spawnParticles(['✨', '💛'], 3);
+    }
+  }
+
+  logMood(mood) {
+    if (this._destroyed) return;
+    const m = Math.max(1, Math.min(5, Math.round(Number(mood) || 3)));
+    const day = this._dayKey();
+    const wb = this.S.wellbeing || (this.S.wellbeing = {
+      moodLog: [], lastMoodDay: '', breathingCount: 0, groundingCount: 0,
+      calmSoundCount: 0, practiceLog: [], healthyStreak: { days: 0, lastDay: '' }
+    });
+    if (!Array.isArray(wb.moodLog)) wb.moodLog = [];
+    const existing = wb.moodLog.find((e) => e && e.day === day);
+    if (existing) existing.mood = m; else wb.moodLog.push({ day, mood: m });
+    wb.moodLog = wb.moodLog.slice(-90);
+    wb.lastMoodDay = day;
+    this.save();
+    const reply = m <= 2
+      ? 'Sinto muito que o dia esteja difícil. Respira comigo? 💙'
+      : (m === 3 ? 'Dia neutro é dia válido. Tô aqui. 🌤️' : 'Que bom te ver bem! 🌟');
+    if (this.isVisible && !this._crossTabHidden) {
+      this.showSpeech(reply, 3200);
+      this.spawnParticles(m <= 2 ? ['💙', '🫂'] : ['🌟', '💛'], 3);
+    }
+    if (m <= 2) {
+      setTimeout(() => {
+        if (!this._destroyed) this._focusNudge('Se quiser, a Central de Calma tem respiração e grounding.', { icon: '🌿', title: 'Apoio disponível' });
+      }, 1600);
+    }
+  }
+
+  /* ---------- Pequenas animações dedicadas ---------- */
+  doBreathe() {
+    if (this._destroyed || !this.node) return;
+    if (this.state === 'sleeping') this.wakeUp();
+    this._pulseAnimClass?.('meditating', 4000);
+    this.setStateFor('pose', 3600);
+    this.bumpStat('energy', 6);
+    this.bumpStat('happiness', 4);
+  }
+
+  doStretchBreak() {
+    if (this._destroyed || !this.node) return;
+    this.setStateFor('stretching', 1400);
+    this.spawnParticles(['🙆', '✨'], 3);
+    this.beep(520, 0.05, 'sine', 'actions');
+  }
+
+  _teardownFocusUI() {
+    this._closeBreathing({ silent: true, immediate: true });
+    this._closeGrounding({ immediate: true });
+    this._closeSoftBlock({ immediate: true });
+    clearTimeout(this._breatheTimer);
+    clearTimeout(this._focusBreakTimer);
+    this._calmSoundTimers.forEach(clearTimeout);
+    this._calmSoundTimers.clear();
+    this._focusBreakTimer = null;
+    this._motionExitTimers.forEach(clearTimeout);
+    this._motionExitTimers.clear();
+  }
+
   destroy({ skipExtensionApis = false } = {}) {
     if (this._destroyed) return;
+    this._teardownFocusUI();
     this._destroyed = true;
     this._travelGen = (this._travelGen || 0) + 1;
 
@@ -6592,9 +7932,11 @@ class ClawdCompanion {
       /* digitar junto (sustentado) */
       '_typingStopTimer',
       /* navegação SPA / re-detect de contexto */
-      '_navContextTimer',
+      '_navContextTimer', '_pageHoverTimer',
       /* summon / poof */
-      '_summonDropTimer', '_poofOutTimer'
+      '_summonDropTimer', '_poofOutTimer',
+      /* foco / bem-estar */
+      '_focusBreakTimer'
     ].forEach(key => {
       clearTimeout(this[key]);
       this[key] = null;
@@ -6602,6 +7944,10 @@ class ClawdCompanion {
     if (this._particleTimers) {
       this._particleTimers.forEach(clearTimeout);
       this._particleTimers.clear();
+    }
+    if (this._sfxTimers) {
+      this._sfxTimers.forEach(clearTimeout);
+      this._sfxTimers.clear();
     }
     this._activeParticles = 0;
     this._pendingAction = null;
@@ -6622,10 +7968,12 @@ class ClawdCompanion {
     cancelAnimationFrame(this._motionRaf);
     cancelAnimationFrame(this._glideRaf);
     cancelAnimationFrame(this._lookRaf);
+    cancelAnimationFrame(this._speechLayoutRaf);
     this._refreshMeasureRaf = null;
     this._motionRaf = null;
     this._glideRaf = null;
     this._lookRaf = null;
+    this._speechLayoutRaf = null;
 
     if (!skipExtensionApis && this._hasExtensionContext()) {
       if (this._storageListener) {

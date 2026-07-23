@@ -11,7 +11,8 @@ try {
   console.error('[Clawd popup] default state failed', err);
   S = {
     name: "Claw'd", color: '#c71515', eyeColor: '#08080b', model: 'classic', faceStyle: 'classic',
-    skin: 'normal', scale: 1.5, animSpeed: 1, xp: 0, showMouth: true, showSpeech: true,
+    skin: 'normal', skinAccent: '#00cec9', skinIntensity: 1,
+    scale: 1.5, animSpeed: 1, xp: 0, showMouth: true, showSpeech: true,
     autoWalk: true, sleepEnabled: true, smooth: false, outline: false, petVisible: true,
     profession: 'idle', tagTheme: 'light', jerseyColor: '#e74c3c',
     accessoryHead: 'none', accessoryFace: 'none', accessoryBody: 'none',
@@ -24,16 +25,44 @@ try {
       toastPosition: 'center', speechAnchor: 'auto', emotionBadgeSide: 'left',
       performanceMode: false, minimalMode: false, noParticles: false, noIdleVariations: false,
       noWeather: false, noAmbientSparks: false, quietStart: '', quietEnd: '', blockedSites: [],
-      lastPopupTab: 'appearance', trelloBoardUrl: '', trelloBoardId: '' },
+      lastPopupTab: 'appearance', trelloBoardUrl: '', trelloBoardId: '',
+      siteRules: [], pomodoroWorkMin: 25, pomodoroBreakMin: 5, pomodoroLongBreakMin: 15,
+      pomodoroCyclesPerLong: 4, pomodoroAutoStart: true, timesinkGuard: true, timesinkLimitMin: 15,
+      timesinkIntervention: 'nudge', wellbeingReminders: true, eyeRest2020: true, waterReminder: true,
+      postureReminder: true, affirmations: true, breathingOnBreak: true },
     personality: { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 },
     customSpeech: [], particleColor: null, position: { x: null, y: null }, onboardingDone: false,
-    schemaVersion: 5
+    focus: { enabled: false, phase: 'idle', cyclesDone: 0, phaseEndsAt: 0, paused: false,
+      pausedRemainingMs: 0, autoStart: true, sessionsToday: 0, sessionsDay: '',
+      workMin: 25, breakMin: 5, longBreakMin: 15, cyclesPerLong: 4 },
+    wellbeing: { moodLog: [], lastMoodDay: '', breathingCount: 0, groundingCount: 0,
+      calmSoundCount: 0, practiceLog: [], healthyStreak: { days: 0, lastDay: '' } },
+    screenTime: { day: '', byCategory: {}, totalSec: 0, timesinkSec: 0, focusSec: 0 },
+    schemaVersion: 6
   };
 }
 
 window.__clawdPopupBootPhase = 'script-parsed';
 
 function $(id) { return document.getElementById(id); }
+
+function trapFocusWithin(event, container) {
+  if (event.key !== 'Tab' || !container) return;
+  const focusable = [...container.querySelectorAll(
+    'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )].filter((el) => !el.hidden && el.getAttribute('aria-hidden') !== 'true');
+  if (!focusable.length) { event.preventDefault(); return; }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const outside = !container.contains(document.activeElement);
+  if (event.shiftKey && (outside || document.activeElement === first)) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (outside || document.activeElement === last)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 
 /* CSS do pet (grande): injeta após o parse para não segurar o boot do menu. */
 (function injectContentStyles() {
@@ -156,10 +185,12 @@ function scrubLastError() {
   }
 }
 
-function sendMsg(message) {
+function sendMsg(message, onDone) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (scrubLastError() || !tabs[0]) return;
-    chrome.tabs.sendMessage(tabs[0].id, message).catch(() => {
+    chrome.tabs.sendMessage(tabs[0].id, message).then((response) => {
+      if (onDone) onDone(response);
+    }).catch(() => {
       scrubLastError();
       const pill = $('status-pill');
       if (!pill) return;
@@ -247,7 +278,7 @@ function setConfig(key, value) {
   S[key] = stored;
   sendMsg({ action: 'updateConfig', key, value: safe });
   persist(st => { st[key] = stored; });
-  if (['color', 'eyeColor', 'model', 'faceStyle', 'smooth', 'outline', 'skin', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace', 'accessoryBody'].includes(key)) {
+  if (['color', 'eyeColor', 'model', 'faceStyle', 'smooth', 'outline', 'skin', 'skinAccent', 'skinIntensity', 'jerseyColor', 'profession', 'accessoryHead', 'accessoryFace', 'accessoryBody'].includes(key)) {
     syncHeaderPetPreview();
     renderOutfitPreview();
   }
@@ -259,6 +290,371 @@ function setSetting(key, value) {
   S.settings[key] = safe;
   persist(st => { st.settings[key] = safe; });
   sendMsg({ action: 'updateSetting', key, value: safe });
+}
+
+/* ===================================================
+   v6 — Foco & Bem-estar (popup)
+   =================================================== */
+
+function clawdFmtDuration(sec) {
+  sec = Math.max(0, Math.round(Number(sec) || 0));
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (h > 0) return `${h}h ${m}min`;
+  if (m > 0) return `${m}min`;
+  return `${sec}s`;
+}
+
+function clawdMMSS(ms) {
+  const s = Math.max(0, Math.round((Number(ms) || 0) / 1000));
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/* ---- Editor de regras por site ---- */
+function renderSiteRules() {
+  const list = $('site-rule-list');
+  if (!list) return;
+  list.replaceChildren();
+  const rules = Array.isArray(S.settings?.siteRules) ? S.settings.siteRules : [];
+  if (!rules.length) {
+    const empty = document.createElement('div');
+    empty.className = 'toggle-desc';
+    empty.textContent = t('rule_empty');
+    list.appendChild(empty);
+    return;
+  }
+  const levels = [['block', 'rule_block'], ['nudge', 'rule_nudge'], ['limit', 'rule_limit'], ['boost', 'rule_boost'], ['off', 'rule_off']];
+  rules.forEach((rule, idx) => {
+    const row = document.createElement('div');
+    row.className = 'site-rule-row';
+    const host = document.createElement('span');
+    host.className = 'site-rule-host';
+    host.textContent = rule.host;
+    host.title = rule.host;
+    const sel = document.createElement('select');
+    sel.className = 'site-rule-level-sel';
+    levels.forEach(([v, k]) => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = t(k);
+      if (rule.level === v) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => updateSiteRuleLevel(idx, sel.value));
+    const del = document.createElement('button');
+    del.className = 'btn-mini danger';
+    del.textContent = '✕';
+    del.title = t('rule_remove');
+    del.addEventListener('click', () => removeSiteRule(idx));
+    row.append(host, sel, del);
+    list.appendChild(row);
+  });
+}
+
+function commitSiteRules(rules) {
+  const clean = (typeof clawdSanitizeSiteRules === 'function') ? (clawdSanitizeSiteRules(rules) || []) : rules;
+  S.settings.siteRules = clean;
+  if (typeof clawdBlockedFromRules === 'function') S.settings.blockedSites = clawdBlockedFromRules(clean);
+  setSetting('siteRules', clean);
+  renderSiteRules();
+}
+
+function addSiteRule(host, level) {
+  const h = (typeof clawdSanitizeHostname === 'function')
+    ? clawdSanitizeHostname(host)
+    : String(host || '').trim().toLowerCase();
+  if (!h) { showStatusFeedback(t('rule_invalid'), { error: true }); return; }
+  const rules = (Array.isArray(S.settings?.siteRules) ? S.settings.siteRules : []).filter(r => r.host !== h);
+  rules.push({ host: h, level: level || 'nudge', category: 'other' });
+  commitSiteRules(rules);
+}
+
+function updateSiteRuleLevel(idx, level) {
+  const rules = (S.settings?.siteRules || []).slice();
+  if (!rules[idx]) return;
+  rules[idx] = { ...rules[idx], level };
+  commitSiteRules(rules);
+}
+
+function removeSiteRule(idx) {
+  const rules = (S.settings?.siteRules || []).slice();
+  rules.splice(idx, 1);
+  commitSiteRules(rules);
+}
+
+function bindSiteRuleControls() {
+  const addBtn = $('site-rule-add-btn');
+  const hostInput = $('site-rule-host');
+  const levelSel = $('site-rule-level');
+  if (addBtn && hostInput) {
+    const doAdd = () => { addSiteRule(hostInput.value, levelSel?.value || 'nudge'); hostInput.value = ''; };
+    addBtn.addEventListener('click', doAdd);
+    hostInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } });
+  }
+  const addCurrent = $('site-rule-add-current');
+  if (addCurrent) addCurrent.addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (scrubLastError() || !tabs[0] || !tabs[0].url) { showStatusFeedback(t('status_open_site_first'), { error: true }); return; }
+      try { addSiteRule(new URL(tabs[0].url).hostname, levelSel?.value || 'nudge'); }
+      catch (_) { showStatusFeedback(t('rule_invalid'), { error: true }); }
+    });
+  });
+}
+
+/* ---- Painel de Foco (Pomodoro + tempo de tela + bem-estar) ---- */
+let _clawdFocusLive = null;
+let _clawdFocusTicker = null;
+
+function renderFocus() {
+  const set = S.settings || {};
+  const setVal = (id, v) => { const el = $(id); if (el) el.value = v; };
+  const setChk = (id, v) => { const el = $(id); if (el) el.checked = !!v; };
+  setVal('pomo-work', set.pomodoroWorkMin ?? 25);
+  setVal('pomo-break', set.pomodoroBreakMin ?? 5);
+  setVal('pomo-longbreak', set.pomodoroLongBreakMin ?? 15);
+  setVal('pomo-cycles', set.pomodoroCyclesPerLong ?? 4);
+  setChk('pomo-autostart', set.pomodoroAutoStart !== false);
+  setChk('timesink-guard', set.timesinkGuard !== false);
+  setVal('timesink-limit', set.timesinkLimitMin ?? 15);
+  setVal('timesink-intervention', set.timesinkIntervention || 'nudge');
+  setChk('wb-reminders', set.wellbeingReminders !== false);
+  setChk('wb-eye', set.eyeRest2020 !== false);
+  setChk('wb-water', set.waterReminder !== false);
+  setChk('wb-posture', set.postureReminder !== false);
+  setChk('wb-affirm', set.affirmations !== false);
+  setChk('wb-breathe-break', set.breathingOnBreak !== false);
+  renderScreenTime();
+  highlightTodayMood();
+  renderWellbeingInsights();
+  refreshFocusLive();
+}
+
+function highlightTodayMood() {
+  const day = new Date().toISOString().slice(0, 10);
+  const mood = (S.wellbeing?.moodLog || []).find(e => e && e.day === day)?.mood;
+  document.querySelectorAll('#mood-row button[data-mood]').forEach((b) => {
+    const selected = Number(b.dataset.mood) === mood;
+    b.classList.toggle('selected', selected);
+    b.setAttribute('aria-pressed', String(selected));
+  });
+}
+
+function refreshFocusLive() {
+  chrome.storage.local.get(['clawdFocus'], (res) => {
+    scrubLastError();
+    _clawdFocusLive = (res && res.clawdFocus) || S.focus || null;
+    renderFocusStatus();
+  });
+}
+
+function renderFocusStatus() {
+  const f = _clawdFocusLive;
+  const phaseEl = $('focus-phase');
+  const clockEl = $('focus-clock');
+  const cyclesEl = $('focus-cycles');
+  const startBtn = $('focus-start');
+  const pauseBtn = $('focus-pause');
+  const skipBtn = $('focus-skip');
+  const stopBtn = $('focus-stop');
+  if (!phaseEl || !clockEl) return;
+  const set = S.settings || {};
+  if (!f || !f.enabled) {
+    phaseEl.textContent = t('focus_idle');
+    clockEl.textContent = clawdMMSS((set.pomodoroWorkMin ?? 25) * 60000);
+    if (cyclesEl) cyclesEl.textContent = '';
+    if (startBtn) startBtn.textContent = t('focus_start');
+    [pauseBtn, skipBtn, stopBtn].forEach((button) => { if (button) button.disabled = true; });
+    if (pauseBtn) pauseBtn.setAttribute('aria-pressed', 'false');
+    stopFocusTicker();
+    return;
+  }
+  const label = { work: 'focus_phase_work', break: 'focus_phase_break', longBreak: 'focus_phase_long' }[f.phase] || 'focus_idle';
+  phaseEl.textContent = t(label) + (f.paused ? ' ⏸' : '');
+  if (cyclesEl) cyclesEl.textContent = tf('focus_sessions', f.sessionsToday || 0);
+  if (startBtn) startBtn.textContent = t('focus_restart');
+  [pauseBtn, skipBtn, stopBtn].forEach((button) => { if (button) button.disabled = false; });
+  if (pauseBtn) {
+    pauseBtn.setAttribute('aria-pressed', String(!!f.paused));
+    pauseBtn.textContent = f.paused ? '▶' : '⏸';
+    pauseBtn.setAttribute('aria-label', f.paused ? 'Retomar foco' : 'Pausar foco');
+  }
+  const tick = () => {
+    if (!_clawdFocusLive || !_clawdFocusLive.enabled) { stopFocusTicker(); renderFocusStatus(); return; }
+    const remMs = _clawdFocusLive.paused
+      ? (_clawdFocusLive.pausedRemainingMs || 0)
+      : (_clawdFocusLive.phaseEndsAt || 0) - Date.now();
+    clockEl.textContent = clawdMMSS(remMs);
+  };
+  tick();
+  if (!f.paused) startFocusTicker(tick);
+  else stopFocusTicker();
+}
+
+function startFocusTicker(fn) {
+  stopFocusTicker();
+  _clawdFocusTicker = setInterval(fn, CLAWD_TIMINGS.FOCUS_TICK_MS || 1000);
+}
+function stopFocusTicker() { if (_clawdFocusTicker) { clearInterval(_clawdFocusTicker); _clawdFocusTicker = null; } }
+
+function renderScreenTime() {
+  const box = $('screentime-summary');
+  if (!box) return;
+  box.replaceChildren();
+  const st = S.screenTime || {};
+  const today = new Date().toISOString().slice(0, 10);
+  const fresh = st.day === today ? st : { byCategory: {}, totalSec: 0, timesinkSec: 0, focusSec: 0 };
+  const mk = (label, sec, cls) => {
+    const row = document.createElement('div');
+    row.className = 'st-row' + (cls ? ' ' + cls : '');
+    const l = document.createElement('span'); l.textContent = label;
+    const v = document.createElement('b'); v.textContent = clawdFmtDuration(sec);
+    row.append(l, v);
+    return row;
+  };
+  const total = fresh.totalSec || 0;
+  box.appendChild(mk(t('st_total'), total, 'st-total'));
+  if (fresh.focusSec) box.appendChild(mk('🎯 ' + t('st_focus'), fresh.focusSec, 'st-focus'));
+  if (fresh.timesinkSec) box.appendChild(mk('⏳ ' + t('st_timesink'), fresh.timesinkSec, 'st-timesink'));
+  Object.entries(fresh.byCategory || {}).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .forEach(([cat, sec]) => box.appendChild(mk(clawdCatLabel(cat), sec)));
+  if (!total) {
+    const empty = document.createElement('div');
+    empty.className = 'toggle-desc';
+    empty.textContent = t('st_empty');
+    box.appendChild(empty);
+  }
+}
+
+function clawdCatLabel(cat) {
+  const emoji = {
+    coding: '💻', music: '🎵', video: '📺', shopping: '🛒', social: '💬',
+    news: '📰', email: '✉️', gaming: '🎮', health: '🏥', learning: '📚', other: '🌐'
+  }[cat] || '🌐';
+  const key = 'cat_' + cat;
+  const label = t(key);
+  return `${emoji} ${label === key ? cat : label}`;
+}
+
+function renderWellbeingInsights() {
+  const box = $('wellbeing-insights');
+  const recommendation = $('wellbeing-recommendation');
+  if (!box || !recommendation) return;
+  const wb = S.wellbeing || {};
+  const today = new Date();
+  const recentDays = new Set();
+  for (let offset = 0; offset < 7; offset++) {
+    const day = new Date(today);
+    day.setUTCDate(day.getUTCDate() - offset);
+    recentDays.add(day.toISOString().slice(0, 10));
+  }
+  const moods = Array.isArray(wb.moodLog)
+    ? wb.moodLog.filter((entry) => entry && recentDays.has(entry.day) && Number.isFinite(Number(entry.mood)))
+    : [];
+  const practices = Array.isArray(wb.practiceLog)
+    ? wb.practiceLog.filter((entry) => entry && recentDays.has(entry.day)).length
+    : 0;
+  const average = moods.length ? moods.reduce((sum, entry) => sum + Number(entry.mood), 0) / moods.length : null;
+  const streak = Math.max(0, Number(wb.healthyStreak?.days) || 0);
+  const metrics = [
+    { value: average == null ? '—' : average.toFixed(1), label: t('wb_metric_mood') },
+    { value: String(practices), label: t('wb_metric_practices') },
+    { value: String(streak), label: t('wb_metric_streak') }
+  ];
+  box.replaceChildren(...metrics.map((metric) => {
+    const card = document.createElement('div');
+    card.className = 'wellbeing-metric';
+    const value = document.createElement('strong');
+    value.textContent = metric.value;
+    const label = document.createElement('span');
+    label.textContent = metric.label;
+    card.append(value, label);
+    return card;
+  }));
+
+  const dayKey = today.toISOString().slice(0, 10);
+  const todayMood = moods.find((entry) => entry.day === dayKey)?.mood;
+  const st = S.screenTime?.day === dayKey ? S.screenTime : {};
+  const limitSec = Math.max(1, Number(S.settings?.timesinkLimitMin) || 15) * 60;
+  let key = 'wb_rec_steady';
+  if (Number(todayMood) <= 2) key = 'wb_rec_low';
+  else if ((Number(st.timesinkSec) || 0) >= limitSec) key = 'wb_rec_screen';
+  else if (!practices) key = 'wb_rec_start';
+  recommendation.textContent = t(key);
+}
+
+function bindFocusControls() {
+  const send = (action) => sendRuntimeMsg({ action }, () => setTimeout(refreshFocusLive, 150));
+  const bindClick = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
+  bindClick('focus-start', () => send('focusStart'));
+  bindClick('focus-pause', () => send(_clawdFocusLive && _clawdFocusLive.paused ? 'focusResume' : 'focusPause'));
+  bindClick('focus-skip', () => send('focusSkip'));
+  bindClick('focus-stop', () => send('focusStop'));
+
+  const numBind = (id, key) => { const el = $(id); if (el) el.addEventListener('change', () => setSetting(key, Number(el.value))); };
+  numBind('pomo-work', 'pomodoroWorkMin');
+  numBind('pomo-break', 'pomodoroBreakMin');
+  numBind('pomo-longbreak', 'pomodoroLongBreakMin');
+  numBind('pomo-cycles', 'pomodoroCyclesPerLong');
+  numBind('timesink-limit', 'timesinkLimitMin');
+  const chkBind = (id, key) => { const el = $(id); if (el) el.addEventListener('change', () => setSetting(key, el.checked)); };
+  chkBind('pomo-autostart', 'pomodoroAutoStart');
+  chkBind('timesink-guard', 'timesinkGuard');
+  chkBind('wb-reminders', 'wellbeingReminders');
+  chkBind('wb-eye', 'eyeRest2020');
+  chkBind('wb-water', 'waterReminder');
+  chkBind('wb-posture', 'postureReminder');
+  chkBind('wb-affirm', 'affirmations');
+  chkBind('wb-breathe-break', 'breathingOnBreak');
+  const interv = $('timesink-intervention');
+  if (interv) interv.addEventListener('change', () => setSetting('timesinkIntervention', interv.value));
+
+  bindClick('breathe-now', () => { sendMsg({ action: 'startBreathing' }); showStatusFeedback(t('breathe_started')); });
+  bindClick('grounding-now', () => { sendMsg({ action: 'startGrounding' }); showStatusFeedback(t('grounding_started')); });
+  document.querySelectorAll('[data-calm-sound]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const kind = btn.dataset.calmSound;
+      const feedback = $('calm-sound-feedback');
+      sendMsg({ action: 'playCalmSound', kind }, (response) => {
+        if (feedback) feedback.textContent = response?.ok ? t('calm_sound_played') : t('calm_sound_unlock');
+        btn.classList.toggle('selected', !!response?.ok);
+        setTimeout(() => btn.classList.remove('selected'), 900);
+        if (response?.ok) setTimeout(renderWellbeingInsights, 150);
+      });
+    });
+  });
+  document.querySelectorAll('#mood-row button[data-mood]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const mood = Number(btn.dataset.mood);
+      sendMsg({ action: 'logMood', mood });
+      logMoodLocal(mood);
+      showStatusFeedback(t('mood_logged'));
+    });
+  });
+
+  try {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local') return;
+      if (changes.clawdFocus) { _clawdFocusLive = changes.clawdFocus.newValue; renderFocusStatus(); }
+      if (changes.clawdState && changes.clawdState.newValue) {
+        const ns = changes.clawdState.newValue;
+        if (ns.screenTime) { S.screenTime = ns.screenTime; renderScreenTime(); }
+        if (ns.wellbeing) { S.wellbeing = ns.wellbeing; highlightTodayMood(); renderWellbeingInsights(); }
+      }
+    });
+  } catch (_) { /* ignore */ }
+}
+
+function logMoodLocal(mood) {
+  const day = new Date().toISOString().slice(0, 10);
+  S.wellbeing = S.wellbeing || {
+    moodLog: [], lastMoodDay: '', breathingCount: 0, groundingCount: 0,
+    calmSoundCount: 0, practiceLog: [], healthyStreak: { days: 0, lastDay: '' }
+  };
+  if (!Array.isArray(S.wellbeing.moodLog)) S.wellbeing.moodLog = [];
+  const ex = S.wellbeing.moodLog.find(e => e && e.day === day);
+  if (ex) ex.mood = mood; else S.wellbeing.moodLog.push({ day, mood });
+  S.wellbeing.lastMoodDay = day;
+  highlightTodayMood();
+  renderWellbeingInsights();
 }
 
 /* ---- FAVORITOS ---- */
@@ -369,6 +765,7 @@ function syncHeaderPetPreview() {
   preview.classList.toggle('has-propeller', effective.head === 'propeller');
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+  applySkinTuningToPreview(preview);
   const modelLabel = et('model', S.model, CLAWD_MODELS[S.model]?.label || 'Clássico');
   const faceLabel = et('face', S.faceStyle, CLAWD_FACE_STYLES[S.faceStyle]?.label || 'Clássico');
   preview.setAttribute('aria-label', `${modelLabel}, ${faceLabel}`);
@@ -449,10 +846,20 @@ function pulseStatButton(btn) {
   setTimeout(() => btn.classList.remove('stat-ripple'), 400);
 }
 
-function activatePopupTab(tabId) {
+function activatePopupTab(tabId, { focus = false } = {}) {
   if (!CLAWD_POPUP_TABS.includes(tabId)) tabId = 'appearance';
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tabId}`));
+  document.querySelectorAll('.tab').forEach((tab) => {
+    const active = tab.dataset.tab === tabId;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+    if (active && focus) tab.focus();
+  });
+  document.querySelectorAll('.tab-panel').forEach((panel) => {
+    const active = panel.id === `tab-${tabId}`;
+    panel.classList.toggle('active', active);
+    panel.hidden = !active;
+  });
 }
 
 function openStudioOnPage() {
@@ -484,6 +891,13 @@ function applyHeaderColor(color) {
   });
 }
 
+function applySkinTuningToPreview(preview) {
+  if (!preview) return;
+  const intensity = Math.max(0.25, Math.min(1, Number(S.skinIntensity) || 1));
+  preview.style.setProperty('--skin-accent', S.skinAccent || '#00cec9');
+  preview.style.setProperty('--skin-intensity', String(intensity));
+}
+
 function createPetArtPreview({ model, faceStyle, skin, head = 'none', face = 'none', body = 'none', className = '' } = {}) {
   const preview = document.createElement('span');
   preview.className = `clawd-model-preview ${className}`.trim();
@@ -495,6 +909,7 @@ function createPetArtPreview({ model, faceStyle, skin, head = 'none', face = 'no
   preview.dataset.accBody = body;
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
+  applySkinTuningToPreview(preview);
   preview.classList.toggle('has-wings', body === 'wings');
   preview.classList.toggle('has-cape', body === 'cape');
   preview.classList.toggle('has-armor', body === 'armor');
@@ -510,6 +925,7 @@ function updatePreviewPalette() {
     preview.style.setProperty('--agent-color', S.color || '#c71515');
     preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
     preview.style.setProperty('--clawd-accent', S.color || '#c71515');
+    applySkinTuningToPreview(preview);
   });
 }
 
@@ -547,6 +963,7 @@ function renderOutfitPreview() {
   preview.style.setProperty('--agent-color', S.color || '#c71515');
   preview.style.setProperty('--agent-eye-color', S.eyeColor || '#08080b');
   preview.style.setProperty('--jersey-color', S.jerseyColor || '#e74c3c');
+  applySkinTuningToPreview(preview);
   preview.setAttribute('data-tag-theme', S.tagTheme || 'light');
   syncPopupNameTag();
   preview.setAttribute('aria-label', equipped.length
@@ -582,6 +999,8 @@ function syncPopupNameTag(name = S.name) {
 }
 
 /* Busca stats ao vivo do content script */
+let _clawdLiveStatsTicker = null;
+
 function pollLiveStats() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (scrubLastError() || !tabs[0]) return;
@@ -620,6 +1039,17 @@ function pollLiveStats() {
       })
       .catch(() => { scrubLastError(); });
   });
+}
+
+function stopLiveStatsPolling() {
+  if (_clawdLiveStatsTicker) clearInterval(_clawdLiveStatsTicker);
+  _clawdLiveStatsTicker = null;
+}
+
+function startLiveStatsPolling() {
+  stopLiveStatsPolling();
+  if (document.hidden) return;
+  _clawdLiveStatsTicker = setInterval(pollLiveStats, 4000);
 }
 
 function renderDailyQuest(daily = clawdEnsureDailyQuest(S)) {
@@ -916,6 +1346,10 @@ function renderSkins() {
     });
     grid.appendChild(card);
   });
+  const description = $('skin-description');
+  if (description) {
+    description.textContent = CLAWD_SKINS[S.skin]?.desc || CLAWD_SKINS.normal.desc;
+  }
 }
 
 function accessoryUnlocked(id) {
@@ -1268,9 +1702,11 @@ function renderSubpets() {
   renderSubpetActions();
 }
 
+const _clawdPopupMotionQuery = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)') || null;
+
 function startSubpetPreviewAnims() {
   if (window.__clawdSubpetPreviewTimer) clearInterval(window.__clawdSubpetPreviewTimer);
-  if (document.hidden) {
+  if (document.hidden || _clawdPopupMotionQuery?.matches) {
     window.__clawdSubpetPreviewTimer = null;
     return;
   }
@@ -1307,8 +1743,8 @@ function startSubpetPreviewAnims() {
 
 if (!window.__clawdPreviewVisibilityBound) {
   window.__clawdPreviewVisibilityBound = true;
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
+  const syncPreviewPlayback = () => {
+    if (document.hidden || _clawdPopupMotionQuery?.matches) {
       if (window.__clawdSubpetPreviewTimer) {
         clearInterval(window.__clawdSubpetPreviewTimer);
         window.__clawdSubpetPreviewTimer = null;
@@ -1316,7 +1752,9 @@ if (!window.__clawdPreviewVisibilityBound) {
     } else if (document.querySelector('.subpet-pixel-preview[data-species]')) {
       startSubpetPreviewAnims();
     }
-  });
+  };
+  document.addEventListener('visibilitychange', syncPreviewPlayback);
+  _clawdPopupMotionQuery?.addEventListener?.('change', syncPreviewPlayback);
 }
 
 /* =====================================================
@@ -1449,7 +1887,7 @@ function renderConfig() {
   if (csEl) csEl.value = (S.customSpeech || []).join('\n');
   $('quiet-start').value = set.quietStart || '';
   $('quiet-end').value = set.quietEnd || '';
-  $('blocked-sites').value = (set.blockedSites || []).join('\n');
+  renderSiteRules();
   $('select-corner').value = set.startCorner || 'br';
   const toastEl = $('select-toast-pos');
   if (toastEl) toastEl.value = set.toastPosition || 'center';
@@ -1711,10 +2149,8 @@ function bindConfig() {
     $('quiet-start').value = ''; $('quiet-end').value = '';
     setSetting('quietStart', ''); setSetting('quietEnd', '');
   });
-  $('blocked-sites').addEventListener('change', e => {
-    const sites = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
-    setSetting('blockedSites', sites);
-  });
+  bindSiteRuleControls();
+  bindFocusControls();
   $('select-corner').addEventListener('change', e => setSetting('startCorner', e.target.value));
   const toastPos = $('select-toast-pos');
   if (toastPos) toastPos.addEventListener('change', e => setSetting('toastPosition', e.target.value));
@@ -1814,6 +2250,20 @@ function bindStatic() {
       activatePopupTab(tab.dataset.tab);
       setSetting('lastPopupTab', tab.dataset.tab);
     });
+    tab.addEventListener('keydown', (event) => {
+      const tabs = [...document.querySelectorAll('.tab')];
+      const index = tabs.indexOf(tab);
+      let next = index;
+      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      const nextId = tabs[next].dataset.tab;
+      activatePopupTab(nextId, { focus: true });
+      setSetting('lastPopupTab', nextId);
+    });
   });
 
   // Nome + histórico + favorito (debounce evita race storage ↔ content)
@@ -1857,6 +2307,18 @@ function bindStatic() {
     const color = e.target.value;
     $('eye-color-hex').textContent = color;
     setConfig('eyeColor', color);
+    updatePreviewPalette();
+  });
+  $('input-skin-accent').addEventListener('input', (e) => {
+    const color = e.target.value.toLowerCase();
+    $('skin-accent-hex').textContent = color;
+    setConfig('skinAccent', color);
+    updatePreviewPalette();
+  });
+  $('range-skin-intensity').addEventListener('input', (e) => {
+    const value = Math.max(0.25, Math.min(1, Number(e.target.value) || 1));
+    $('skin-intensity-badge').textContent = `${Math.round(value * 100)}%`;
+    setConfig('skinIntensity', value);
     updatePreviewPalette();
   });
   $('color-star').addEventListener('click', () => {
@@ -2043,11 +2505,16 @@ function renderAll() {
   renderShop();
   renderAchievements();
   renderConfig();
+  renderFocus();
   syncVisibilityButton(S.petVisible !== false);
 
   $('input-color').value = S.color || '#c71515';
   $('input-eye-color').value = S.eyeColor || '#08080b';
   $('eye-color-hex').textContent = S.eyeColor || '#08080b';
+  $('input-skin-accent').value = S.skinAccent || '#00cec9';
+  $('skin-accent-hex').textContent = S.skinAccent || '#00cec9';
+  $('range-skin-intensity').value = S.skinIntensity ?? 1;
+  $('skin-intensity-badge').textContent = `${Math.round((S.skinIntensity ?? 1) * 100)}%`;
   $('range-scale').value = S.scale ?? 1.5;
   $('scale-badge').textContent = `${parseFloat(S.scale ?? 1.5).toFixed(1)}×`;
   $('range-speed').value = S.animSpeed ?? 1;
@@ -2085,6 +2552,12 @@ function showOnboarding() {
 
   applyPopupI18n();
   overlay.style.display = 'flex';
+  const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  requestAnimationFrame(() => $('onboarding-locale')?.focus());
+  if (!showOnboarding._keydown) {
+    showOnboarding._keydown = (event) => trapFocusWithin(event, overlay);
+    overlay.addEventListener('keydown', showOnboarding._keydown);
+  }
 
   const onboardLocale = $('onboarding-locale');
   if (onboardLocale && !onboardLocale.dataset.bound) {
@@ -2111,6 +2584,11 @@ function showOnboarding() {
       setSetting('startCorner', corner);
       if (configCorner) configCorner.value = corner;
       overlay.style.display = 'none';
+      if (showOnboarding._keydown) {
+        overlay.removeEventListener('keydown', showOnboarding._keydown);
+        showOnboarding._keydown = null;
+      }
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
       persist(st => {
         st.onboardingDone = true;
         st.settings = st.settings || {};
@@ -2153,7 +2631,7 @@ chrome.storage.local.get(['clawdState'], (res) => {
     }
     updateContextBar(null);
     pollLiveStats();
-    setInterval(pollLiveStats, 4000);
+    startLiveStatsPolling();
     window.__clawdPopupBootPhase = 'done';
     window.__clawdPopupBootError = null;
   } catch (err) {
@@ -2171,3 +2649,21 @@ chrome.storage.local.get(['clawdState'], (res) => {
     } catch (_) { /* ignore */ }
   }
 });
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopFocusTicker();
+    stopLiveStatsPolling();
+    return;
+  }
+  pollLiveStats();
+  startLiveStatsPolling();
+  refreshFocusLive();
+});
+
+window.addEventListener('pagehide', () => {
+  stopFocusTicker();
+  stopLiveStatsPolling();
+  if (window.__clawdSubpetPreviewTimer) clearInterval(window.__clawdSubpetPreviewTimer);
+  window.__clawdSubpetPreviewTimer = null;
+}, { once: true });

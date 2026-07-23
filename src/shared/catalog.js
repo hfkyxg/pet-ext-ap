@@ -4,7 +4,7 @@
    Zero dependências — apenas globais.
    =================================================== */
 
-var CLAWD_SCHEMA_VERSION = 5;
+var CLAWD_SCHEMA_VERSION = 6;
 
 /* ---- Constantes de timing centralizadas (usadas por content.js e testes) ---- */
 var CLAWD_TIMINGS = {
@@ -16,6 +16,10 @@ var CLAWD_TIMINGS = {
   DOUBLE_CLICK_WINDOW_MS:   220,  /* janela de duplo clique */
   RANDOM_ACTION_MS:       12000,  /* tick de ação aleatória do pet principal */
   DUO_SCENE_MS:           22000,  /* tick do duo pet↔subpet */
+  FOCUS_TICK_MS:           1000,  /* atualização visual do relógio Pomodoro */
+  BREATH_PHASE_MS:         4000,  /* inspire/segure/expire/segure */
+  MOTION_EXIT_MS:           400,  /* fallback de cleanup após transição de saída */
+  AUTONOMY_GRACE_MS:       5000,  /* evita que ações autônomas atropelem uma interação recente */
 };
 
 var CLAWD_DAILY_QUESTS = [
@@ -89,6 +93,152 @@ function clawdPageContextFromHost(hostname) {
     if (domains.some((d) => clawdHostMatchesDomain(url, d))) return ctx;
   }
   return 'idle';
+}
+
+/* ===================================================
+   Foco & Bem-estar (v6) — SSOT de constantes + lógica pura
+   =================================================== */
+
+/** Categorias válidas de regra de site (contextos + 'other'). */
+var CLAWD_SITE_CATEGORIES = Object.keys(CLAWD_PAGE_CONTEXTS).concat(['other']);
+/** Níveis de interação por site definidos pelo usuário. */
+var CLAWD_SITE_RULE_LEVELS = ['off', 'nudge', 'limit', 'block', 'boost'];
+/** Padrões de intervenção anti-doomscroll. */
+var CLAWD_TIMESINK_INTERVENTIONS = ['nudge', 'firm'];
+/** Defaults do Pomodoro (minutos). */
+var CLAWD_POMODORO_DEFAULTS = { workMin: 25, breakMin: 5, longBreakMin: 15, cyclesPerLong: 4 };
+/** Fases do Pomodoro. */
+var CLAWD_FOCUS_PHASES = ['idle', 'work', 'break', 'longBreak'];
+
+/**
+ * Sites "buraco de tempo" (rolagem infinita). Entradas com `paths` só casam
+ * quando o pathname começa por um dos prefixos (ex.: youtube só em /shorts).
+ */
+var CLAWD_TIMESINK_HOSTS = [
+  { host: 'tiktok',    category: 'social' },
+  { host: 'kwai',      category: 'social' },
+  { host: '9gag',      category: 'social' },
+  { host: 'reddit',    category: 'social' },
+  { host: 'twitter',   category: 'social' },
+  { host: 'x.com',     category: 'social' },
+  { host: 'instagram', category: 'social' },
+  { host: 'youtube',   category: 'video',  paths: ['/shorts'] },
+  { host: 'facebook',  category: 'social', paths: ['/reel', '/reels', '/watch'] }
+];
+
+/** Classifica um host/path como buraco de tempo. Retorna categoria ou null. */
+function clawdClassifyTimeSink(hostname, pathname) {
+  const host = String(hostname || '').toLowerCase();
+  const path = String(pathname || '').toLowerCase();
+  if (!host) return null;
+  for (const entry of CLAWD_TIMESINK_HOSTS) {
+    if (!clawdHostMatchesDomain(host, entry.host)) continue;
+    if (Array.isArray(entry.paths) && entry.paths.length) {
+      if (entry.paths.some((p) => path.startsWith(p))) return entry.category;
+    } else {
+      return entry.category;
+    }
+  }
+  return null;
+}
+
+/** Regra efetiva (exata ou por subdomínio) para um host, ou null. */
+function clawdSiteRuleFor(hostname, siteRules) {
+  const host = clawdSanitizeHostname(hostname);
+  if (!host || !Array.isArray(siteRules)) return null;
+  let best = null;
+  siteRules.forEach((rule) => {
+    if (!rule || typeof rule !== 'object') return;
+    const rHost = clawdSanitizeHostname(rule.host);
+    if (!rHost) return;
+    if (host === rHost) { best = rule; return; }             // match exato vence
+    if (host.endsWith('.' + rHost) && !best) best = rule;    // subdomínio, se ainda sem match
+  });
+  return best;
+}
+
+/** Espelho legado: hosts com regra de nível 'block' (para clawdHostIsBlocked). */
+function clawdBlockedFromRules(siteRules) {
+  if (!Array.isArray(siteRules)) return [];
+  return siteRules
+    .filter((r) => r && r.level === 'block' && r.host)
+    .map((r) => clawdSanitizeHostname(r.host))
+    .filter(Boolean)
+    .slice(0, 40);
+}
+
+/**
+ * Nível de escalada anti-doomscroll a partir do tempo engajado.
+ * Retorna -1 (nada), 0 (fala gentil), 1 (toast c/ tempo), 2 (respiração), 3 (bloqueio suave).
+ */
+function clawdEscalationLevel(engagedSec, limitMin, intervention) {
+  const limit = Math.max(1, Number(limitMin) || 15) * 60;
+  const sec = Number(engagedSec) || 0;
+  if (sec <= 0) return -1;
+  const ratio = sec / limit;
+  const bump = intervention === 'firm' ? 1 : 0;
+  let lvl;
+  if (ratio < 0.5) lvl = -1;
+  else if (ratio < 1) lvl = 0;
+  else if (ratio < 1.5) lvl = 1;
+  else if (ratio < 2.5) lvl = 2;
+  else lvl = 3;
+  if (lvl < 0) return (intervention === 'firm' && ratio >= 0.34) ? 0 : -1;
+  return Math.min(3, lvl + bump);
+}
+
+/**
+ * Máquina de estados do Pomodoro: recebe o bloco `focus` cuja fase acabou e
+ * devolve um novo bloco com a próxima fase e `phaseEndsAt` calculado. Puro.
+ */
+function clawdPomodoroNextPhase(focus, now, dayKey) {
+  const f = clawdSanitizeFocusBlock(focus, clawdDefaultState().focus);
+  const t = Number(now) || 0;
+  const day = String(dayKey || f.sessionsDay || '');
+  let phase = f.phase;
+  let cyclesDone = f.cyclesDone;
+  let sessionsToday = f.sessionsDay === day ? f.sessionsToday : 0;
+  let durMin;
+  if (phase === 'work') {
+    cyclesDone += 1;
+    sessionsToday += 1;
+    if (cyclesDone % f.cyclesPerLong === 0) { phase = 'longBreak'; durMin = f.longBreakMin; }
+    else { phase = 'break'; durMin = f.breakMin; }
+  } else if (phase === 'break' || phase === 'longBreak') {
+    if (phase === 'longBreak') cyclesDone = 0;
+    phase = 'work'; durMin = f.workMin;
+  } else {
+    phase = 'work'; durMin = f.workMin;
+  }
+  return {
+    ...f, enabled: true, paused: false, pausedRemainingMs: 0,
+    phase, cyclesDone, sessionsToday, sessionsDay: day,
+    phaseEndsAt: t + durMin * 60000
+  };
+}
+
+/** Acumula tempo de tela por categoria com reset diário. Puro. */
+function clawdScreenTimeAdd(screenTime, category, sec, dayKey) {
+  const s = (screenTime && typeof screenTime === 'object') ? screenTime : {};
+  const day = String(dayKey || '');
+  const fresh = s.day === day
+    ? {
+        day,
+        byCategory: clawdAssignPlain({}, s.byCategory || {}),
+        totalSec: Number(s.totalSec) || 0,
+        timesinkSec: Number(s.timesinkSec) || 0,
+        focusSec: Number(s.focusSec) || 0
+      }
+    : { day, byCategory: {}, totalSec: 0, timesinkSec: 0, focusSec: 0 };
+  const add = Math.max(0, Math.min(3600, Number(sec) || 0));
+  if (add <= 0) return fresh;
+  if (category === 'timesink') fresh.timesinkSec += add;
+  else if (category === 'focus') fresh.focusSec += add;
+  else if (category && category !== 'idle') {
+    fresh.byCategory[category] = (Number(fresh.byCategory[category]) || 0) + add;
+  }
+  fresh.totalSec += add;
+  return fresh;
 }
 
 /** Reações de personalidade ao mudar de contexto (min = traço mínimo 0–10). */
@@ -252,7 +402,11 @@ var CLAWD_SKINS = {
   freckles: { label: 'Sardas',   desc: 'Pontinhos pixelados nas bochechas.' },
   stripes:  { label: 'Listras',  desc: 'Faixas laterais no corpo, estilo mascote.' },
   spots:    { label: 'Bolinha',  desc: 'Manchas tipo dálmata no corpo.' },
-  glow:     { label: 'Neon',     desc: 'Faixa de status luminosa no peito.' }
+  glow:     { label: 'Neon',     desc: 'Faixa de status luminosa no peito.' },
+  cosmic:   { label: 'Cósmica',  desc: 'Constelações pixeladas orbitam pelo corpo.' },
+  crystal:  { label: 'Cristal',  desc: 'Facetas brilhantes com reflexos prismáticos.' },
+  ember:    { label: 'Brasa',    desc: 'Fagulhas quentes e bordas que parecem flamejar.' },
+  ocean:    { label: 'Oceano',   desc: 'Ondas e gotas pixeladas em movimento calmo.' }
 };
 
 /* ---- Profissões ---- */
@@ -354,7 +508,10 @@ var CLAWD_SUBPETS = {
   dino:   { emoji: '🦕', label: 'Dinossauro', level: 6,  special: 'Clássico, de pisada pesada' },
   dragon: { emoji: '🐉', label: 'Dragão',     level: 8,  special: 'Raro, cospe fogo no desafio' },
   ghost:  { emoji: '👻', label: 'Fantasma',   level: 10, special: 'Atravessa paredes, aparece à noite' },
-  slime:  { emoji: '🟢', label: 'Slime',      level: 12, special: 'Grudento, se divide ao comer' }
+  slime:  { emoji: '🟢', label: 'Slime',      level: 12, special: 'Grudento, se divide ao comer' },
+  fox:    { emoji: '🦊', label: 'Raposa',     level: 14, special: 'Curiosa, encontra pequenas estrelas pelo caminho' },
+  capybara: { emoji: '🦫', label: 'Capivara', level: 16, special: 'Tranquila, convida para uma pausa sem pressa' },
+  axolotl: { emoji: '🫧', label: 'Axolote',   level: 18, special: 'Leve, espalha bolhas relaxantes pela tela' }
 };
 
 /* ---- Interações manuais dos Sub-Pets ---- */
@@ -369,7 +526,7 @@ var CLAWD_SUBPET_ACTIONS = {
 };
 
 /* ---- Sub-pet pixel art (shared: content + popup + docs)
-   Grade 12×10 @4px. Referência "Subpets — 8 companheiros":
+   Grade 12×10 @4px. Referência "Subpets — 11 companheiros":
    corpo chapado, olhos em linha (KK), patas soltas, lineless igual ao Claw'd.
    B=corpo, D=sombra/orelha, K=olho, P=rosa, Y=amarelo, R=bico/pé, E=olho slime, +extras. */
 var CLAWD_SUBPET_CELL = 4;
@@ -1066,6 +1223,300 @@ var CLAWD_SUBPET_SPRITES = {
       ]
       ]
     }
+  },
+  fox: {
+    colors: { B: "#e77d34", D: "#9f4624", K: "#111111", W: "#fff2de", P: "#f6b08a", Y: "#ffd166" },
+    image: { url: 'src/shared/sprites/subpets/fox.png', width: 48, height: 40, gridW: 12, gridH: 10 },
+    frames: {
+      idle: [
+      [
+        '............',
+        '.D......D...',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        '.BBBBPPBBBBD',
+        '.BB......BBD',
+        '..D......D..',
+        '............'
+      ],
+      [
+        '............',
+        '.D......D...',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        '.BBBBPPBBBBD',
+        '.BB......BBD',
+        '..D......D..',
+        '............'
+      ]
+      ],
+      walk: [
+      [
+        '............',
+        '.D......D...',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        'DBBBBPPBBBB.',
+        'DBB......BB.',
+        '.D........D.',
+        '............'
+      ],
+      [
+        '............',
+        '.D......D...',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        '.BBBBPPBBBBD',
+        '.BB......BBD',
+        '..D......D..',
+        '............'
+      ]
+      ],
+      sleep: [
+      [
+        '............',
+        '.D......D...',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BB........BB',
+        'BBBBBKKBBBBB',
+        '.BBBBPPBBBBD',
+        '............',
+        '............',
+        '............'
+      ]
+      ],
+      special: [
+      [
+        '.....Y......',
+        '.D......D...',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBYYBBYYBBB',
+        'BBBBBKKBBBBB',
+        '.BBBBPPBBBBD',
+        '.BB......BBD',
+        '..D......D..',
+        '..........Y.'
+      ],
+      [
+        '............',
+        '.D......D...',
+        '.DBBBBBBBBD.',
+        'BBBBBBBBBBBB',
+        'BBBKKBBKKBBB',
+        'BBBBBKKBBBBB',
+        '.BBBBPPBBBBD',
+        '.BB......BBD',
+        '..D......D..',
+        '............'
+      ]
+      ]
+    }
+  },
+  capybara: {
+    colors: { B: "#9b6b43", D: "#68452d", K: "#111111", N: "#4a3022", T: "#f8ead7", L: "#79b86b" },
+    image: { url: 'src/shared/sprites/subpets/capybara.png', width: 48, height: 40, gridW: 12, gridH: 10 },
+    frames: {
+      idle: [
+      [
+        '............',
+        '..D......D..',
+        '..BBBBBBBB..',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBBBNBBBBBB',
+        'BBBTTTTBBBBB',
+        '.BBBBBBBBBB.',
+        '..DD....DD..',
+        '............'
+      ],
+      [
+        '............',
+        '..D......D..',
+        '..BBBBBBBB..',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBBBNBBBBBB',
+        'BBBTTTTBBBBB',
+        '.BBBBBBBBBB.',
+        '..DD....DD..',
+        '............'
+      ]
+      ],
+      walk: [
+      [
+        '............',
+        '..D......D..',
+        '..BBBBBBBB..',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBBBNBBBBBB',
+        'BBBTTTTBBBBB',
+        '.BBBBBBBBBB.',
+        '.DD......DD.',
+        '............'
+      ],
+      [
+        '............',
+        '..D......D..',
+        '..BBBBBBBB..',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBBBNBBBBBB',
+        'BBBTTTTBBBBB',
+        '.BBBBBBBBBB.',
+        '..DD....DD..',
+        '............'
+      ]
+      ],
+      sleep: [
+      [
+        '............',
+        '..D......D..',
+        '..BBBBBBBB..',
+        '.BBBBBBBBBB.',
+        'BBB......BBB',
+        'BBBBBNBBBBBB',
+        'BBBTTTTBBBBB',
+        '.BBBBBBBBBB.',
+        '............',
+        '............'
+      ]
+      ],
+      special: [
+      [
+        '............',
+        '..D......D..',
+        '..BBBBBBBB..',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBBBNBBBBBB',
+        'BBBTTTTBBBBB',
+        '.BBBBBBBBBB.',
+        '.LDD....DDL.',
+        'L..........L'
+      ],
+      [
+        '............',
+        '..D......D..',
+        '..BBBBBBBB..',
+        '.BBBBBBBBBB.',
+        'BBBKKBBKKBBB',
+        'BBBBBNBBBBBB',
+        'BBBTTTTBBBBB',
+        '.BBBBBBBBBB.',
+        '..DD....DD..',
+        '............'
+      ]
+      ]
+    }
+  },
+  axolotl: {
+    colors: { B: "#f18da6", G: "#d65a7a", K: "#111111", P: "#ffd1dc", A: "#77d9e8", W: "#ffffff" },
+    image: { url: 'src/shared/sprites/subpets/axolotl.png', width: 48, height: 40, gridW: 12, gridH: 10 },
+    frames: {
+      idle: [
+      [
+        '............',
+        'G.G......G.G',
+        '.GG.BBBB.GG.',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBPPBBBB.',
+        '..BBBBBBBB..',
+        '...BB..BB...',
+        '..A......A..',
+        '............'
+      ],
+      [
+        '............',
+        'G.G......G.G',
+        '.GG.BBBB.GG.',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBPPBBBB.',
+        '..BBBBBBBB..',
+        '...BB..BB...',
+        '..A......A..',
+        '............'
+      ]
+      ],
+      walk: [
+      [
+        '............',
+        'G.G......G.G',
+        '.GG.BBBB.GG.',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBPPBBBB.',
+        '..BBBBBBBB..',
+        '..BB....BB..',
+        '.A........A.',
+        '............'
+      ],
+      [
+        '............',
+        'G.G......G.G',
+        '.GG.BBBB.GG.',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBPPBBBB.',
+        '..BBBBBBBB..',
+        '...BB..BB...',
+        '..A......A..',
+        '............'
+      ]
+      ],
+      sleep: [
+      [
+        '............',
+        'G.G......G.G',
+        '.GG.BBBB.GG.',
+        '..BBBBBBBB..',
+        '.BB......BB.',
+        '.BBBBPPBBBB.',
+        '..BBBBBBBB..',
+        '............',
+        '............',
+        '............'
+      ]
+      ],
+      special: [
+      [
+        'A.G......G.A',
+        'G.G......G.G',
+        '.GG.BBBB.GG.',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBPPBBBB.',
+        'A.BBBBBBBB.A',
+        '...BB..BB...',
+        '..A......A..',
+        'A..........A'
+      ],
+      [
+        '............',
+        'G.G......G.G',
+        '.GG.BBBB.GG.',
+        '..BBBBBBBB..',
+        '.BBBKKBBKKBB',
+        '.BBBBPPBBBB.',
+        '..BBBBBBBB..',
+        '...BB..BB...',
+        '..A......A..',
+        '............'
+      ]
+      ]
+    }
   }
 };
 
@@ -1259,7 +1710,7 @@ var CLAWD_TAG_THEMES = ['light', 'dark', 'neon', 'invisible', 'rainbow', 'hologr
 var CLAWD_TRAVEL_FREQS = ['rarely', 'sometimes', 'always'];
 var CLAWD_START_CORNERS = ['br', 'bl', 'tr', 'tl'];
 var CLAWD_STUDIO_CORNERS = ['br', 'bl', 'tr', 'tl', 'free'];
-var CLAWD_POPUP_TABS = ['appearance', 'profession', 'behavior', 'actions', 'pets', 'shop', 'achievements', 'config'];
+var CLAWD_POPUP_TABS = ['appearance', 'profession', 'behavior', 'actions', 'pets', 'shop', 'achievements', 'focus', 'config'];
 var CLAWD_BALL_SKINS = ['classic', 'ball_gold', 'ball_beach'];
 /** Posição dos toasts: canto ou centro (padrão). */
 var CLAWD_TOAST_POSITIONS = ['bl', 'br', 'tl', 'tr', 'center', 'l', 'r'];
@@ -1275,8 +1726,9 @@ var CLAWD_TRELLO_BOARD_URL = 'https://trello.com/b/8wGr5tiQ/pet';
 var CLAWD_CONFIG_KEYS = [
   'name', 'color', 'eyeColor', 'model', 'faceStyle', 'scale', 'animSpeed',
   'smooth', 'outline', 'showMouth', 'showSpeech', 'autoWalk', 'sleepEnabled',
-  'skin', 'tagTheme', 'jerseyColor', 'ballSkin', 'accessoryHead', 'accessoryFace',
-  'accessoryBody', 'profession', 'particleColor', 'personality'
+  'skin', 'skinAccent', 'skinIntensity', 'tagTheme', 'jerseyColor', 'ballSkin',
+  'accessoryHead', 'accessoryFace', 'accessoryBody', 'profession', 'particleColor',
+  'personality'
 ];
 
 var CLAWD_SETTING_KEYS = [
@@ -1286,7 +1738,14 @@ var CLAWD_SETTING_KEYS = [
   'noParticles', 'noIdleVariations', 'noWeather', 'noAmbientSparks', 'minimalMode',
   'lastPopupTab', 'studioCorner', 'studioLeft', 'studioTop',
   'toastPosition', 'speechAnchor', 'emotionBadgeSide', 'locale',
-  'trelloBoardUrl', 'trelloBoardId'
+  'trelloBoardUrl', 'trelloBoardId',
+  /* v6 — Foco & Bem-estar */
+  'siteRules',
+  'pomodoroWorkMin', 'pomodoroBreakMin', 'pomodoroLongBreakMin',
+  'pomodoroCyclesPerLong', 'pomodoroAutoStart',
+  'timesinkGuard', 'timesinkLimitMin', 'timesinkIntervention',
+  'wellbeingReminders', 'eyeRest2020', 'waterReminder',
+  'postureReminder', 'affirmations', 'breathingOnBreak'
 ];
 
 var CLAWD_RUNTIME_ACTIONS = [
@@ -1294,7 +1753,10 @@ var CLAWD_RUNTIME_ACTIONS = [
   'updateSetting', 'triggerAction', 'setSubpet', 'setSubpetColor',
   'setSubpetEyeColor', 'triggerSubpetAction', 'claimDailyQuest', 'claimWeeklyChallenge',
   'weeklyReset', 'getStatus', 'openStudio', 'closeStudio', 'summonPetToTab',
-  'summonCheer', 'forceHidePet', 'createTrelloCard'
+  'summonCheer', 'forceHidePet', 'createTrelloCard',
+  /* v6 — Foco & Bem-estar */
+  'focusStart', 'focusPause', 'focusResume', 'focusStop', 'focusSkip', 'focusState',
+  'logMood', 'startBreathing', 'startGrounding', 'playCalmSound', 'wellbeingPing'
 ];
 
 /* ---- Variações de Idle (v3.4) ---- */
@@ -1325,7 +1787,8 @@ var CLAWD_DOM_CLEANUP_SELECTORS = [
   '#aic-clawd-node', '.aic-subpet', '#aic-footprints', '.aic-toast',
   '.aic-lake', '.aic-fishing-line', '.aic-fish-caught', '.aic-goalpost',
   '.aic-toyball', '.aic-dust', '.aic-particle', '.aic-pixel-spark',
-  '.aic-walk-dust', '.aic-subpet-particle', '#aic-clawd-studio'
+  '.aic-walk-dust', '.aic-subpet-particle', '#aic-clawd-studio',
+  '.clawd-breathe', '.clawd-grounding', '.clawd-softblock'
 ].join(',');
 
 function clawdIsHexColor(value) {
@@ -1389,6 +1852,7 @@ function clawdSanitizeConfigValue(key, value) {
     case 'color':
     case 'eyeColor':
     case 'jerseyColor':
+    case 'skinAccent':
       return clawdIsHexColor(value) ? value.toLowerCase() : null;
     case 'model':
       return Object.prototype.hasOwnProperty.call(CLAWD_MODELS, value) ? value : null;
@@ -1418,6 +1882,10 @@ function clawdSanitizeConfigValue(key, value) {
     case 'animSpeed': {
       const n = Number(value);
       return Number.isFinite(n) ? Math.max(0.5, Math.min(2, n)) : null;
+    }
+    case 'skinIntensity': {
+      const n = Number(value);
+      return Number.isFinite(n) ? Math.max(0.25, Math.min(1, n)) : null;
     }
     case 'smooth':
     case 'outline':
@@ -1526,9 +1994,65 @@ function clawdSanitizeSettingValue(key, value) {
         .map(s => clawdSanitizeHostname(s))
         .filter(Boolean)
         .slice(0, 40);
+    /* v6 — Foco & Bem-estar */
+    case 'siteRules':
+      return clawdSanitizeSiteRules(value);
+    case 'pomodoroWorkMin':
+      return clawdClampInt(value, 1, 180);
+    case 'pomodoroBreakMin':
+      return clawdClampInt(value, 1, 60);
+    case 'pomodoroLongBreakMin':
+      return clawdClampInt(value, 1, 120);
+    case 'pomodoroCyclesPerLong':
+      return clawdClampInt(value, 1, 12);
+    case 'timesinkLimitMin':
+      return clawdClampInt(value, 1, 600);
+    case 'timesinkIntervention':
+      return CLAWD_TIMESINK_INTERVENTIONS.includes(value) ? value : null;
+    case 'pomodoroAutoStart':
+    case 'timesinkGuard':
+    case 'wellbeingReminders':
+    case 'eyeRest2020':
+    case 'waterReminder':
+    case 'postureReminder':
+    case 'affirmations':
+    case 'breathingOnBreak':
+      return !!value;
     default:
       return null;
   }
+}
+
+/** Inteiro clampado [lo,hi] ou null se inválido. */
+function clawdClampInt(value, lo, hi) {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : null;
+}
+
+/** Sanitiza lista de regras por site (host + nível + categoria + frases opcionais). */
+function clawdSanitizeSiteRules(value) {
+  if (!Array.isArray(value)) return null;
+  const out = [];
+  const seen = new Set();
+  value.forEach((r) => {
+    if (!r || typeof r !== 'object') return;
+    const host = clawdSanitizeHostname(r.host);
+    if (!host || seen.has(host)) return;
+    const level = CLAWD_SITE_RULE_LEVELS.includes(r.level) ? r.level : 'nudge';
+    const category = CLAWD_SITE_CATEGORIES.includes(r.category) ? r.category : 'other';
+    const rule = { host, level, category };
+    if (Array.isArray(r.phrases)) {
+      const phrases = r.phrases
+        .filter((p) => typeof p === 'string')
+        .map((p) => clawdSanitizePlainText(p, 100))
+        .filter(Boolean)
+        .slice(0, 6);
+      if (phrases.length) rule.phrases = phrases;
+    }
+    seen.add(host);
+    out.push(rule);
+  });
+  return out.slice(0, 60);
 }
 
 function clawdValidateRuntimeMessage(request) {
@@ -1607,6 +2131,38 @@ function clawdValidateRuntimeMessage(request) {
       return { action, kind, name, desc };
     }
 
+    /* v6 — Foco & Bem-estar */
+    case 'focusStart':
+    case 'focusPause':
+    case 'focusResume':
+    case 'focusStop':
+    case 'focusSkip':
+    case 'startBreathing':
+    case 'startGrounding':
+      return { action };
+
+    case 'playCalmSound': {
+      const kind = ['rain', 'waves', 'forest', 'purr'].includes(request.kind) ? request.kind : null;
+      return kind ? { action, kind } : null;
+    }
+
+    case 'focusState': {
+      const focus = clawdSanitizeFocusBlock(request.focus, clawdDefaultState().focus);
+      return { action, focus };
+    }
+
+    case 'logMood': {
+      const mood = Math.round(Number(request.mood));
+      if (!Number.isFinite(mood) || mood < 1 || mood > 5) return null;
+      return { action, mood };
+    }
+
+    case 'wellbeingPing': {
+      const kinds = ['water', 'posture', 'eyeRest', 'stretch', 'affirm', 'breathe'];
+      const kind = kinds.includes(request.kind) ? request.kind : 'affirm';
+      return { action, kind };
+    }
+
     default:
       return null;
   }
@@ -1672,7 +2228,9 @@ function clawdDefaultState() {
     accessoryHead: 'none',
     accessoryFace: 'none',
     accessoryBody: 'none',         // v5: novo slot de corpo
-    skin: 'normal',               // normal | droopy | robot
+    skin: 'normal',
+    skinAccent: '#00cec9',         // cor dos detalhes de skins compatíveis
+    skinIntensity: 1,              // opacidade da camada de detalhes (0.25–1)
     tagTheme: 'light',            // light | dark | neon | invisible | rainbow | holographic | minimal
     jerseyColor: '#e74c3c',
     ballSkin: 'classic',          // classic | ball_gold | ball_beach
@@ -1702,6 +2260,31 @@ function clawdDefaultState() {
     subpets: { active: 'dog', unlocked: ['dog'], names: {}, colors: {}, eyeColors: {} },
     daily: clawdDailyQuestForDate(),
     weekly: clawdWeeklyChallengeForWeek(clawdISOWeek()), // v5: desafio semanal
+    /* v6: Pomodoro (estado ao vivo; durações espelham settings ao iniciar) */
+    focus: {
+      enabled: false,
+      phase: 'idle',              // idle | work | break | longBreak
+      cyclesDone: 0,
+      phaseEndsAt: 0,             // epoch ms; 0 = parado
+      paused: false,
+      pausedRemainingMs: 0,
+      autoStart: true,
+      sessionsToday: 0,
+      sessionsDay: '',
+      workMin: 25, breakMin: 5, longBreakMin: 15, cyclesPerLong: 4
+    },
+    /* v6: bem-estar (histórico de humor, respirações, streak saudável) */
+    wellbeing: {
+      moodLog: [],                // [{ day:'YYYY-MM-DD', mood:1..5 }]
+      lastMoodDay: '',
+      breathingCount: 0,
+      groundingCount: 0,
+      calmSoundCount: 0,
+      practiceLog: [],            // [{ day:'YYYY-MM-DD', kind:'breathing|grounding|sound' }]
+      healthyStreak: { days: 0, lastDay: '' }
+    },
+    /* v6: tempo de tela do dia (reset diário) */
+    screenTime: { day: '', byCategory: {}, totalSec: 0, timesinkSec: 0, focusSec: 0 },
     settings: {
       crossTab: true,
       travelFreq: 'sometimes',     // rarely | sometimes | always
@@ -1713,6 +2296,22 @@ function clawdDefaultState() {
       quietStart: '',              // "09:00"
       quietEnd: '',
       blockedSites: [],
+      /* v6 — Foco & Bem-estar (preferências) */
+      siteRules: [],               // [{ host, level, category, phrases? }]
+      pomodoroWorkMin: 25,
+      pomodoroBreakMin: 5,
+      pomodoroLongBreakMin: 15,
+      pomodoroCyclesPerLong: 4,
+      pomodoroAutoStart: true,
+      timesinkGuard: true,         // guarda anti-doomscroll
+      timesinkLimitMin: 15,        // minutos até começar a escalada
+      timesinkIntervention: 'nudge', // nudge | firm
+      wellbeingReminders: true,
+      eyeRest2020: true,           // descanso ocular 20-20-20
+      waterReminder: true,
+      postureReminder: true,
+      affirmations: true,
+      breathingOnBreak: true,      // sugerir respiração nas pausas do Pomodoro
       startCorner: 'br',           // br | bl | tr | tl
       toastPosition: 'center',     // bl | br | tl | tr | center | l | r (laterais)
       speechAnchor: 'auto',        // auto | left | right | above | below
@@ -1814,6 +2413,80 @@ function clawdSanitizeSettingsBlock(rawSettings, defSettings) {
     else settings[key] = safe;
   });
   return settings;
+}
+
+/* ---- v6: blocos de estado Foco & Bem-estar ---- */
+
+function clawdSanitizeFocusBlock(rawFocus, defFocus) {
+  const src = (rawFocus && typeof rawFocus === 'object') ? rawFocus : {};
+  const f = clawdPlainMerge(defFocus, src);
+  f.enabled = !!src.enabled;
+  f.paused = !!src.paused;
+  f.autoStart = typeof src.autoStart === 'boolean' ? src.autoStart : defFocus.autoStart;
+  f.phase = CLAWD_FOCUS_PHASES.includes(src.phase) ? src.phase : 'idle';
+  f.workMin = clawdClampInt(src.workMin, 1, 180) ?? defFocus.workMin;
+  f.breakMin = clawdClampInt(src.breakMin, 1, 60) ?? defFocus.breakMin;
+  f.longBreakMin = clawdClampInt(src.longBreakMin, 1, 120) ?? defFocus.longBreakMin;
+  f.cyclesPerLong = clawdClampInt(src.cyclesPerLong, 1, 12) ?? defFocus.cyclesPerLong;
+  f.cyclesDone = clawdClampInt(src.cyclesDone, 0, 99999) ?? 0;
+  f.sessionsToday = clawdClampInt(src.sessionsToday, 0, 99999) ?? 0;
+  f.sessionsDay = (typeof src.sessionsDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(src.sessionsDay))
+    ? src.sessionsDay : '';
+  const ends = Number(src.phaseEndsAt);
+  f.phaseEndsAt = Number.isFinite(ends) && ends > 0 ? ends : 0;
+  const rem = Number(src.pausedRemainingMs);
+  f.pausedRemainingMs = Number.isFinite(rem) && rem > 0 ? Math.min(rem, 1000 * 60 * 180) : 0;
+  return f;
+}
+
+function clawdSanitizeWellbeingBlock(rawWb, defWb) {
+  const src = (rawWb && typeof rawWb === 'object') ? rawWb : {};
+  const wb = clawdPlainMerge(defWb, src);
+  const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
+  wb.moodLog = Array.isArray(src.moodLog)
+    ? src.moodLog
+        .filter((e) => e && typeof e === 'object' && isDay(e.day))
+        .map((e) => ({ day: e.day, mood: Math.max(1, Math.min(5, Math.round(Number(e.mood) || 3))) }))
+        .slice(-90)
+    : [];
+  wb.lastMoodDay = isDay(src.lastMoodDay) ? src.lastMoodDay : '';
+  wb.breathingCount = clawdClampInt(src.breathingCount, 0, 99999) ?? 0;
+  wb.groundingCount = clawdClampInt(src.groundingCount, 0, 99999) ?? 0;
+  wb.calmSoundCount = clawdClampInt(src.calmSoundCount, 0, 99999) ?? 0;
+  const practiceKinds = ['breathing', 'grounding', 'sound'];
+  wb.practiceLog = Array.isArray(src.practiceLog)
+    ? src.practiceLog
+        .filter((e) => e && typeof e === 'object' && isDay(e.day) && practiceKinds.includes(e.kind))
+        .map((e) => ({ day: e.day, kind: e.kind }))
+        .slice(-180)
+    : [];
+  const hs = (src.healthyStreak && typeof src.healthyStreak === 'object') ? src.healthyStreak : {};
+  wb.healthyStreak = {
+    days: clawdClampInt(hs.days, 0, 99999) ?? 0,
+    lastDay: isDay(hs.lastDay) ? hs.lastDay : ''
+  };
+  return wb;
+}
+
+function clawdSanitizeScreenTimeBlock(rawSt, defSt) {
+  const src = (rawSt && typeof rawSt === 'object') ? rawSt : {};
+  const day = (typeof src.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(src.day)) ? src.day : '';
+  const byCategory = {};
+  if (src.byCategory && typeof src.byCategory === 'object') {
+    Object.keys(src.byCategory).forEach((cat) => {
+      if (!CLAWD_SITE_CATEGORIES.includes(cat)) return;
+      const n = Math.max(0, Math.min(86400, Math.round(Number(src.byCategory[cat]) || 0)));
+      if (n > 0) byCategory[cat] = n;
+    });
+  }
+  const clampSec = (v) => Math.max(0, Math.min(86400, Math.round(Number(v) || 0)));
+  return {
+    day: day || defSt.day,
+    byCategory,
+    totalSec: clampSec(src.totalSec),
+    timesinkSec: clampSec(src.timesinkSec),
+    focusSec: clampSec(src.focusSec)
+  };
 }
 
 function clawdSanitizeDailyBlock(rawDaily) {
@@ -1919,6 +2592,10 @@ function clawdSanitizeIdentityFields(merged, raw, def) {
   merged.eyeColor = eye == null ? def.eyeColor : eye;
   const color = clawdSanitizeConfigValue('color', merged.color);
   merged.color = color == null ? def.color : color;
+  const skinAccent = clawdSanitizeConfigValue('skinAccent', raw.skinAccent);
+  merged.skinAccent = skinAccent == null ? def.skinAccent : skinAccent;
+  const skinIntensity = clawdSanitizeConfigValue('skinIntensity', raw.skinIntensity);
+  merged.skinIntensity = skinIntensity == null ? def.skinIntensity : skinIntensity;
   merged.nicknameHistory = (Array.isArray(merged.nicknameHistory) ? merged.nicknameHistory : [])
     .map(n => clawdSanitizePlainText(n, 24))
     .filter(Boolean)
@@ -1944,6 +2621,9 @@ function clawdMigrateState(raw) {
   merged.daily = clawdSanitizeDailyBlock(raw.daily);
   clawdEnsureDailyQuest(merged);
   merged.settings = clawdSanitizeSettingsBlock(raw.settings, def.settings);
+  merged.focus = clawdSanitizeFocusBlock(raw.focus, def.focus);
+  merged.wellbeing = clawdSanitizeWellbeingBlock(raw.wellbeing, def.wellbeing);
+  merged.screenTime = clawdSanitizeScreenTimeBlock(raw.screenTime, def.screenTime);
   merged.position = clawdSanitizePositionBlock(raw.position, def.position);
   merged.petVisible = typeof raw.petVisible === 'boolean' ? raw.petVisible : def.petVisible;
   clawdApplyLegacyAccessoryMigration(merged, raw, v);
@@ -1997,6 +2677,20 @@ function clawdMigrateState(raw) {
   if (merged.settings.soundVolumeAmbient == null || !Number.isFinite(Number(merged.settings.soundVolumeAmbient))) {
     merged.settings.soundVolumeAmbient = 0.6;
   }
+  /* v6: converte blockedSites legado em siteRules(level:'block'), uma vez */
+  if (v < 6) {
+    const legacy = Array.isArray(merged.settings.blockedSites) ? merged.settings.blockedSites : [];
+    const existing = new Set(merged.settings.siteRules.map((r) => r.host));
+    legacy.forEach((h) => {
+      const host = clawdSanitizeHostname(h);
+      if (host && !existing.has(host)) {
+        merged.settings.siteRules.push({ host, level: 'block', category: 'other' });
+        existing.add(host);
+      }
+    });
+  }
+  /* Espelho: blockedSites sempre derivado das regras 'block' (mantém clawdHostIsBlocked). */
+  merged.settings.blockedSites = clawdBlockedFromRules(merged.settings.siteRules);
   merged.schemaVersion = CLAWD_SCHEMA_VERSION;
   return merged;
 }
@@ -2057,6 +2751,24 @@ if (typeof module !== 'undefined' && module.exports) {
     CLAWD_CONTEXT_REACTIONS,
     clawdPageContextFromHost,
     clawdHostMatchesDomain,
+    /* v6 — Foco & Bem-estar */
+    CLAWD_SITE_CATEGORIES,
+    CLAWD_SITE_RULE_LEVELS,
+    CLAWD_TIMESINK_INTERVENTIONS,
+    CLAWD_POMODORO_DEFAULTS,
+    CLAWD_FOCUS_PHASES,
+    CLAWD_TIMESINK_HOSTS,
+    clawdClassifyTimeSink,
+    clawdSiteRuleFor,
+    clawdBlockedFromRules,
+    clawdEscalationLevel,
+    clawdPomodoroNextPhase,
+    clawdScreenTimeAdd,
+    clawdClampInt,
+    clawdSanitizeSiteRules,
+    clawdSanitizeFocusBlock,
+    clawdSanitizeWellbeingBlock,
+    clawdSanitizeScreenTimeBlock,
     CLAWD_ACCESSORIES,
     CLAWD_MODELS,
     CLAWD_FACE_STYLES,

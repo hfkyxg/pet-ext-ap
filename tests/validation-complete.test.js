@@ -42,7 +42,7 @@ test('validação: cada skin do catálogo pinta .skin-mod no CSS', () => {
     if (id === 'normal') continue; /* baseline sem override obrigatório */
     assert.match(style, new RegExp(`\\[data-skin="${id}"\\][\\s\\S]{0,120}\\.skin-mod`), `skin ${id}`);
   }
-  assert.equal(Object.keys(CLAWD_SKINS).length, 7);
+  assert.equal(Object.keys(CLAWD_SKINS).length, 11);
   assert.equal(Object.keys(CLAWD_FACE_STYLES).length, 9);
 });
 
@@ -292,13 +292,13 @@ test('validação: streak pill + counters; daily 14 / weekly 12', () => {
   clawdRegisterWeeklyProgress(st, st.weekly?.type || 'combo', 1);
 });
 
-test('validação: cross-tab travel + footprints no SW; subpets 8×7; SFX dual', () => {
+test('validação: cross-tab travel + footprints no SW; subpets 11×7; SFX dual', () => {
   assert.match(background, /travel|crossTab|footprint/i);
   assert.match(background, /summonPetToTab|assignHost\(tabId\)/);
   assert.match(content, /clawdHasSavedPosition|clawdDefaultPositionCoords/);
   assert.match(content, /petVisible/);
   assert.match(popupHtml, /btn-summon-tab|Seguir nesta guia/);
-  assert.equal(Object.keys(CLAWD_SUBPETS).length, 8);
+  assert.equal(Object.keys(CLAWD_SUBPETS).length, 11);
   assert.equal(Object.keys(CLAWD_SUBPET_ACTIONS).length, 7);
   assert.match(content, /soundVolumeActions|soundVolumeAmbient|'actions'/);
   assert.match(content, /master\s*<=\s*0\)\s*return/);
@@ -352,7 +352,10 @@ test('validação: babinha drool + balão/badge seguem --agent-scale', () => {
 });
 
 test('validação: skins com animação + partículas pixel ricas', () => {
-  for (const skin of ['freckles', 'stripes', 'spots', 'droopy', 'glow', 'robot']) {
+  for (const skin of [
+    'freckles', 'stripes', 'spots', 'droopy', 'glow', 'robot',
+    'cosmic', 'crystal', 'ember', 'ocean'
+  ]) {
     assert.match(style, new RegExp(`data-skin="${skin}"[\\s\\S]{0,120}animation:`), `skin ${skin}`);
   }
   assert.match(style, /@keyframes clawd-pixel-spark-twinkle/);
@@ -366,13 +369,20 @@ test('validação: skins com animação + partículas pixel ricas', () => {
   assert.doesNotMatch(style, /@keyframes clawd-pixel-spark \{[\s\S]{0,280}rotate\(180deg\)/);
 
   /* v3.7.3: skin reage à ação — keyframes de reação existem e estão ligados a estados */
-  for (const kf of ['droopy-flop', 'droopy-run', 'robot-alert', 'glow-flare', 'pop', 'stripe-streak']) {
+  for (const kf of [
+    'droopy-flop', 'droopy-run', 'robot-alert', 'glow-flare', 'pop', 'stripe-streak',
+    'cosmic-orbit', 'crystal-refract', 'ember-flare', 'ocean-splash'
+  ]) {
     assert.match(style, new RegExp(`@keyframes clawd-skin-${kf}\\b`), `keyframe reação ${kf}`);
   }
   assert.match(style, /\[data-skin="droopy"\]\.jumping \.skin-mod[\s\S]{0,400}clawd-skin-droopy-flop/);
   assert.match(style, /\[data-skin="robot"\]\.excited \.skin-mod[\s\S]{0,400}clawd-skin-robot-alert/);
   assert.match(style, /\[data-skin="glow"\]\.celebrate \.skin-mod[\s\S]{0,400}clawd-skin-glow-flare/);
   assert.match(style, /\[data-skin="stripes"\]\.running \.skin-mod[\s\S]{0,120}clawd-skin-stripe-streak/);
+  assert.match(style, /\[data-skin="cosmic"\]\.happy \.skin-mod[\s\S]{0,700}clawd-skin-cosmic-orbit/);
+  assert.match(style, /\[data-skin="crystal"\]\.happy \.skin-mod[\s\S]{0,500}clawd-skin-crystal-refract/);
+  assert.match(style, /\[data-skin="ember"\]\.running \.skin-mod[\s\S]{0,500}clawd-skin-ember-flare/);
+  assert.match(style, /\[data-skin="ocean"\]\.bathing \.skin-mod[\s\S]{0,500}clawd-skin-ocean-splash/);
   /* reações herdam gate de reduced-motion */
   assert.match(style, /:not\(\.aic-reduced-motion\)\[data-skin="droopy"\]\.happy \.skin-mod/);
   /* Name-tag neon/holographic — anti-bloom (sem text-shadow blur) */

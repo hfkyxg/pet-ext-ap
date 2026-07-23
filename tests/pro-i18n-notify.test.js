@@ -170,7 +170,7 @@ test('pro: createTrelloCard allowlist + CSS data-pos / popup selects', () => {
   assert.match(html, /data-i18n-aria="quick_actions_aria"/);
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
-  assert.equal(manifest.version, '3.8.0');
+  assert.equal(manifest.version, '4.0.0');
   assert.ok(manifest.host_permissions.includes('https://api.trello.com/*'));
   assert.ok(manifest.content_scripts[0].js.includes('src/shared/i18n.js'));
 

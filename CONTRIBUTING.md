@@ -29,6 +29,8 @@ Obrigado por contribuir! Esta extensão é **Chrome MV3**, vanilla JS, **sem bun
 - [ ] Credenciais Trello só em `chrome.storage.local` (`clawdTrello`) — nunca no código
 - [ ] XSS: preferir `textContent` / `clawdSanitizePlainText`
 - [ ] Mensagens runtime passam por `clawdValidateRuntimeMessage`
+- [ ] Movimento segue [`docs/MOTION.md`](./docs/MOTION.md): sem `transition: all`, sem disputa de `animation`, reduced-motion e cleanup de rAF/timers
+- [ ] Interações novas funcionam com teclado, foco visível e atributos ARIA coerentes
 - [ ] Docs (README / MANUAL / CHANGELOG / VALIDACAO) atualizados se o comportamento mudou
 
 ## Arquitetura rápida
@@ -37,8 +39,9 @@ Obrigado por contribuir! Esta extensão é **Chrome MV3**, vanilla JS, **sem bun
 - Content: `src/content/content.js` + `style.css`
 - Popup: `src/popup/*`
 - Service worker: `src/background/background.js` (presença cross-tab + Trello API)
-- Schema de settings: v5 (`toastPosition`, `speechAnchor`, `emotionBadgeSide`, `locale`, `trelloBoardUrl`, `trelloBoardId`)
-- Gate atual: **197/197** contratos (`npm test`)
+- Schema: v6 (`focus`, `wellbeing`, `screenTime`, regras por site e settings de foco; preserva os campos v5)
+- Gate atual: **250/250** contratos (`npm test`)
+- Não versionar arquivos/pastas com nome começando em `_` na raiz do pacote (exceto `_locales` / `_metadata`) — o Chromium recusa o load unpacked
 
 ## Feedback / Trello
 

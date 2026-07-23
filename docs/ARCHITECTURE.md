@@ -7,12 +7,12 @@ Extensão Chrome MV3 **vanilla** (sem bundler). Há um `package.json` só para s
 | Camada | Onde | Papel |
 |--------|------|--------|
 | **Catálogo (SSOT)** | `src/shared/catalog.js` | Fonte única de verdade: modelos, rostos, acessórios, profissões, sub-pets, loja, conquistas, migrações e helpers de estado. Carrega **depois** de `i18n.js` e **antes** de `content.js` (lista no `manifest.json`). |
-| **Runtime** | `src/content/content.js` + `style.css` | Motor do mascote na página: DOM, animação (`rAF`), interações, stats, áudio. Subpet: follow com `dt` + `IntersectionObserver` off-screen. |
+| **Runtime** | `src/content/content.js` + `style.css` | Motor do mascote na página: DOM, animação (`rAF`), interações, stats, áudio. Subpet: follow com `dt` + `IntersectionObserver` off-screen. Falas: layout geométrico com quatro candidatos, clamp e colisões. |
 | **Presença** | `src/background/background.js` | Service worker: bootstrap de storage, reinjeção segura, healthcheck cross-tab. |
 | **UI** | `src/popup/*` + `src/shared/i18n.js` + `i18n-entities.js` | Controles, preview, studio; chrome i18n (11 locales); entidades dinâmicas; onboarding idioma/canto; `content/style.css` injetado pós-parse (boot MV3); messaging tipado. |
 | **Assets** | `src/assets/`, `src/shared/sprites/` | Ícones, banners SVG, PNGs de sub-pets (`web_accessible_resources`). |
 | **Docs / Labs** | `docs/` | Vitrine HTML, arquitetura e markdown de produto em `docs/md/`. |
-| **Testes** | `tests/*.test.js` (**197**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, ecosystem estático, audit e smoke Edge. |
+| **Testes** | `tests/*.test.js` (**240**), `runtime-smoke.mjs`, `tools/validate-ecosystem.mjs`, `tools/audit-pack.mjs` | Contratos, movimento/interação, ecosystem estático, audit e smoke Edge (inclui fala desktop e 375 px). |
 
 ```
 manifest.json
@@ -31,7 +31,7 @@ manifest.json
 - **Facade (messaging)** — popup/background não mexem no DOM do pet; enviam ações allowlisted (`chrome.tabs.sendMessage` / `runtime.onMessage`) que o companion interpreta.
 - **Strategy (profissões)** — `CLAWD_PROFESSIONS` + `clawdEffectiveAccessories()` escolhem gear/comportamento por contexto sem `if` espalhado de uniforme.
 - **SSOT / Shared Kernel** — catálogo compartilhado entre content, popup, docs e testes (`require` / script clássico, não ES modules na injeção).
-- **Migration script** — `clawdMigrateState` normaliza saves antigos antes do runtime (suporta v1/v2/v4 → v5 incrementalmente).
+- **Migration script** — `clawdMigrateState` normaliza saves antigos antes do runtime (suporta v1/v2/v4/v5 → v6 incrementalmente).
 
 ## Gamificação 2.0 (v3.3)
 
@@ -44,18 +44,27 @@ manifest.json
 ### Slot de Corpo (3 slots)
 `clawdEffectiveAccessories()` retorna três slots: `head/userHead/headSource`, `face/userFace/faceSource`, **`body/userBody/bodySource`**. CSS usa `[data-acc-body="wings"]` etc. Profissões podem sobrepor qualquer slot; acessórios pessoais voltam ao desvestir.
 
-### Schema v5
-`CLAWD_SCHEMA_VERSION = 5`. Bloco de migração em `clawdMigrateState()`:
+### Schema v6
+`CLAWD_SCHEMA_VERSION = 6`. A migração é aditiva: preserva personalização/gamificação do v5 e acrescenta foco, bem-estar, tempo de tela e regras por site.
+
 ```js
-if (v < 5) {
-  s.personality = { playful: 5, lazy: 3, curious: 7, social: 5, foodie: 4 };
-  s.accessories.body = null;
-  s.weekly = { questIndex: 0, progress: 0, claimed: false, weekKey: '' };
-  s.customSpeech = []; s.particleColor = null;
-  s.soundVolumeActions = 1; s.soundVolumeAmbient = 0.6;
-  s.counters.streakDays = s.game?.streak?.days || 0;
+if (v < 6) {
+  // defaults de focus/wellbeing/screenTime já vieram do merge seguro
+  // aqui blockedSites legado é convertido em siteRules(level: 'block')
 }
 ```
+
+Sanitizers dedicados (`clawdSanitizeFocusBlock`, `clawdSanitizeWellbeingBlock`, `clawdSanitizeSiteRules`) impedem fases, durações, humor ou hosts inválidos.
+
+### Sistema de movimento
+
+O contrato completo está em [MOTION.md](./MOTION.md). Em resumo: rAF + `dt` para deslocamento; `CLAWD_TIMINGS` para relógios/fallbacks e a janela `AUTONOMY_GRACE_MS`; tokens CSS equivalentes entre runtime, popup e showcase; nenhuma transição genérica; halo de foco em camada própria; movimento reduzido e foco de teclado como requisitos.
+
+### Layout de fala e camada de interação
+
+`_scheduleSpeechLayout()` mede o balão principal em `requestAnimationFrame`, depois que o conteúdo já tem tamanho natural. `_layoutSpeechBubble()` pontua candidatos `above|left|right|below` por overflow e interseção com sprite, etiqueta, badge, subpet e a segunda fala. `SubPet._layoutBubble()` repete o contrato na perspectiva do companheiro. As posições finais usam `left/top` relativos às raízes móveis, então acompanham o deslocamento sem herdar a perspectiva do personagem.
+
+O wrapper `.pet-look-layer` recebe o efeito 3D; fala, badge, bola e hitbox ficam fora dele. O nó principal e o subpet têm semântica de botão, foco visível e atalhos equivalentes. Mouse/touch distinguem clique, duplo clique, long press e arraste; `destroy()` cancela os novos rAF/timers.
 
 ### Detecção de Contexto (11 categorias)
 
@@ -90,6 +99,7 @@ Até existir um plano explícito (lista de arquivos, ordem de carga, smoke de re
 | Timeouts nomeados | lista explícita em `destroy()` (`_saveTimer`, `_idleVarTimer`, `_scrollIdleTimer`, combo, etc.) |
 | Sub-pet | `SubPet._later` → `Set` `_actionTimers`, limpo no `destroy()`; rAF com `dt`; `IntersectionObserver` pausa off-screen |
 | Partículas | `_trackParticle` registra em `_particleTimers`; cap `_canSpawnFx` ≤ **18** |
+| Saída de overlays | `_removeAfterMotion` espera `transitionend`/`transitioncancel`; fallback em `_motionExitTimers`, limpo no teardown |
 | Listeners DOM | `AbortController` (`this._abort`) + remoção manual de scroll/visibility v3.4 |
 
 Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
@@ -122,7 +132,7 @@ Reinjeção: boot token + `window.__clawd.destroy()` antes de nova instância.
 | PNGs canônicos dos sub-pets | `node tests/tools/crop-literal-sprites.mjs` |
 | Frames/preview (não sobrescreve pacote) | `node tests/tools/make-sprites.mjs` |
 | Ícones da extensão | `node tests/tools/make-icons.mjs` |
-| Suíte de contratos | `npm test` (**197**) |
+| Suíte de contratos | `npm test` (**240**) |
 | Ecosystem estático | `npm run ecosystem` |
 | Smoke Edge | `npm run smoke` |
 
@@ -130,7 +140,7 @@ Detalhes de uso: [README da pasta tools](../tests/tools/README.md) · índice de
 
 ## Fase seguinte — padrões e produto (pós-validação)
 
-O núcleo (animações, ações, sub-pets, schema v5, suíte de contratos) está **sólido**. Prioridade passa a ser aprofundar, não reescrever:
+O núcleo (animações, ações, sub-pets, schema v6, suíte de contratos) está **sólido**. Prioridade passa a ser aprofundar, não reescrever:
 
 | Eixo | Padrão / direção | Próximos ganhos |
 |------|------------------|-----------------|

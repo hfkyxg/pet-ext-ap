@@ -129,7 +129,7 @@ test('sub-pets oferecem as interações do catálogo', () => {
   for (const [id, a] of Object.entries(CLAWD_SUBPET_ACTIONS)) {
     assert.ok(a.emoji && a.label && a.feedback, `metadados faltando em ${id}`);
   }
-  /* Matriz 8 espécies × 7 ações — todas mapeadas em SubPet.interact */
+  /* Matriz 11 espécies × 7 ações — todas mapeadas em SubPet.interact */
   const content = read('src/content/content.js');
   const interactIdx = content.indexOf('interact(kind, { force = false, silent = false } = {})');
   assert.ok(interactIdx > 0, 'SubPet.interact ausente');
@@ -137,7 +137,7 @@ test('sub-pets oferecem as interações do catálogo', () => {
   for (const action of Object.keys(CLAWD_SUBPET_ACTIONS)) {
     assert.match(interactSlice, new RegExp(`case '${action}':`), `ação ${action} sem case em interact`);
   }
-  assert.equal(Object.keys(CLAWD_SUBPETS).length, 8);
+  assert.equal(Object.keys(CLAWD_SUBPETS).length, 11);
   for (const species of Object.keys(CLAWD_SUBPETS)) {
     assert.match(content, new RegExp(`${species}:\\s*\\(`), `espécie ${species} sem handler _special`);
   }

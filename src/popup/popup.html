@@ -18,7 +18,7 @@
     </div>
     <div class="header-info">
       <div class="header-top">
-        <h1 class="brand">Claw'd <span class="version">v3.8.0</span></h1>
+        <h1 class="brand">Claw'd <span class="version">v4.0.0</span></h1>
         <span class="coins-pill" id="coins-pill" title="PixelCoins">🪙 <span id="coins-count">0</span></span>
       </div>
       <div class="xp-area">
@@ -129,24 +129,25 @@
         <div class="onboarding-feature"><span>🏆</span><div><b data-i18n="onboarding_feat_ach">Conquistas</b><small data-i18n="onboarding_feat_ach_desc">34 conquistas + 12 desafios semanais rotativos</small></div></div>
         <div class="onboarding-feature"><span>❤️</span><div><b data-i18n="onboarding_feat_play">Interações</b><small data-i18n="onboarding_feat_play_desc">Clique, arraste, role — o pet sempre reage!</small></div></div>
       </div>
-      <button class="btn-primary onboarding-start" id="onboarding-start" data-i18n="onboarding_start">Começar! 🐾</button>
+      <button type="button" class="btn-primary onboarding-start" id="onboarding-start" data-i18n="onboarding_start">Começar! 🐾</button>
     </div>
   </div>
 
   <!-- TABS -->
-  <nav class="tabs">
-    <button class="tab active" data-tab="appearance" data-i18n-title="tab_appearance" title="Aparência">🎨</button>
-    <button class="tab" data-tab="profession" data-i18n-title="tab_profession" title="Profissão">💼</button>
-    <button class="tab" data-tab="behavior" data-i18n-title="tab_behavior" title="Comportamento">🧠</button>
-    <button class="tab" data-tab="actions" data-i18n-title="tab_actions" title="Ações">⚡</button>
-    <button class="tab" data-tab="pets" data-i18n-title="tab_pets" title="Sub-Pets">🐕</button>
-    <button class="tab" data-tab="shop" data-i18n-title="tab_shop" title="Lojinha">🛍️</button>
-    <button class="tab" data-tab="achievements" data-i18n-title="tab_achievements" title="Conquistas">🏆</button>
-    <button class="tab" data-tab="config" data-i18n-title="tab_config" title="Configurações">⚙️</button>
+  <nav class="tabs" role="tablist" aria-label="Seções do Claw'd">
+    <button type="button" class="tab active" id="tab-button-appearance" role="tab" aria-selected="true" aria-controls="tab-appearance" data-tab="appearance" data-i18n-title="tab_appearance" data-i18n-aria="tab_appearance" aria-label="Aparência" title="Aparência">🎨</button>
+    <button type="button" class="tab" id="tab-button-profession" role="tab" aria-selected="false" aria-controls="tab-profession" tabindex="-1" data-tab="profession" data-i18n-title="tab_profession" data-i18n-aria="tab_profession" aria-label="Profissão" title="Profissão">💼</button>
+    <button type="button" class="tab" id="tab-button-behavior" role="tab" aria-selected="false" aria-controls="tab-behavior" tabindex="-1" data-tab="behavior" data-i18n-title="tab_behavior" data-i18n-aria="tab_behavior" aria-label="Comportamento" title="Comportamento">🧠</button>
+    <button type="button" class="tab" id="tab-button-actions" role="tab" aria-selected="false" aria-controls="tab-actions" tabindex="-1" data-tab="actions" data-i18n-title="tab_actions" data-i18n-aria="tab_actions" aria-label="Ações" title="Ações">⚡</button>
+    <button type="button" class="tab" id="tab-button-pets" role="tab" aria-selected="false" aria-controls="tab-pets" tabindex="-1" data-tab="pets" data-i18n-title="tab_pets" data-i18n-aria="tab_pets" aria-label="Sub-Pets" title="Sub-Pets">🐕</button>
+    <button type="button" class="tab" id="tab-button-shop" role="tab" aria-selected="false" aria-controls="tab-shop" tabindex="-1" data-tab="shop" data-i18n-title="tab_shop" data-i18n-aria="tab_shop" aria-label="Lojinha" title="Lojinha">🛍️</button>
+    <button type="button" class="tab" id="tab-button-achievements" role="tab" aria-selected="false" aria-controls="tab-achievements" tabindex="-1" data-tab="achievements" data-i18n-title="tab_achievements" data-i18n-aria="tab_achievements" aria-label="Conquistas" title="Conquistas">🏆</button>
+    <button type="button" class="tab" id="tab-button-focus" role="tab" aria-selected="false" aria-controls="tab-focus" tabindex="-1" data-tab="focus" data-i18n-title="tab_focus" data-i18n-aria="tab_focus" aria-label="Foco e bem-estar" title="Foco &amp; Bem-estar">⏳</button>
+    <button type="button" class="tab" id="tab-button-config" role="tab" aria-selected="false" aria-controls="tab-config" tabindex="-1" data-tab="config" data-i18n-title="tab_config" data-i18n-aria="tab_config" aria-label="Configurações" title="Configurações">⚙️</button>
   </nav>
 
   <!-- PAINEL APARÊNCIA -->
-  <div class="tab-panel active" id="tab-appearance">
+  <div class="tab-panel active" id="tab-appearance" role="tabpanel" aria-labelledby="tab-button-appearance">
 
     <section class="outfit-preview-card" aria-labelledby="outfit-preview-title">
       <div class="outfit-preview-copy">
@@ -254,6 +255,20 @@
     <div class="control-group">
       <label data-i18n="label_skin">Skin do corpo</label>
       <div class="skin-art-grid" id="skin-grid"></div>
+      <p class="customization-description" id="skin-description">Escolha uma skin para ver seus detalhes.</p>
+      <div class="skin-tuning-grid" aria-label="Personalização da skin">
+        <label class="skin-tuning-control" for="input-skin-accent">
+          <span>Cor de destaque</span>
+          <span class="skin-color-control">
+            <input type="color" id="input-skin-accent" value="#00cec9" aria-describedby="skin-accent-hex">
+            <output id="skin-accent-hex" for="input-skin-accent">#00cec9</output>
+          </span>
+        </label>
+        <label class="skin-tuning-control" for="range-skin-intensity">
+          <span>Intensidade <output class="value-badge" id="skin-intensity-badge" for="range-skin-intensity">100%</output></span>
+          <input type="range" id="range-skin-intensity" min="0.25" max="1" step="0.25" value="1">
+        </label>
+      </div>
     </div>
 
     <div class="control-group">
@@ -275,7 +290,7 @@
   </div>
 
   <!-- PAINEL PROFISSÃO -->
-  <div class="tab-panel" id="tab-profession">
+  <div class="tab-panel" id="tab-profession" role="tabpanel" aria-labelledby="tab-button-profession" hidden>
     <p class="section-hint" data-i18n="hint_profession">A profissão define o comportamento e as reações do pet ao contexto da página.</p>
     <div class="profession-grid" id="profession-grid"></div>
 
@@ -292,7 +307,7 @@
   </div>
 
   <!-- PAINEL COMPORTAMENTO -->
-  <div class="tab-panel" id="tab-behavior">
+  <div class="tab-panel" id="tab-behavior" role="tabpanel" aria-labelledby="tab-button-behavior" hidden>
     <div class="toggle-row">
       <div class="toggle-info">
         <span class="toggle-label" data-i18n="toggle_speech">Balão de fala</span>
@@ -370,7 +385,7 @@
   </div>
 
   <!-- PAINEL AÇÕES -->
-  <div class="tab-panel" id="tab-actions">
+  <div class="tab-panel" id="tab-actions" role="tabpanel" aria-labelledby="tab-button-actions" hidden>
     <div class="actions-grid" id="actions-grid"></div>
     <div class="divider"></div>
     <button id="btn-toggle" class="btn btn-outline"><span>👁️</span> <span id="btn-toggle-label" data-i18n="btn_hide_pet">Ocultar pet</span></button>
@@ -380,7 +395,7 @@
   </div>
 
   <!-- PAINEL SUB-PETS -->
-  <div class="tab-panel" id="tab-pets">
+  <div class="tab-panel" id="tab-pets" role="tabpanel" aria-labelledby="tab-button-pets" hidden>
     <p class="section-hint" data-i18n="hint_subpets">O Claw'd também merece um pet! Desbloqueie subindo de nível. Só 1 ativo por vez.</p>
     <div class="subpet-grid" id="subpet-grid"></div>
     <div class="control-group" id="subpet-name-group" style="display:none">
@@ -408,13 +423,13 @@
   </div>
 
   <!-- PAINEL LOJA -->
-  <div class="tab-panel" id="tab-shop">
+  <div class="tab-panel" id="tab-shop" role="tabpanel" aria-labelledby="tab-button-shop" hidden>
     <p class="section-hint" data-i18n="hint_shop">Ganhe 🪙 PixelCoins navegando, brincando e completando desafios (≈1 coin a cada 5 XP).</p>
     <div class="shop-grid" id="shop-grid"></div>
   </div>
 
   <!-- PAINEL CONQUISTAS -->
-  <div class="tab-panel" id="tab-achievements">
+  <div class="tab-panel" id="tab-achievements" role="tabpanel" aria-labelledby="tab-button-achievements" hidden>
     <div class="ach-summary" id="ach-summary">0 / 25 desbloqueadas</div>
     <div class="daily-quest" id="daily-quest" aria-live="polite"></div>
     <div class="weekly-challenge" id="weekly-challenge" aria-live="polite"></div>
@@ -423,8 +438,136 @@
     <div class="streak-box" id="streak-box">🔥 Streak: <b>0 dias</b></div>
   </div>
 
+  <!-- PAINEL FOCO & BEM-ESTAR -->
+  <div class="tab-panel" id="tab-focus" role="tabpanel" aria-labelledby="tab-button-focus" hidden>
+    <p class="section-hint" data-i18n="hint_focus">Use bem seu tempo: Pomodoro, menos rolagem infinita e lembretes de bem-estar.</p>
+
+    <!-- Pomodoro -->
+    <section class="focus-card">
+      <div class="focus-timer">
+        <div class="focus-phase" id="focus-phase" aria-live="polite" data-i18n="focus_idle">Pronto para focar</div>
+        <div class="focus-clock" id="focus-clock" role="timer" aria-atomic="true">25:00</div>
+        <div class="focus-cycles" id="focus-cycles" aria-live="polite"></div>
+      </div>
+      <div class="focus-controls">
+        <button type="button" class="btn-primary" id="focus-start" data-i18n="focus_start">▶ Iniciar foco</button>
+        <button type="button" class="btn-mini" id="focus-pause" data-i18n-title="focus_pause" title="Pausar/Retomar" aria-label="Pausar ou retomar foco" aria-pressed="false" disabled>⏸</button>
+        <button type="button" class="btn-mini" id="focus-skip" data-i18n-title="focus_skip" title="Pular fase" aria-label="Pular fase" disabled>⏭</button>
+        <button type="button" class="btn-mini" id="focus-stop" data-i18n-title="focus_stop" title="Parar" aria-label="Parar foco" disabled>⏹</button>
+      </div>
+      <div class="focus-durations">
+        <label><span data-i18n="focus_work">Foco</span><input type="number" id="pomo-work" min="1" max="180" value="25"></label>
+        <label><span data-i18n="focus_break">Pausa</span><input type="number" id="pomo-break" min="1" max="60" value="5"></label>
+        <label><span data-i18n="focus_longbreak">Pausa longa</span><input type="number" id="pomo-longbreak" min="1" max="120" value="15"></label>
+        <label><span data-i18n="focus_cycles">Ciclos/longa</span><input type="number" id="pomo-cycles" min="1" max="12" value="4"></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="toggle-label" data-i18n="focus_autostart">▶️ Auto-iniciar próxima fase</span>
+          <span class="toggle-desc" data-i18n="focus_autostart_desc">Encadeia foco e pausa sem clique.</span>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="pomo-autostart" checked><span class="slider"></span></label>
+      </div>
+    </section>
+
+    <!-- Tempo de tela -->
+    <section class="focus-card">
+      <label data-i18n="screentime_title">📊 Tempo de tela hoje</label>
+      <div id="screentime-summary" class="screentime-summary"></div>
+    </section>
+
+    <!-- Anti-doomscroll -->
+    <section class="focus-card">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="toggle-label" data-i18n="timesink_guard">🛑 Guarda anti-rolagem</span>
+          <span class="toggle-desc" data-i18n="timesink_guard_desc">O pet intervém em TikTok/Shorts/Reels e afins.</span>
+        </div>
+        <label class="toggle-switch"><input type="checkbox" id="timesink-guard" checked><span class="slider"></span></label>
+      </div>
+      <div class="focus-inline">
+        <label for="timesink-limit"><span data-i18n="timesink_limit">Limite (min)</span></label>
+        <input type="number" id="timesink-limit" min="1" max="600" value="15">
+        <select id="timesink-intervention">
+          <option value="nudge" data-i18n-option="timesink_nudge">Gentil</option>
+          <option value="firm" data-i18n-option="timesink_firm">Firme</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Central de calma -->
+    <section class="focus-card calm-card" aria-labelledby="calm-tools-title">
+      <label id="calm-tools-title" data-i18n="calm_tools_title">🫶 Central de calma</label>
+      <p class="calm-intro" data-i18n="calm_tools_desc">Práticas curtas para desacelerar e voltar ao presente, no seu ritmo.</p>
+      <div class="calm-action-grid">
+        <button type="button" class="calm-action" id="breathe-now">
+          <span aria-hidden="true">🌬️</span><span data-i18n="breathe_now">Reset de 1 minuto</span>
+        </button>
+        <button type="button" class="calm-action" id="grounding-now">
+          <span aria-hidden="true">🖐️</span><span data-i18n="grounding_now">Grounding 5-4-3-2-1</span>
+        </button>
+      </div>
+      <span class="calm-sound-label" data-i18n="calm_sounds_title">Assinaturas sonoras curtas</span>
+      <div class="calm-sound-grid" role="group" data-i18n-aria="calm_sounds_aria" aria-label="Sons curtos para uma pausa calma">
+        <button type="button" data-calm-sound="rain"><span aria-hidden="true">🌧️</span><span data-i18n="calm_rain">Chuva</span></button>
+        <button type="button" data-calm-sound="waves"><span aria-hidden="true">🌊</span><span data-i18n="calm_waves">Ondas</span></button>
+        <button type="button" data-calm-sound="forest"><span aria-hidden="true">🌲</span><span data-i18n="calm_forest">Floresta</span></button>
+        <button type="button" data-calm-sound="purr"><span aria-hidden="true">🐈</span><span data-i18n="calm_purr">Ronronar</span></button>
+      </div>
+      <p class="calm-feedback" id="calm-sound-feedback" role="status" aria-live="polite"></p>
+      <p class="wellbeing-disclaimer" data-i18n="wellbeing_disclaimer">Ferramentas de apoio ao bem-estar; não substituem cuidado profissional.</p>
+    </section>
+
+    <!-- Bem-estar -->
+    <section class="focus-card">
+      <label data-i18n="wellbeing_title">🌿 Bem-estar</label>
+      <div class="mood-check">
+        <span class="toggle-desc" data-i18n="mood_prompt">Como você está?</span>
+        <div class="mood-row" id="mood-row" role="group" aria-label="Como você está hoje?">
+          <button type="button" data-mood="1" title="Difícil" aria-label="Humor: difícil" aria-pressed="false">😞</button>
+          <button type="button" data-mood="2" title="Meh" aria-label="Humor: meh" aria-pressed="false">🙁</button>
+          <button type="button" data-mood="3" title="Neutro" aria-label="Humor: neutro" aria-pressed="false">😐</button>
+          <button type="button" data-mood="4" title="Bem" aria-label="Humor: bem" aria-pressed="false">🙂</button>
+          <button type="button" data-mood="5" title="Ótimo" aria-label="Humor: ótimo" aria-pressed="false">🤩</button>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-label" data-i18n="wb_reminders">🔔 Lembretes de bem-estar</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="wb-reminders" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-label" data-i18n="wb_eye">👀 Descanso ocular 20-20-20</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="wb-eye" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-label" data-i18n="wb_water">💧 Lembrete de hidratação</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="wb-water" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-label" data-i18n="wb_posture">🪑 Lembrete de postura</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="wb-posture" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-label" data-i18n="wb_affirm">✨ Afirmações positivas</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="wb-affirm" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-label" data-i18n="wb_breathe_break">🌬️ Respirar nas pausas do foco</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="wb-breathe-break" checked><span class="slider"></span></label>
+      </div>
+    </section>
+
+    <!-- Progresso local -->
+    <section class="focus-card wellbeing-progress-card" aria-labelledby="wellbeing-progress-title">
+      <label id="wellbeing-progress-title" data-i18n="wellbeing_progress_title">📈 Seu ritmo</label>
+      <div class="wellbeing-insights" id="wellbeing-insights"></div>
+      <p class="wellbeing-recommendation" id="wellbeing-recommendation" role="status" aria-live="polite"></p>
+      <p class="wellbeing-local-note" data-i18n="wellbeing_local_note">Humor e práticas ficam somente neste navegador.</p>
+    </section>
+  </div>
+
   <!-- PAINEL CONFIG -->
-  <div class="tab-panel" id="tab-config">
+  <div class="tab-panel" id="tab-config" role="tabpanel" aria-labelledby="tab-button-config" hidden>
 
     <div class="control-group">
       <label for="select-locale" data-i18n="lang_label">Idioma</label>
@@ -475,9 +618,21 @@
     </div>
 
     <div class="control-group">
-      <label for="blocked-sites" data-i18n="label_blocked">🚫 Sites bloqueados</label>
-      <textarea id="blocked-sites" rows="3" placeholder="um domínio por linha&#10;ex: meubanco.com.br"></textarea>
-      <span class="toggle-desc" data-i18n="label_blocked_desc">O pet não aparece nesses domínios.</span>
+      <label data-i18n="label_site_rules">🎯 Regras por site</label>
+      <span class="toggle-desc" data-i18n="label_site_rules_desc">Escolha como o Claw'd age em cada site: bloquear, cutucar, limitar, impulsionar ou ignorar.</span>
+      <div class="site-rule-add">
+        <input type="text" id="site-rule-host" placeholder="ex: tiktok.com" autocomplete="off">
+        <select id="site-rule-level">
+          <option value="block" data-i18n-option="rule_block">Bloquear pet</option>
+          <option value="nudge" data-i18n-option="rule_nudge">Cutucar</option>
+          <option value="limit" data-i18n-option="rule_limit">Limitar (firme)</option>
+          <option value="boost" data-i18n-option="rule_boost">Impulsionar</option>
+          <option value="off" data-i18n-option="rule_off">Ignorar</option>
+        </select>
+        <button class="btn-mini" id="site-rule-add-btn" data-i18n-title="rule_add" title="Adicionar">＋</button>
+      </div>
+      <button class="btn-secondary" id="site-rule-add-current" data-i18n="rule_add_current">➕ Adicionar site atual</button>
+      <div id="site-rule-list" class="site-rule-list" aria-live="polite"></div>
     </div>
 
     <div class="control-group">

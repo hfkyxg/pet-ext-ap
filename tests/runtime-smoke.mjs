@@ -20,7 +20,8 @@ const {
   CLAWD_SUBPETS,
   CLAWD_SUBPET_ACTIONS,
   CLAWD_SHOP,
-  CLAWD_ACHIEVEMENTS
+  CLAWD_ACHIEVEMENTS,
+  CLAWD_POPUP_TABS
 } = require('../src/shared/catalog.js');
 const edgePath = process.env.EDGE_PATH
   || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
@@ -217,8 +218,14 @@ async function validatePopupRuntime(port, worker) {
           bodyAccessories: document.querySelector('#acc-body-grid')?.children.length || 0,
           subpets: document.querySelector('#subpet-grid')?.children.length || 0,
           subpetActions: document.querySelector('#subpet-action-grid')?.children.length || 0,
+          calmActions: document.querySelectorAll('#breathe-now, #grounding-now').length,
+          calmSounds: document.querySelectorAll('[data-calm-sound]').length,
+          wellbeingMetrics: document.querySelectorAll('#wellbeing-insights .wellbeing-metric').length,
           subpetEyeColorInput: !!document.querySelector('#input-subpet-eye-color'),
           mainEyeColorInput: !!document.querySelector('#input-eye-color'),
+          skinAccentInput: document.querySelector('#input-skin-accent')?.value || null,
+          skinIntensityInput: document.querySelector('#range-skin-intensity')?.value || null,
+          skinDescription: document.querySelector('#skin-description')?.textContent?.trim() || '',
           accessoryArtPreviews: document.querySelectorAll('.accessory-art-preview').length,
           headerPreview: (() => {
             const preview = document.querySelector('#mini-sprite.header-model-preview');
@@ -253,7 +260,7 @@ async function validatePopupRuntime(port, worker) {
 
     assert.equal(snapshot.bootError, null, `Popup boot error: ${snapshot.bootError}`);
 
-    assert.equal(snapshot.tabs, 8, 'O popup deve renderizar as oito abas.');
+    assert.equal(snapshot.tabs, CLAWD_POPUP_TABS.length, `O popup deve renderizar ${CLAWD_POPUP_TABS.length} abas.`);
     assert.equal(snapshot.models, Object.keys(CLAWD_MODELS).length, 'Catálogo de modelos incompleto no popup.');
     assert.equal(snapshot.faceStyles, Object.keys(CLAWD_FACE_STYLES).length, 'Catálogo de rostos incompleto no popup.');
     assert.equal(snapshot.skins, Object.keys(CLAWD_SKINS).length, 'Catálogo de skins incompleto no popup.');
@@ -262,8 +269,14 @@ async function validatePopupRuntime(port, worker) {
     assert.equal(snapshot.bodyAccessories, expectedBody, 'Catálogo de acessórios de corpo incompleto no popup.');
     assert.equal(snapshot.subpets, Object.keys(CLAWD_SUBPETS).length, 'Catálogo de sub-pets incompleto no popup.');
     assert.equal(snapshot.subpetActions, Object.keys(CLAWD_SUBPET_ACTIONS).length, 'Ações do sub-pet incompletas no popup.');
+    assert.equal(snapshot.calmActions, 2, 'Central de Calma deve oferecer respiração e grounding.');
+    assert.equal(snapshot.calmSounds, 4, 'Central de Calma deve oferecer quatro sons curtos.');
+    assert.equal(snapshot.wellbeingMetrics, 3, 'Resumo local deve renderizar três indicadores.');
     assert.equal(snapshot.subpetEyeColorInput, true, 'O popup deve oferecer cor independente para os olhos do sub-pet.');
     assert.equal(snapshot.mainEyeColorInput, true, 'O popup deve oferecer cor independente para os olhos do pet principal.');
+    assert.equal(snapshot.skinAccentInput, '#00cec9', 'O popup deve carregar a cor de destaque da skin.');
+    assert.equal(snapshot.skinIntensityInput, '1', 'O popup deve carregar a intensidade da skin.');
+    assert.ok(snapshot.skinDescription.length > 0, 'O popup deve descrever a skin selecionada.');
     assert.equal(snapshot.accessoryArtPreviews, expectedHead + expectedFace + expectedBody, 'Cada card de acessório deve usar uma miniatura da arte real.');
     assert.equal(snapshot.headerPreview?.model, 'classic', 'O cabeçalho deve usar o modelo clássico real, não a sprite legada.');
     assert.equal(snapshot.headerPreview?.faceStyle, 'classic', 'O rosto do cabeçalho deve seguir o catálogo atual.');
@@ -443,6 +456,8 @@ async function removeSubpet(worker, page) {
 async function validateSkinsRuntime(worker, page) {
   phase('validating skins on page');
   const skins = {};
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'skinAccent', value: '#ff00aa' });
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'skinIntensity', value: 0.5 });
   for (const id of Object.keys(CLAWD_SKINS)) {
     await sendToActivePet(worker, { action: 'updateConfig', key: 'skin', value: id });
     const snap = await retry(async () => page.evaluate(`(() => {
@@ -453,9 +468,21 @@ async function validateSkinsRuntime(worker, page) {
       if (!mod) return { skin: skinId, mod: false };
       const cs = getComputedStyle(mod);
       const painted = cs.boxShadow !== 'none' || cs.backgroundImage !== 'none' || cs.opacity !== '0';
-      return { skin: skinId, mod: true, painted, display: cs.display };
+      const petStyle = getComputedStyle(pet);
+      return {
+        skin: skinId,
+        mod: true,
+        painted,
+        display: cs.display,
+        accent: petStyle.getPropertyValue('--skin-accent').trim(),
+        intensity: petStyle.getPropertyValue('--skin-intensity').trim(),
+        modOpacity: cs.opacity
+      };
     })()`), 2_000, 50);
     assert.equal(snap.skin, id, `Skin ${id} não aplicada no dataset.`);
+    assert.equal(snap.accent, '#ff00aa', `Skin ${id} não recebeu a cor de destaque.`);
+    assert.equal(snap.intensity, '0.5', `Skin ${id} não recebeu a intensidade configurada.`);
+    assert.equal(snap.modOpacity, '0.5', `Skin ${id} ignorou a intensidade visual.`);
     if (id !== 'normal') {
       assert.equal(snap.mod, true, `Skin ${id} sem .skin-mod.`);
       assert.ok(snap.painted || snap.display !== 'none', `Skin ${id} invisível na página.`);
@@ -463,6 +490,8 @@ async function validateSkinsRuntime(worker, page) {
     skins[id] = snap;
   }
   await sendToActivePet(worker, { action: 'updateConfig', key: 'skin', value: 'normal' });
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'skinAccent', value: '#00cec9' });
+  await sendToActivePet(worker, { action: 'updateConfig', key: 'skinIntensity', value: 1 });
   assert.equal(Object.keys(skins).length, Object.keys(CLAWD_SKINS).length);
   return skins;
 }
@@ -590,9 +619,11 @@ async function validateProfessionPropsRuntime(worker, page) {
 }
 
 async function validateSubpetSpeciesSample(worker, page) {
-  phase('validating subpet species sample (cat + dragon)');
+  phase('validating subpet species sample (cat + dragon + new trio)');
   const species = {};
-  for (const [id, name] of [['cat', 'Mimi'], ['dragon', 'Ember']]) {
+  for (const [id, name] of [
+    ['cat', 'Mimi'], ['dragon', 'Ember'], ['fox', 'Lumi'], ['capybara', 'Cacau'], ['axolotl', 'Bubu']
+  ]) {
     await activateSubpet(worker, id, name);
     const snap = await retry(async () => page.evaluate(`(() => {
       const subpet = document.querySelector('.aic-subpet:not(.aic-subpet-clone)');
@@ -620,6 +651,163 @@ async function validateSubpetSpeciesSample(worker, page) {
     await removeSubpet(worker, page);
   }
   return species;
+}
+
+async function validateCalmRuntime(worker, page) {
+  phase('validating calm center runtime');
+  const before = await worker.evaluate(`(async () => {
+    const state = (await chrome.storage.local.get('clawdState')).clawdState;
+    return {
+      breathing: Number(state.wellbeing?.breathingCount) || 0,
+      grounding: Number(state.wellbeing?.groundingCount) || 0,
+      sounds: Number(state.wellbeing?.calmSoundCount) || 0
+    };
+  })()`);
+
+  const groundingResponse = await sendToActivePet(worker, { action: 'startGrounding' });
+  assert.equal(groundingResponse?.ok, true, 'Mensagem startGrounding falhou.');
+  const modal = await retry(async () => page.evaluate(`(() => {
+    const el = document.querySelector('.clawd-grounding.visible');
+    return el ? {
+      role: el.getAttribute('role'),
+      modal: el.getAttribute('aria-modal'),
+      title: el.querySelector('.clawd-grounding-title')?.textContent || ''
+    } : null;
+  })()`), 3_000, 50);
+  assert.deepEqual({ role: modal.role, modal: modal.modal }, { role: 'dialog', modal: 'true' });
+  assert.match(modal.title, /^5 /);
+  for (let step = 0; step < 5; step++) {
+    await page.evaluate(`document.querySelector('.clawd-grounding-btn.primary')?.click(); true`);
+    await delay(70);
+  }
+  await retry(() => page.evaluate(`!document.querySelector('.clawd-grounding')`), 3_000, 50);
+
+  const breathingResponse = await sendToActivePet(worker, { action: 'startBreathing' });
+  assert.equal(breathingResponse?.ok, true, 'Mensagem startBreathing falhou.');
+  await retry(() => page.evaluate(`!!document.querySelector('.clawd-breathe.visible')`), 3_000, 50);
+  await page.evaluate(`document.querySelector('.clawd-breathe-skip')?.click(); true`);
+  await retry(() => page.evaluate(`!document.querySelector('.clawd-breathe')`), 3_000, 50);
+
+  /* Gesto físico libera AudioContext antes do comando vindo do popup/SW. */
+  await page.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 120, y: 120, button: 'left', buttons: 1, clickCount: 1 });
+  await page.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 120, y: 120, button: 'left', buttons: 0, clickCount: 1 });
+  await delay(120);
+  const soundResponse = await sendToActivePet(worker, { action: 'playCalmSound', kind: 'rain' });
+  assert.equal(soundResponse?.ok, true, 'Som calmo não tocou após gesto de desbloqueio.');
+  await delay(750);
+
+  const after = await worker.evaluate(`(async () => {
+    const state = (await chrome.storage.local.get('clawdState')).clawdState;
+    return {
+      breathing: Number(state.wellbeing?.breathingCount) || 0,
+      grounding: Number(state.wellbeing?.groundingCount) || 0,
+      sounds: Number(state.wellbeing?.calmSoundCount) || 0,
+      streak: Number(state.wellbeing?.healthyStreak?.days) || 0,
+      lastKinds: (state.wellbeing?.practiceLog || []).slice(-3).map(entry => entry.kind)
+    };
+  })()`);
+  assert.equal(after.breathing, before.breathing + 1);
+  assert.equal(after.grounding, before.grounding + 1);
+  assert.equal(after.sounds, before.sounds + 1);
+  assert.ok(after.streak >= 1, 'Práticas devem alimentar a sequência saudável.');
+  assert.deepEqual(after.lastKinds, ['grounding', 'breathing', 'sound']);
+  return { modal, counts: after };
+}
+
+async function validateSpeechLayoutRuntime(worker, page) {
+  phase('validating collision-free speech layout');
+  const runAt = (x, y, animated = false) => worker.evaluate(`(async () => {
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    const [{ result }] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      world: 'ISOLATED',
+      func: async (position) => {
+        const pet = globalThis.__clawd;
+        if (!pet?.subpet) return null;
+        pet.cancelMovement();
+        pet.S.showSpeech = true;
+        pet.S.settings.speechAnchor = 'auto';
+        pet.updatePosition(position.x, position.y);
+        if (position.animated) pet.setStateFor('happy', 1800);
+        pet.showSpeech('Respira comigo: tudo no seu espaço. 🌿', 0);
+        pet.subpet.say('Estou aqui! ✨', 0);
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        pet._layoutSpeechBubble();
+        pet.subpet._layoutBubble();
+        pet._layoutSpeechBubble();
+        pet.subpet._layoutBubble();
+        await new Promise(resolve => setTimeout(resolve, 380));
+        const main = pet.speechNode.getBoundingClientRect();
+        const sub = pet.subpet.bubbleNode.getBoundingClientRect();
+        const sprite = pet.stackNode.getBoundingClientRect();
+        const name = pet.nameNode.getBoundingClientRect();
+        const subBody = pet.subpet.motionNode.getBoundingClientRect();
+        const overlap = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+          * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+        const compact = rect => ({
+          left: Math.round(rect.left * 10) / 10,
+          top: Math.round(rect.top * 10) / 10,
+          right: Math.round(rect.right * 10) / 10,
+          bottom: Math.round(rect.bottom * 10) / 10
+        });
+        return {
+          viewport: { width: innerWidth, height: innerHeight },
+          main: compact(main),
+          sub: compact(sub),
+          placements: {
+            main: pet.speechNode.dataset.placement,
+            sub: pet.subpet.bubbleNode.dataset.placement
+          },
+          animated: position.animated,
+          nameInsideLookLayer: pet.lookLayer?.contains(pet.nameNode) || false,
+          overlaps: {
+            bubbles: overlap(main, sub),
+            mainSprite: overlap(main, sprite),
+            mainName: overlap(main, name),
+            subSprite: overlap(sub, sprite),
+            subName: overlap(sub, name),
+            subBody: overlap(sub, subBody)
+          }
+        };
+      },
+      args: [{ x: ${Number(x)}, y: ${Number(y)}, animated: ${!!animated} }]
+    });
+    return result;
+  })()`);
+
+  const scenarios = [];
+  const validate = snapshot => {
+    assert.ok(snapshot, 'Instância do pet/subpet indisponível para layout.');
+    for (const [kind, rect] of [['principal', snapshot.main], ['subpet', snapshot.sub]]) {
+      assert.ok(rect.left >= 7 && rect.top >= 7, `Balão ${kind} saiu pela borda inicial: ${JSON.stringify(rect)}`);
+      assert.ok(rect.right <= snapshot.viewport.width - 7, `Balão ${kind} saiu pela direita: ${JSON.stringify(rect)}`);
+      assert.ok(rect.bottom <= snapshot.viewport.height - 7, `Balão ${kind} saiu por baixo: ${JSON.stringify(rect)}`);
+    }
+    for (const [key, area] of Object.entries(snapshot.overlaps)) {
+      assert.ok(area <= 0.1, `Colisão ${key}: área ${area}; ${JSON.stringify(snapshot)}`);
+    }
+    assert.ok(['above', 'left', 'right', 'below'].includes(snapshot.placements.main));
+    assert.ok(['above', 'left', 'right', 'below'].includes(snapshot.placements.sub));
+    assert.equal(snapshot.nameInsideLookLayer, false, 'A etiqueta não pode inclinar junto com o olhar 3D.');
+    scenarios.push(snapshot);
+  };
+
+  validate(await runAt(10, 10));
+  validate(await runAt(9_999, 9_999));
+  validate(await runAt(320, 240, true));
+  await page.send('Emulation.setDeviceMetricsOverride', {
+    width: 375,
+    height: 667,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  try {
+    validate(await runAt(10, 10));
+    validate(await runAt(9_999, 9_999));
+  } finally {
+    await page.send('Emulation.clearDeviceMetricsOverride');
+  }
+  return scenarios;
 }
 
 async function validateSubpetRuntime(worker, page) {
@@ -714,6 +902,7 @@ async function validateSubpetRuntime(worker, page) {
     await retry(() => page.evaluate(`document.querySelector('.aic-subpet')?.dataset.state === 'following'`), 5_000, 80);
   }
 
+  const speechLayout = await validateSpeechLayoutRuntime(worker, page);
   await removeSubpet(worker, page);
 
   return {
@@ -721,6 +910,7 @@ async function validateSubpetRuntime(worker, page) {
     eyeColor: '#33ff99',
     duo: { affection: duoAffection, play: duoPlay, feedSleepWake: true },
     interactions: ['cuddle', 'play', 'spin', ...interactions],
+    speechLayout,
     forcedOverride: 'play→spin',
     removedCleanly: true
   };
@@ -1076,6 +1266,8 @@ async function main() {
     const subpetRuntime = await validateSubpetRuntime(controlWorker, page);
     phase('validating subpet species sample');
     const subpetSpecies = await validateSubpetSpeciesSample(controlWorker, page);
+    phase('validating calm center');
+    const calmCenter = await validateCalmRuntime(controlWorker, page);
     phase('validating skins runtime');
     const skinsRuntime = await validateSkinsRuntime(controlWorker, page);
 
@@ -1494,6 +1686,7 @@ async function main() {
       popup: popupRuntime,
       subpet: subpetRuntime,
       subpetSpecies,
+      calmCenter,
       skins: skinsRuntime,
       particles: particlesRuntime,
       multiClick: multiClickRuntime,

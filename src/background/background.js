@@ -221,6 +221,152 @@ function getSettings(cb) {
   });
 }
 
+/* ===================================================
+   Pomodoro (Foco) — fonte de verdade no service worker.
+   Estado ao vivo em storage.local['clawdFocus'] (chave própria,
+   para não conflitar com as escritas frequentes de clawdState pelo content).
+   =================================================== */
+const FOCUS_KEY = 'clawdFocus';
+const FOCUS_ALARM = 'clawdPomodoro';
+
+function focusToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function focusDefaults() {
+  return clawdDefaultState().focus;
+}
+
+function loadFocus(cb) {
+  chrome.storage.local.get([FOCUS_KEY, 'clawdState'], (res) => {
+    scrubLastError();
+    const def = focusDefaults();
+    const focus = clawdSanitizeFocusBlock((res && res[FOCUS_KEY]) || def, def);
+    const settings = ((res && res.clawdState) || {}).settings || {};
+    cb(focus, settings);
+  });
+}
+
+function applyFocusAlarm(focus) {
+  try { chrome.alarms.clear(FOCUS_ALARM); } catch (_) {}
+  if (focus && focus.enabled && !focus.paused && focus.phaseEndsAt > Date.now()) {
+    try { chrome.alarms.create(FOCUS_ALARM, { when: focus.phaseEndsAt }); } catch (_) {}
+  }
+}
+
+function broadcastFocus(focus) {
+  chrome.tabs.query({}, (tabs) => {
+    scrubLastError();
+    tabs.forEach((tab) => {
+      if (tab.id) {
+        chrome.tabs.sendMessage(tab.id, { action: 'focusState', focus }).catch(() => {});
+      }
+    });
+  });
+}
+
+function commitFocus(focus, respond) {
+  chrome.storage.local.set({ [FOCUS_KEY]: focus }, () => {
+    scrubLastError();
+    applyFocusAlarm(focus);
+    broadcastFocus(focus);
+    if (respond) respond({ ok: true, focus });
+  });
+}
+
+/** Semeia durações e autoStart a partir das preferências (settings). */
+function seedFocusDurations(focus, settings) {
+  const num = (v, lo, hi, dv) => {
+    const n = (typeof clawdClampInt === 'function') ? clawdClampInt(v, lo, hi) : null;
+    return n == null ? dv : n;
+  };
+  return {
+    ...focus,
+    workMin: num(settings.pomodoroWorkMin, 1, 180, 25),
+    breakMin: num(settings.pomodoroBreakMin, 1, 60, 5),
+    longBreakMin: num(settings.pomodoroLongBreakMin, 1, 120, 15),
+    cyclesPerLong: num(settings.pomodoroCyclesPerLong, 1, 12, 4),
+    autoStart: settings.pomodoroAutoStart !== false
+  };
+}
+
+function handleFocusAction(action, respond) {
+  loadFocus((focus, settings) => {
+    const now = Date.now();
+    const day = focusToday();
+    let next = focus;
+    if (action === 'focusStart') {
+      const base = seedFocusDurations({
+        ...focusDefaults(),
+        sessionsToday: focus.sessionsDay === day ? focus.sessionsToday : 0,
+        sessionsDay: day,
+        phase: 'idle'
+      }, settings);
+      next = clawdPomodoroNextPhase(base, now, day); // idle → work
+    } else if (action === 'focusSkip') {
+      next = focus.enabled ? advanceFocusPhase(focus, now, day) : focus;
+    } else if (action === 'focusPause') {
+      if (focus.enabled && !focus.paused && focus.phaseEndsAt > now) {
+        next = { ...focus, paused: true, pausedRemainingMs: focus.phaseEndsAt - now, phaseEndsAt: 0 };
+      }
+    } else if (action === 'focusResume') {
+      if (focus.enabled && focus.paused && focus.pausedRemainingMs > 0) {
+        next = { ...focus, paused: false, phaseEndsAt: now + focus.pausedRemainingMs, pausedRemainingMs: 0 };
+      }
+    } else if (action === 'focusStop') {
+      next = {
+        ...focus, enabled: false, paused: false, phase: 'idle',
+        phaseEndsAt: 0, pausedRemainingMs: 0, cyclesDone: 0
+      };
+    }
+    commitFocus(next, respond);
+  });
+}
+
+/** Avança de fase; respeita autoStart=false entrando na próxima fase pausada. */
+function advanceFocusPhase(focus, now, day) {
+  const next = clawdPomodoroNextPhase(focus, now, day);
+  if (focus.autoStart === false) {
+    return { ...next, paused: true, pausedRemainingMs: Math.max(0, next.phaseEndsAt - now), phaseEndsAt: 0 };
+  }
+  return next;
+}
+
+function reconcileFocusAlarm() {
+  loadFocus((focus) => {
+    const now = Date.now();
+    if (focus.enabled && !focus.paused && focus.phaseEndsAt > 0 && focus.phaseEndsAt <= now) {
+      /* Fase venceu enquanto o SW dormia — avança agora. */
+      commitFocus(advanceFocusPhase(focus, now, focusToday()));
+    } else {
+      applyFocusAlarm(focus);
+    }
+  });
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name !== FOCUS_ALARM) return;
+  loadFocus((focus) => {
+    if (!focus.enabled || focus.paused) return;
+    commitFocus(advanceFocusPhase(focus, Date.now(), focusToday()));
+  });
+});
+
+chrome.runtime.onMessage.addListener((raw, _sender, sendResponse) => {
+  const msg = clawdValidateRuntimeMessage(raw);
+  if (!msg) return;
+  const focusActions = ['focusStart', 'focusPause', 'focusResume', 'focusStop', 'focusSkip'];
+  if (focusActions.includes(msg.action)) {
+    handleFocusAction(msg.action, sendResponse);
+    return true; // resposta assíncrona
+  }
+});
+
+try {
+  chrome.runtime.onStartup.addListener(() => reconcileFocusAlarm());
+} catch (_) {}
+reconcileFocusAlarm();
+
 /* ---- Escolhe/atribui a aba anfitriã ---- */
 function assignHost(tabId) {
   clearTravelInFlight();

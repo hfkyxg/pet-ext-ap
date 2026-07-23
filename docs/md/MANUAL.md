@@ -57,7 +57,7 @@ Clique no **ícone da extensão** para abrir o menu. No topo você vê o preview
 - **Visual liso** — conserva a geometria angular do pet, mas usa superfícies contínuas no lugar das células quadradas; não exibe grade ou textura e não transforma o Claw'd em slime;
 - **Contorno** — borda escura ao redor do pet (destaca em fundos claros);
 - **Exibir boca** — ligada por padrão; desligue para remover somente a boca (olhos, piscadas e balões de emoji continuam ativos);
-- **Skin do corpo** — **7 skins** (Normal, Orelhas caídas, Robô, Sardas, Listras, Manchas, Brilho), combinável com qualquer modelo e rosto;
+- **Skin do corpo** — **11 skins** (Normal, Orelhas caídas, Robô, Sardas, Listras, Manchas, Brilho, Cósmica, Cristal, Brasa e Oceano), combináveis com qualquer modelo e rosto, com cor de destaque e intensidade ajustáveis;
 - **Provador ao vivo** — mostra a mesma arte CSS do pet e combina modelo + rosto + skin + cabeça + rosto/corpo antes de você fechar o popup; a etiqueta abaixo do preview espelha título + nome;
 - **Studio na página** — botão para abrir o painel de personalização **sobre a página** (arrastável pelos cantos ou posição livre); ou **janela destacável** (`popup.html?detached=1`) para não depender do popup da barra;
 - **Acessórios** — **31** opções em **três slots** (cabeça, rosto, **corpo**), com miniaturas pixel-art reais. Selecione ou passe o cursor para ler a descrição; chapéus acompanham o passo e ficam parados em repouso.
@@ -114,15 +114,33 @@ O equipamento indicado pela profissão é temporário e aparece com o selo **PRO
 - **Posição inicial preferida** — canto inferior direito por padrão; saves inválidos `{0,0}` são ignorados (evita spawn no canto superior esquerdo). Na **primeira abertura**, o overlay de boas-vindas já pede idioma + canto.
 - **Idioma** — pt-BR (padrão) ou en/es/zh-CN/ja/fr/de/ko/hi/ar/ru. Trocar em ⚙️ **Config** (ou no onboarding) traduz **toda** a estrutura do menu (abas, toggles, botões, opções). O pet passa a falar no idioma escolhido. Árabe ativa layout RTL.
 - **Posição dos toasts** — centro ou cantos (bl/br/tl/tr).
-- **Posição do balão** — automático (borda) ou fixo (esquerda/direita/acima/abaixo).
+- **Posição do balão** — automático ou preferência por esquerda/direita/acima/abaixo. O motor tenta a preferência primeiro, mas usa uma alternativa segura se ela sair da tela ou cobrir pet, subpet ou etiqueta.
 - **Lado do badge de emoção** — esquerda (padrão) ou direita.
 - **Trello** — API Key/Token/Board ID para enviar sugestões e bugs (ver `docs/TRELLO.md`).
 
+### ⏳ Aba Foco & Bem-estar
+
+- **Iniciar foco** começa um Pomodoro; ajuste foco, pausa, pausa longa e quantidade de ciclos antes de iniciar. Pausar congela o restante, pular avança a fase e parar encerra a sessão.
+- O halo azul indica trabalho; o halo verde indica pausa. Ele vive atrás do sprite e não cancela ações como pular, dançar ou comemorar.
+- **Auto-iniciar** encadeia as fases. Ao terminar um ciclo, o pet recompensa o progresso e pode abrir a respiração guiada.
+- **Guarda anti-rolagem** acompanha TikTok, Shorts, Reels, Reddit e X. Defina o limite e escolha intervenção gentil ou firme.
+- **Tempo de tela** resume somente a aba ativa, sem somar abas em segundo plano.
+- A **Central de Calma** reúne o **Reset de 1 minuto** (respiração 4–4–4–4), o grounding **5-4-3-2-1** no seu próprio ritmo e quatro assinaturas sonoras curtas: chuva, ondas, floresta e ronronar. Mantenha os sons ativados e clique ou toque uma vez na página para liberar o áudio.
+- **Humor** aceita uma escolha diária de 1 a 5. O cartão **Seu ritmo** mostra média recente, práticas nos últimos sete dias e sequência saudável; tudo é calculado localmente.
+- Respiração, grounding e bloqueio suave prendem o foco dentro do diálogo: use `Tab`/`Shift+Tab`; `Escape` ou **Fechar/Continuar** sempre devolvem o foco ao controle anterior.
+- **Regras por site** em Config permitem bloquear o pet, cutucar, limitar, impulsionar ou ignorar um domínio específico.
+
+As práticas são opcionais e podem ajudar a desacelerar ou voltar ao presente. Elas **não substituem avaliação, diagnóstico, tratamento ou cuidado profissional**. Humor, sequência e histórico de práticas ficam somente neste navegador.
+
+Se o sistema estiver com **Reduzir movimento** ativado, halos, transições e loops decorativos param; conteúdo, relógio e botões continuam funcionando normalmente.
+
 ### 🐕 Sub-pets
 
-Ao selecionar um subpet, você pode definir um **apelido**, a **cor do corpo** e uma **cor independente para os olhos**. O nome aparece nas falas; o corpo recebe uma sombra mais escura automaticamente para preservar a profundidade da pixel-art.
+O catálogo oferece **11 subpets**: Cachorro, Gato, Pássaro, Coelho, Dinossauro, Dragão, Fantasma, Slime, **Raposa, Capivara e Axolote**. Ao selecionar um, você pode definir um **apelido**, a **cor do corpo** e uma **cor independente para os olhos**. O nome aparece nas falas; o corpo recebe uma sombra mais escura automaticamente para preservar a profundidade da pixel-art.
 
-Clique ou use Enter/Espaço no subpet para fazer carinho (há um leve “squash” ao pressionar). Se ele estiver dormindo, acordará com uma animação própria; quando o Claw'd principal acorda, os dois despertam juntos. Fora da área visível da página, o companheiro pausa sozinho e volta a animar quando reaparece.
+Clique ou use Enter/Espaço no subpet para fazer carinho (há um leve “squash” ao pressionar). Use **duplo clique**, **segure por um instante** ou pressione **Shift+Enter/Shift+Espaço** para ativar a habilidade especial da espécie; um anel indica o gesto de segurar. Ao mover o ponteiro sobre ele, o subpet acompanha o movimento com uma reação curta. Se estiver dormindo, acordará com uma animação própria; quando o Claw'd principal acorda, os dois despertam juntos. Fora da área visível da página, o companheiro pausa sozinho e volta a animar quando reaparece.
+
+Os balões do pet e do subpet podem aparecer ao mesmo tempo: o sistema mede ambos depois do render e escolhe automaticamente entre quatro direções. Textos longos quebram linha e permanecem dentro da viewport, sem cobrir o personagem, a etiqueta ou a outra fala.
 
 No painel **Interações ao vivo**, escolha uma destas **sete** ações:
 
@@ -132,7 +150,7 @@ No painel **Interações ao vivo**, escolha uma destas **sete** ações:
 - **🌀 Rodopiar** — executa um giro curto;
 - **🎉 Comemorar** — pet e subpet festejam juntos;
 - **🤗 Abraço** — abraço em duo com feedback visual;
-- **✨ Especial** — usa o comportamento exclusivo da espécie, como fogo/voo do dragão, corrida do dinossauro ou desaparecimento do fantasma.
+- **✨ Especial** — usa o comportamento exclusivo da espécie, como fogo/voo do dragão, corrida do dinossauro, estrelas da raposa, pausa da capivara ou bolhas do axolote. Cada espécie tem uma assinatura sonora curta própria.
 
 Qualquer ação manual acorda o subpet antes de começar. Se você escolher outra enquanto uma animação ainda acontece, a nova ação assume de forma imediata.
 
@@ -228,6 +246,11 @@ Normal — o sub-pet é recriado a cada carga da página. Ele volta automaticame
 | `Alt + P` | Pose — pet congela com brilho dourado |
 | `Alt + Z` | Dormir / Acordar (toggle) |
 | `Enter` / `Espaço` no pet | Igual a um clique |
+| `Shift + Enter` / `Shift + Espaço` no pet | Abraço (em dupla quando há subpet) |
+| Segurar o pet por 0,75 s | Abraço; não dispara carinho adicional ao soltar |
+| Arrastar o pet | Mover com inércia; cancela o gesto de segurar |
+| Duplo clique / segurar o subpet | Habilidade especial da espécie |
+| `Shift + Enter` / `Shift + Espaço` no subpet | Habilidade especial pelo teclado |
 | Clique no emoji 🍖 (popup) | Alimentar rapidamente sem sair do popup |
 | Clique nos medidores de status | Carinho / alimentar / brincar / banho |
 | `Enter` / `Espaço` no 🍖 | Mesmo efeito via teclado |
@@ -239,7 +262,7 @@ Normal — o sub-pet é recriado a cada carga da página. Ele volta automaticame
 
 ## 8. Recursos avançados já disponíveis
 
-O Claw'd **v3.8.0** inclui **4 modelos × 9 rostos × 7 skins**, olhos independentes, skins combináveis, **favoritos ⭐**, **sub-pets** (cachorro, gato, dinossauro, dragão…) com arte PNG literal e movimento fluido (acompanham o pet em qualquer refresh rate e pausam fora da tela), **31 acessórios em 3 slots**, **12 profissões** com contexto de página e props animados únicos, **30 ações** no popup (+ kick/keepy/superdance), **status clicáveis** e emoções estilo Tamagotchi com anúncio acessível, **Studio in-page** + janela destacável, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas** (incl. balão/keepy), **14 quests diárias**, **traços de personalidade** que afetam o comportamento real do sub-pet, **voz customizada**, **cor de partícula**, **volumes por categoria**, partículas **por ação/emoção** (sem loops ambiente), **mostrar/ocultar persistente**, **Seguir nesta guia**, **modo minimalista**, **11 idiomas**, posições de toast/balão/badge, integração **Trello**, animações de hover/ring/speed-lines/skins e o pet **passeando entre suas abas**. A bola do Jogador fica no **pé direito**, em pixel-art nítido. O histórico de versões está no [CHANGELOG.md](../../CHANGELOG.md); o registro técnico das entregas está no [MELHORIAS.md](./MELHORIAS.md). Validação atual: [VALIDACAO.md](./VALIDACAO.md) (**197/197**).
+O Claw'd **v4.0.0** inclui **4 modelos × 9 rostos × 11 skins**, destaque e intensidade de skin ajustáveis, olhos independentes, skins combináveis, **favoritos ⭐**, **11 subpets** com arte PNG e movimento fluido (acompanham o pet em qualquer refresh rate e pausam fora da tela), **31 acessórios em 3 slots**, **12 profissões** com contexto de página e props animados únicos, **30 ações** no popup (+ kick/keepy/superdance), **status clicáveis**, Pomodoro, guarda anti-doomscroll, tempo de tela, **Central de Calma** e insights locais de bem-estar, **Studio in-page** + janela destacável, sistema de **combo**, **12 desafios semanais** rotativos, **34 conquistas**, **14 quests diárias**, personalidade, voz customizada, volumes por categoria, **11 idiomas**, integração **Trello**, movimento reduzido e o pet **passeando entre suas abas**. Ao pedir uma ação, o pet reserva uma breve janela sem fala, passeio ou cena automática, então a reação termina antes do próximo gesto autônomo. A bola do Jogador fica no **pé direito**, em pixel-art nítido. O histórico está no [CHANGELOG.md](../../CHANGELOG.md), a manutenção de movimento em [MOTION.md](../MOTION.md) e o registro técnico em [MELHORIAS.md](./MELHORIAS.md). Validação atual: [VALIDACAO.md](./VALIDACAO.md) (**240/240**).
 
 ### Personalização avançada (v3.3)
 

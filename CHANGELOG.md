@@ -3,10 +3,45 @@
 Todas as mudanças notáveis deste projeto são registradas aqui.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [4.0.0] — Foco & Bem-estar
+
+Marco maior: o Claw'd deixa de ser só um mascote e vira um **companheiro de foco e bem-estar**.
+Schema migrado **v5 → v6** (aditivo, retrocompatível). Suíte **240/240**.
+
+### Adicionado
+
+- **Pomodoro** — motor no service worker com `chrome.alarms` (sobrevive a troca de aba/sleep do worker). Máquina de estados pura `clawdPomodoroNextPhase` (foco → pausa/pausa longa → foco); estado ao vivo em `storage.local['clawdFocus']`; broadcast `focusState` para as abas. Aba **Foco** no popup com cronômetro ao vivo, start/pausar/pular/parar, durações e auto-iniciar. Pet ganha glow de foco e recompensa (XP + moedas) ao concluir ciclo
+- **Guarda anti-doomscroll** — `clawdClassifyTimeSink` detecta rolagem infinita (TikTok, YouTube `/shorts`, Instagram/Facebook reels, Reddit, X…). Escalada **configurável** via `clawdEscalationLevel`: fala gentil → toast com tempo → **respiração guiada** → **bloqueio suave** (sempre com escape "continuar +5 min"). Limite e firmeza ajustáveis
+- **Regras por site** — editor no popup para o usuário cadastrar domínios e o nível de interação (`block`/`nudge`/`limit`/`boost`/`off`), com "adicionar site atual". `blockedSites` legado é migrado automaticamente para `siteRules(block)` e mantido como espelho
+- **Tempo de tela** — rastreio diário por categoria (`clawdScreenTimeAdd`), só na aba ativa (sem dupla contagem), com resumo no popup (total, em foco, rolagem, top categorias)
+- **Bem-estar** — respiração guiada box-breathing (4-4-4-4) em overlay, check-in de humor (1–5) com resposta acolhedora e sugestão opcional de apoio em dias difíceis, e lembretes opt-in: descanso ocular **20-20-20**, hidratação, postura e afirmações positivas (respeitam horário de silêncio e não interrompem o foco)
+
+### Alterado
+
+- **Schema v6** — novos blocos `focus`/`wellbeing`/`screenTime` + settings de Pomodoro, guarda e bem-estar em `catalog.js` (SSOT), com sanitizers dedicados e migração `if (v < 6)`
+- **Banner/README/showcase** — versão **v4.0** e badge **240/240**; docs sincronizadas ao catálogo
+- **Interação pet/subpet** — long press consistente em mouse e toque (abraço/habilidade especial), `Shift+Enter`, foco visível, instruções acessíveis e subpet que acompanha o ponteiro
+- **Sistema de movimento** — tokens de duração/easing equivalentes no runtime, popup e showcase; transições restritas às propriedades necessárias; documentação canônica em `docs/MOTION.md`
+- **Acessibilidade do popup** — tabs ARIA com ←/→/Home/End; Pomodoro e humor sincronizam `disabled`/`aria-pressed`; onboarding e overlays preservam o foco
+
+### Corrigido
+
+- **Glow de foco × ações** — o pulso não anima mais `.pet-body`/`.smooth-sprite`; um halo em `.sprite-stack::after` evita sobrescrever pulo, dança, corrida ou comemoração
+- **Overlays de bem-estar** — respiração e bloqueio suave agora são modais completos (`aria-modal`, foco preso, Escape, restauração do foco) e removem o DOM em `transitionend` com fallback rastreado
+- **Movimento reduzido** — popup/showcase desligam animações e transições; preview autônomo do subpet usa rAF e pausa em aba oculta ou com `prefers-reduced-motion`
+- **Performance CSS** — removidos todos os `transition: all` do runtime e do popup
+- **Ações autônomas × interação explícita** — fala, idle, subpet, passeio, profissão, dwell e cenas em dupla respeitam `AUTONOMY_GRACE_MS`; nenhuma reação automática atropela a ação pedida pelo usuário nem deixa partículas tardias
+- **Balões sobrepostos** — o layout mede o conteúdo após o render, escolhe entre quatro posições, evita pet/subpet/etiqueta e limita os dois balões à viewport. O olhar 3D foi isolado no personagem para não deformar fala ou controles
+- **Long press duplicado** — segurar não dispara mais o abraço e um carinho adicional no `mouseup`; toque e mouse compartilham a mesma intenção
+
 ## [Não lançado]
 
 ### Adicionado
 
+- **Central de Calma** — reset respiratório de um minuto, grounding autoguiado 5-4-3-2-1 e sons procedurais curtos de chuva, ondas, floresta e ronronar; todos respeitam horário de silêncio, volumes e desbloqueio de áudio por gesto
+- **Valor de bem-estar local** — contadores de respiração/grounding/som, histórico limitado a 180 práticas, sequência saudável e resumo de sete dias com recomendação gentil; nenhum dado sai do navegador e a UI explicita que as ferramentas não substituem cuidado profissional
+- **Três novos subpets** — Raposa, Capivara e Axolote com sprites 12×10, PNGs empacotados, pools autônomos, especiais e SFX próprios; catálogo total passa a **11 espécies**
+- **Contratos de valor** — `tests/wellbeing-value.test.js` valida espécies/assets, allowlist, sanitização, acessibilidade modal, cleanup de timers, alvos de toque e documentação sem promessa clínica
 - **Onboarding com setup inicial** — primeira abertura do popup pede **idioma** e **posição inicial** (`#onboarding-locale` / `#onboarding-corner`); sugere o idioma do navegador via `clawdNormalizeLocale`
 - **"Aprontar" (travessura autônoma)** — `doMischief()` no pet (esgueira → reaparece rindo, reaproveitando estados `sneaking`/`peeking`) e `case 'mischief'` no subpet; ambos entram nos pools autônomos ponderados por personalidade (playful/curious). Fora do catálogo/grid — não altera as contagens de ações
 - **Reações à navegação** — **digitar (sustentado)** via `_bindTypingCompanion` (o pet "escreve junto" em rajadas espaçadas e volta à calma quando as teclas param; Dev entra em `typing`, demais ficam curiosos) e **assistir vídeo** via `_bindMediaWatching`/`_tickWatch` (vídeo grande tocando → o pet fica por perto reagindo baixinho 🍿/👀, com auto-walk e dwell suspensos até pausar/acabar)
@@ -26,6 +61,8 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 
 ### Corrigido
 
+- **Load unpacked MV3** — harness de smoke local movido de `_harness.html` (nome reservado pelo Chromium) para `tests/harness.html`; contrato em `extension.test.js` rejeita arquivos/pastas com `_` no pacote (exceto `_locales`/`_metadata`)
+- **Badge da suíte** — showcase/docs alinhados a **250/250** contratos
 - **Animações** — idle `!important` limpo no `setState`; `doDance` com `_danceTimers`; digitar sustentado; hug do subpet não cancela ação do dono; timers de FX/scroll/summon/poof rastreados no `destroy`; filtro energetic idle (`≤1100ms`); popup `prefers-reduced-motion` amplo
 - **Cross-tab / SFX** — aba não-host silenciosa (`_isActiveHost` / `_crossTabHidden` em loops, beep, fala e partículas); race `despawnPet`×`spawnPet` (`_despawnTimer` + `_travelGen`); subpet dblclick sem `special` duplo; wake sem chime eco; saudade longa sem `celebrate` duplicado após `doCheer`
 - **Locale do browser** — `clawdNormalizeLocale` mapeia `en-US`→`en`, `pt`→`pt-BR`, `zh-*`→`zh-CN`, etc.

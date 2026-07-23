@@ -14,6 +14,7 @@ const {
   clawdEnsureDailyQuest,
   clawdRegisterDailyProgress,
   clawdMigrateState,
+  clawdSanitizeConfigValue,
   clawdEffectiveAccessories,
   clawdLevelFromXp,
   clawdHasExtensionContext,
@@ -53,13 +54,15 @@ test('progresso diário acumula, limita no alvo e troca no novo dia', () => {
 
 test('migração preserva saves antigos e adiciona missão sem corromper sub-pets', () => {
   const state = clawdMigrateState({ schemaVersion: 2, xp: 500, accessory: 'cap', subpets: { active: 'dog' } });
-  assert.equal(state.schemaVersion, 5);
+  assert.equal(state.schemaVersion, 6);
   assert.equal(state.accessoryHead, 'cap');
   assert.equal(state.subpets.active, 'dog');
   assert.deepEqual(state.subpets.eyeColors, {});
   assert.equal(state.model, 'classic');
   assert.equal(state.faceStyle, 'classic');
   assert.equal(state.eyeColor, '#08080b');
+  assert.equal(state.skinAccent, '#00cec9');
+  assert.equal(state.skinIntensity, 1);
   assert.ok(state.daily.date);
 });
 
@@ -78,22 +81,86 @@ test('migração preserva volume 0 de canais (não trata como falsy)', () => {
 test('modelos, rostos e cor dos olhos são versionados e validados', () => {
   assert.deepEqual(Object.keys(CLAWD_MODELS), ['classic', 'mini', 'claws', 'guardian']);
   assert.deepEqual(Object.keys(CLAWD_FACE_STYLES), ['classic', 'sparkle', 'focused', 'sleepy', 'wink', 'cute', 'angry', 'heart', 'drool']);
-  assert.deepEqual(Object.keys(CLAWD_SKINS), ['normal', 'droopy', 'robot', 'freckles', 'stripes', 'spots', 'glow']);
+  assert.deepEqual(Object.keys(CLAWD_SKINS), [
+    'normal', 'droopy', 'robot', 'freckles', 'stripes', 'spots', 'glow',
+    'cosmic', 'crystal', 'ember', 'ocean'
+  ]);
   const defaults = clawdDefaultState();
   assert.deepEqual(
-    { model: defaults.model, faceStyle: defaults.faceStyle, eyeColor: defaults.eyeColor },
-    { model: 'classic', faceStyle: 'classic', eyeColor: '#08080b' }
+    {
+      model: defaults.model,
+      faceStyle: defaults.faceStyle,
+      eyeColor: defaults.eyeColor,
+      skinAccent: defaults.skinAccent,
+      skinIntensity: defaults.skinIntensity
+    },
+    {
+      model: 'classic',
+      faceStyle: 'classic',
+      eyeColor: '#08080b',
+      skinAccent: '#00cec9',
+      skinIntensity: 1
+    }
   );
-  const customized = clawdMigrateState({ schemaVersion: 4, model: 'claws', faceStyle: 'sparkle', eyeColor: '#33AAFF' });
+  const customized = clawdMigrateState({
+    schemaVersion: 4,
+    model: 'claws',
+    faceStyle: 'sparkle',
+    eyeColor: '#33AAFF',
+    skin: 'cosmic',
+    skinAccent: '#ABCDEF',
+    skinIntensity: 0.5
+  });
   assert.deepEqual(
-    { model: customized.model, faceStyle: customized.faceStyle, eyeColor: customized.eyeColor },
-    { model: 'claws', faceStyle: 'sparkle', eyeColor: '#33aaff' }
+    {
+      model: customized.model,
+      faceStyle: customized.faceStyle,
+      eyeColor: customized.eyeColor,
+      skin: customized.skin,
+      skinAccent: customized.skinAccent,
+      skinIntensity: customized.skinIntensity
+    },
+    {
+      model: 'claws',
+      faceStyle: 'sparkle',
+      eyeColor: '#33aaff',
+      skin: 'cosmic',
+      skinAccent: '#abcdef',
+      skinIntensity: 0.5
+    }
   );
-  const invalid = clawdMigrateState({ schemaVersion: 4, model: 'blob', faceStyle: 'unknown', eyeColor: 'red', skin: 'slime' });
+  const invalid = clawdMigrateState({
+    schemaVersion: 4,
+    model: 'blob',
+    faceStyle: 'unknown',
+    eyeColor: 'red',
+    skin: 'slime',
+    skinAccent: 'orange',
+    skinIntensity: 'forte'
+  });
   assert.deepEqual(
-    { model: invalid.model, faceStyle: invalid.faceStyle, eyeColor: invalid.eyeColor, skin: invalid.skin },
-    { model: 'classic', faceStyle: 'classic', eyeColor: '#08080b', skin: 'normal' }
+    {
+      model: invalid.model,
+      faceStyle: invalid.faceStyle,
+      eyeColor: invalid.eyeColor,
+      skin: invalid.skin,
+      skinAccent: invalid.skinAccent,
+      skinIntensity: invalid.skinIntensity
+    },
+    {
+      model: 'classic',
+      faceStyle: 'classic',
+      eyeColor: '#08080b',
+      skin: 'normal',
+      skinAccent: '#00cec9',
+      skinIntensity: 1
+    }
   );
+  assert.equal(clawdSanitizeConfigValue('skinAccent', '#ABCDEF'), '#abcdef');
+  assert.equal(clawdSanitizeConfigValue('skinAccent', 'red'), null);
+  assert.equal(clawdSanitizeConfigValue('skinIntensity', 2), 1);
+  assert.equal(clawdSanitizeConfigValue('skinIntensity', 0), 0.25);
+  assert.equal(clawdSanitizeConfigValue('skinIntensity', 'forte'), null);
 });
 
 test('preferência de boca é persistente, retrocompatível e aplicada ao vivo', () => {
@@ -224,7 +291,7 @@ test('sub-pet e deslocamentos não usam timer fixo para renderizar frames', () =
   assert.match(contentSource, /requestAnimationFrame\(step\)/);
   // clique enfileirado ainda resolve em carinho (bloco pode crescer com birra/rapid-click)
   assert.match(contentSource, /_queuePetClick\(\)[\s\S]{0,1200}this\.giveAffection\(\)/);
-  assert.match(contentSource, /if \(diffX < 5 && diffY < 5\) \{\s*this\._queuePetClick\(\)/);
+  assert.match(contentSource, /if \(diffX < 5 && diffY < 5 && !this\._holdTriggered\) \{\s*this\._queuePetClick\(\)/);
 });
 
 test('sprite padrão é estático e pernas só animam durante deslocamento', () => {
